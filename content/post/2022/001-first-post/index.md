@@ -13,3 +13,6 @@ technical things. Probably just tech related complaints that are more wordy
 than Twitter will allow.
 
 On the plus side it's all managed by hugo!
+
+Want to submit improvements to the layout.. Yes. But keep them small.
+
