@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="{{ .Site.LanguageCode }}" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+    <meta charset="utf-8" />
+    {{ partial "meta.html" . }}
+    <title>{{ .Site.Title }}</title>
+    <link rel="canonical" href="{{ .Permalink }}" />
+    {{ $sitetitle := .Site.Title }}
+    {{ with .OutputFormats.Get "RSS" }}
+    <link
+            href="{{ .RelPermalink }}"
+            rel="alternate"
+            type="application/rss+xml"
+            title="{{ $sitetitle }}"
+    />
+    {{ end }}
+    {{ partial "head_includes.html" . }}
+</head>
+<body lang="{{ .Site.LanguageCode }}" class="">
+<section id="main">
+    <h1>{{$.Title}}</h1>
+    <article itemprop="articleBody" id="content" class="w-90 lh-copy">
+        {{ .Content }}
+    </article>
+</section>
+<section id="sidebar">
+    Recent posts:
+    <ul>
+        {{- range $postI, $post := (.Paginate ( where site.RegularPages "Section" "post" | first 3 ) ).Pages }}
+        <li><a href="{{$post.Permalink}}">{{$post.LinkTitle}} ({{$post.Date}})</a></li>
+        {{end}}
+    </ul>
+</section>
+
+{{ partial "footer.html" . }}
+</body>
+</html>

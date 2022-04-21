@@ -1,4 +1,7 @@
-baseURL = 'https://arran4.github.io/githubpages/'
+baseURL = 'https://arran4.github.io/blog/'
+copyright = ''
 languageCode = 'en-us'
-title = 'Arrans Github Pages'
-theme = "arranstheme"
+title = 'Arrans Technical blog'
+theme = "arransblogtheme"
+[author]
+  name = 'Arran Ubels'
