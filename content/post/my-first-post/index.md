@@ -1,9 +1,15 @@
 ---
-title: "My First Post"
-date: 2021-09-11T11:50:17+10:00
+title: "First Post"
+date: 2022-04-22T00:00:00+10:00
 draft: false
-tags: ['sample']
-categories: ['sample-posts']
+tags: []
+categories: []
 ---
 
-This is my first post... Will be deleted but just to test this. Predominately for demo purposes.
+Just creating this blog. It's 100% a copy of: https://github.com/arran4/githubpages
+
+But I will add stuff to it. I intend to use this space to post more
+technical things. Probably just tech related complaints that are more wordy
+than Twitter will allow.
+
+On the plus side it's all managed by hugo!
