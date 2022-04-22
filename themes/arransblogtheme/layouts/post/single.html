@@ -1,10 +1,7 @@
 {{ partial "header.html" . }}
 <body lang="{{ .Site.LanguageCode }}" itemscope itemtype="http://schema.org/Article">
 
-<span class="b">/ </span>
-<a href="{{ .Site.BaseURL  }}" class="b bb bw1 pb1 no-underline black">{{ .Site.Title }}</a>
-<span class="b"> / </span>
-<a href="{{ .Site.BaseURL  }}post/" class="b bb bw1 pb1 no-underline black">Posts</a>
+{{ partial "breadcrumbs.html" . }}
 
 <section id="main" class="mt5">
   <h1 itemprop="name" id="title">{{ .Title }}</h1>

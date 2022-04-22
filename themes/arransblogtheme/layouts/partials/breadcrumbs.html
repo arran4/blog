@@ -1,0 +1,24 @@
+<div class="container" id="breadcrumbs">
+
+    {{block "breadcrumbs_f" (slice ( path.Dir ( strings.TrimPrefix .Site.BaseURL .Permalink ) ) $ 0 ) }}
+
+    {{ $l := (index . 0 ) }}
+    {{ $root := (index . 1 ) }}
+    {{ $i := (index . 2 ) }}
+
+    {{ if gt (len $l ) 1 }}
+    {{ template "breadcrumbs_f" (slice ( path.Dir $l ) $root (add $i 1 ) ) }}
+    {{ end }}
+
+    <i class="fas fa-chevron-right">
+        {{ with $sl := ($root.Site.GetPage $l ) }}
+        <a href="{{ $sl.RelPermalink }}">{{ $sl.Title }}</a>
+        {{ if and (gt (len $l ) 1) (gt $i 0) }}
+        ->
+        {{ end }}
+        {{ else }}
+        {{ end }}
+    </i>
+
+    {{ end }}
+</div>
