@@ -1,21 +1,7 @@
-<!DOCTYPE html>
-<html lang="{{ .Site.LanguageCode }}" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
-<head>
-    <meta charset="utf-8" />
-    {{ partial "meta.html" . }}
-    <title>{{ .Site.Title }}</title>
-    <link rel="canonical" href="{{ .Permalink }}" />
-    <link rel="alternate" type="application/rss+xml" href="index.xml">
-    {{ $sitetitle := .Site.Title }}
-    {{ with .OutputFormats.Get "RSS" }}
-    <link
-            href="{{ .RelPermalink }}"
-            rel="alternate"
-            type="application/rss+xml"
-            title="{{ $sitetitle }}"
-    />
-    {{ end }}
-    {{ partial "head_includes.html" . }}
+{{ partial "header.html" . }}
+<body lang="{{ .Site.LanguageCode }}" itemscope itemtype="http://schema.org/Article">
+
+{{ partial "breadcrumbs.html" . }}
 </head>
 <body lang="{{ .Site.LanguageCode }}" class="">
 <section id="main">
