@@ -12,3 +12,5 @@ the region when you click the "cloudwatch logs" link section:
 
 I have no idea how something like this could pass. But it has. Turns out it will default to `us-east-1`. 
 
+It seems to only occur in certain circumstances, however... Once I have selected a region post login (or acocunt switch) 
+it works fine.. Perhaps this has to do with the `AWS Extend Switch Roles` plugin I'm using in chrome?
