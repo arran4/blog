@@ -1,5 +1,5 @@
 ---
-title: "004 Aws New Glue Fail"
+title: "Aws New Glue Fail"
 date: 2022-05-09T15:25:28+10:00
 draft: false
 tags: ["review", "complaints", "aws"]
