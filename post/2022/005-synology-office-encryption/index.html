@@ -1,0 +1,49 @@
+<!doctype html><html lang=en-us prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+<meta charset=utf-8>
+<link rel=canonical href=https://arran4.github.io/blog/post/2022/005-synology-office-encryption/>
+<link rel=alternate type=application/rss+xml href=index.xml>
+<title>Synology Office Encryption - Arrans Technical blog - 2022-05-19</title>
+</head>
+<body lang=en-us itemscope itemtype=http://schema.org/Article>
+<div class=container id=breadcrumbs>
+<i class="fas fa-chevron-right">
+</i>
+<i class="fas fa-chevron-right">
+<a href=/blog/post/>Posts</a>
+->
+</i>
+<i class="fas fa-chevron-right">
+</i>
+<i class="fas fa-chevron-right">
+</i>
+</div>
+<section id=main class=mt5>
+<h1 itemprop=name id=title>Synology Office Encryption</h1>
+<span class="f6 gray">May 19, 2022</span>
+<article itemprop=articleBody id=content class="w-90 lh-copy">
+<p>The login process and decryption/passworded document workflow with Synology Office is not great. Probably needs to be
+looked at. I was going to try figure it out and provide a nice diagram of how it works, but I don&rsquo;t have that much time
+to dedicate to this issue.</p>
+<p>But I get stuff like this, when my login as expired, instead of just presenting a login page, it gives me this;</p>
+<p><img src=img.png alt=img.png></p>
+<p>Which isn&rsquo;t accurate. I mean this one would be more appropriate:</p>
+<p><img src=img_1.png alt=img_1.png></p>
+<p>Which is what I get when I refresh the page and being logged out. I expect one or the other not both.</p>
+<p>There is also a whole other set of problems such as:</p>
+<p><img src=img_2.png alt=img_2.png></p>
+<p>Where I get that the first time I try login with the same password, then the second time works even though it was the same
+encryption key. OR Sometimes if I use an invalid encryption key / password first (ie I typo), then do the correct one,
+this comes up regardless what I do. -_-</p>
+</article>
+<span class="f6 gray mv3" title="Lastmod: May 19, 2022. Published at: 2022-05-19.">
+</span>
+</section>
+<script src=https://utteranc.es/client.js repo=arran4/blog issue-term=pathname theme=preferred-color-scheme crossorigin=anonymous async></script>
+<footer>
+<i>
+Copy or make suggestions at the <a href=https://github.com/arran4/blog>Source</a>
+</i>
+</footer>
+</body>
+</html>
