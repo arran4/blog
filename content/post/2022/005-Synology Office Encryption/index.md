@@ -28,3 +28,10 @@ Where I get that the first time I try login with the same password, then the sec
 encryption key. OR Sometimes if I use an invalid encryption key / password first (ie I typo), then do the correct one,
 this comes up regardless what I do. -_-
 
+# Update
+
+The decryption page can timeout. I haven't been logged out. Just the form has timed out:
+
+![img_3.png](img_3.png)
+
+It should be refreshing something if it's past the expiry time.
