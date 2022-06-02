@@ -1,0 +1,76 @@
+<!doctype html><html lang=en-us prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+<meta charset=utf-8>
+<link rel=canonical href=https://arran4.github.io/blog/post/2022/007-lenovo-ubuntu-upgrade-and-the-backport-iwlwifi-dkms-package/>
+<link rel=alternate type=application/rss+xml href=index.xml>
+<title>Lenovo, Ubuntu Upgrade, and the Backport Iwlwifi Dkms Package - Arrans Technical blog - 2022-06-02</title>
+</head>
+<body lang=en-us itemscope itemtype=http://schema.org/Article>
+<div class=container id=breadcrumbs>
+<i class="fas fa-chevron-right">
+</i>
+<i class="fas fa-chevron-right">
+<a href=/blog/post/>Posts</a>
+->
+</i>
+<i class="fas fa-chevron-right">
+</i>
+<i class="fas fa-chevron-right">
+</i>
+</div>
+<section id=main class=mt5>
+<h1 itemprop=name id=title>Lenovo, Ubuntu Upgrade, and the Backport Iwlwifi Dkms Package</h1>
+<span class="f6 gray">June 2, 2022</span>
+<article itemprop=articleBody id=content class="w-90 lh-copy">
+<p>Had an issue with getting MOK to install my keys for my <code>Intel Corporation Wi-Fi 6 AX200 (rev 1a)</code>
+wireless card on my Lenovo X1 Carbon Extreme G2.. Turns out there is a bug in the shell script that
+installs the self signed keys in to MOX&mldr; It might be a guard to ensure that the password is read
+properly, but I suspect it&rsquo;s not properly consuming the &ldquo;return&rdquo; at the prompt it presents you with.
+Which is causing the error:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=color:#75715e># update-secureboot-policy --enroll-key                                                                  </span>
+Running in non-interactive mode, doing nothing.
+</code></pre></div><p>&ldquo;Non-interactive mode&rdquo; to show.</p>
+<p>The code in question is:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>            <span style=color:#66d9ef>if</span> <span style=color:#f92672>[</span> -z <span style=color:#e6db74>&#34;</span>$key$again<span style=color:#e6db74>&#34;</span> <span style=color:#f92672>]</span> <span style=color:#f92672>&amp;&amp;</span> echo <span style=color:#e6db74>&#34;</span>$seen_key<span style=color:#e6db74>&#34;</span> | grep -q ^30; <span style=color:#66d9ef>then</span>
+                echo <span style=color:#e6db74>&#34;Running in non-interactive mode, doing nothing.&#34;</span> &gt;&amp;<span style=color:#ae81ff>2</span>
+
+                <span style=color:#66d9ef>if</span> new_dkms_module; <span style=color:#66d9ef>then</span>
+                    show_dkms_list_changes
+                    clear_new_dkms_list
+                    exit <span style=color:#ae81ff>1</span>
+                <span style=color:#66d9ef>else</span>
+                    exit <span style=color:#ae81ff>0</span>
+                <span style=color:#66d9ef>fi</span>
+            <span style=color:#66d9ef>fi</span>
+</code></pre></div><p>On lines: 299 in <code>/usr/sbin/update-secureboot-policy</code></p>
+<p>I solved this by making the 2nd part of the condition always fail by adding a false to the end:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>            <span style=color:#66d9ef>if</span> <span style=color:#f92672>[</span> -z <span style=color:#e6db74>&#34;</span>$key$again<span style=color:#e6db74>&#34;</span> <span style=color:#f92672>]</span> <span style=color:#f92672>&amp;&amp;</span> echo <span style=color:#e6db74>&#34;</span>$seen_key<span style=color:#e6db74>&#34;</span> | grep -q ^30 <span style=color:#f92672>&amp;&amp;</span> false; <span style=color:#66d9ef>then</span>
+                echo <span style=color:#e6db74>&#34;Running in non-interactive mode, doing nothing.&#34;</span> &gt;&amp;<span style=color:#ae81ff>2</span>
+
+                <span style=color:#66d9ef>if</span> new_dkms_module; <span style=color:#66d9ef>then</span>
+                    show_dkms_list_changes
+                    clear_new_dkms_list
+                    exit <span style=color:#ae81ff>1</span>
+                <span style=color:#66d9ef>else</span>
+                    exit <span style=color:#ae81ff>0</span>
+                <span style=color:#66d9ef>fi</span>
+            <span style=color:#66d9ef>fi</span>
+</code></pre></div><p>This worked. How ever I did notice that it didn&rsquo;t fully consume my enter. So when it did prompt me
+for a password, it flashed up on the screen, and then told me the password was invalid because it was
+too short. &ndash; They need to clear the buffer in what ever line reader they are using.</p>
+<p>I tried multiple other things to get here, there seems to have been another bug where the tool would
+go into an infinite loop. That issue dominates google searches for the solution.</p>
+<p>Not going to bother logging an issue it&rsquo;s easier to write a rushed blog post about it than follow
+procedure on an issue tracker.</p>
+</article>
+<span class="f6 gray mv3" title="Lastmod: June 2, 2022. Published at: 2022-06-02.">
+</span>
+</section>
+<script src=https://utteranc.es/client.js repo=arran4/blog issue-term=pathname theme=preferred-color-scheme crossorigin=anonymous async></script>
+<footer>
+<i>
+Copy or make suggestions at the <a href=https://github.com/arran4/blog>Source</a>
+</i>
+</footer>
+</body>
+</html>
