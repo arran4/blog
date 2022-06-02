@@ -24,12 +24,16 @@
 <article itemprop=articleBody id=content class="w-90 lh-copy">
 <p>Had an issue with getting MOK to install my keys for my <code>Intel Corporation Wi-Fi 6 AX200 (rev 1a)</code>
 wireless card on my Lenovo X1 Carbon Extreme G2.. Turns out there is a bug in the shell script that
-installs the self signed keys in to MOX&mldr; It might be a guard to ensure that the password is read
-properly, but I suspect it&rsquo;s not properly consuming the &ldquo;return&rdquo; at the prompt it presents you with.
-Which is causing the error:</p>
+installs the self signed keys in to MOX&mldr; Which is great. But it turns out I have hit a bug..</p>
+<p>Perhaps this is because I use zsh or somee other reason but.. Once I see:</p>
+<p><img src=Screenshot_20220601_191034.png alt></p>
+<p>I press enter, then it immediately exists and shows me:</p>
 <div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=color:#75715e># update-secureboot-policy --enroll-key                                                                  </span>
 Running in non-interactive mode, doing nothing.
-</code></pre></div><p>&ldquo;Non-interactive mode&rdquo; to show.</p>
+</code></pre></div><p>Upon investigation it seems to be failing to &ldquo;consume&rdquo; the &ldquo;enter&rdquo; on the &ldquo;ok&rdquo; button.. I suspect
+that the code that is used to clear the buffer before the code that ensures that we are at an
+interactive prompt isn&rsquo;t clearing the buffer properly. Which is causing the error:
+&ldquo;Non-interactive mode&rdquo; to show.</p>
 <p>The code in question is:</p>
 <div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>            <span style=color:#66d9ef>if</span> <span style=color:#f92672>[</span> -z <span style=color:#e6db74>&#34;</span>$key$again<span style=color:#e6db74>&#34;</span> <span style=color:#f92672>]</span> <span style=color:#f92672>&amp;&amp;</span> echo <span style=color:#e6db74>&#34;</span>$seen_key<span style=color:#e6db74>&#34;</span> | grep -q ^30; <span style=color:#66d9ef>then</span>
                 echo <span style=color:#e6db74>&#34;Running in non-interactive mode, doing nothing.&#34;</span> &gt;&amp;<span style=color:#ae81ff>2</span>
