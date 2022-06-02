@@ -1,0 +1,93 @@
+<!doctype html><html lang=en-us prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+<meta charset=utf-8>
+<link rel=canonical href=https://arran4.github.io/blog/post/2022/009-linux-dmesg-and-issue-reporting/>
+<link rel=alternate type=application/rss+xml href=index.xml>
+<title>Linux, Dmesg, and Issue Reporting - Arrans Technical blog - 2022-06-02</title>
+</head>
+<body lang=en-us itemscope itemtype=http://schema.org/Article>
+<div class=container id=breadcrumbs>
+<i class="fas fa-chevron-right">
+</i>
+<i class="fas fa-chevron-right">
+<a href=/blog/post/>Posts</a>
+->
+</i>
+<i class="fas fa-chevron-right">
+</i>
+<i class="fas fa-chevron-right">
+</i>
+</div>
+<section id=main class=mt5>
+<h1 itemprop=name id=title>Linux, Dmesg, and Issue Reporting</h1>
+<span class="f6 gray">June 2, 2022</span>
+<article itemprop=articleBody id=content class="w-90 lh-copy">
+<p>So started using linux.. Getting this issue here:</p>
+<pre tabindex=0><code class=language-dmesg data-lang=dmesg>[  499.624767] thinkpad_acpi: unhandled HKEY event 0x6031
+[  499.624771] thinkpad_acpi: please report the conditions when this event happened to ibm-acpi-devel@lists.sourceforge.net
+[  517.509897] thinkpad_acpi: unhandled HKEY event 0x6031
+[  517.509905] thinkpad_acpi: please report the conditions when this event happened to ibm-acpi-devel@lists.sourceforge.net
+</code></pre><p>I really don&rsquo;t want to have to mail a mailing list and learn how to engage
+with the community, how to write a post, and worst yet, having to subscribe
+to a mailing list to get a single response.</p>
+<p>I don&rsquo;t mind disclosing details etc, just having to go through a complex
+engagement process is not ideal and does take a lot of energy&mldr; I will
+probably be sending my machine back to Lenovo to look at due to this
+issue (under windows it automatically hibernates every 2-3 weeks randomly
+and event log says: critical battery issue. Let&rsquo;s see what Linux does.)</p>
+<p>Windows:</p>
+<p><img src=img.png alt=img.png></p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-xml data-lang=xml><span style=color:#f92672>&lt;Event</span> <span style=color:#a6e22e>xmlns=</span><span style=color:#e6db74>&#34;http://schemas.microsoft.com/win/2004/08/events/event&#34;</span><span style=color:#f92672>&gt;</span>
+- <span style=color:#f92672>&lt;System&gt;</span>
+  <span style=color:#f92672>&lt;Provider</span> <span style=color:#a6e22e>Name=</span><span style=color:#e6db74>&#34;Microsoft-Windows-Kernel-Power&#34;</span> <span style=color:#a6e22e>Guid=</span><span style=color:#e6db74>&#34;{331c3b3a-2005-44c2-ac5e-77220c37d6b4}&#34;</span> <span style=color:#f92672>/&gt;</span>
+  <span style=color:#f92672>&lt;EventID&gt;</span>524<span style=color:#f92672>&lt;/EventID&gt;</span>
+  <span style=color:#f92672>&lt;Version&gt;</span>0<span style=color:#f92672>&lt;/Version&gt;</span>
+  <span style=color:#f92672>&lt;Level&gt;</span>4<span style=color:#f92672>&lt;/Level&gt;</span>
+  <span style=color:#f92672>&lt;Task&gt;</span>223<span style=color:#f92672>&lt;/Task&gt;</span>
+  <span style=color:#f92672>&lt;Opcode&gt;</span>0<span style=color:#f92672>&lt;/Opcode&gt;</span>
+  <span style=color:#f92672>&lt;Keywords&gt;</span>0x8000000000000404<span style=color:#f92672>&lt;/Keywords&gt;</span>
+  <span style=color:#f92672>&lt;TimeCreated</span> <span style=color:#a6e22e>SystemTime=</span><span style=color:#e6db74>&#34;2021-10-22T02:48:44.4919877Z&#34;</span> <span style=color:#f92672>/&gt;</span>
+  <span style=color:#f92672>&lt;EventRecordID&gt;</span>91201<span style=color:#f92672>&lt;/EventRecordID&gt;</span>
+  <span style=color:#f92672>&lt;Correlation</span> <span style=color:#f92672>/&gt;</span>
+  <span style=color:#f92672>&lt;Execution</span> <span style=color:#a6e22e>ProcessID=</span><span style=color:#e6db74>&#34;4&#34;</span> <span style=color:#a6e22e>ThreadID=</span><span style=color:#e6db74>&#34;24268&#34;</span> <span style=color:#f92672>/&gt;</span>
+  <span style=color:#f92672>&lt;Channel&gt;</span>System<span style=color:#f92672>&lt;/Channel&gt;</span>
+  <span style=color:#f92672>&lt;Computer&gt;</span>arrans-x1extreme<span style=color:#f92672>&lt;/Computer&gt;</span>
+  <span style=color:#f92672>&lt;Security</span> <span style=color:#a6e22e>UserID=</span><span style=color:#e6db74>&#34;S-1-5-18&#34;</span> <span style=color:#f92672>/&gt;</span>
+  <span style=color:#f92672>&lt;/System&gt;</span>
+- <span style=color:#f92672>&lt;EventData&gt;</span>
+  <span style=color:#f92672>&lt;Data</span> <span style=color:#a6e22e>Name=</span><span style=color:#e6db74>&#34;Index&#34;</span><span style=color:#f92672>&gt;</span>0<span style=color:#f92672>&lt;/Data&gt;</span>
+  <span style=color:#f92672>&lt;Data</span> <span style=color:#a6e22e>Name=</span><span style=color:#e6db74>&#34;ActiveBatteryCount&#34;</span><span style=color:#f92672>&gt;</span>1<span style=color:#f92672>&lt;/Data&gt;</span>
+  <span style=color:#f92672>&lt;Data</span> <span style=color:#a6e22e>Name=</span><span style=color:#e6db74>&#34;RemainingPercentage&#34;</span><span style=color:#f92672>&gt;</span>1<span style=color:#f92672>&lt;/Data&gt;</span>
+  <span style=color:#f92672>&lt;Data</span> <span style=color:#a6e22e>Name=</span><span style=color:#e6db74>&#34;IsAcOnline&#34;</span><span style=color:#f92672>&gt;</span>1<span style=color:#f92672>&lt;/Data&gt;</span>
+  <span style=color:#f92672>&lt;Data</span> <span style=color:#a6e22e>Name=</span><span style=color:#e6db74>&#34;BatteryActionInternalFlags&#34;</span><span style=color:#f92672>&gt;</span>0x80<span style=color:#f92672>&lt;/Data&gt;</span>
+  <span style=color:#f92672>&lt;Data</span> <span style=color:#a6e22e>Name=</span><span style=color:#e6db74>&#34;IsPowerActionCallIgnored&#34;</span><span style=color:#f92672>&gt;</span>0<span style=color:#f92672>&lt;/Data&gt;</span>
+  <span style=color:#f92672>&lt;Data</span> <span style=color:#a6e22e>Name=</span><span style=color:#e6db74>&#34;IsPowerPolicyEnabled&#34;</span><span style=color:#f92672>&gt;</span>1<span style=color:#f92672>&lt;/Data&gt;</span>
+  <span style=color:#f92672>&lt;Data</span> <span style=color:#a6e22e>Name=</span><span style=color:#e6db74>&#34;PowerPolicyAction&#34;</span><span style=color:#f92672>&gt;</span>3<span style=color:#f92672>&lt;/Data&gt;</span>
+  <span style=color:#f92672>&lt;Data</span> <span style=color:#a6e22e>Name=</span><span style=color:#e6db74>&#34;PowerPolicyBatteryLevel&#34;</span><span style=color:#f92672>&gt;</span>5<span style=color:#f92672>&lt;/Data&gt;</span>
+  <span style=color:#f92672>&lt;Data</span> <span style=color:#a6e22e>Name=</span><span style=color:#e6db74>&#34;PowerPolicyEventCode&#34;</span><span style=color:#f92672>&gt;</span>1<span style=color:#f92672>&lt;/Data&gt;</span>
+  <span style=color:#f92672>&lt;Data</span> <span style=color:#a6e22e>Name=</span><span style=color:#e6db74>&#34;PowerPolicyMinState&#34;</span><span style=color:#f92672>&gt;</span>4<span style=color:#f92672>&lt;/Data&gt;</span>
+  <span style=color:#f92672>&lt;/EventData&gt;</span>
+  <span style=color:#f92672>&lt;/Event&gt;</span>
+</code></pre></div><p>I have gone through the support process of running diagnostic tools,
+discharging-recharging etc. I jsut don&rsquo;t have another computer that&rsquo;s
+usable while it&rsquo;s away for&mldr; 2-3 months. -_-</p>
+<p>Either way:</p>
+<ol>
+<li>issue reporting involving mailing lists / forums / complex bug trackers
+are a poor experience</li>
+<li>You need to have more than one computer b/c of long tech support processes
+probably not helped by supply chain / logistic issues. (Laptop goes to
+China I think.</li>
+</ol>
+</article>
+<span class="f6 gray mv3" title="Lastmod: June 2, 2022. Published at: 2022-06-02.">
+</span>
+</section>
+<script src=https://utteranc.es/client.js repo=arran4/blog issue-term=pathname theme=preferred-color-scheme crossorigin=anonymous async></script>
+<footer>
+<i>
+Copy or make suggestions at the <a href=https://github.com/arran4/blog>Source</a>
+</i>
+</footer>
+</body>
+</html>
