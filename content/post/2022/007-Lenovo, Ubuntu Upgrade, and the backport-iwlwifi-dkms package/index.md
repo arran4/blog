@@ -8,14 +8,21 @@ categories: ["tech-issue"]
 
 Had an issue with getting MOK to install my keys for my `Intel Corporation Wi-Fi 6 AX200 (rev 1a)` 
 wireless card on my Lenovo X1 Carbon Extreme G2.. Turns out there is a bug in the shell script that
-installs the self signed keys in to MOX... It might be a guard to ensure that the password is read
-properly, but I suspect it's not properly consuming the "return" at the prompt it presents you with.
-Which is causing the error:
+installs the self signed keys in to MOX... Which is great. But it turns out I have hit a bug..
+
+Perhaps this is because I use zsh or somee other reason but.. Once I see:
+
+![](Screenshot_20220601_191034.png)
+
+I press enter, then it immediately exists and shows me:
 ```shell
 # update-secureboot-policy --enroll-key                                                                  
 Running in non-interactive mode, doing nothing.
 ```
 
+Upon investigation it seems to be failing to "consume" the "enter" on the "ok" button.. I suspect
+that the code that is used to clear the buffer before the code that ensures that we are at an 
+interactive prompt isn't clearing the buffer properly. Which is causing the error: 
 "Non-interactive mode" to show.
 
 The code in question is:
