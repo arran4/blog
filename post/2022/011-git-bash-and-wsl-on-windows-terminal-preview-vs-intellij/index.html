@@ -1,0 +1,53 @@
+<!doctype html><html lang=en-us prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+<meta charset=utf-8>
+<link rel=canonical href=https://arran4.github.io/blog/post/2022/011-git-bash-and-wsl-on-windows-terminal-preview-vs-intellij/>
+<link rel=alternate type=application/rss+xml href=index.xml>
+<title>Git Bash and WSL on Windows Terminal Preview vs IntelliJ - Arrans Technical blog - 2022-06-14</title>
+</head>
+<body lang=en-us itemscope itemtype=http://schema.org/Article>
+<div class=container id=breadcrumbs>
+<i class="fas fa-chevron-right">
+</i>
+<i class="fas fa-chevron-right">
+<a href=/blog/post/>Posts</a>
+->
+</i>
+<i class="fas fa-chevron-right">
+</i>
+<i class="fas fa-chevron-right">
+</i>
+</div>
+<section id=main class=mt5>
+<h1 itemprop=name id=title>Git Bash and WSL on Windows Terminal Preview vs IntelliJ</h1>
+<span class="f6 gray">June 14, 2022</span>
+<article itemprop=articleBody id=content class="w-90 lh-copy">
+<p>For some reason IntelliJ and Windows terminal discover available shells in different ways, but either way is
+not ideal. (In-fact IntelliJ uses two different means of discovery.)</p>
+<p>The terminal popup in Intellj seems to be unaware of Gitbash..</p>
+<p><img src=img.png alt=img.png></p>
+<p>Which is in complete contrast to the terminal settings (same plugin) which is
+unaware of my WSL deployments. (Possibly because it&rsquo;s using a file path based system)
+Which means I can&rsquo;t set Debian WSL as my default terminal in IntelliJ. However to it&rsquo;s
+credit I can open a Git Bash instance:</p>
+<p><img src=img_2.png alt=img_2.png></p>
+<p>Mean while, Windows Terminal Preview. Doesn&rsquo;t seem to offer git bash out of the box
+as an option. I&rsquo;m not too sure who is at fault; but I would like some consistency among
+I guess &ldquo;shells&rdquo; provided. I presume it would default to Microsofts Windows team for some
+consistency. (Also I would like the ability to add my own via .rc files like managed
+via my <a href=https://github.com/arran4/dotfiles>chezmoi</a> setup.)</p>
+<p><img src=img_1.png alt=img_1.png></p>
+<p>(All of this is with the caveat: &ldquo;Without additional configuration&rdquo;) Out of the box is
+pretty important to me as I reformat / migrate often.</p>
+</article>
+<span class="f6 gray mv3" title="Lastmod: June 14, 2022. Published at: 2022-06-14.">
+</span>
+</section>
+<script src=https://utteranc.es/client.js repo=arran4/blog issue-term=pathname theme=preferred-color-scheme crossorigin=anonymous async></script>
+<footer>
+<i>
+Copy or make suggestions at the <a href=https://github.com/arran4/blog>Source</a>
+</i>
+</footer>
+</body>
+</html>
