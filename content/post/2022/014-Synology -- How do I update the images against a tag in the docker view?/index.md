@@ -16,3 +16,25 @@ as the SHAs don't change but the tags do! -_-
 
 Saying that; this addition is nice:
 ![](ksnip_20220814-152207.png)
+
+-- 
+
+Turns out adding itself over itself doesn't work.
+
+And you can't add the update by a different tag name
+and switch the tag on an "off" container.. So I had 
+to export:
+![img_1.png](img_1.png)
+
+![img_2.png](img_2.png)
+
+Manually modify then reupload
+
+![img_3.png](img_3.png)
+
+That worked.
+
+Side note; this message comes up regardless of the 
+containers actual status.. Rather annoying.
+
+![img_4.png](img_4.png)
