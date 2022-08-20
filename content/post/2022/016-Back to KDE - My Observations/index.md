@@ -16,6 +16,7 @@ that's a conversation for another day.
 So the move to KDE has been pretty nice in the most part. I vastly enjoy having a lot more power user 
 functionality back that I lost. Such as "Window manager" native support for shading and "always above" and
 "always below". Especially being able to customize it so that I can click them directly:
+
 ![img.png](img.png)
 
 How-ever I tried the "Application Menu" option.. Turned that off, increased clicks at no added benefit.
@@ -55,11 +56,13 @@ than retain any sort of order.
 Virtual desktops have become strange.. It's clearly a grid, however when I add desktops, I have to do it
 for each "Row".. It numbers the virtual desktops, however I find positional based vritual desktops far 
 more handy, however I don't see any way of managing that automatically:
+
 ![img_3.png](img_3.png)
 
 So here I am naiming my virtual desktops manually. -_- (I have since added a center row.) This seems like
 way too much work.. Also my other activities I would like only one virtual desktop. Why? They are only 
 for "Music" and "Games":
+
 ![img_4.png](img_4.png)
 
 The rules are surprisingly hard to configure, especially with electron. I basically had to use the force 
@@ -70,20 +73,24 @@ gather the X api probably doesn't allow that level of inspection.
 There is a surprsingly poor level of consistency amongst applications. I don't mind per say. However it 
 would be nice to have more of the action buttons on the lists/listviews around the place. Such as in 
 the settings windows view from above it has:
+
 ![img_5.png](img_5.png)
 
 However it doesn't seem to exist in Kmail when configuring accounts where it would be a bit more useful, 
 or even in KOrganizer which would help when setting multiple events:
+
 ![img_6.png](img_6.png)
 
 # KOrganizer
 
 I also can't seem to figure out how to easily configure default reminders. However there are some nice
 features that other applications should adopt. Such as the "quick" dates:
+
 ![img_7.png](img_7.png)
 
 However once again, this is only limited in applications. Gmail thanks to the "Inbox" experiment has an
 equivalent: 
+
 ![img_8.png](img_8.png)
 
 However it can only have a couple positions, and they only use it in a couple locations. Basically the same
@@ -92,21 +99,25 @@ issue as KDE. KDE however doesn't seem to apply it to times.. I would like to be
 
 I really do like the "Reminder" Daemon popups.. They don't steal focus, but are visible, don't make a noise,
 and allow you to address multiple issues at once, with clear actions, such as snooze or dismiss:
+
 ![img_9.png](img_9.png)
 
 Much better than this shit:
+
 ![img_10.png](img_10.png)
 
 Which has become the default for messaging. I don't know why I need to get a message /every/ single time
 someone presses enter on a message. Also unless I want a preview previews aren't helping me too much..
 
 I do like the countdown in the dismiss component though:
+
 ![img_11.png](img_11.png)
 
 That's a nice touch.
 
 Although for some reason the KOrganizer reminder daemon was disabled at the start, and set not to auto
 start...
+
 ![img_12.png](img_12.png)
 
 This is counter to my expectations. I had to look for it... It's amazing I didn't have to use google to
@@ -123,6 +134,7 @@ a popup...
 ![img_14.png](img_14.png)
 
 Although I probably turned notifications off:
+
 ![img_15.png](img_15.png)
 
 So perhaps I'm giving it too much credit..
@@ -134,6 +146,7 @@ emdedded in Kmail so I could check the status there. Along with designed for the
 
 Also when the system got stuck checking the imap folders for changes, it would cause EVERYTHING else to block,
 so, when I deleted a calendar item, it wouldn't delete, so I did it twice, later on, I randomly got this:
+
 ![img_16.png](img_16.png)
 
 Thanks... Imap is designed to allow concurrent requests. My guess is that the KDE Imap client is rather
@@ -141,6 +154,7 @@ primitive. I would love to work on fixing that, if I could get paid for doing so
 happy to pay me for doing that let me know please!
 
 But I get very used to seeing this:
+
 ![img_17.png](img_17.png)
 
 My solution around it is to go offline then go online when I want to do anything. However Kmail clearly
@@ -151,12 +165,14 @@ archive to reduce the folder size. Which I guess there isn't much wrong with tha
 in opinion. 
 
 However the fact that it can block me from moving, and even seeing mail like this:
+
 ![img_18.png](img_18.png)
 
 Is rather confronting. I can think of a couple solutions but without time to look at what's going on
 under the hood I don't know what the realities are of the situation.
 
 But I really do like the sort by date view it presents:
+
 ![img_19.png](img_19.png)
 
 It also for the number of items (over half a million in some of my folders) renders it VERY quickly. If
@@ -171,6 +187,7 @@ confusing as I don't know the scope of access or what it does, and I can't seem 
 
 I have setup one of my gmail accounts there, which I think provides it to kopete.. I'm not sure. However
 it's so badly misconfigured it's unusable, as I get this dialog:
+
 ![img_20.png](img_20.png)
 
 I'm sorry.. I am not going to accept that. I don't know what's going on but I don't like it.
@@ -178,12 +195,15 @@ I'm sorry.. I am not going to accept that. I don't know what's going on but I do
 # Notifications, again
 
 Once again I must speak about notifications. I love all the settings:
+
 ![img_21.png](img_21.png)
 
 However sometimes I can be a bit hard to find things like this:
+
 ![img_22.png](img_22.png)
 
 It's burried under the option:
+
 ![img_23.png](img_23.png)
 
 I would expect more prominence on that. 
@@ -201,6 +221,7 @@ give me regexp filters or something..
 
 In my dot files, I have a `.face.icon`  https://github.com/arran4/dotfiles/blob/main/dot_face.icon file 
 configured. SDDM seems to handle it fine.. KDE Settings, not at all:
+
 ![img_25.png](img_25.png)
 
 No idea why that is, but I am assuming it's some sort of standard? Perhaps XDG? (Perhaps not https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html)
@@ -209,19 +230,23 @@ Maybe free desktop? No idea. But I'm surprised that isn't supported.
 Although Kmail supports gravatar, so maybe that's where they are going with it?
 
 Backup options seems to only support USB:
+
 ![img_26.png](img_26.png)
 
 However I have a Synology NAS, so SFTP, SMB, or anything would be nice. 
 
 I do like the configuration options. And also the integration with KDE looks:
+
 ![img_27.png](img_27.png)
 
 Even though it can be prohibitively blocking to explore:
+
 ![img_28.png](img_28.png)
 
 Prefetching, downloading larger chucks might be nice? But I guess they are trying to go search first...
 I am not sure how useful that is to me as I am searching for a look.... Not like I can just specify the 
 keywords for a look because some of the descriptions leave much to be desired:
+
 ![img_29.png](img_29.png)
 
 But even if it was, it's not like it would make it more discoverable:
@@ -232,6 +257,7 @@ Perhaps a "show 10 random" button might help? IDK.
 # Crashes
 
 It crashes a lot.. But the good news is that I don't feel helpless. I do get to log it:
+
 ![img_30.png](img_30.png)
 
 And people do respond to tickets although I was not that helpful. I will have to work on that.
