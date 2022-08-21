@@ -9,7 +9,7 @@
 <section id="sidebar">
     Recent posts:
     <ul>
-        {{- range $postI, $post := (.Paginate ( where site.RegularPages "Section" "post" ) ).Pages }}
+        {{- range $postI, $post := ( where site.RegularPages "Section" "post" ) }}
         <li><a href="{{$post.Permalink}}">{{$post.LinkTitle}} ({{$post.Date}})</a></li>
         {{end}}
     </ul>
