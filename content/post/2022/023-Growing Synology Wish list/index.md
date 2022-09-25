@@ -74,6 +74,7 @@ of this report or it visible in the "Files" tool, or a way to invoke it.
 ## Scheduled tasks
 
 Regarding the scheduled tasks feature: 
+
 ![img.png](img.png)
 
 ### Normal users sandbox and access
@@ -234,6 +235,7 @@ I like the file manager but it has some issues.
 ### Replace / Skip
 
 There seems to be a massive issue with moving files around, the two options it gives me are:
+
 ![img_3.png](img_3.png)
 
 I figure that this was supposed to be feature that people don't use too much. There are other things to consider with this:
@@ -284,6 +286,7 @@ which is a "virtual" view of the "homes/$user" folder.
 
 Obviously encryption would work differently to the Drive solution. But being able to have an encrypted folder. Perhaps 
 that works similar to the KDE Vaults, where it prompts you for the key on mount and you have to manually mount it:
+
 ![img_5.png](img_5.png)
 
 # More to come

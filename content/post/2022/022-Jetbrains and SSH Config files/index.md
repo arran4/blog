@@ -23,6 +23,7 @@ then setting it in each repo's `$WD/.git/config` file using `git config --set us
 
 However Jetbrains products on the other hand assumes that `~/.gitconfig` doesn't have `user.email` populated as a mistake and is
 insistent on getting me to set it:
+
 ![img.png](img.png)
 
 The dialog is good, but the fact that it checks it by default is annoying.. I have logged a ticket in the past for this
