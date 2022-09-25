@@ -1,0 +1,57 @@
+<!doctype html><html lang=en-us prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+<meta charset=utf-8>
+<link rel=canonical href=https://arran4.github.io/blog/post/2022/016-jetbrains-and-ssh-config-files/>
+<link rel=alternate type=application/rss+xml href=index.xml>
+<title>Jetbrains and SSH Config Files - Arrans Technical blog - 2022-09-25</title>
+</head>
+<body lang=en-us itemscope itemtype=http://schema.org/Article>
+<div class=container id=breadcrumbs>
+<i class="fas fa-chevron-right">
+</i>
+<i class="fas fa-chevron-right">
+<a href=/blog/post/>Posts</a>
+->
+</i>
+<i class="fas fa-chevron-right">
+</i>
+<i class="fas fa-chevron-right">
+</i>
+</div>
+<section id=main class=mt5>
+<h1 itemprop=name id=title>Jetbrains and SSH Config Files</h1>
+<span class="f6 gray">September 25, 2022</span>
+<article itemprop=articleBody id=content class="w-90 lh-copy">
+<p>Since I have setup a <a href=https://github.com/arran4/dotfiles>Dotfiles repo</a> using the useful <a href=https://www.chezmoi.io/>Chezmoi</a> I am
+using a single configuration everywhere. Something else I also do is use one account for all my work regardless of the
+computer I&rsquo;m on.</p>
+<p>However that means you encounter issues with software which wasn&rsquo;t exactly designed for users who operate under different
+&ldquo;aliases&rdquo; on the same account. Such as, when I&rsquo;m working for one of my clients, I do all my commits under the email address
+associated with that organisation. While this is strictly unnecessary as people rarely use that email address, it&rsquo;s
+something I do.</p>
+<p>Interestingly enough <code>git</code> itself isn&rsquo;t the issue here. While Git only has space for 1 email in it&rsquo;s <code>~/.gitconfig</code> file
+it&rsquo;s configuration files are flexible enough to allow you to work around the issue in multiple ways, such as [https://stackoverflow.com/questions/34597186/use-a-different-user-email-and-user-name-for-git-config-based-upon-remote-clone] having
+different &ldquo;project folders&rdquo; for different repos using: <code>[includeIf "gitdir:~/work/"]</code>; [https://collectiveidea.com/blog/archives/2016/04/04/multiple-personalities-in-git] using a relative path for the email
+by use of: <code>git config --global --set include.path ../.gitemail</code>; or the method I&rsquo;m using and just leaving it unset in my <code>~/.gitconfig</code> file ( <a href=https://github.com/arran4/dotfiles/blob/main/dot_gitconfig.tmpl#L3>https://github.com/arran4/dotfiles/blob/main/dot_gitconfig.tmpl#L3</a> )
+then setting it in each repo&rsquo;s <code>$WD/.git/config</code> file using <code>git config --set user.email arran@client.com</code>.</p>
+<p>However Jetbrains products on the other hand assumes that <code>~/.gitconfig</code> doesn&rsquo;t have <code>user.email</code> populated as a mistake and is
+insistent on getting me to set it:
+<img src=img.png alt=img.png></p>
+<p>The dialog is good, but the fact that it checks it by default is annoying.. I have logged a ticket in the past for this
+but I couldn&rsquo;t find it; I was able to find this one though: <a href=https://youtrack.jetbrains.com/issue/IDEA-283221/Uncheck-Set-properties-globally-when-set-the-project-git-user-name-by-default>https://youtrack.jetbrains.com/issue/IDEA-283221/Uncheck-Set-properties-globally-when-set-the-project-git-user-name-by-default</a>
+I suggested that they use <a href=https://git-scm.com/docs/git-config#Documentation/git-config.txt-useruseConfigOnly>https://git-scm.com/docs/git-config#Documentation/git-config.txt-useruseConfigOnly</a> as one of the
+ways of testing for this behaviour. While it probably isn&rsquo;t the best way.</p>
+<p>Maybe I should see if I could get some override using <a href=https://git-scm.com/docs/git-config#Documentation/git-config.txt-httplturlgt>https://git-scm.com/docs/git-config#Documentation/git-config.txt-httplturlgt</a> however
+I suspect that that would also require a ticket for the feature to be added in Jetbrains products still.</p>
+</article>
+<span class="f6 gray mv3" title="Lastmod: September 25, 2022. Published at: 2022-09-25.">
+</span>
+</section>
+<script src=https://utteranc.es/client.js repo=arran4/blog issue-term=pathname theme=preferred-color-scheme crossorigin=anonymous async></script>
+<footer>
+<i>
+Copy or make suggestions at the <a href=https://github.com/arran4/blog>Source</a>
+</i>
+</footer>
+</body>
+</html>
