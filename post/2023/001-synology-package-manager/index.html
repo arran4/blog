@@ -1,0 +1,63 @@
+<!doctype html><html lang=en-us prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+<meta charset=utf-8>
+<link rel=canonical href=https://arran4.github.io/blog/post/2023/001-synology-package-manager/>
+<link rel=alternate type=application/rss+xml href=index.xml>
+<title>Synology and UI text: The Package Manager - Arrans Technical blog - 2023-02-15</title>
+</head>
+<body lang=en-us itemscope itemtype=http://schema.org/Article>
+<div class=container id=breadcrumbs>
+<i class="fas fa-chevron-right">
+</i>
+<i class="fas fa-chevron-right">
+<a href=/blog/post/>Posts</a>
+->
+</i>
+<i class="fas fa-chevron-right">
+</i>
+<i class="fas fa-chevron-right">
+</i>
+</div>
+<section id=main class=mt5>
+<h1 itemprop=name id=title>Synology and UI text: The Package Manager</h1>
+<span class="f6 gray">February 15, 2023</span>
+<article itemprop=articleBody id=content class="w-90 lh-copy">
+<p>One of the major improvements over time has been how text in error messages and other &ldquo;static&rdquo; components have become
+more like read only text box / webpage and interactive over the years. Which means when you get an error message you can
+copy and paste the text to aid you in your search. This also means that links work.</p>
+<p>A lot of web pages seem to have failed to grasp this, and have made sections of their application &ldquo;unselectable&rdquo;, links
+&ldquo;unclickable&rdquo; and more annoyingly but less importantly, have failed to place white space between distinct elements which
+means when you go to select text (often by double-clicking and dragging in my case) you &ldquo;over match&rdquo; and select elements
+that are unintended:</p>
+<p>Synology seems to have done the same in its package manager:</p>
+<p><img src=img.png alt=img.png></p>
+<p>None of the text is selectable, and the link is not clickable. I suspect this is done because of a perception of &ldquo;read
+only&rdquo; being more corporate or professional or something&mldr; Maybe this comes from the old days of embedded applications
+in web pages being used by corporates. Think ActiveX/OLE objects, Shockwave-Flash, and even Java Applets which acted
+completely distinctly and had very minimal integration with the rest of the browser other than placement.</p>
+<p>Chrome does it too despite using the Qt framework which is generally pretty good at this:</p>
+<p><img src=img_1.png alt=img_1.png></p>
+<p>Twitter in it&rsquo;s location is a current (which will probably change) is an example of the white space issue, double click
+on the location when it&rsquo;s a single word and it will &ldquo;spread&rdquo; to other elements:</p>
+<p><img src=img_2.png alt=img_2.png></p>
+<p>This would also happen when you&rsquo;re selecting in &ldquo;word&rdquo; mode rather than &ldquo;character&rdquo; mode. (Select has modes, double-clicking
+enters you into word mode.)</p>
+<p>This is something I actually do a fair amount. Not just idle-ly while on the phone but for the search shortcut.</p>
+<p>Note having given Qt some credit I have to limit it to just it&rsquo;s error messages, such as you can see in Jetbrains Toolbox
+App, it isn&rsquo;t always selectable:</p>
+<p><img src=img_3.png alt=img_3.png></p>
+<p>And an example of a message box having selectable (and hopefully thus copyable) text:</p>
+<p><img src=img_4.png alt=img_4.png></p>
+<p>Kate is part of KDE and thus uses Qt.</p>
+</article>
+<span class="f6 gray mv3" title="Lastmod: February 15, 2023. Published at: 2023-02-15.">
+</span>
+</section>
+<script src=https://utteranc.es/client.js repo=arran4/blog issue-term=pathname theme=preferred-color-scheme crossorigin=anonymous async></script>
+<footer>
+<i>
+Copy or make suggestions at the <a href=https://github.com/arran4/blog>Source</a>
+</i>
+</footer>
+</body>
+</html>
