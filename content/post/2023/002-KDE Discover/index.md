@@ -27,5 +27,10 @@ I just find it pretty frustrating. I wish it would be more useful and resolve th
 
 One mode I really want it to have is "Update on shutdown or restart" then as a result dismiss the tray icon.
 
+Which is why I run this every morning:
+```zsh
+% sudo apt update -y && sudo apt upgrade -y && sudo apt dist-upgrade -y && sudo apt autoremove -y && killall DiscoverNotifier
+```
+
 Back in the 200xs I would have loved to be a paid KDE dev and even now that seems tempting but probably to many other 
 people. However, I would fix things to my own ideals.
