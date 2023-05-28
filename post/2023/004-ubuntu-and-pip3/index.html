@@ -1,0 +1,72 @@
+<!doctype html><html lang=en-us prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+<meta charset=utf-8>
+<link rel=canonical href=https://arran4.github.io/blog/post/2023/004-ubuntu-and-pip3/>
+<link rel=alternate type=application/rss+xml href=index.xml>
+<title>Ubuntu and Pip3 - Arrans Technical blog - 2023-05-28</title>
+</head>
+<body lang=en-us itemscope itemtype=http://schema.org/Article>
+<div class=container id=breadcrumbs>
+<i class="fas fa-chevron-right">
+</i>
+<i class="fas fa-chevron-right">
+<a href=/blog/post/>Posts</a>
+->
+</i>
+<i class="fas fa-chevron-right">
+</i>
+<i class="fas fa-chevron-right">
+</i>
+</div>
+<section id=main class=mt5>
+<h1 itemprop=name id=title>Ubuntu and Pip3</h1>
+<span class="f6 gray">May 28, 2023</span>
+<article itemprop=articleBody id=content class="w-90 lh-copy">
+<p>Tried to use Kdenlive to install some packages via pip (I didn&rsquo;t want to but that&rsquo;s what it offered) finally got a good
+rejection!</p>
+<p><img src=img.png alt=img.png></p>
+<pre tabindex=0><code>error: externally-managed-environment
+
+× This environment is externally managed
+╰─&gt; To install Python packages system-wide, try apt install
+    python3-xyz, where xyz is the package you are trying to
+    install.
+    
+    If you wish to install a non-Debian-packaged Python package,
+    create a virtual environment using python3 -m venv path/to/venv.
+    Then use path/to/venv/bin/python and path/to/venv/bin/pip. Make
+    sure you have python3-full installed.
+    
+    If you wish to install a non-Debian packaged Python application,
+    it may be easiest to use pipx install xyz, which will manage a
+    virtual environment for you. Make sure you have pipx installed.
+    
+    See /usr/share/doc/python3.11/README.venv for more information.
+
+note: If you believe this is a mistake, please contact your Python installation or OS distribution provider. You can override this, at the risk of breaking your Python installation or OS, by passing --break-system-packages.
+hint: See PEP 668 for the detailed specification.
+Traceback (most recent call last):
+  File &quot;/usr/share/kdenlive/scripts/checkpackages.py&quot;, line 50, in &lt;module&gt;
+    subprocess.check_call([python, '-m', 'pip', 'install', *missing], stdout=subprocess.DEVNULL)
+  File &quot;/usr/lib/python3.11/subprocess.py&quot;, line 413, in check_call
+    raise CalledProcessError(retcode, cmd)
+subprocess.CalledProcessError: Command '['/usr/bin/python3', '-m', 'pip', 'install', 'vosk', 'srt']' returned non-zero exit status 1.
+
+</code></pre><p>Some decent attempts at maintaining good system integrity. If only enough systems do it, so that that the community
+adapts properly to doing things the right way.</p>
+<p><img src=img_1.png alt=img_1.png></p>
+<p>The guilty party.</p>
+<p>Shame about this though:</p>
+<p><img src=img_2.png alt=img_2.png></p>
+</article>
+<span class="f6 gray mv3" title="Lastmod: May 28, 2023. Published at: 2023-05-28.">
+</span>
+</section>
+<script src=https://utteranc.es/client.js repo=arran4/blog issue-term=pathname theme=preferred-color-scheme crossorigin=anonymous async></script>
+<footer>
+<i>
+Copy or make suggestions at the <a href=https://github.com/arran4/blog>Source</a>
+</i>
+</footer>
+</body>
+</html>
