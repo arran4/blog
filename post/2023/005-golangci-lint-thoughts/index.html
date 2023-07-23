@@ -1,0 +1,180 @@
+<!doctype html><html lang=en-us prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+<meta charset=utf-8>
+<link rel=canonical href=https://arran4.github.io/blog/post/2023/005-golangci-lint-thoughts/>
+<link rel=alternate type=application/rss+xml href=index.xml>
+<title>Golangci Lint Thoughts - Arrans Technical blog - 2023-07-23</title>
+</head>
+<body lang=en-us itemscope itemtype=http://schema.org/Article>
+<div class=container id=breadcrumbs>
+<i class="fas fa-chevron-right">
+</i>
+<i class="fas fa-chevron-right">
+<a href=/blog/post/>Posts</a>
+->
+</i>
+<i class="fas fa-chevron-right">
+</i>
+<i class="fas fa-chevron-right">
+</i>
+</div>
+<section id=main class=mt5>
+<h1 itemprop=name id=title>Golangci Lint Thoughts</h1>
+<span class="f6 gray">July 23, 2023</span>
+<article itemprop=articleBody id=content class="w-90 lh-copy">
+<p>A while back I added <code>golangci-lint</code> to the github actions of all my projects. I never got around to insuring that they
+all have compliance, which means a lot of my projects look like this:</p>
+<p><img src=img.png alt=img.png></p>
+<p>Which is fine. It&rsquo;s about gradual improvement when I have time and I am able.</p>
+<p>However the thing that bugs me about linters is that they have ego creep. WHere it moves away from being about reducing
+the chance of errors happening, into a world of insuring there are the correct number of new lines between functions.</p>
+<p>I do get the argument that you want a degree of consistency in a corporate environment. But I have a couple thoughts on lints:</p>
+<ol>
+<li>You need to build the tool appropriate to the team and business as they are now with an eye to growth. So by default
+most of those rules should be disabled until the need arises</li>
+<li>Lints are supposed to catch more serious errors that can easily slip past the developers focus, not formatting. Whilst
+that is how it is used a lot now we should really be using another tool for those sort of breaches, such as a &ldquo;prettifer&rdquo;
+or a &ldquo;manualofstylechecker&rdquo; or something. Even if it&rsquo;s the same code doing the work it should be a different executable
+or step. For the same reason we have a distinction between <code>warning</code> and <code>error</code> we need a distrinction between a:
+<code>style error</code> and a <code>potential cve</code> error. It also allows the dev to defer style changes</li>
+<li>Sometimes you want to breach style in order to make the code consistent, a bit like how gofmt ensures that in a <code>const</code>
+or <code>var</code> block all type, assignments are aligned into a table like structure, sometimes I have something &ldquo;unnecessary&rdquo; such
+as: <code>S1039: unnecessary use of fmt.Sprintf (gosimple) Name: fmt.Sprintf("purpose query"),</code> which is there for the purpose
+of ensuring the code is consistent. I would be hard to check that in a stylistic checker, but without accepting that this
+is the case and appropriate in some cases you would have to have <code>lint ignore this</code> comments all over the place which is
+another type of pollution. (Comments are for people not programs.)</li>
+</ol>
+<p>One thing I do, for several reasons, is commit each lint fix as a separate commit with the lint error as the commit message.
+I want to make it clear why I&rsquo;m making a change, as well as make it easy to find. I am a micro committer and to me it&rsquo;s a
+zero cost for others thing. However, it&rsquo;s also a way of providing feedback to the project as to regards how the linter is
+causing issues but in a way it can be referred to again at any point. Lint rules have a time cost so they should be for the
+more serious ones, stylistic issues should be automated as much as possible. You&rsquo;re not in the business of correcting
+people&rsquo;s behavior just making sure what is submitted is good.</p>
+<h1 id=auto-fixers>Auto fixers</h1>
+<p>The idea that lints can auto fix the issues is a bit far-fetched for the purpose I believe linters are for. But here we are
+where it enforces (often but not always) stylistic issues.</p>
+<p>Seems golangci-lint has some. I couldn&rsquo;t quite figure out how create a PR for a suggestion for the linter in the 15 minutes
+I assigned myself to the duty. (The code base is written for people who know the code base rather than anyone&mldr;. Another
+issue to discuss later: <code>so good its bad dev</code>.)</p>
+<p>Anyway time for me to get to the purpose behind writing this&mldr; A dumb dump of thoughts.</p>
+<h2 id=sa1019>SA1019</h2>
+<p>The <code>error</code>:</p>
+<pre tabindex=0><code>main.go:46:2: SA1019: rand.Seed has been deprecated since Go 1.20 and an alternative has been available since Go 1.0: Programs that call Seed and then expect a specific sequence of results from the global random source (using functions such as Int) can be broken when a dependency changes how much it consumes from the global random source. To avoid such breakages, programs that need a specific result sequence should use NewRand(NewSource(seed)) to obtain a random generator that other packages cannot access. (staticcheck)
+        rand.Seed(time.Now().UnixNano())
+</code></pre><p>I tried to run it with <code>--fix</code> (Nothing got fixed at all&mldr;)</p>
+<p>I think the auto fix should be this:</p>
+<pre tabindex=0><code>&lt;+&gt;UTF-8
+===================================================================
+diff --git a/main.go b/main.go
+--- a/main.go	(revision 1ab5b07bf148f6c71178707d1486e67d1975bf56)
++++ b/main.go	(revision 528c6282c3167518f09bb168e1b3229e85dfb899)
+@@ -43,7 +41,7 @@
+ 
+ func main() {
+ 	log.SetFlags(log.Flags() | log.Lshortfile)
+-	rand.Seed(time.Now().UnixNano())
++	Seed()
+ 
+ 	port := os.Getenv(&quot;PORT&quot;)
+ 	if port == &quot;&quot; {
+Index: main_postgo119.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+&lt;+&gt;UTF-8
+===================================================================
+diff --git a/main_postgo119.go b/main_postgo119.go
+new file mode 100644
+--- /dev/null	(revision 528c6282c3167518f09bb168e1b3229e85dfb899)
++++ b/main_postgo119.go	(revision 528c6282c3167518f09bb168e1b3229e85dfb899)
+@@ -0,0 +1,7 @@
++//go:build go1.20
++// +build go1.20
++
++package main
++
++func Seed() {
++}
+Index: main_prego119.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+&lt;+&gt;UTF-8
+===================================================================
+diff --git a/main_prego119.go b/main_prego119.go
+new file mode 100644
+--- /dev/null	(revision 528c6282c3167518f09bb168e1b3229e85dfb899)
++++ b/main_prego119.go	(revision 528c6282c3167518f09bb168e1b3229e85dfb899)
+@@ -0,0 +1,8 @@
++//go:build !go1.19
++// +build !go1.19
++
++package main
++
++func Seed() {
++	rand.Seed(time.Now().UnixNano())
++}
+
+</code></pre><p>It will be deleted in most cases, but provides backwards compatibility and doesn&rsquo;t assume that the seed is in <code>init</code> or <code>main</code>.</p>
+<h2 id=sa6005-should-use-stringsequalfold-instead><code>SA6005: should use strings.EqualFold instead</code></h2>
+<p>This is a pretty decent suggestion.</p>
+<pre tabindex=0><code>SA6005: should use strings.EqualFold instead (staticcheck)
+                        if strings.ToLower(emailTo) == strings.ToLower(currentUserEmail) {
+</code></pre><p>Although it&rsquo;s the type of check which assumes that it is always right and that there are no cases in which you would ever
+need to use the other comparator so when you do you end up with 100s of comments exempting it.</p>
+<p>I would have thought this would have worked with <code>--fix</code> it&rsquo;s simple enough. I mean I can review the changes before committing
+to git. (I&rsquo;m a micro-committer) and revert any I don&rsquo;t agree with. Although would be nice if: <a href=https://github.com/golangci/golangci-lint-action>https://github.com/golangci/golangci-lint-action</a>
+had a &ldquo;create PR for auto fixes&rdquo; mode.</p>
+<h2 id=s1025>S1025</h2>
+<pre tabindex=0><code> S1025: the argument is already a string, there's no need to use fmt.Sprintf (gosimple)
+</code></pre><p>Should <code>--fix</code> easy.</p>
+<h2 id=s1007>S1007</h2>
+<pre tabindex=0><code>api/excel/projecttemplate.go:275:26: S1007: should use raw string (`...`) with regexp.MustCompile to avoid having to escape twice (gosimple)
+                                {Column: &quot;D&quot;, Value: regexp.MustCompile(&quot;\\r\\n&quot;).ReplaceAllString(eachDay.Day.Tasks, &quot;\r\n&quot;), Style: wrapTextStyle},
+</code></pre><p>Yes, should auto fix but also, a bit petty more of a &lsquo;did you know&rsquo; moment. I can imagine working with the type of person
+that would reject a PR based on this.</p>
+<h2 id=sa1019-1>SA1019</h2>
+<pre tabindex=0><code>SA1019: &quot;io/ioutil&quot; has been deprecated since Go 1.19: As of Go 1.16, the same functionality is now provided by package io or package os, and those implementations should be preferred in new code. See the specific function documentation for details. (staticcheck)
+        &quot;io/ioutil&quot;
+        ^
+</code></pre><p>This one is a good one I guess. But it has backwards compatibility issues. I don&rsquo;t think the solution I did with <code>rand.Seed</code>
+above is a good one in this case as it ends up duplicating a lot of code, but I have a hard time seeing a backwards compatible
+solution for this.</p>
+<p>All of these should have at least had an attempt to provide a <code>--fix</code> solution.</p>
+<h2 id=sa4010>SA4010</h2>
+<pre tabindex=0><code> SA4010: this result of append is never used, except maybe in other appends (staticcheck)
+</code></pre><p>I like this one.</p>
+<h2 id=sa1019-2>SA1019</h2>
+<pre tabindex=0><code>SA1019: datastore.NewQuery(model.TimesheetsProjectKind).Filter is deprecated: Use the FilterField method instead, which supports the same set of operations (and more). (staticcheck)
+</code></pre><p>Wasn&rsquo;t expecting a datastore specific lint&mldr; It should probably be a bit more verbose about this? I wonder how they manage
+their rules. What is in and out of scope for this tool? &ndash; Ah, it seems (without looking at the code) it looks for a
+<code>Deprecated:</code> tag in the function comment defs. Ignore what I just said.</p>
+<h2 id=s1019>S1019</h2>
+<pre tabindex=0><code>S1019: should use make([]*datastore.Key, len(body.Files)) instead (gosimple)
+        filesDS := make([]*datastore.Key, len(body.Files), len(body.Files))
+</code></pre><p>Ugh, this one is more of a go issue. I feel that you should be explicit about each parameter here so that people don&rsquo;t
+have to memorize the behavior of the function, as it is exceptional. Everything about <code>make()</code> is irregular. The use of
+varargs is probably to blame here, it should really have been just a normal function. That would have reduced cognitive
+overhead. I remember this being used as part of the interview at a particular company, I guess it does test familiarity,
+however I tend to avoid things like this. It does seem to go against the ethos of the language too.</p>
+<p>Another solution to this instead of making them fixed args, is to allow for optional args, or allow for function &ldquo;overloading.&rdquo;
+However I feel that the lint should be insisting on more parameters not fewer for explicitness’s sake. This is probably a
+good example of personal preference being injected into the lint. It creates an eminence based culture with how the language
+is to be used. Although the go design started there it shouldn&rsquo;t be extended to the community as a bunch of rules people
+follow without proper reasoning or thought.</p>
+<h1 id=non-lint-issues>Non lint issues:</h1>
+<h2 id=jws-deprecation>JWS deprecation</h2>
+<pre tabindex=0><code> &quot;golang.org/x/oauth2/jws&quot; is deprecated: this package is not intended for public use and might be removed in the future. It exists for internal use only. Please switch to another JWS package or copy this package into your own source tree. 
+</code></pre><p>Kind of connected to the <code>internal/</code> debate. However in this case, they should have suggested an api compatible alternative
+or something. However given it&rsquo;s the first result for me when I google <code>jws golang</code> I think they should add it as part
+of the scope of this library, or move it to <code>exp</code> or something. It kind of needs to be promoted.</p>
+</article>
+<span class="f6 gray mv3" title="Lastmod: July 23, 2023. Published at: 2023-07-23.">
+</span>
+</section>
+<script src=https://utteranc.es/client.js repo=arran4/blog issue-term=pathname theme=preferred-color-scheme crossorigin=anonymous async></script>
+<footer>
+<i>
+Copy or make suggestions at the <a href=https://github.com/arran4/blog>Source</a>
+</i>
+</footer>
+</body>
+</html>
