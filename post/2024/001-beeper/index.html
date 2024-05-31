@@ -1,0 +1,304 @@
+<!doctype html><html lang=en-us prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+<meta charset=utf-8>
+<link rel=canonical href=https://arran4.github.io/blog/post/2024/001-beeper/>
+<link rel=alternate type=application/rss+xml href=index.xml>
+<title>Beeper - Arrans Technical blog - 2024-05-31</title>
+</head>
+<body lang=en-us itemscope itemtype=http://schema.org/Article>
+<div class=container id=breadcrumbs>
+<i class="fas fa-chevron-right">
+</i>
+<i class="fas fa-chevron-right">
+<a href=/blog/post/>Posts</a>
+->
+</i>
+<i class="fas fa-chevron-right">
+</i>
+<i class="fas fa-chevron-right">
+<a href=/blog/post/2024/001-beeper/>Beeper</a>
+</i>
+</div>
+<section id=main class=mt5>
+<h1 itemprop=name id=title>Beeper</h1>
+<span class="f6 gray">May 31, 2024</span>
+<article itemprop=articleBody id=content class="w-90 lh-copy">
+<p>Lately I have been a bit obsessed with a communications protocol: Matrix. While I haven&rsquo;t done too much with it directly.
+I did attempt to read the spec etc. However, it seems a bit &mldr; large for what it is. I have been using a couple Matrix
+clients and a couple matrix servers/services. Namely, <a href=https://www.beeper.com/>Beeper</a> is the primary one.</p>
+<p>I do enjoy Beeper, and support what Beeper is attempting to accomplish. What it is, is in effect a paid, closed source
+Matrix client and an open sourced managed service. That aggregates a bunch of other services:</p>
+<p><img src=img_1.png alt=img_1.png></p>
+<p>I guess the first 2 notes relate to that modal.</p>
+<p>Please note I predominately use Beeper on the desktop.</p>
+<h1 id=bug-modal-and-esc>Bug: Modal and ESC</h1>
+<p>Pressing escape does not dismiss the modal, it closed the chat you have open underneath. &ndash; To be honest, a modal is
+probably not needed here, and it could be embedded inside a &ldquo;chat pane control.&rdquo;</p>
+<p>Modals in the app are a bit strange, when most apps tend to be making their windows just &ldquo;tabs.&rdquo;</p>
+<h1 id=gripe-meta--bridges>Gripe: Meta / Bridges</h1>
+<p>I am not using Facebook, or Instagram on it, due to regional issues. I would if I could run the bridge locally, so all
+the traffic comes from my IP. As far as I can tell it&rsquo;s not possible to opt to run your own bridges at all.</p>
+<p>Being able to run your own bridges closes the gap on a lot of issues people have with others running the Matrix server,
+depending on how secrets are managed when you do so. So far the only bridge (probably in part rather than in full) to
+run remotely seems to be the RCS / SMS bridges for Android, of course I&rsquo;m not sure if they are running on my phone in
+full. But TBH my phone is more likely to be running these days than any of my servers 24/7 in the long run.</p>
+<h1 id=gripe-download-notifications>Gripe: Download notifications</h1>
+<p>They are using a toast / in app notification for downloads. This is annoying. Getting feedback that a download has or is
+happening is super important. However, this is really only useful in the case of a large download where you need to be
+notified:</p>
+<p><img src=img.png alt=img.png></p>
+<p>I think some form of combination of these would be nice:</p>
+<ol>
+<li>A dedicated &ldquo;chat&rdquo; window, with the history of all your downloads - in &ldquo;Low Priority&rdquo; - Infact logs are super important,
+a general notification history / security audit log would be really nice.</li>
+<li>When you opt to download something, an additional status icon on the message where you downloaded it from appears</li>
+<li>Larger downloads / more async, have system notifications rather than in-app</li>
+<li>In app existing notifications do have a purpose, I don&rsquo;t know what for</li>
+</ol>
+<h1 id=gripe-personal-bridges--ai>Gripe: Personal bridges & AI</h1>
+<p>I would like to run my own bridges, I am not entirely sure how they connect to the server, it might be a risk to do this.
+However, I would like to connect my own bridges for my own purposes, such as AI via <a href=https://github.com/gotzmann/llama.go,>https://github.com/gotzmann/llama.go,</a>
+or even just silly things like a calculator.</p>
+<p>While AI is hype and a bad right now, I still think it&rsquo;s very relevant and Beeper should at least try to provide the chat
+mechanism. There is probably a lot of scope for it in the future, given how things are going.</p>
+<p>Personal bridges might also help to alleviate the issues brought up in opinion posts like this:
+<a href=https://www.rubdos.be/privacy/signal/2023/09/07/my-problem-with-beeper.html>https://www.rubdos.be/privacy/signal/2023/09/07/my-problem-with-beeper.html</a> (Which seems to have a strong pro signal
+bias from the onset.)</p>
+<h1 id=gripe-protocol-specific-formatting>Gripe: Protocol specific formatting</h1>
+<p>I have &ldquo;Gemini&rdquo; access via Google Messages for Android somehow via the RCS / SMS bridge. It&rsquo;s a bit odd to do so but
+it&rsquo;s nice to have it all in one place. (I would like more AI too!) However, it really indicates the formatting issues that
+beeper has. It assumes that all protocols have the same type of markdown formatting, while it&rsquo;s probably true because I
+guess that some bridges do a formatting transformation the differences become obvious. Such as when talking to an AI like
+Gemini:</p>
+<p><img src=img_2.png alt=img_2.png></p>
+<p><img src=img_3.png alt=img_3.png></p>
+<p>Although it looks like android might not be that well setup either:</p>
+<p><img src=Screenshot_20240531-120427.png alt=Screenshot_20240531-120427.png></p>
+<p><img src=Screenshot_20240531-120419.png alt=Screenshot_20240531-120419.png></p>
+<p>Given the client knows the protocol, it should be able to switch presentation based on source. However, given that
+Gemini is going over a different channel. I&rsquo;m not sure if it would know how to distinguish it.</p>
+<h1 id=bug-mixed-text--multimedia-messages-dont-send-properly-on-discord>Bug: Mixed text & multimedia messages don&rsquo;t send properly on discord</h1>
+<p>I wasn&rsquo;t able to replicate some of these problems, however one remaining one is that when you send a message with a
+multimedia component to a discord server it drops the <code>@</code> annotation / reference of the user:</p>
+<p><a href=simplescreenrecorder-2024-05-31_12.14.35.mp4>simplescreenrecorder-2024-05-31_12.14.35.mp4</a></p>
+<p>Previously it would lose the message entirely. In discord that seems to be fixed.</p>
+<h1 id=bug--gripe-complete-list-of-users-missing>Bug & Gripe: Complete list of users missing</h1>
+<p>In a lot of protocols and the like you miss the complete list of users in a server, such as in discord. Meaning you get
+a lot of these:</p>
+<p><img src=img_4.png alt=img_4.png></p>
+<p>And then later you get a message that &ldquo;they have joined the chat&rdquo; when they haven&rsquo;t. Which is misleading, regardless if
+it&rsquo;s understandable why that would happen.</p>
+<p><img src=img_5.png alt=img_5.png></p>
+<p>However, in the list of channel&rsquo;s preview it&rsquo;s clear that it does in-fact know the name of the intended user.</p>
+<h1 id=ux-gripe-threads>UX Gripe: Threads</h1>
+<p>I like how it treats threads to some degree, however they can be hard to follow, or hard to ensure that I stay in the thread
+when replying. There needs to be more UX focus on this. Currently, threads are shown in beeper as a series of &ldquo;replies&rdquo;
+which is appropriate and cool. However, it has a couple consequences</p>
+<ol>
+<li>How do I reply with and without creating a thread I need the ability to do both, with confidence I know what is happening</li>
+<li>If I want to see the full thread and nothing else, as some can go on for days, and a different volume to the rest of
+the chat, how can I do so? - Ideally this would be threshold based IMHO.</li>
+<li>How do I change my thread participation status to anything anytime or see a list of current threads? Both slack and
+discord have different thread implementations, so this is more of a discord problem.</li>
+</ol>
+<h1 id=ux-gripe-grouping-of-protocols--servers>UX Gripe: Grouping of protocols / servers</h1>
+<p>The list of connected services I have is <strong>long</strong> and I need to scroll a lot. Discord has solved this by allowing you to
+group servers in named categories very similar to that of iOS and Android. It&rsquo;s also not clear that you can scroll until
+you use your mouse wheel (on the desktop).</p>
+<h1 id=feature-suggestion-snoozing-messages--bookmarks--drafts--notes>Feature suggestion: Snoozing messages & bookmarks & drafts & notes</h1>
+<p>Bookmarks are great, however they don&rsquo;t really prompt you to do anything. You can just create a bookmark. Given the way
+the feature works, you can only have a certain number of bookmarks at once. &ndash; As there is no indicator or snoozing
+feature on bookmarks. I tend to forget they exist. This is a problem as the feature tends to fade into the background.
+Bookmarks with a snooze feature, or some such could be one of the major selling points. Often you don&rsquo;t have enough time
+to process a message at a particular point in time the ability to snooze it is great. &ndash; I would argue that you should
+be able to snooze your drafts too, or/and leave notes which can be used as a draft.</p>
+<p>However, as bookmarks currently stand they are kind of forgettable but could be a major feature with a little bit more
+UX consideration. What ever direction they are taking. So from here this is a single feature suggestion or multiple.</p>
+<h1 id=gripe-send-later-and-multimedia-content>Gripe: Send later and multimedia content</h1>
+<p>You can send-later a message, but you can&rsquo;t send later multimedia content. &ndash; I find myself wanting to do this about 50%
+of the time. Often because I don&rsquo;t want to create more activity (and get distracted) by sharing a video or something
+when I&rsquo;m busy. Think, snoozing to saturday / sunday, to lunchtime or 6pm.</p>
+<p><img src=img_6.png alt=img_6.png></p>
+<p>It also doesn&rsquo;t expressly /say/ that it can&rsquo;t do multimedia. It just ignores the picture at all.</p>
+<h1 id=bug-send-later-has-a-weird-delay>Bug: Send later has a weird delay</h1>
+<p>Send later has a weird delay, where you can continue editing the message too. I don&rsquo;t think this is particularly good UX.</p>
+<p><a href=simplescreenrecorder-2024-05-31_12.55.33.mp4>simplescreenrecorder-2024-05-31_12.55.33.mp4</a></p>
+<h1 id=feature-suggestion-send-later-and-a-list-of-things-pending-send>Feature suggestion: Send later and a list of things pending send</h1>
+<p>When I use send later I use it a lot, including a lot in a single chat instance. You do get an indication:
+<img src=img_7.png alt=img_7.png></p>
+<p>But that indication is only for the chat you&rsquo;re in. Without there being more on that I am not even sure if I&rsquo;m overriding
+the previous snoozed message.</p>
+<p>I am not sure how I can:</p>
+<ol>
+<li>Delete a single snoozed message</li>
+<li>Change the time of a snoozed message</li>
+<li>Convert a snoozed message back to a draft / edit the message</li>
+<li>Get a complete list of snoozed messages</li>
+</ol>
+<p>A global list of snoozed messages, perhaps as a &ldquo;chat pane component&rdquo; in the &ldquo;low priority&rdquo; section might work. &ndash; Or
+just another modal.</p>
+<h1 id=feature-suggestion-debouncing-messages>Feature suggestion: Debouncing messages</h1>
+<p>A grip of most chat platforms I have is that some people type only just a couple words per message then press enter
+before the next one. I would like the ability to configure a temporary mute for any private message for a set time after
+each message until I check the message.</p>
+<h1 id=feature-suggestion-grouping-of-contacts-in-to-people>Feature suggestion: Grouping of contacts in to &ldquo;people&rdquo;</h1>
+<p>Sometimes I use multiple chat platforms to talk to people. With the favourite feature you can only really favourite
+channels, private message groups, or accounts. I would like the ability to group a person, so that when I click on them,
+I get something similar to what I get when I search for a person. IMHO This should be managed inside beeper and not
+synchronized with contacts or what not but related. Perhaps allowing imports, and exports but in an explicit way.</p>
+<p><img src=img_8.png alt=img_8.png></p>
+<h1 id=feature-request-creation-of-group-chat>Feature request: Creation of group chat</h1>
+<p>This is probably more of a bridge concern, or a protocol limitation. But you can only create group chats, and &ldquo;channels&rdquo;
+for Matrix and Google Messages. (Not sure about meta services)</p>
+<p><img src=img_9.png alt=img_9.png></p>
+<p><img src=img_10.png alt=img_10.png></p>
+<p>Group chats is something I use a lot, so until I get better support, I am not sure if I can uninstall the apps. (Also
+for another reason later.)</p>
+<p>This seems like a pretty big feature to be missing.</p>
+<h1 id=gripe-local-caching--scrolling-issues-on-large-chats>Gripe: Local caching / scrolling issues on large chats</h1>
+<p>Backscrolling, search, jumping to a message, and opening a chat are slower than they need to be. I figure that this is
+because of a lack of local caching / history storage. Least on the electron app. It seems to be protocol specific too.
+Here it is with slack:</p>
+<p><a href=simplescreenrecorder-2024-05-31_13.11.00.mp4>simplescreenrecorder-2024-05-31_13.11.00.mp4</a></p>
+<h1 id=feature-suggestion-point-in-time-navigation---ie-go-to-a-specific-date-in-history>Feature Suggestion: Point in time navigation - ie go to a specific date in history</h1>
+<p>I would like the ability to specify a date/time to scroll to, rather than just having to scroll up. Perhaps this could
+be done with some sort of in-chat-window search.</p>
+<h1 id=gripe-preservation-of-history-when-channels-disappear>Gripe: Preservation of history when channels disappear</h1>
+<p>Discord servers particularly are likely to rename / move / change permissions on channels which can cause them to move
+and rename etc. I dislike my history disappearing so easily. Perhaps have a &ldquo;Dead Channel&rdquo; or something status / section
+similar to &ldquo;Low Priority&rdquo; that these can congregate to.</p>
+<h1 id=bug-discord-metadata-for-servers-not-updating>Bug: Discord metadata for servers not updating</h1>
+<p>When a discord server changes its icon, or name or anything else. This is not updating, and there is no clear way of
+telling beeper that it needs to update. Without removing and readding it. Which then would cause a loss of data, such as
+chat history, bookmarks, snoozed messages, and the like.</p>
+<h1 id=ux-complaint-better-presentation-of-inbox>UX Complaint: Better presentation of &ldquo;inbox&rdquo;</h1>
+<p>The UX could be improved, the unread and &lsquo;all&rsquo; is nice (however it really isn&rsquo;t all b/c there is an &lsquo;archive&rsquo;)
+Perhaps some configuration around that would be nice. Currently, there is a lot of wasted vertical space on the electron
+version of the application. Instead of being tabs, perhaps they could be categories.</p>
+<p>Currently:</p>
+<p><img src=img_11.png alt=img_11.png></p>
+<p>Proposed: (Needs work indicative.)</p>
+<p><img src=img_12.png alt=img_12.png></p>
+<h1 id=bug-file-upload-on-linux-requiring-multiple-clicks>Bug: File upload on linux requiring multiple clicks</h1>
+<p>For some reason on my Beeper when I click:</p>
+<p><img src=img_13.png alt=img_13.png></p>
+<p>It requires multiple clicks to work. I think it&rsquo;s bad event propagation, it seems to be trying to trigger only when it
+gets a mouse down followed by a mouse up event, and there is loss. Sometimes it triggers multiple times. There is also
+a delay bringing up the native UI dialog.</p>
+<h1 id=packaging-request-no-official-flatpak--apt-repo>Packaging request: No official flatpak / apt repo</h1>
+<p>The app image is nice. Also being able to just put the executable in my ~/.local/bin is great. However I would like more
+distro support. It isn&rsquo;t too hard to generate a .deb / .rpm with a go project via <a href=https://goreleaser.com/>https://goreleaser.com/</a> and I have an
+example of installing a <code>.desktop</code> file with that here:
+<a href=https://github.com/arran4/send-to-google-photos/blob/main/.goreleaser-linux.yaml#L26-L42>https://github.com/arran4/send-to-google-photos/blob/main/.goreleaser-linux.yaml#L26-L42</a></p>
+<p>Flatpaks I&rsquo;m less aware of how to do, but it makes more sense for a desktop app. Especially self-contained ones.</p>
+<p><img src=img_14.png alt=img_14.png></p>
+<h1 id=ui-gripe-weird-choice-of-iconography>UI gripe: Weird choice of iconography</h1>
+<p>Nothing major just some of the iconography / symbolism is a bit weird. Such as when you lose a bridge, you get an <code>(x)</code>
+which clearly indicates that it&rsquo;s disconnected, HOWEVER I read that as a &ldquo;remove/delete&rdquo; rather than a disconnected.</p>
+<p>There are some alternatives such as a warning label like what slack does:</p>
+<p><img src=img_15.png alt=img_15.png></p>
+<p>Or just ‼️</p>
+<p>Or no service: 📵</p>
+<p>But it should be 2, one of the above and a gear ⚙️ because it shows status and action. &ndash; However the action could perhaps
+be in a long press / right click menu instead.</p>
+<h1 id=ux-gripe-edit-messages-only-once--clearer-limitations-per-protocol>UX gripe: Edit messages only once & clearer limitations per protocol</h1>
+<p>Given different protocols have different capabilities, such as limits on length or messages, attachment sizes, how many
+times, or how long it is until you can no longer edit a message: Beeper should attempt to try communicate some of these
+protocol limitations to you better if they can&rsquo;t be &ldquo;abstracted&rdquo; away.</p>
+<h1 id=feature-suggestion--bug-local-network-and-device-sync-to-prevent-floods>Feature suggestion & bug: Local network and device sync to prevent &ldquo;floods&rdquo;</h1>
+<p>I have multiple devices connected, phone, laptop, and desktop. My phone has both clients installed. (And the original
+without notification turned off.) IPv6 probably makes this harder however some sort of coordinated messaging, especially
+if I have already read a chat on one platform there should be some local traffic or some such so that other systems /
+clients don&rsquo;t produce notifications &ldquo;late.&rdquo;</p>
+<p>It&rsquo;s specially bad with the native android client, which I often get notifications when I move my phone minutes later
+because of google&rsquo;s power saving probably the Doze mode amongst other things:
+<a href=https://developer.android.com/training/monitoring-device-state/doze-standby>https://developer.android.com/training/monitoring-device-state/doze-standby</a>
+I would really expect that the android would get synchronized before sending the notifications out.</p>
+<h1 id=ux-gripe-beeper-android-vs-desktop>UX gripe: Beeper android vs desktop</h1>
+<p>I find the mobile apps, especially the native Android mobile app, significantly different in the way it handles inbox
+and other messages to the point of not wanting to use it for group chats and other things. &ndash; Although I acknowledge
+like the whole app that it&rsquo;s a work in progress.</p>
+<h1 id=feature-request-favourites-vs-other-listings-ie-people>Feature request: Favourites vs other listings ie &ldquo;people&rdquo;</h1>
+<p>I would like a more traditional list of contacts, or set of lists of users (which would be more useful, ie where I can
+tag / label them and favorite is just one of many labels.) So I get a &ldquo;friend list.&rdquo; Right now search is mostly usable
+for me.</p>
+<p>I would also like the beeper managed &ldquo;contact&rdquo; thing from earlier, especially given that some people change their names
+often on platforms like Discord.</p>
+<h1 id=feature-suggestion-webclient-especially-for-having-matrix-discussion-groups>Feature suggestion: Webclient especially for having Matrix discussion groups</h1>
+<p>I would love to use matrix group chats more, however I feel they could really only happen if Beeper made it easier for
+me to involve people that wouldn&rsquo;t ordinarily install beeper, or a matrix client. Such as via a webportal. Given that
+Beeper is already a electron app it doesn&rsquo;t seem like it would be too difficult to develop a simplified version of
+Beeper that works in the browser on a temporary basis that&rsquo;s similar to <a href=https://matrix.to/>https://matrix.to/</a> perhaps with a guest mode and
+an authenticated mode. Ie think I&rsquo;m travelling have access to a chromebook temporarily and my phone and want to chat,
+with a real keyboard. &ndash; Or I have a group chat going and need someone to drop in temporarily so, I send them a link
+to quickly drop in.</p>
+<h1 id=feature-request-audio-messages-transcripts>Feature request: Audio messages transcripts</h1>
+<p>Given ANN systems like WhisperAI are available now there is no need for voice recordings (and perhaps even videos) not
+to have client generated transcripts. While systems without any AI optimized chip (ie GPU) would be slow, they can do it
+upon request, while my desktop with a modern Nvidia machine I think should be able to do it automatically given that
+there is enough video ram. (Ie I&rsquo;m not playing a game.) This is also an accessibility feature.</p>
+<p>I do use audio transcripts a lot and would use them more if they had a means of getting a transcript.</p>
+<h1 id=feature-suggestion-send-later-suggested--configurable-quick-times>Feature suggestion: Send later suggested / configurable quick times</h1>
+<p>Being able to type a snooze date/time in relative or absolute times is nice. I also often know what times I would usually
+want. Platforms like Google Inbox, allowed you to specify 3. This got brought into Gmail in general:</p>
+<p><img src=img_16.png alt=img_16.png></p>
+<p>It&rsquo;s no longer as configurable. How I suggest it&rsquo;s done is having a &ldquo;recently used&rdquo; set, which gives you the option
+inside the popup to &ldquo;star&rdquo; / &ldquo;keep&rdquo; any one which is either:
+a) Sufficiently in the future
+b) Relative</p>
+<p>Which can be quickly selected next time. While still relevant.</p>
+<p>In my <a href=https://arranubels.substack.com/p/which-browser>Which Browser?</a> app. I attempted to do this like so &ndash; However
+it&rsquo;s very primitive and will be fleshing it out later:</p>
+<p><img src=img_17.png alt=img_17.png></p>
+<h1 id=feature-request-simultaneous-chats-tabs-multiple-windows-pop-out-chat-concurrent-conversations>Feature request: Simultaneous chats, Tabs, multiple windows, pop out chat, concurrent conversations</h1>
+<p>Some means of being able to see two chats at once, or being able to &ldquo;retain&rdquo; your position in a chat without a &ldquo;context&rdquo;
+refresh (such as finding it again and opening it.) This is obviously on desktop only, however even on mobile, the OS
+does support an &ldquo;activity&rdquo; which you press back to go back to your prior activity, which is pretty similar in the intent.</p>
+<p>I imagine the easiest way would be to allow for tabs. However, I would like floating windows for specific chats for
+reasons. Especially where I don&rsquo;t have the other cruft of the Beeper UI. However, given that it&rsquo;s a electron app I don&rsquo;t
+know how viable this is.</p>
+<h1 id=gripe-account-and-history-recovery>Gripe: Account and history recovery</h1>
+<p>I would like some way of going back to the past where history isn&rsquo;t lost, even if I lose my connection / bridge. This
+would be especially helpful with SMS and the like so I don&rsquo;t need to use tools like:
+<a href="https://play.google.com/store/apps/details?id=com.riteshsahu.SMSBackupRestore&hl=en_AU">https://play.google.com/store/apps/details?id=com.riteshsahu.SMSBackupRestore&hl=en_AU</a></p>
+<p>In-fact it was a primary reason for setting up SMSs to work over beeper in the first place. However, it doesn&rsquo;t feel that
+true right now given the way discord and slack channels disappear without a trace.</p>
+<h1 id=gripe-themes>Gripe: Themes</h1>
+<p>Needs more work to feel like a first party feature. Or even simply providing a list of themes from:
+<a href=https://github.com/beeper/themes>https://github.com/beeper/themes</a>
+Right now it feels very daunting. I did try use it once to increase the default font size.</p>
+<p>I would like to use a Gist or a Github URL as a theme rather than just use the text box.</p>
+<p>&ndash;</p>
+<h1 id=final-thoughts>Final thoughts</h1>
+<p>I am looking forwards to the future of Beeper. I would love to see these points addressed in some form. I have not used
+the Android apps as much as I would like as I am predominately a desktop user. (I can&rsquo;t get away from my keyboard.)</p>
+<p>I do think that the Matrix protocol it pretty cool but it might not be appropriate for device communication as it is a
+standard and is subject to design by committee.</p>
+<h1 id=notes>Notes</h1>
+<p>I might add to this rather than creating new posts.</p>
+<h1 id=contact>Contact</h1>
+<p>You can contact me on matrix using the following:</p>
+<ul>
+<li>@arran4:beeper.com</li>
+</ul>
+<p>Seldom used: (I plan to host my own as that&rsquo;s where all the benefit is)</p>
+<ul>
+<li>@arran4444:matrix.org</li>
+<li>@arranfour:matrix.org</li>
+</ul>
+<p>Really Seldom used:</p>
+<ul>
+<li>@arran4:gnulinux.club</li>
+</ul>
+</article>
+<span class="f6 gray mv3" title="Lastmod: May 31, 2024. Published at: 2024-05-31.">
+</span>
+</section>
+<script src=https://utteranc.es/client.js repo=arran4/blog issue-term=pathname theme=preferred-color-scheme crossorigin=anonymous async></script>
+<footer>
+<i>
+Copy or make suggestions at the <a href=https://github.com/arran4/blog>Source</a>
+</i>
+</footer>
+</body>
+</html>
