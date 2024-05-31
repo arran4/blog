@@ -327,6 +327,8 @@ there is enough video ram. (Ie I'm not playing a game.) This is also an accessib
 
 I do use audio transcripts a lot and would use them more if they had a means of getting a transcript.
 
+The only service I know to do transcriptions like that is Slack.
+
 # Feature suggestion: Send later suggested / configurable quick times
 
 Being able to type a snooze date/time in relative or absolute times is nice. I also often know what times I would usually
