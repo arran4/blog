@@ -373,6 +373,14 @@ Right now it feels very daunting. I did try use it once to increase the default 
 
 I would like to use a Gist or a Github URL as a theme rather than just use the text box.
 
+# UI Gripe: Hide display button
+
+The hide display button needs a bit of "separation" from the "groups"
+
+![img_18.png](img_18.png)
+
+I keep on clicking it instead of "Inbox."
+
 --
 
 # Final thoughts
