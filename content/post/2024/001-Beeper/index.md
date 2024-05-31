@@ -327,7 +327,8 @@ there is enough video ram. (Ie I'm not playing a game.) This is also an accessib
 
 I do use audio transcripts a lot and would use them more if they had a means of getting a transcript.
 
-The only service I know to do transcriptions like that is Slack.
+The only service I know to do transcriptions like that is Slack. Having a way of shuffling around the data so only one
+machine needs to do the work might be worth it too. Could also be used for bookmarks and message notes.
 
 # Feature suggestion: Send later suggested / configurable quick times
 
