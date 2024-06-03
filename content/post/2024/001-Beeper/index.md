@@ -386,6 +386,17 @@ I keep on clicking it instead of "Inbox."
 
 --
 
+Later additions
+
+# Bug: Hogs media player on Plasma after playing media
+
+![img_19.png](img_19.png)
+
+More of an electron issue. But once you use beeper to listen to something, it doesn't return control to the media player
+meaning you're keyboard media keys do nothing.
+
+--
+
 # Final thoughts
 
 I am looking forwards to the future of Beeper. I would love to see these points addressed in some form. I have not used
