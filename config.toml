@@ -2,6 +2,38 @@ baseURL = 'https://arran4.github.io/blog/'
 copyright = ''
 languageCode = 'en-us'
 title = 'Arrans Technical blog'
-theme = "arransblogtheme"
+theme = "hugo-theme-jane"
+paginate = 1000
+rssLimit = 100
+enableEmoji = true
+defaultContentLanguage = "en"
+[languages.en]
+    languageCode = "en"
 [author]
-  name = 'Arran Ubels'
+    name = 'Arran Ubels'
+
+[sitemap]                 # essential                     # 必需
+    changefreq = "weekly"
+    priority = 0.5
+    filename = "sitemap.xml"
+
+[params]
+    rssFullContent = true     # if false, Rss feed instead of the summary
+    dateFormatToUse = "2006-01-02"
+
+    logoTitle = "Arran's Technical Blog"
+    description = "For basically just a technical dump. There are other locations for different content."
+
+  [params.social]                                         # 社交链接
+    a-email = "mailto:technicalblog123@arran4.com"
+    b-stack-overflow = "https://stackoverflow.com/users/322817/arran-ubels"
+    c-twitter = "https://x.com/arran4"
+    d-facebook = "https://www.facebook.com/arran.ubels"
+    e-linkedin = "https://www.linkedin.com/in/arranubels/"
+    g-github = "https://github.com/arran4"
+    l-lemmy = "https://aussie.zone/u/arran4"
+    m-matrix = "matrix://@arran:arran.net.au"
+    m-instagram = "https://www.instagram.com/arranubels/"
+    b-beeper = "beeper://@arran4:beeper.com"
+    s-mastodon = "https://mstdn.party/@arran4"
+    t-youtube = "https://www.youtube.com/channel/UC7KmXWaDOYLa5pv-h2pimog"
