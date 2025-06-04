@@ -6,7 +6,7 @@ tags: ["wish list"]
 categories: ["wish list", "synology"]
 ---
 
-I am rather fond of synologies offering however it does leave me with a couple of whishes / desires.
+I am rather fond of synology's offering however it does leave me with a couple of wishes / desires.
 
 # Synology itself
 
@@ -37,7 +37,7 @@ api doesn't have to be nearly as complete as Google's API but something is bette
 ## Security 
 
 I don't like having an account that has admin permissions all the time. For instance if I were to login to synology so
-I could use the https://www.synology.com/en-au/dsm/feature/audio_station in my webbrowser from work and leave the window
+I could use the https://www.synology.com/en-au/dsm/feature/audio_station in my web browser from work and leave the window
 open and the computer unlocked, any one can come and practically do anything under my account. There are several ways of
 resolving this, from custom apps / pages that prevent this, perhaps using Oauth for the initial login, so that they can't
 simply navigate to my main app.
@@ -63,7 +63,7 @@ sub access and escalation to admin are important considerations.
 
 I am using the "wrong" memory module, however I would like Synology to provide some degree of certification or ability to
 use off the shelf memory given theirs are expensive. I think they should be focusing on services, such as backup, rather
-than trying to figure out ways of getting you to pay more for hardware. Semi-relevant side note; Expontent.fm seems to talk
+than trying to figure out ways of getting you to pay more for hardware. Semi-relevant side note; Exponent.fm seems to talk
 a lot about Apple being unable to make the move to services either probably for the same reasons.
 
 ## Deduplication
@@ -145,7 +145,7 @@ and KeePassAndroid, which supports onedrive, dropbox, and google drive but not S
 
 I used to use dropbox but they limited the free account to just 3 devices: https://help.dropbox.com/account-access/computer-limit 
 quite some time ago and I have sinced moved on to other password managers. However it would be nice to go back. I'm not willing
-to pay for way more dropbox than I need just to use it to sync a password manaager, but I would happily improve my NAS instead.
+to pay for way more Dropbox than I need just to use it to sync a password manager, but I would happily improve my NAS instead.
 
 ### Google Drive Takeouts / Import / Export / Sync
 
@@ -154,7 +154,7 @@ tool would be nice.. OR simply creating an API and then I could create my own to
 
 There is a google drive syncing feature however it doesn't sync the actual documents, it syncs everything but the documents.
 
-Something I used to accidently delete a lot of my own documents when I tried to move them into Drive using the Files tool. 
+Something I used to accidentally delete a lot of my own documents when I tried to move them into Drive using the Files tool.
 This to me is a pretty serious UX issue, especially as it breaks the "Reversibility" expectation, I had to find other ways
 of reversing that and I'm not sure I got everything.. I guess I will find out later.
 
@@ -170,7 +170,7 @@ I moved a whole bunch of simple text files to the NAS I have over 2000 of them. 
 of easily doing so. As a result I have not.
 
 I would also like the ability to encrypt an entire folder, so that when I provide my key, it's for the folder and it's 
-entire contents that session and I don't have to do it multiple times. Perhaps even allow my key to be my phsycial security
+entire contents that session and I don't have to do it multiple times. Perhaps even allow my key to be my physical security
 key?
 
 ## Synology Photos
@@ -185,7 +185,7 @@ in timeline view" would be very useful in this system. Even having the default v
 
 In the past I created / downloaded a lot of pictures which aren't photos or personal but I don't want to get rid of them 
 and sometimes I want to view them in their own timeline but I definitely do not want to see them in my main photo timeline.
-(I roughly use the timeline view of my phones 4-5 times a week so I am not a lite user.)
+(I roughly use the timeline view of my phones 4-5 times a week so I am not a light user.)
 
 This would also help pave the way for "Private photos" and "Receipts"
 
@@ -253,7 +253,7 @@ I figure that this was supposed to be feature that people don't use too much. Th
 
 I think KDE or windows does a reasonable good job these days but neither are perfect.
 
-This one is one that bugs me a surprsingly large amount.
+This one is one that bugs me a surprisingly large amount.
 
 ### Duplicate reports
 

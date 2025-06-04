@@ -6,7 +6,7 @@ tags: ["complaints", "bugs", "synology"]
 categories: ["bugs"]
 ---
 
-The login process and decryption/passworded document workflow with Synology Office is not great. Probably needs to be 
+The login process and decryption/password-protected document workflow with Synology Office is not great. Probably needs to be
 looked at. I was going to try figure it out and provide a nice diagram of how it works, but I don't have that much time
 to dedicate to this issue.
 

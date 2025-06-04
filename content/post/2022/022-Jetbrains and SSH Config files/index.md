@@ -26,7 +26,7 @@ insistent on getting me to set it:
 
 ![img.png](img.png)
 
-The dialog is good, but the fact that it checks it by default is annoying.. I have logged a ticket in the past for this
+The dialogue is good, but the fact that it checks it by default is annoying.. I have logged a ticket in the past for this
 but I couldn't find it; I was able to find this one though: https://youtrack.jetbrains.com/issue/IDEA-283221/Uncheck-Set-properties-globally-when-set-the-project-git-user-name-by-default
 I suggested that they use https://git-scm.com/docs/git-config#Documentation/git-config.txt-useruseConfigOnly as one of the
 ways of testing for this behaviour. While it probably isn't the best way.
