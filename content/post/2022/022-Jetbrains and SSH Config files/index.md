@@ -1,5 +1,5 @@
 ---
-title: "Jetbrains and SSH Config Files"
+title: "JetBrains and SSH Config Files"
 date: 2022-09-25T13:39:00+10:00
 draft: false
 tags: ["complaints"]
@@ -21,7 +21,7 @@ different "project folders" for different repos using: `[includeIf "gitdir:~/wor
 by use of: `git config --global --set include.path ../.gitemail`; or the method I'm using and just leaving it unset in my `~/.gitconfig` file ( https://github.com/arran4/dotfiles/blob/main/dot_gitconfig.tmpl#L3 ) 
 then setting it in each repo's `$WD/.git/config` file using `git config --set user.email arran@client.com`.
 
-However Jetbrains products on the other hand assumes that `~/.gitconfig` doesn't have `user.email` populated as a mistake and is
+However JetBrains products on the other hand assumes that `~/.gitconfig` doesn't have `user.email` populated as a mistake and is
 insistent on getting me to set it:
 
 ![img.png](img.png)
@@ -32,4 +32,4 @@ I suggested that they use https://git-scm.com/docs/git-config#Documentation/git-
 ways of testing for this behaviour. While it probably isn't the best way.
 
 Maybe I should see if I could get some override using https://git-scm.com/docs/git-config#Documentation/git-config.txt-httplturlgt however
-I suspect that that would also require a ticket for the feature to be added in Jetbrains products still.
+I suspect that that would also require a ticket for the feature to be added in JetBrains products still.
