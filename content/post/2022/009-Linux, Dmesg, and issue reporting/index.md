@@ -64,7 +64,7 @@ Windows:
 ```
 
 I have gone through the support process of running diagnostic tools, 
-discharging-recharging etc. I jsut don't have another computer that's 
+discharging-recharging etc. I just don't have another computer that's
 usable while it's away for... 2-3 months. -_-
 
 Either way:

@@ -28,7 +28,7 @@ with louder volumes when I can afford larger spaces.
 What always surprises me is the software. It does one thing well, and that thing is usually it's name sake; in this case
 LightSync RGB. I didn't think I would like it.. But I don't mind it TBH... I haven't turned it off. However (to really
 no surprise) the software doesn't consider things, such as allowing me to set different profiles depending on ... well
-any other metric... Such as the time of day, for instance, I might want to synchronise it with my "[Night Lite](https://support.microsoft.com/en-us/windows/set-your-display-for-night-time-in-windows-18fe903a-e0a1-8326-4c68-fd23d7aaf136)" 
+any other metric... Such as the time of day, for instance, I might want to synchronise it with my "[Night Light](https://support.microsoft.com/en-us/windows/set-your-display-for-night-time-in-windows-18fe903a-e0a1-8326-4c68-fd23d7aaf136)"
 (Windows name for screen colour temperature.) However it does seem to offer LUA scripts I will have to play around with
 however it would be nice if there were a couple out of the box. The profile component seems to be based around the 
 application being used.. Almost always a game:

@@ -10,7 +10,7 @@ Had an issue with getting MOK to install my keys for my `Intel Corporation Wi-Fi
 wireless card on my Lenovo X1 Carbon Extreme G2.. Turns out there is a bug in the shell script that
 installs the self signed keys in to MOX... Which is great. But it turns out I have hit a bug..
 
-Perhaps this is because I use zsh or somee other reason but.. Once I see:
+Perhaps this is because I use zsh or some other reason but.. Once I see:
 
 ![](Screenshot_20220601_191034.png)
 

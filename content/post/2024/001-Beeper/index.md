@@ -45,7 +45,7 @@ notified:
 ![img.png](img.png)
 
 I think some form of combination of these would be nice:
-1. A dedicated "chat" window, with the history of all your downloads - in "Low Priority" - Infact logs are super important,
+1. A dedicated "chat" window, with the history of all your downloads - in "Low Priority" - In fact logs are super important,
 a general notification history / security audit log would be really nice.
 2. When you opt to download something, an additional status icon on the message where you downloaded it from appears
 3. Larger downloads / more async, have system notifications rather than in-app
@@ -221,7 +221,7 @@ similar to "Low Priority" that these can congregate to.
 # Bug: Discord metadata for servers not updating
 
 When a discord server changes its icon, or name or anything else. This is not updating, and there is no clear way of 
-telling beeper that it needs to update. Without removing and readding it. Which then would cause a loss of data, such as
+telling Beeper that it needs to update. Without removing and re-adding it, which would then cause a loss of data, such as
 chat history, bookmarks, snoozed messages, and the like.
 
 # UX Complaint: Better presentation of "inbox"
@@ -246,7 +246,7 @@ For some reason on my Beeper when I click:
 
 It requires multiple clicks to work. I think it's bad event propagation, it seems to be trying to trigger only when it
 gets a mouse down followed by a mouse up event, and there is loss. Sometimes it triggers multiple times. There is also
-a delay bringing up the native UI dialog.
+a delay bringing up the native UI dialogue.
 
 # Packaging request: No official flatpak / apt repo
 
@@ -302,7 +302,7 @@ like the whole app that it's a work in progress.
 # Feature request: Favourites vs other listings ie "people"
 
 I would like a more traditional list of contacts, or set of lists of users (which would be more useful, ie where I can 
-tag / label them and favorite is just one of many labels.) So I get a "friend list." Right now search is mostly usable
+tag / label them and favourite is just one of many labels.) So I get a "friend list." Right now search is mostly usable
 for me. 
 
 I would also like the beeper managed "contact" thing from earlier, especially given that some people change their names

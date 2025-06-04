@@ -23,7 +23,7 @@ most of those rules should be disabled until the need arises
 2) Lints are supposed to catch more serious errors that can easily slip past the developers focus, not formatting. Whilst
 that is how it is used a lot now we should really be using another tool for those sort of breaches, such as a "prettifer" 
 or a "manualofstylechecker" or something. Even if it's the same code doing the work it should be a different executable
-or step. For the same reason we have a distinction between `warning` and `error` we need a distrinction between a: 
+or step. For the same reason we have a distinction between `warning` and `error` we need a distinction between a:
 `style error` and a `potential cve` error. It also allows the dev to defer style changes
 3) Sometimes you want to breach style in order to make the code consistent, a bit like how gofmt ensures that in a `const` 
 or `var` block all type, assignments are aligned into a table like structure, sometimes I have something "unnecessary" such
@@ -37,7 +37,7 @@ I want to make it clear why I'm making a change, as well as make it easy to find
 zero cost for others thing. However, it's also a way of providing feedback to the project as to regards how the linter is 
 causing issues but in a way it can be referred to again at any point. Lint rules have a time cost so they should be for the
 more serious ones, stylistic issues should be automated as much as possible. You're not in the business of correcting 
-people's behavior just making sure what is submitted is good.
+people's behaviour just making sure what is submitted is good.
 
 # Auto fixers
 
@@ -188,7 +188,7 @@ S1019: should use make([]*datastore.Key, len(body.Files)) instead (gosimple)
 ```
 
 Ugh, this one is more of a go issue. I feel that you should be explicit about each parameter here so that people don't 
-have to memorize the behavior of the function, as it is exceptional. Everything about `make()` is irregular. The use of
+have to memorize the behaviour of the function, as it is exceptional. Everything about `make()` is irregular. The use of
 varargs is probably to blame here, it should really have been just a normal function. That would have reduced cognitive
 overhead. I remember this being used as part of the interview at a particular company, I guess it does test familiarity,
 however I tend to avoid things like this. It does seem to go against the ethos of the language too.

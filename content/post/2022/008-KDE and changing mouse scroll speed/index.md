@@ -6,7 +6,7 @@ tags: ["kde", "gripe"]
 categories: ["kde"]
 ---
 
-So.. Turns out the control pannel mess that exists on Windows is 
+So.. Turns out the control panel mess that exists on Windows is
 contagious. After 2 years of using Windows (because of driver issues)
 I have finally been able to switch back to Linux.. However I got used
 to a couple settings. One was a faster mouse scroll speed... So I go

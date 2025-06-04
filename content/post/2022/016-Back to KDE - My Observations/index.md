@@ -70,7 +70,7 @@ setting as it seems Spotify changes it's descriptors. If only I could do it by a
 gather the X api probably doesn't allow that level of inspection.
 
 # Consistency
-There is a surprsingly poor level of consistency amongst applications. I don't mind per say. However it 
+There is a surprisingly poor level of consistency amongst applications. I don't mind per say. However it 
 would be nice to have more of the action buttons on the lists/listviews around the place. Such as in 
 the settings windows view from above it has:
 
@@ -97,7 +97,7 @@ However it can only have a couple positions, and they only use it in a couple lo
 issue as KDE. KDE however doesn't seem to apply it to times.. I would like to be able to set: 8am, 12pm, 
 1pm, 5pm and 10pm as "standard" times I would want to set something to be due.
 
-I really do like the "Reminder" Daemon popups.. They don't steal focus, but are visible, don't make a noise,
+I really do like the "Reminder" Daemon pop-ups.. They don't steal focus, but are visible, don't make a noise,
 and allow you to address multiple issues at once, with clear actions, such as snooze or dismiss:
 
 ![img_9.png](img_9.png)
@@ -141,7 +141,7 @@ So perhaps I'm giving it too much credit..
 
 However Kmail seems to have MASSIVE problems with large folders in Gmail, such as "All mail". It takes ages
 to sync a folder and often seems to crash or get stuck, which I have to manually cancel everything, and 
-then "restart" the "account" in "account manager". I kind of wish that the Akonadi Log viewier was 
+then "restart" the "account" in "account manager". I kind of wish that the Akonadi Log viewer was
 emdedded in Kmail so I could check the status there. Along with designed for the app. 
 
 Also when the system got stuck checking the imap folders for changes, it would cause EVERYTHING else to block,
@@ -159,7 +159,7 @@ But I get very used to seeing this:
 
 My solution around it is to go offline then go online when I want to do anything. However Kmail clearly
 isn't built for Gmail as it tries to move my "deleted" items to the local trash folder rather than by 
-default into an appropraite location in the imap server. Which for gmail is actually "All Mail" as Kmail
+default into an appropriate location in the IMAP server. Which for Gmail is actually "All Mail" as Kmail
 doesn't seem to support the idea of an "archive" for all mail, instead it supports the tried and true,
 archive to reduce the folder size. Which I guess there isn't much wrong with that as it's just a difference
 in opinion. 
@@ -186,7 +186,7 @@ and Kmail, and then one at the "KDE" level in system settings. (No screenshots s
 confusing as I don't know the scope of access or what it does, and I can't seem to give it access in part.
 
 I have setup one of my gmail accounts there, which I think provides it to kopete.. I'm not sure. However
-it's so badly misconfigured it's unusable, as I get this dialog:
+it's so badly misconfigured it's unusable, as I get this dialogue:
 
 ![img_20.png](img_20.png)
 
@@ -202,7 +202,7 @@ However sometimes I can be a bit hard to find things like this:
 
 ![img_22.png](img_22.png)
 
-It's burried under the option:
+It's buried under the option:
 
 ![img_23.png](img_23.png)
 
