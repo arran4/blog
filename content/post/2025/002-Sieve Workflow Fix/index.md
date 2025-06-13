@@ -1,29 +1,16 @@
 ---
-title: "Deploying Sieve with JMAP"
-date: 2025-06-08T17:05:00+10:00
+title: "Update to Sieve Deployment Workflow"
+date: 2025-06-09T10:00:00+10:00
 draft: false
 tags: ["sieve", "jmap", "stalwart"]
 categories: ["tutorial"]
 ---
 
-When running an email server you often want rules that sort incoming mail into
-folders or handle it automatically.  The standard way to do this on the server
-is with *Sieve* scripts.  Sieve is a simple language defined in RFC 5228 for
-mail filtering.  It lets you match on message headers or other properties and
-then file, forward or discard mail without needing any user client online.
-
-Keeping such a script in version control makes it easy to track changes and to
-reuse the same rules across servers.  In my case I'm deploying to the
-[Stalwart](https://stalw.art/) mail server.  Because Stalwart exposes JMAP for
-script management I can automate the upload directly from GitHub Actions.
-
-Below is the workflow that I use.  Whenever I push `stalwart.sieve` to the `main`
-branch, GitHub Actions authenticates against Stalwart's JMAP endpoint, uploads
-the script and activates it.
+In the previous post on deploying Sieve filters to Stalwart using JMAP the workflow always created a new script. After some testing I realised it should update the existing script when one already exists. Below is the corrected workflow.
 
 ```yaml
 name: Deploy to Stalwart
-on:
+"on":
   push:
     paths:
       - 'stalwart.sieve'
@@ -99,18 +86,6 @@ jobs:
             -d "$set_body" "$jmap_endpoint" | jq
 ```
 
-The script uses the [JMAP](https://www.rfc-editor.org/rfc/rfc8621) protocol to
-upload the file and then activate it.  JMAP is JSON based and works nicely for
-automation without having to open additional ports on the server.
-
-You might use something like this when running in an environment with limited
-network access where direct deployment isn't convenient.  Services such as
-Codex which execute in a restricted container can still update your running
-server via JMAP over HTTPS.  By keeping the Sieve rules in your repo you also
-get history and the ability to review changes before deployment.
-
-With the workflow above in place you just commit updates to `stalwart.sieve` and
-push them to GitHub.  The action will deploy the new filter rules and activate
-them automatically on your Stalwart server.
+This version first queries existing scripts and either updates the current one or creates it if missing.
 
 *This post was written with the assistance of an AI tool.*
