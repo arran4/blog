@@ -18,7 +18,7 @@ defaultContentLanguage = "en"
     filename = "sitemap.xml"
 
 [params]
-    rssFullContent = true     # if false, Rss feed instead of the summary
+    rssFullContent = false     # use post summaries in the RSS feed
     dateFormatToUse = "2006-01-02"
 
     logoTitle = "Arran's Technical Blog"

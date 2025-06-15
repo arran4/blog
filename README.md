@@ -6,6 +6,9 @@ Found at:
 
 https://arran4.github.io/blog/
 
+Subscribe to new posts via RSS:
+https://arran4.github.io/blog/index.xml
+
 ## Random notes / snippets
 
 ### Create a new post
