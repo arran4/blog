@@ -11,6 +11,7 @@ defaultContentLanguage = "en"
     languageCode = "en"
 [author]
     name = 'Arran Ubels'
+    email = "technicalblog123@arran4.com"
 
 [sitemap]                 # essential                     # 必需
     changefreq = "weekly"
@@ -18,6 +19,10 @@ defaultContentLanguage = "en"
     filename = "sitemap.xml"
 
 [params]
+  [params.author]
+    name = "Arran Ubels"
+    email = "technicalblog123@arran4.com"
+
     rssFullContent = false     # use post summaries in the RSS feed
     dateFormatToUse = "2006-01-02"
 
