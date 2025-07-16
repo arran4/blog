@@ -147,6 +147,24 @@
     "dmarc",
     "Ubels",
     "libicu",
-    "usermod"
+    "usermod",
+    "BTOP",
+    "btop",
+    "urxvt",
+    "Alacritty",
+    "Qterminal",
+    "Consible",
+    "Sakura",
+    "erresc",
+    "ptyxis",
+    "mlterm",
+    "kterm",
+    "zutty",
+    "vterm",
+    "priv",
+    "Ghostty",
+    "roxterm",
+    "rxvt",
+    "Yeahconsole"
   ]
 }
