@@ -7,19 +7,43 @@ categories: ["tools"]
 author: "Arran Ubels"
 ---
 
-Short comparison of how `btop` renders in a few terminals on Gen2.
+Short comparison of how `btop` renders in a few terminals.
 
-Available terminals include:
+# Terms
 
-- Windows Terminal
-- Kitty
-- Alacritty
-- GNOME Terminal
-- xfce4-terminal
-- tmux
-- WezTerm
-- Konsole
-- Terminator
-- LXTerminal
+## urxvt
 
-`btop` generally behaves the same, though small tweaks like fonts or `TERM` may help.
+![Screenshot_20250716_144859.png](Screenshot_20250716_144859.png)
+
+## Putty term on Linux
+
+![Screenshot_20250716_144922.png](Screenshot_20250716_144922.png)
+
+## Kitty
+
+
+## Alacritty
+
+
+## GNOME Terminal
+
+
+## xfce4-terminal
+
+
+## WezTerm
+
+
+## Konsole
+
+![Screenshot_20250716_144857.png](Screenshot_20250716_144857.png)
+
+## Terminator
+
+
+## LXTerminal
+
+
+
+# TODO
+* 
