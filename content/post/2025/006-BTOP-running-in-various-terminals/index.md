@@ -159,7 +159,7 @@ W [vterm.icc:1519] (Unimplemented) reset priv mode 2026
 0000001b[?2026h
 ```
 
-## ghosttty
+## Ghostty
 
 ![Screenshot_20250716_182418.png](Screenshot_20250716_182418.png)
 
@@ -171,9 +171,9 @@ W [vterm.icc:1519] (Unimplemented) reset priv mode 2026
 * rxvt
 * Consible Term
 
-# Skiped
+# Skipped
 * Yeahconsole
 
 # Contributions
 
-Feel free to PR a self attributed pr
+Feel free to PR a self attributed screenshot of your preferred terminal.
