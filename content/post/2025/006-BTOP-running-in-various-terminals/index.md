@@ -1,7 +1,7 @@
 ---
 title: "BTOP Running in Various Terminals"
 date: 2025-07-16T17:20:25+10:00
-draft: true
+draft: false
 tags: ["btop", "linux", "terminals"]
 categories: ["tools"]
 author: "Arran Ubels"
@@ -159,9 +159,9 @@ W [vterm.icc:1519] (Unimplemented) reset priv mode 2026
 0000001b[?2026h
 ```
 
-## 
+## ghosttty
 
-
+![Screenshot_20250716_182418.png](Screenshot_20250716_182418.png)
 
 # TODO
 * windows terminal
