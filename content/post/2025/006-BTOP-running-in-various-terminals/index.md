@@ -1,24 +1,25 @@
 ---
 title: "BTOP Running in Various Terminals"
-date: 2025-07-16T00:00:00+10:00
-draft: false
+date: 2025-07-16T17:20:25+10:00
+draft: true
 tags: ["btop", "linux", "terminals"]
 categories: ["tools"]
 author: "Arran Ubels"
 ---
 
-`btop` is one of my favourite system monitoring tools. It works well in most terminal emulators, but some quirks pop up depending on the environment. Below are a few quick notes on how it behaves in different terminals I have used recently.
+Short comparison of how `btop` renders in a few terminals on Gen2.
 
-## Windows Terminal
+Available terminals include:
 
-Using `btop` inside **Windows Terminal** under WSL works perfectly. Colours and mouse support behave just like they do on Linux.
+- Windows Terminal
+- Kitty
+- Alacritty
+- GNOME Terminal
+- xfce4-terminal
+- tmux
+- WezTerm
+- Konsole
+- Terminator
+- LXTerminal
 
-## Kitty
-
-In Kitty the experience is also solid, though I needed to tweak the font size for better alignment.
-
-## tmux
-
-When running inside `tmux`, `btop` initially refused to render correctly. Adding `TERM=screen-256color` before launching fixed the issue.
-
-Overall `btop` is portable, but sometimes a small configuration change is required for everything to look right.
+`btop` generally behaves the same, though small tweaks like fonts or `TERM` may help.
