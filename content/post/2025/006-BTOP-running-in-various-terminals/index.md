@@ -17,9 +17,13 @@ For my config checkout https://github.com/arran4/dotfiles
 
 ![Screenshot_20250716_173338.png](Screenshot_20250716_173338.png)
 
-## urxvt
+## UXterm
 
 ![Screenshot_20250716_144859.png](Screenshot_20250716_144859.png)
+
+## urxvt
+
+![Screenshot_20250717_123040.png](Screenshot_20250717_123040.png)
 
 ## Putty term on Linux
 
