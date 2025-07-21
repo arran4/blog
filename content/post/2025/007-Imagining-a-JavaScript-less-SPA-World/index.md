@@ -1,7 +1,7 @@
 ---
 title: "Imagining a JavaScript-less SPA World"
 date: 2025-07-17T12:00:00+10:00
-draft: true
+draft: false
 tags: ["javascript", "webdev", "standards"]
 categories: ["notes"]
 author: "Arran Ubels"
