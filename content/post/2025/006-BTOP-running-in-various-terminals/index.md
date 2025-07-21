@@ -169,7 +169,7 @@ W [vterm.icc:1519] (Unimplemented) reset priv mode 2026
 
 # TODO
 * windows terminal
-* iTerm
+* Terminal.app
 * iTerm2
 * roxterm
 * rxvt
