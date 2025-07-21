@@ -194,7 +194,7 @@ This would also help pave the way for "Private photos" and "Receipts"
 Just like google drive a way of migrating files between the two would be great. Especially with comments and shares.
 
 This also applies a bit with sharing photos. People like to use their own photo tool. Being able to share with those people
-would be quite valuable / viable. Having the software run on a NAS and not be subject to Synology vendor lockin means that it isn't
+would be quite valuable / viable. Having the software run on a NAS and not be subject to Synology vendor lock-in means that it isn't
 against the business interests to allow their platform to upload photos to various cloud solutions and share on it. Which
 means Synology Photos wouldn't just become a place I store my personal photos but a system that I can use to orchestrate my
 digital photo impact. Although I'm not sure how much the "competing" platforms would appreciate aggregation in such a way.  

@@ -54,12 +54,12 @@ Which is nice. However when I use the activities tabber it seems to want to sort
 than retain any sort of order. 
 
 Virtual desktops have become strange.. It's clearly a grid, however when I add desktops, I have to do it
-for each "Row".. It numbers the virtual desktops, however I find positional based vritual desktops far 
+for each "Row".. It numbers the virtual desktops, however I find positional based virtual desktops far 
 more handy, however I don't see any way of managing that automatically:
 
 ![img_3.png](img_3.png)
 
-So here I am naiming my virtual desktops manually. -_- (I have since added a center row.) This seems like
+So here I am naming my virtual desktops manually. -_- (I have since added a center row.) This seems like
 way too much work.. Also my other activities I would like only one virtual desktop. Why? They are only 
 for "Music" and "Games":
 
