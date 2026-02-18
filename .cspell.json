@@ -197,6 +197,7 @@
     "txtar",
     "Fatalf",
     "mypkg",
-    "testdata"
+    "testdata",
+    "oldstable"
   ]
 }
