@@ -190,6 +190,183 @@ Use `fs.Glob` or `fs.WalkDir` with predictable ordering rules.
 If ordering matters, sort inputs before execution. Reproducibility matters when
 fixture counts grow.
 
+## Deprojected snippets: txtar to `fs.FS` and deterministic walking
+
+This is the bit I want agents to internalise: parse once, convert to an in-memory
+`fs.FS`, then run your product code against that virtual tree.
+
+### Minimal conversion: `txtar` archive to `fstest.MapFS`
+
+```go
+package fixturefs
+
+import (
+    "path"
+    "strings"
+    "testing/fstest"
+
+    "golang.org/x/tools/txtar"
+)
+
+func ArchiveToMapFS(ar *txtar.Archive) fstest.MapFS {
+    out := fstest.MapFS{}
+    for _, f := range ar.Files {
+        name := path.Clean(strings.TrimPrefix(f.Name, "/"))
+        if name == "." {
+            continue
+        }
+        out[name] = &fstest.MapFile{Data: append([]byte(nil), f.Data...)}
+    }
+    return out
+}
+```
+
+This lets you remove runtime disk I/O from the test itself while still exercising
+code that accepts an `fs.FS`.
+
+### Convention helper: split one txtar into input/expected filesystems
+
+If your archive stores source files under `input/` and expected files under
+`expected/`, split them into two independent trees:
+
+```go
+func SplitInputExpected(ar *txtar.Archive) (input, expected fstest.MapFS) {
+    input = fstest.MapFS{}
+    expected = fstest.MapFS{}
+
+    for _, f := range ar.Files {
+        switch {
+        case strings.HasPrefix(f.Name, "input/"):
+            input[strings.TrimPrefix(f.Name, "input/")] = &fstest.MapFile{Data: f.Data}
+        case strings.HasPrefix(f.Name, "expected/"):
+            expected[strings.TrimPrefix(f.Name, "expected/")] = &fstest.MapFile{Data: f.Data}
+        }
+    }
+    return input, expected
+}
+```
+
+That pattern is deliberately boring and explicit: easy for humans to read, easy
+for agents to generate, easy to validate.
+
+### Deterministic walker over virtual FS
+
+Even with an in-memory filesystem, keep ordering explicit:
+
+```go
+func WalkFiles(root fs.FS, dir string) ([]string, error) {
+    var files []string
+    err := fs.WalkDir(root, dir, func(p string, d fs.DirEntry, err error) error {
+        if err != nil {
+            return err
+        }
+        if d.IsDir() {
+            return nil
+        }
+        files = append(files, p)
+        return nil
+    })
+    sort.Strings(files)
+    return files, err
+}
+```
+
+That gives stable case execution and stable diffs.
+
+### End-to-end sketch: parse fixture, construct FS, run assertions
+
+```go
+func TestTransform(t *testing.T) {
+    raw, _ := fixtures.ReadFile("testdata/cases/basic.txtar")
+    ar := txtar.Parse(raw)
+    inputFS, expectedFS := SplitInputExpected(ar)
+
+    gotFS, err := transform.Run(inputFS)
+    if err != nil {
+        t.Fatalf("run transform: %v", err)
+    }
+
+    wantFiles, err := WalkFiles(expectedFS, ".")
+    if err != nil {
+        t.Fatalf("walk expected: %v", err)
+    }
+    for _, name := range wantFiles {
+        want, _ := fs.ReadFile(expectedFS, name)
+        got, _ := fs.ReadFile(gotFS, name)
+        if string(got) != string(want) {
+            t.Fatalf("file %s mismatch\nwant:\n%s\n\ngot:\n%s", name, want, got)
+        }
+    }
+}
+```
+
+## Multi-template directory loop (goa4web-style pattern)
+
+For template corpora (for example email templates where each body type has its
+own txtar), I want one subtest per template archive discovered by walking a
+directory.
+
+```go
+//go:embed testdata/templates/**/*.txtar
+var templateCases embed.FS
+
+func TestTemplateMatrix(t *testing.T) {
+    var cases []string
+    err := fs.WalkDir(templateCases, "testdata/templates", func(p string, d fs.DirEntry, err error) error {
+        if err != nil {
+            return err
+        }
+        if d.IsDir() || !strings.HasSuffix(p, ".txtar") {
+            return nil
+        }
+        cases = append(cases, p)
+        return nil
+    })
+    if err != nil {
+        t.Fatalf("walk template cases: %v", err)
+    }
+    sort.Strings(cases)
+
+    for _, tc := range cases {
+        tc := tc
+        t.Run(strings.TrimSuffix(path.Base(tc), ".txtar"), func(t *testing.T) {
+            raw, err := templateCases.ReadFile(tc)
+            if err != nil {
+                t.Fatalf("read %s: %v", tc, err)
+            }
+            ar := txtar.Parse(raw)
+            inputFS, expectedFS := SplitInputExpected(ar)
+
+            gotFS, err := renderTemplates(inputFS)
+            if err != nil {
+                t.Fatalf("render %s: %v", tc, err)
+            }
+            assertTreeEqual(t, expectedFS, gotFS)
+        })
+    }
+}
+```
+
+This pattern scales from a handful of templates to hundreds while still making
+failures obvious and localised.
+
+## Why this helps agents and embedded script runners
+
+Packing all case inputs/expectations into txtar + in-memory `fs.FS` gives two
+big practical wins:
+
+- **Single source of case truth**: readers only inspect one fixture blob.
+- **Host-independent execution**: fewer path/permission surprises in CI, local,
+  and agent sandboxes.
+
+The same structure also ports well to Go-based embedded scripting engines:
+
+- pass a virtual filesystem adapter into the script runtime
+- let scripts read `input/...` and write `output/...` in-memory
+- compare `output/...` against `expected/...` without touching host disk
+
+So tests, generators, and scripted transforms can all share one fixture model.
+
 ## Bridging to template systems (`goa4web/core/templates`)
 
 While `goa4web/core/templates` is template-driven rather than testdata-driven,
