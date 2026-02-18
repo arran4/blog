@@ -193,6 +193,7 @@
     "webdev",
     "htmx",
     "Hotwire",
-    "toolkits"
+    "toolkits",
+    "oldstable"
   ]
 }
