@@ -38,7 +38,7 @@ If you want a robust setup today:
 
 ## Why `version: latest` can surprise you
 
-`golangci-lint-action` accepts `version: latest`, but that means each CI run can pick newer golangci-lint binaries as they are released. Newer binaries can include parser/toolchain behavior changes and new Go-version support windows. Great for fast adoption, risky for deterministic CI.
+`golangci-lint-action` accepts `version: latest`, but that means each CI run can pick newer golangci-lint binaries as they are released. Newer binaries can include parser/toolchain behaviour changes and new Go-version support windows. Great for fast adoption, risky for deterministic CI.
 
 In short:
 
