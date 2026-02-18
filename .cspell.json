@@ -193,6 +193,10 @@
     "webdev",
     "htmx",
     "Hotwire",
-    "toolkits"
+    "toolkits",
+    "txtar",
+    "Fatalf",
+    "mypkg",
+    "testdata"
   ]
 }
