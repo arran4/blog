@@ -53,7 +53,7 @@ line 1
 line 2 (normalized)
 ```
 
-This is ideal for parser normalization, text transforms, or diff behavior where
+This is ideal for parser normalization, text transforms, or diff behaviour where
 you only need deterministic before/after checks.
 
 ### When to choose this
@@ -117,7 +117,7 @@ indent_style = tab
 {"indent_style":"tab"}
 ```
 
-This style maps well to systems like `editorconfig-guesser`, where behavior is
+This style maps well to systems like `editorconfig-guesser`, where behaviour is
 contextual and directory-sensitive.
 
 ## The important Go harness pieces
@@ -165,7 +165,7 @@ func TestCases(t *testing.T) {
                 t.Fatalf("read fixture %s: %v", fixture, err)
             }
             ar := txtar.Parse(raw)
-            _ = ar // decode files and assert behavior
+            _ = ar // decode files and assert behaviour
         })
     }
 }
@@ -228,9 +228,9 @@ project fundamentals.
 
 A pattern that has worked well for me:
 
-- Start new behavior with Pattern 1 fixture pairs.
+- Start new behaviour with Pattern 1 fixture pairs.
 - If meaning becomes ambiguous, introduce Pattern 2 description/options files.
-- If behavior becomes contextual or tree-based, move to Pattern 3 scenarios.
+- If behaviour becomes contextual or tree-based, move to Pattern 3 scenarios.
 - Keep old fixtures valid whenever possible to avoid churn.
 
 That path gives fast feedback early and strong coverage later.
@@ -272,7 +272,7 @@ package main
 When I ask for txtar updates, optimize for:
 
 - readability first
-- deterministic harness behavior
+- deterministic harness behaviour
 - easy case-level debugging with `t.Run`
 - no runtime path fragility (`go:embed` preferred)
 
