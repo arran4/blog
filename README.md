@@ -24,3 +24,7 @@ echo "Post Title? " && read PostTitle && hugo new -k post "post/$(date +%Y)/$(pr
 ```bash
  date --rfc-3339=sec
 ```
+
+## License
+
+This project is licensed under the [Creative Commons Attribution-ShareAlike 4.0 International License](LICENSE).
