@@ -57,7 +57,10 @@ Prefer named wrapper types over raw primitives.
 Keep defaults explicit and document accepted option types.
 Add tests for conflicting options and last-write-wins behavior.</p></blockquote><p>That usually gets me close to what I want.</p><h2 id=closing>Closing</h2><p>I like this pattern because it balances <strong>ergonomics</strong>, <strong>type-driven clarity</strong>, and <strong>evolution over
 time</strong>. In parser/consumer-heavy code, it often reads naturally and adapts well.</p><p>It is not mandatory, and I still use plain configs when that is simpler. But when I need a compact,
-expressive surface that can grow steadily, the type-switched variadic system keeps proving itself.</p></div><footer class=post-footer><div class=post-tags><a href=https://arran4.github.io/blog/tags/go/>go</a>
+expressive surface that can grow steadily, the type-switched variadic system keeps proving itself.</p></div><div class=post-copyright><p class=copyright-item><span class=item-title>Author</span>
+<span class=item-content>Arran Ubels</span></p><p class=copyright-item><span class=item-title>LastMod</span>
+<span class=item-content>2026-02-16</span></p><p class=copyright-item><span class=item-title>License</span>
+<span class=item-content><a rel="license noopener" href=https://spdx.org/licenses/MIT-0.html target=_blank>MIT No Attribution</a></span></p></div><footer class=post-footer><div class=post-tags><a href=https://arran4.github.io/blog/tags/go/>go</a>
 <a href=https://arran4.github.io/blog/tags/api-design/>api-design</a>
 <a href=https://arran4.github.io/blog/tags/options-pattern/>options-pattern</a>
 <a href=https://arran4.github.io/blog/tags/ergonomics/>ergonomics</a></div><nav class=post-nav><a class=next href=/blog/post/2026/004-txtar-patterns-for-agents/><span class="next-text nav-default">Txtar Test Systems in Practice: Data, Scenarios, and Embedded Walkers</span>

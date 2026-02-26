@@ -234,7 +234,10 @@ project fundamentals.</p><h2 id=practical-evolution-strategy>Practical evolution
 </span></span><span style=display:flex><span>-- expected.json --
 </span></span><span style=display:flex><span>{&#34;indent_style&#34;:&#34;tab&#34;}
 </span></span></code></pre></div><h2 id=final-guidance-for-agent-authored-changes>Final guidance for agent-authored changes</h2><p>When I ask for txtar updates, optimize for:</p><ul><li>readability first</li><li>deterministic harness behaviour</li><li>easy case-level debugging with <code>t.Run</code></li><li>no runtime path fragility (<code>go:embed</code> preferred)</li></ul><p>If there’s a trade-off, choose explicit structure over clever compactness.
-That pays off when the fixture corpus gets large.</p></div><footer class=post-footer><div class=post-tags><a href=https://arran4.github.io/blog/tags/go/>go</a>
+That pays off when the fixture corpus gets large.</p></div><div class=post-copyright><p class=copyright-item><span class=item-title>Author</span>
+<span class=item-content>Arran Ubels</span></p><p class=copyright-item><span class=item-title>LastMod</span>
+<span class=item-content>2026-02-16</span></p><p class=copyright-item><span class=item-title>License</span>
+<span class=item-content><a rel="license noopener" href=https://spdx.org/licenses/MIT-0.html target=_blank>MIT No Attribution</a></span></p></div><footer class=post-footer><div class=post-tags><a href=https://arran4.github.io/blog/tags/go/>go</a>
 <a href=https://arran4.github.io/blog/tags/testing/>testing</a>
 <a href=https://arran4.github.io/blog/tags/txtar/>txtar</a>
 <a href=https://arran4.github.io/blog/tags/embed/>embed</a>
