@@ -19,6 +19,7 @@ defaultContentLanguage = "en"
     filename = "sitemap.xml"
 
 [params]
+  contentCopyright = '<a rel="license noopener" href="https://spdx.org/licenses/MIT-0.html" target="_blank">MIT No Attribution</a>'
   [params.author]
     name = "Arran Ubels"
     email = "technicalblog123@arran4.com"
