@@ -1,5 +1,5 @@
 baseURL = 'https://arran4.github.io/blog/'
-copyright = ''
+copyright = 'Arran Ubels. This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.'
 languageCode = 'en-us'
 title = 'Arrans Technical blog'
 theme = "hugo-theme-jane"
