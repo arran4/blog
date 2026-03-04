@@ -93,6 +93,23 @@ on:
         default: "snapshot"
         type: choice
         options: [snapshot, release]
+      release_increment:
+        description: "Version increment to apply when preparing release tags"
+        required: false
+        default: "patch"
+        type: choice
+        options: [major, minor, patch, none]
+      prerelease_channel:
+        description: "Pre-release channel"
+        required: false
+        default: "none"
+        type: choice
+        options: [none, uat, test, rc, beta, alpha]
+      prerelease_number:
+        description: "Optional pre-release sequence number (for example: 1 in -rc.1)"
+        required: false
+        default: ""
+        type: string
   schedule:
     # preferred heavy monthly run (quota reset strategy)
     - cron: '17 3 1 * *'
@@ -105,6 +122,66 @@ on:
 - It handles PR close cleanup flows.
 - It supports semantic tags and release candidates.
 - It exposes explicit manual operational modes (`validate`, `lint-fix`, `release-snapshot`, etc).
+- It lets you choose release increment semantics (`major|minor|patch`) and prerelease channels (`uat|test|rc|beta|alpha`).
+
+---
+
+## Step 1.5: Release increment + prerelease channel control (copy/paste)
+
+You asked for explicit release bump controls. Add a dedicated lane that computes/pushes the tag before release jobs run.
+
+```yaml
+  prepare-release-tag:
+    name: Prepare release tag
+    needs: [route]
+    if: ${{ github.event_name == 'workflow_dispatch' && (inputs.mode == 'release' || inputs.mode == 'release-snapshot') }}
+    runs-on: ubuntu-latest
+    outputs:
+      release_tag: ${{ steps.tag.outputs.release_tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Option A: use git-tag-inc (recommended if you already use it)
+      - name: Compute tag via git-tag-inc
+        id: tag
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          base_flag=""
+          case "${{ inputs.release_increment }}" in
+            major) base_flag="--major" ;;
+            minor) base_flag="--minor" ;;
+            patch) base_flag="--patch" ;;
+            none)  base_flag="" ;;
+          esac
+
+          pre_flag=""
+          if [[ "${{ inputs.prerelease_channel }}" != "none" ]]; then
+            if [[ -n "${{ inputs.prerelease_number }}" ]]; then
+              pre_flag="--prerelease ${{ inputs.prerelease_channel }}.${{ inputs.prerelease_number }}"
+            else
+              pre_flag="--prerelease ${{ inputs.prerelease_channel }}"
+            fi
+          fi
+
+          # Example command (adjust if your git-tag-inc flags differ)
+          next_tag=$(git-tag-inc $base_flag $pre_flag)
+          echo "release_tag=$next_tag" >> "$GITHUB_OUTPUT"
+
+      - name: Push tag
+        env:
+          TAG: ${{ steps.tag.outputs.release_tag }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "$TAG"
+          git push origin "$TAG"
+```
+
+If you do not use `git-tag-inc`, keep the same inputs and swap the compute step with your own semver script.
 
 ---
 
@@ -725,7 +802,7 @@ If repo has Go + Dockerfile or standalone Docker service, build and (optionally)
 ```yaml
   goreleaser:
     name: GoReleaser
-    needs: [route, discover, go-lint-test]
+    needs: [route, discover, go-lint-test, prepare-release-tag]
     if: ${{ needs.discover.outputs.has_go == 'true' && needs.discover.outputs.has_goreleaser == 'true' && needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     steps:
@@ -739,7 +816,10 @@ If repo has Go + Dockerfile or standalone Docker service, build and (optionally)
         with:
           distribution: goreleaser
           version: latest
-          args: release --clean ${{ (github.event_name == 'workflow_dispatch' && inputs.release_mode != 'release') && '--snapshot' || '' }}
+          args: >-
+            release --clean
+            ${{ (github.event_name == 'workflow_dispatch' && inputs.release_mode != 'release') && '--snapshot' || '' }}
+            ${{ needs.prepare-release-tag.outputs.release_tag != '' && format('--tag {0}', needs.prepare-release-tag.outputs.release_tag) || '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -1018,6 +1098,17 @@ on:
         type: choice
         default: snapshot
         options: [snapshot, release]
+      release_increment:
+        type: choice
+        default: patch
+        options: [major, minor, patch, none]
+      prerelease_channel:
+        type: choice
+        default: none
+        options: [none, uat, test, rc, beta, alpha]
+      prerelease_number:
+        type: string
+        default: ''
   schedule:
     - cron: '17 3 1 * *'
     - cron: '41 2 * * *'
@@ -1036,6 +1127,10 @@ permissions:
 jobs:
   route:
     # ... from section above
+  prepare-release-tag:
+    needs: [route]
+    # ... from section above
+
   discover:
     needs: route
     # ... from section above
@@ -1089,7 +1184,7 @@ jobs:
     # ...
 
   goreleaser:
-    needs: [route, discover, go-lint-test]
+    needs: [route, discover, go-lint-test, prepare-release-tag]
     # ...
 
   source-deb:
