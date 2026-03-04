@@ -110,6 +110,17 @@ on:
         required: false
         default: ""
         type: string
+      increment_mode:
+        description: "Alternative increment control style (kagura-style)"
+        required: false
+        default: "release"
+        type: choice
+        options: [major, minor, patch, release, test]
+      release_version_override:
+        description: "Optional explicit release version (for example 2.4.0 or 2.4.0-uat.2)"
+        required: false
+        default: ""
+        type: string
   schedule:
     # preferred heavy monthly run (quota reset strategy)
     - cron: '17 3 1 * *'
@@ -138,6 +149,7 @@ You asked for explicit release bump controls. Add a dedicated lane that computes
     runs-on: ubuntu-latest
     outputs:
       release_tag: ${{ steps.tag.outputs.release_tag }}
+      next_version: ${{ steps.tag.outputs.next_version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -171,6 +183,13 @@ You asked for explicit release bump controls. Add a dedicated lane that computes
           next_tag=$(git-tag-inc $base_flag $pre_flag)
           echo "release_tag=$next_tag" >> "$GITHUB_OUTPUT"
 
+          # Optional next version hint (patch-forward default)
+          clean_tag="${next_tag#v}"
+          clean_tag="${clean_tag%%-*}"
+          IFS='.' read -r maj min pat <<< "$clean_tag"
+          maj=${maj:-0}; min=${min:-0}; pat=${pat:-0}
+          echo "next_version=${maj}.${min}.$((pat + 1))-SNAPSHOT" >> "$GITHUB_OUTPUT"
+
       - name: Push tag
         env:
           TAG: ${{ steps.tag.outputs.release_tag }}
@@ -182,6 +201,54 @@ You asked for explicit release bump controls. Add a dedicated lane that computes
 ```
 
 If you do not use `git-tag-inc`, keep the same inputs and swap the compute step with your own semver script.
+
+### Kagura-style increment logic (copy/paste alternative)
+
+The referenced `kagura-original` workflow also uses a practical fallback model:
+
+- parse current version,
+- apply increment mode (`major`, `minor`, `patch`, `release`, `test`),
+- optionally allow a direct version override,
+- tag the release,
+- and create a PR that bumps to the next `-SNAPSHOT` development version.
+
+```yaml
+      - name: Prepare version/tag (kagura-style)
+        id: prep_version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          CURRENT_VERSION="$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)"
+          BASE_VERSION="${CURRENT_VERSION%-SNAPSHOT}"
+          IFS='.' read -r -a PARTS <<< "$BASE_VERSION"
+          MAJOR=${PARTS[0]:-0}; MINOR=${PARTS[1]:-0}; PATCH=${PARTS[2]:-0}
+
+          MODE="${{ inputs.increment_mode }}"
+          OVERRIDE="${{ inputs.release_version_override }}"
+
+          if [[ -n "$OVERRIDE" ]]; then
+            NEW_VERSION="$OVERRIDE"
+          elif [[ "$MODE" == "major" ]]; then
+            NEW_VERSION="$((MAJOR + 1)).0.0"
+          elif [[ "$MODE" == "minor" ]]; then
+            NEW_VERSION="$MAJOR.$((MINOR + 1)).0"
+          elif [[ "$MODE" == "patch" ]]; then
+            NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
+          elif [[ "$MODE" == "test" ]]; then
+            NEW_VERSION="$BASE_VERSION-test"
+          else
+            NEW_VERSION="$BASE_VERSION"
+          fi
+
+          IFS='.' read -r -a NP <<< "${NEW_VERSION%-*}"
+          NEXT_VERSION="${NP[0]:-0}.${NP[1]:-0}.$(( ${NP[2]:-0} + 1 ))-SNAPSHOT"
+
+          echo "TAG_NAME=v$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          echo "NEXT_VERSION=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
+```
+
+This model is excellent for repositories that want release tagging and automatic next-iteration bump PRs in one flow.
 
 ---
 
@@ -473,6 +540,31 @@ mkdir -p %{buildroot}/usr/bin
 ```
 
 Public repos can afford broader checks by default. Private repos keep monthly/full-mode heavy scans.
+
+---
+
+## Step 5.5: Java/Maven lane (from kagura-style repos)
+
+If a repo has `pom.xml`, add this lane. It is useful for polyglot repos where Java packaging coexists with Go/Node/others.
+
+```yaml
+  java-build-test:
+    name: Java build/test
+    needs: [route, discover]
+    if: ${{ needs.route.outputs.run_code_checks == 'true' && hashFiles('pom.xml') != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: temurin
+          cache: maven
+      - run: mvn spotless:check
+      - run: mvn test -DskipITs=false
+```
+
+This mirrors the style in your referenced workflow and can be chained into release fan-in if Java artifacts are part of your release.
 
 ---
 
@@ -1072,7 +1164,44 @@ Use multiple deploy stages (package -> publish -> promote).
 
 ---
 
+### Optional: Prepare next development version PR after release
+
+This pattern from the referenced workflow is useful for repos that keep `-SNAPSHOT` / development versions in source control.
+
+```yaml
+  prepare-next-version-pr:
+    name: Prepare next development iteration PR
+    needs: [publish-draft]
+    if: ${{ github.event_name == 'workflow_dispatch' && (inputs.mode == 'release' || inputs.mode == 'release-snapshot') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bump to next version and open PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          NEXT_VERSION="${{ needs.prepare-release-tag.outputs.next_version || '' }}"
+          [[ -z "$NEXT_VERSION" ]] && { echo "No next version calculated; skipping."; exit 0; }
+
+          BRANCH="bump-version-$NEXT_VERSION"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+
+          # Replace with repo-specific version bump command(s)
+          # mvn versions:set -DnewVersion="$NEXT_VERSION" -DgenerateBackupPoms=false
+
+          git add -A
+          git commit -m "Prepare next development iteration $NEXT_VERSION"
+          git push -u origin "$BRANCH"
+          gh pr create --title "Prepare next development iteration $NEXT_VERSION" --body "Automated PR for next iteration." --base main --head "$BRANCH"
+```
+
+---
+
 ## Step 16: Full skeleton (compact but wired)
+
 
 This is the high-level skeleton to start from. Keep this in `.github/workflows/ci.yml` and split script details into `packaging/scripts` and config files.
 
@@ -1109,6 +1238,13 @@ on:
       prerelease_number:
         type: string
         default: ''
+      increment_mode:
+        type: choice
+        default: release
+        options: [major, minor, patch, release, test]
+      release_version_override:
+        type: string
+        default: ''
   schedule:
     - cron: '17 3 1 * *'
     - cron: '41 2 * * *'
@@ -1136,6 +1272,10 @@ jobs:
     # ... from section above
 
   gitleaks:
+    needs: [route, discover]
+    # ...
+
+  java-build-test:
     needs: [route, discover]
     # ...
 
@@ -1205,6 +1345,10 @@ jobs:
 
   promote-release:
     needs: [publish-draft]
+    # ...
+
+  prepare-next-version-pr:
+    needs: [publish-draft, prepare-release-tag]
     # ...
 ```
 
