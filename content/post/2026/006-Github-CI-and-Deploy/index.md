@@ -300,6 +300,74 @@ linter:
     - prefer_single_quotes
 ```
 
+Additional copy/paste config starters:
+
+### `.golangci.yml`
+
+```yaml
+run:
+  timeout: 5m
+
+linters:
+  enable:
+    - govet
+    - staticcheck
+    - errcheck
+    - ineffassign
+    - revive
+
+issues:
+  exclude-use-default: false
+```
+
+### `.prettierrc.json`
+
+```json
+{
+  "semi": false,
+  "singleQuote": true,
+  "printWidth": 100
+}
+```
+
+### `.clang-format`
+
+```yaml
+BasedOnStyle: LLVM
+IndentWidth: 2
+ColumnLimit: 100
+```
+
+### `packaging/rpm/app.spec` (source rpm compatible starter)
+
+```spec
+Name:           app
+Version:        %{?version}%{!?version:0.0.0}
+Release:        1%{?dist}
+Summary:        App summary
+License:        MIT
+Source0:        %{name}-%{version}.tar.gz
+
+%description
+App description.
+
+%prep
+%autosetup
+
+%build
+# build steps here
+
+%install
+mkdir -p %{buildroot}/usr/bin
+
+%files
+/usr/bin/*
+
+%changelog
+* Thu Mar 04 2026 CI Bot <ci@example.com> - %{version}-1
+- Automated source build
+```
+
 ---
 
 ## Step 5: Security jobs (automatic profile behavior)
@@ -420,8 +488,8 @@ You asked to include Dart libs and Flutter libs specifically, with analysis.
       - run: dart analyze
       - run: dart test
 
-  flutter-analyze-test-build:
-    name: Flutter analyze/test/build
+  flutter-analyze-test:
+    name: Flutter analyze/test (fast path)
     needs: [route, discover]
     if: ${{ needs.discover.outputs.has_flutter == 'true' && needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
@@ -435,12 +503,31 @@ You asked to include Dart libs and Flutter libs specifically, with analysis.
       - run: dart format --set-exit-if-changed .
       - run: flutter analyze
       - run: flutter test
+
+  flutter-build-artifacts:
+    name: Flutter build artifacts (release/monthly only)
+    needs: [route, discover, flutter-analyze-test]
+    if: ${{ needs.discover.outputs.has_flutter == 'true' && (needs.route.outputs.run_release == 'true' || needs.route.outputs.is_monthly == 'true' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'build')) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
       - run: flutter build linux --release
+      - run: flutter build apk --release || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flutter-release-bundles
+          path: |
+            build/linux/**
+            build/app/outputs/flutter-apk/*.apk
 ```
 
-### Fastforge migration note
+### Fastforge note
 
-If you are moving away from fastforge, keep fastforge optional and add independent packaging jobs (flatpak/deb/rpm/source packages) so release remains tool-agnostic.
+Fastforge is optional. Keep it if you want it; remove it if you don't. The key pattern is to keep release outputs available through independent lanes (flatpak, source packages, container artifacts, GoReleaser outputs) so your pipeline doesn't depend on a single packaging tool.
 
 ---
 
@@ -843,12 +930,12 @@ This is intentionally independent from fastforge/GoReleaser so source package pu
 
 ## Step 14: Flatpak and optional app-store packaging lane
 
-For Flutter/Qt desktop apps moving away from fastforge, keep a manual lane.
+For Flutter/Qt desktop apps, keep a manual lane. If Flutter build artifacts were produced earlier, this lane can package those; if not, it can run from source directly.
 
 ```yaml
   flatpak-build:
     name: Flatpak package
-    needs: [route, discover, flutter-analyze-test-build, cpp-qt-build-test]
+    needs: [route, discover]
     if: ${{ needs.route.outputs.run_release == 'true' && (needs.discover.outputs.has_flutter == 'true' || needs.discover.outputs.has_qt_cpp == 'true') }}
     runs-on: ubuntu-latest
     steps:
@@ -973,8 +1060,12 @@ jobs:
     needs: [route, discover]
     # ...
 
-  flutter-analyze-test-build:
+  flutter-analyze-test:
     needs: [route, discover]
+    # ...
+
+  flutter-build-artifacts:
+    needs: [route, discover, flutter-analyze-test]
     # ...
 
   cpp-qt-build-test:
