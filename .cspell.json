@@ -202,6 +202,17 @@
     "testdata",
     "oldstable",
     "mindepth",
-    "maxdepth"
+    "maxdepth",
+    "effectful",
+    "myfs",
+    "Errorf",
+    "subdir",
+    "fstest",
+    "fsys",
+    "Dialer",
+    "Conn",
+    "dialer",
+    "httptest",
+    "OSFS"
   ]
 }
