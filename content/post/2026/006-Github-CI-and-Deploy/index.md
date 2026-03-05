@@ -678,9 +678,25 @@ This keeps docs/site deployment first-class without mixing it into language buil
 Use `setup-go` built-in caching instead of manual `actions/cache`.
 
 ```yaml
+  # Requested baseline snippet (modern versions)
+  golangci:
+    name: lint
+    needs: [route, discover]
+    if: ${{ needs.discover.outputs.has_go == 'true' && needs.route.outputs.run_code_checks == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: latest
+
   go-lint-test:
     name: Go lint/test (${{ matrix.os }})
-    needs: [route, discover]
+    needs: [route, discover, golangci]
     if: ${{ needs.discover.outputs.has_go == 'true' && needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -708,9 +724,36 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
           go-version-file: go.mod
           cache: true
       - run: go vet ./...
+
+  go-fmt-pr:
+    name: go fmt -> PR (manual dispatch)
+    needs: [route, discover]
+    if: ${{ needs.discover.outputs.has_go == 'true' && github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: Run go fmt
+        run: go fmt ./...
+      - name: Create PR if go fmt changed files
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git diff --quiet && { echo "No fmt changes"; exit 0; }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          BRANCH="ci/gofmt/${{ github.run_id }}"
+          git checkout -b "$BRANCH"
+          git add -A
+          git commit -m "ci: go fmt"
+          git push origin "$BRANCH"
+          gh pr create --title "ci: go fmt" --body "Automated go fmt from manual dispatch." --base main --head "$BRANCH" --label "ci-autofix"
 ```
 
-This separates `go test` and `go vet` so public repos can run in parallel.
+This separates lint, test, and vet while keeping a dedicated manual-dispatch `go fmt -> PR` path.
 
 ---
 
@@ -1545,11 +1588,19 @@ jobs:
     needs: [route, discover, hugo-build]
     # ...
 
-  go-lint-test:
+  golangci:
     needs: [route, discover]
     # ...
 
+  go-lint-test:
+    needs: [route, discover, golangci]
+    # ...
+
   go-vet:
+    needs: [route, discover]
+    # ...
+
+  go-fmt-pr:
     needs: [route, discover]
     # ...
 
