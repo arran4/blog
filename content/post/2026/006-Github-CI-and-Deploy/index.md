@@ -1173,11 +1173,12 @@ nfpms:
     priority: optional
 
 homebrew_casks:
-  - name: g2
+  -
     repository:
       owner: arran4
       name: homebrew-tap
-      token: "{{ .Env.TAP_GITHUB_TOKEN }}" # From secrets.TAP_GITHUB_TOKEN
+      branch: "{{.ProjectName}}-{{.Version}}"
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
       pull_request:
         enabled: true
         draft: false
