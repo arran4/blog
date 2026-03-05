@@ -568,6 +568,111 @@ This mirrors the style in your referenced workflow and can be chained into relea
 
 ---
 
+## Step 5.6: Hugo Pages integration pattern (from updated kagura workflow)
+
+If the repository includes a Hugo docs/site directory (example: `site/mydocs`), add a Pages lane that builds and deploys docs on `main`/`master`, tag releases, and manual dispatch.
+
+Key ideas from the referenced workflow:
+
+- route-level `run_pages` output (separate from code-check/release output),
+- discovery output `has_hugo` for conditional execution,
+- workflow permissions include `pages: write` and `id-token: write`,
+- split build and deploy jobs (`hugo-build` -> `hugo-deploy`),
+- deployment concurrency uses the `pages` group.
+
+### Route/discovery additions (copy/paste)
+
+```yaml
+permissions:
+  contents: write
+  pull-requests: write
+  checks: write
+  packages: write
+  security-events: write
+  pages: write
+  id-token: write
+
+jobs:
+  route:
+    outputs:
+      run_pages: ${{ steps.route.outputs.run_pages }}
+    steps:
+      - id: route
+        run: |
+          run_pages=false
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            run_pages=true
+          elif [[ "${{ github.ref }}" == refs/tags/* || "${{ github.ref }}" == "refs/heads/main" || "${{ github.ref }}" == "refs/heads/master" ]]; then
+            run_pages=true
+          fi
+          echo "run_pages=$run_pages" >> "$GITHUB_OUTPUT"
+
+  discover:
+    outputs:
+      has_hugo: ${{ steps.detect.outputs.has_hugo }}
+    steps:
+      - id: detect
+        run: |
+          [[ -d site/mydocs ]] && echo "has_hugo=true" >> "$GITHUB_OUTPUT" || echo "has_hugo=false" >> "$GITHUB_OUTPUT"
+```
+
+### Build + deploy jobs (copy/paste)
+
+```yaml
+  hugo-build:
+    name: Build Hugo site
+    needs: [route, discover]
+    if: ${{ needs.discover.outputs.has_hugo == 'true' && needs.route.outputs.run_pages == 'true' }}
+    runs-on: ubuntu-latest
+    env:
+      HUGO_VERSION: 0.123.7
+    steps:
+      - name: Install Hugo CLI
+        run: |
+          wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb
+          sudo dpkg -i ${{ runner.temp }}/hugo.deb
+      - name: Install Dart Sass
+        run: sudo snap install dart-sass
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - id: pages
+        uses: actions/configure-pages@v5
+      - name: Install Node dependencies
+        working-directory: ./site/mydocs
+        run: "[[ -f package-lock.json || -f npm-shrinkwrap.json ]] && npm ci || true"
+      - name: Build with Hugo
+        working-directory: ./site/mydocs
+        env:
+          HUGO_ENVIRONMENT: production
+          HUGO_ENV: production
+        run: |
+          hugo --minify --baseURL "${{ steps.pages.outputs.base_url }}/"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./site/mydocs/public
+
+  hugo-deploy:
+    name: Deploy to GitHub Pages
+    needs: [route, discover, hugo-build]
+    if: ${{ needs.discover.outputs.has_hugo == 'true' && needs.route.outputs.run_pages == 'true' }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+```
+
+This keeps docs/site deployment first-class without mixing it into language build jobs.
+
+---
+
 ## Step 6: Go lane (tests, lint, vet, release prep)
 
 Use `setup-go` built-in caching instead of manual `actions/cache`.
@@ -1430,6 +1535,14 @@ jobs:
 
   java-build-test:
     needs: [route, discover]
+    # ...
+
+  hugo-build:
+    needs: [route, discover]
+    # ...
+
+  hugo-deploy:
+    needs: [route, discover, hugo-build]
     # ...
 
   go-lint-test:
