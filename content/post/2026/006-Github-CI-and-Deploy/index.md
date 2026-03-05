@@ -1187,7 +1187,7 @@ If repo has Go + Dockerfile or standalone Docker service, build and (optionally)
 
 ## Step 12: GoReleaser lane (binary + packages)
 
-If you publish Homebrew formulas, keep the article generic and parameterized, then provide your real tap as an example. For example, a tap can be `OWNER/homebrew-tap` (your concrete case: `arran4/homebrew-tap`). For cross-repo updates, set a tap token secret (for example `HOMEBREW_TAP_TOKEN`) and enable PR-based updates with `draft: false` when you want ready-to-merge bot PRs.
+If you publish Homebrew formulas, keep the article generic and parameterized, then provide your real tap as an example. For example, a tap can be `OWNER/homebrew-tap` (your concrete case: `arran4/homebrew-tap`). For cross-repo updates, set `TAP_GITHUB_TOKEN` in secrets and wire it to both the workflow env (`TAP_GITHUB_TOKEN`) and GoReleaser config (`{{ .Env.TAP_GITHUB_TOKEN }}`), with PR updates enabled and non-draft (`draft: false`).
 
 ```yaml
   goreleaser:
@@ -1202,16 +1202,18 @@ If you publish Homebrew formulas, keep the article generic and parameterized, th
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
-      - uses: goreleaser/goreleaser-action@v6
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
-          version: latest
+          version: '~> v2'
           args: >-
             release --clean
             ${{ (github.event_name == 'workflow_dispatch' && inputs.release_mode != 'release') && '--snapshot' || '' }}
             ${{ needs.prepare-release-tag.outputs.release_tag != '' && format('--tag {0}', needs.prepare-release-tag.outputs.release_tag) || '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
 ```
 
 Example `.goreleaser.yml` baseline (copy/paste):
@@ -1264,24 +1266,16 @@ nfpms:
     section: default
     priority: optional
 
-brews:
-  - name: app
-    tap:
-      owner: OWNER
+homebrew_casks:
+  - name: g2
+    repository:
+      owner: arran4
       name: homebrew-tap
-      # Example concrete tap: owner=arran4, name=homebrew-tap
-      # This might require a personal access token when publishing to another repo.
-      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
-    pull_request:
-      # Whether to enable it or not.
-      enabled: true
-      # Whether to open the PR as a draft or not.
-      draft: false
-    commit_author:
-      name: goreleaser
-      email: goreleaser@localhost
-    homepage: https://example.com
-    description: App description
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}" # From secrets.TAP_GITHUB_TOKEN
+      pull_request:
+        enabled: true
+        draft: false
+    directory: Formula
 
 scoops:
   - name: app
