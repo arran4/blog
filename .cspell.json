@@ -213,6 +213,7 @@
     "Conn",
     "dialer",
     "httptest",
-    "OSFS"
+    "OSFS",
+    "dialers"
   ]
 }
