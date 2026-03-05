@@ -78,49 +78,28 @@ on:
       mode:
         description: "Pipeline mode"
         required: true
-        default: "validate"
+        default: "lint-fix"
         type: choice
         options:
-          - validate
           - lint-fix
           - build
-          - release-snapshot
-          - release
+          - release-major
+          - release-minor
+          - release-patch
+          - release-test
+          - release-rc
+          - release-alpha
           - monthly-maintenance
-      release_mode:
-        description: "Release mode"
-        required: false
-        default: "snapshot"
-        type: choice
-        options: [snapshot, release]
-      release_increment:
-        description: "Version increment to apply when preparing release tags"
-        required: false
-        default: "patch"
-        type: choice
-        options: [major, minor, patch, none]
-      prerelease_channel:
-        description: "Pre-release channel"
-        required: false
-        default: "none"
-        type: choice
-        options: [none, uat, test, rc, beta, alpha]
-      prerelease_number:
-        description: "Optional pre-release sequence number (for example: 1 in -rc.1)"
-        required: false
-        default: ""
-        type: string
-      increment_mode:
-        description: "Alternative increment control style (kagura-style)"
-        required: false
-        default: "release"
-        type: choice
-        options: [major, minor, patch, release, test]
       release_version_override:
-        description: "Optional explicit release version (for example 2.4.0 or 2.4.0-uat.2)"
+        description: "Optional explicit release version (for example 2.4.0 or 2.4.0-rc.2)"
         required: false
         default: ""
         type: string
+      allow_prs:
+        description: "Allow automation to open pull requests"
+        required: false
+        default: true
+        type: boolean
   schedule:
     # preferred heavy monthly run (quota reset strategy)
     - cron: '17 3 1 * *'
@@ -132,20 +111,20 @@ on:
 
 - It handles PR close cleanup flows.
 - It supports semantic tags and release candidates.
-- It exposes explicit manual operational modes (`validate`, `lint-fix`, `release-snapshot`, etc).
-- It lets you choose release increment semantics (`major|minor|patch`) and prerelease channels (`uat|test|rc|beta|alpha`).
+- It exposes explicit manual operational modes (`lint-fix`, `build`, and explicit release modes (`release-major`, `release-minor`, `release-patch`, `release-test`, `release-rc`, `release-alpha`)).
+- It keeps manual-dispatch states valid by encoding release intent directly into `mode` values.
 
 ---
 
-## Step 1.5: Release increment + prerelease channel control (copy/paste)
+## Step 1.5: Release mode routing (single-input design)
 
-You asked for explicit release bump controls. Add a dedicated lane that computes/pushes the tag before release jobs run.
+To avoid invalid manual-dispatch state combinations, keep a **single release control surface** in `mode` and one optional `release_version_override`.
 
 ```yaml
   prepare-release-tag:
     name: Prepare release tag
     needs: [route]
-    if: ${{ github.event_name == 'workflow_dispatch' && (inputs.mode == 'release' || inputs.mode == 'release-snapshot') }}
+    if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') }}
     runs-on: ubuntu-latest
     outputs:
       release_tag: ${{ steps.tag.outputs.release_tag }}
@@ -154,105 +133,40 @@ You asked for explicit release bump controls. Add a dedicated lane that computes
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      # Option A: use git-tag-inc (recommended if you already use it)
-      - name: Compute tag via git-tag-inc
-        id: tag
+      - id: tag
         shell: bash
         run: |
           set -euo pipefail
-
-          base_flag=""
-          case "${{ inputs.release_increment }}" in
-            major) base_flag="--major" ;;
-            minor) base_flag="--minor" ;;
-            patch) base_flag="--patch" ;;
-            none)  base_flag="" ;;
-          esac
-
-          pre_flag=""
-          if [[ "${{ inputs.prerelease_channel }}" != "none" ]]; then
-            if [[ -n "${{ inputs.prerelease_number }}" ]]; then
-              pre_flag="--prerelease ${{ inputs.prerelease_channel }}.${{ inputs.prerelease_number }}"
-            else
-              pre_flag="--prerelease ${{ inputs.prerelease_channel }}"
-            fi
-          fi
-
-          # Example command (adjust if your git-tag-inc flags differ)
-          next_tag=$(git-tag-inc $base_flag $pre_flag)
-          echo "release_tag=$next_tag" >> "$GITHUB_OUTPUT"
-
-          # Optional next version hint (patch-forward default)
-          clean_tag="${next_tag#v}"
-          clean_tag="${clean_tag%%-*}"
-          IFS='.' read -r maj min pat <<< "$clean_tag"
-          maj=${maj:-0}; min=${min:-0}; pat=${pat:-0}
-          echo "next_version=${maj}.${min}.$((pat + 1))-SNAPSHOT" >> "$GITHUB_OUTPUT"
-
-      - name: Push tag
-        env:
-          TAG: ${{ steps.tag.outputs.release_tag }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag "$TAG"
-          git push origin "$TAG"
-```
-
-If you do not use `git-tag-inc`, keep the same inputs and swap the compute step with your own semver script.
-
-### Kagura-style increment logic (copy/paste alternative)
-
-The referenced `kagura-original` workflow also uses a practical fallback model:
-
-- parse current version,
-- apply increment mode (`major`, `minor`, `patch`, `release`, `test`),
-- optionally allow a direct version override,
-- tag the release,
-- and create a PR that bumps to the next `-SNAPSHOT` development version.
-
-```yaml
-      - name: Prepare version/tag (kagura-style)
-        id: prep_version
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          CURRENT_VERSION="$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)"
-          BASE_VERSION="${CURRENT_VERSION%-SNAPSHOT}"
-          IFS='.' read -r -a PARTS <<< "$BASE_VERSION"
-          MAJOR=${PARTS[0]:-0}; MINOR=${PARTS[1]:-0}; PATCH=${PARTS[2]:-0}
-
-          MODE="${{ inputs.increment_mode }}"
+          MODE="${{ inputs.mode }}"
           OVERRIDE="${{ inputs.release_version_override }}"
 
           if [[ -n "$OVERRIDE" ]]; then
-            NEW_VERSION="$OVERRIDE"
-          elif [[ "$MODE" == "major" ]]; then
-            NEW_VERSION="$((MAJOR + 1)).0.0"
-          elif [[ "$MODE" == "minor" ]]; then
-            NEW_VERSION="$MAJOR.$((MINOR + 1)).0"
-          elif [[ "$MODE" == "patch" ]]; then
-            NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
-          elif [[ "$MODE" == "test" ]]; then
-            NEW_VERSION="$BASE_VERSION-test"
+            next_tag="v$OVERRIDE"
           else
-            NEW_VERSION="$BASE_VERSION"
+            case "$MODE" in
+              release-major) level="--major"; suffix="" ;;
+              release-minor) level="--minor"; suffix="" ;;
+              release-patch) level="--patch"; suffix="" ;;
+              release-test)  level="--patch"; suffix="--prerelease test" ;;
+              release-rc)    level="--patch"; suffix="--prerelease rc" ;;
+              release-alpha) level="--patch"; suffix="--prerelease alpha" ;;
+              *) echo "Unsupported release mode: $MODE"; exit 1 ;;
+            esac
+            next_tag=$(git-tag-inc $level $suffix)
           fi
 
-          IFS='.' read -r -a NP <<< "${NEW_VERSION%-*}"
-          NEXT_VERSION="${NP[0]:-0}.${NP[1]:-0}.$(( ${NP[2]:-0} + 1 ))-SNAPSHOT"
-
-          echo "TAG_NAME=v$NEW_VERSION" >> "$GITHUB_OUTPUT"
-          echo "NEXT_VERSION=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
+          echo "release_tag=$next_tag" >> "$GITHUB_OUTPUT"
+          clean_tag="${next_tag#v}"; clean_tag="${clean_tag%%-*}"
+          IFS='.' read -r maj min pat <<< "$clean_tag"
+          echo "next_version=${maj:-0}.${min:-0}.$(( ${pat:-0} + 1 ))-SNAPSHOT" >> "$GITHUB_OUTPUT"
 ```
 
-This model is excellent for repositories that want release tagging and automatic next-iteration bump PRs in one flow.
+With this approach, `snapshot/prerelease` is inferred from the selected release mode and tag suffix, not from separate toggles.
 
 ---
 
 ## Step 2: Event routing to reduce duplicate runs
+
 
 You noted a real issue: push + PR can duplicate work. We fix it with a routing job and strict `if:` usage.
 
@@ -307,7 +221,7 @@ jobs:
               ;;
             workflow_dispatch)
               run_code_checks=true
-              if [[ "${{ inputs.mode }}" == "release" || "${{ inputs.mode }}" == "release-snapshot" ]]; then
+              if [[ "${{ inputs.mode }}" == release-* ]]; then
                 run_release=true
               fi
               if [[ "${{ inputs.mode }}" == "monthly-maintenance" ]]; then
@@ -333,7 +247,7 @@ This gives explicit behavior control instead of relying only on cancellation.
 
 ---
 
-## Step 3: Discovery job (template-time first, runtime second)
+## Step 3: Project profile decisions (config-time first, minimal runtime checks)
 
 You are right that most tailoring should be done when installing the workflow. Do both:
 
@@ -347,14 +261,7 @@ You are right that most tailoring should be done when installing the workflow. D
     runs-on: ubuntu-latest
     outputs:
       profile: ${{ steps.profile.outputs.profile }}
-      has_go: ${{ steps.detect.outputs.has_go }}
-      has_node: ${{ steps.detect.outputs.has_node }}
-      has_dart: ${{ steps.detect.outputs.has_dart }}
-      has_flutter: ${{ steps.detect.outputs.has_flutter }}
-      has_qt_cpp: ${{ steps.detect.outputs.has_qt_cpp }}
-      has_make_c: ${{ steps.detect.outputs.has_make_c }}
-      has_docker: ${{ steps.detect.outputs.has_docker }}
-      has_goreleaser: ${{ steps.detect.outputs.has_goreleaser }}
+      has_dart_or_flutter_tests: ${{ steps.detect.outputs.has_dart_or_flutter_tests }}
       has_packaging: ${{ steps.detect.outputs.has_packaging }}
     steps:
       - uses: actions/checkout@v4
@@ -369,15 +276,10 @@ You are right that most tailoring should be done when installing the workflow. D
         shell: bash
         run: |
           set -euo pipefail
-          [[ -f go.mod ]] && echo "has_go=true" >> "$GITHUB_OUTPUT" || echo "has_go=false" >> "$GITHUB_OUTPUT"
-          [[ -f package.json ]] && echo "has_node=true" >> "$GITHUB_OUTPUT" || echo "has_node=false" >> "$GITHUB_OUTPUT"
-          [[ -f pubspec.yaml ]] && echo "has_dart=true" >> "$GITHUB_OUTPUT" || echo "has_dart=false" >> "$GITHUB_OUTPUT"
-          ([[ -f pubspec.yaml ]] && rg -n "^\s*flutter:" pubspec.yaml >/dev/null 2>&1) && echo "has_flutter=true" >> "$GITHUB_OUTPUT" || echo "has_flutter=false" >> "$GITHUB_OUTPUT"
-          ([[ -f CMakeLists.txt ]] || rg -n "find_package\((Qt|Qt6|Qt5)" -S . >/dev/null 2>&1) && echo "has_qt_cpp=true" >> "$GITHUB_OUTPUT" || echo "has_qt_cpp=false" >> "$GITHUB_OUTPUT"
-          ([[ -f Makefile ]] || [[ -f makefile ]]) && echo "has_make_c=true" >> "$GITHUB_OUTPUT" || echo "has_make_c=false" >> "$GITHUB_OUTPUT"
-          ([[ -f Dockerfile ]] || [[ -f Dockerfile.goreleaser ]] || [[ -f docker/Dockerfile ]]) && echo "has_docker=true" >> "$GITHUB_OUTPUT" || echo "has_docker=false" >> "$GITHUB_OUTPUT"
-          ([[ -f .goreleaser.yml ]] || [[ -f .goreleaser.yaml ]]) && echo "has_goreleaser=true" >> "$GITHUB_OUTPUT" || echo "has_goreleaser=false" >> "$GITHUB_OUTPUT"
-          ([[ -d packaging ]] || [[ -d pkg ]] || [[ -f debian/control ]] || [[ -f .github/packaging/source-rpm.spec ]]) && echo "has_packaging=true" >> "$GITHUB_OUTPUT" || echo "has_packaging=false" >> "$GITHUB_OUTPUT"
+          # Keep this minimal: most language choices should be decided at workflow install/customization time.
+          # Runtime check exception: tests/docs folders and optional packaging trees.
+          ([[ -d test ]] || [[ -d tests ]] || [[ -f pubspec.yaml ]]) && echo "has_dart_or_flutter_tests=true" >> "$GITHUB_OUTPUT" || echo "has_dart_or_flutter_tests=false" >> "$GITHUB_OUTPUT"
+          ([[ -d packaging ]] || [[ -d pkg ]] || [[ -f debian/control ]]) && echo "has_packaging=true" >> "$GITHUB_OUTPUT" || echo "has_packaging=false" >> "$GITHUB_OUTPUT"
 
       - id: profile
         shell: bash
@@ -541,6 +443,8 @@ mkdir -p %{buildroot}/usr/bin
 
 Public repos can afford broader checks by default. Private repos keep monthly/full-mode heavy scans.
 
+Leak check policy: run secret/leak scans as part of nightly maintenance only, with manual override when needed.
+
 ---
 
 ## Step 5.5: Java/Maven lane (from kagura-style repos)
@@ -568,7 +472,7 @@ This mirrors the style in your referenced workflow and can be chained into relea
 
 ---
 
-## Step 5.6: Hugo Pages integration pattern (from updated kagura workflow)
+## Step 5.6: Hugo Pages integration pattern
 
 If the repository includes a Hugo docs/site directory (example: `site/mydocs`), add a Pages lane that builds and deploys docs on `main`/`master`, tag releases, and manual dispatch.
 
@@ -694,7 +598,7 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
         with:
           version: latest
 
-  go-lint-test:
+  go-test:
     name: Go lint/test (${{ matrix.os }})
     needs: [route, discover, golangci]
     if: ${{ needs.discover.outputs.has_go == 'true' && needs.route.outputs.run_code_checks == 'true' }}
@@ -730,7 +634,7 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
   go-fmt-pr:
     name: go fmt -> PR (manual dispatch)
     needs: [route, discover]
-    if: ${{ needs.discover.outputs.has_go == 'true' && github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' }}
+    if: ${{ needs.discover.outputs.has_go == 'true' && github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' && inputs.allow_prs == true }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -779,7 +683,7 @@ Optional cross-OS lane (only when it really matters):
 
 ---
 
-## Step 7: Node lane (tests, lint, source package)
+## Step 7: Node lane (tests, lint, source package + versioning integration)
 
 ```yaml
   node-lint-test:
@@ -806,9 +710,11 @@ Optional cross-OS lane (only when it really matters):
             npm-pack-result.json
 ```
 
+Use this baseline with Step 7.5 below as the release/versioning extension for npm publish.
+
 ---
 
-## Step 7.5: Node/TS version automation pattern (from tsobjectutils)
+## Step 7.5: Node/TS version automation (integrated publish path)
 
 For npm packages, the `tsobjectutils` workflow has strong production ideas worth reusing:
 
@@ -1031,7 +937,7 @@ Include both Qt/CMake and Makefile detection paths.
 
 ---
 
-## Step 10: Autofix lane (specific, wired per language)
+## Step 10: Integrated autofix + PR automation lane
 
 You wanted this wired to real formatters and branch-name guessable behavior.
 
@@ -1039,7 +945,7 @@ You wanted this wired to real formatters and branch-name guessable behavior.
   autofix:
     name: Auto-format and open PR
     needs: [route, discover]
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' && inputs.allow_prs == true }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -1135,7 +1041,7 @@ This uses both a label and a guessable branch pattern with parent linkage.
 
 ---
 
-## Step 11: Docker lanes (build and release)
+## Step 11: Docker as a release publish step
 
 If repo has Go + Dockerfile or standalone Docker service, build and (optionally) push.
 
@@ -1143,7 +1049,7 @@ If repo has Go + Dockerfile or standalone Docker service, build and (optionally)
   docker-build:
     name: Docker build
     needs: [route, discover]
-    if: ${{ needs.discover.outputs.has_docker == 'true' && needs.route.outputs.run_code_checks == 'true' }}
+    if: ${{ needs.discover.outputs.has_docker == 'true' && needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -1192,7 +1098,7 @@ If you publish Homebrew formulas, keep the article generic and parameterized, th
 ```yaml
   goreleaser:
     name: GoReleaser
-    needs: [route, discover, go-lint-test, prepare-release-tag]
+    needs: [route, discover, go-test, prepare-release-tag]
     if: ${{ needs.discover.outputs.has_go == 'true' && needs.discover.outputs.has_goreleaser == 'true' && needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     steps:
@@ -1209,7 +1115,7 @@ If you publish Homebrew formulas, keep the article generic and parameterized, th
           version: '~> v2'
           args: >-
             release --clean
-            ${{ (github.event_name == 'workflow_dispatch' && inputs.release_mode != 'release') && '--snapshot' || '' }}
+            ${{ (github.event_name == 'workflow_dispatch' && (inputs.mode == 'release-test' || inputs.mode == 'release-rc' || inputs.mode == 'release-alpha')) && '--snapshot' || '' }}
             ${{ needs.prepare-release-tag.outputs.release_tag != '' && format('--tag {0}', needs.prepare-release-tag.outputs.release_tag) || '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -1446,6 +1352,14 @@ For Flutter/Qt desktop apps, keep a manual lane. If Flutter build artifacts were
 
 Use multiple deploy stages (package -> publish -> promote).
 
+Integrate language publishers in the same publish stage:
+
+- Go: GoReleaser publish (GitHub releases + packages)
+- Node/TS: `npm publish` with `latest`/`next` dist-tags
+- Dart/Flutter libs: `dart pub publish` (or dry-run in non-release modes)
+- Docker: release-only buildx push to GHCR
+
+
 ```yaml
   publish-draft:
     name: Publish draft release assets
@@ -1472,7 +1386,7 @@ Use multiple deploy stages (package -> publish -> promote).
   promote-release:
     name: Promote draft to published
     needs: [publish-draft]
-    if: ${{ github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'release') }}
+    if: ${{ github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-')) }}
     runs-on: ubuntu-latest
     steps:
       - name: Release promoted via upstream process
@@ -1489,7 +1403,7 @@ This pattern from the referenced workflow is useful for repos that keep `-SNAPSH
   prepare-next-version-pr:
     name: Prepare next development iteration PR
     needs: [publish-draft]
-    if: ${{ github.event_name == 'workflow_dispatch' && (inputs.mode == 'release' || inputs.mode == 'release-snapshot') }}
+    if: ${{ github.event_name == 'workflow_dispatch' && (startsWith(inputs.mode, 'release-') || inputs.mode == 'release-test') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -1538,30 +1452,14 @@ on:
     inputs:
       mode:
         type: choice
-        default: validate
-        options: [validate, lint-fix, build, release-snapshot, release, monthly-maintenance]
-      release_mode:
-        type: choice
-        default: snapshot
-        options: [snapshot, release]
-      release_increment:
-        type: choice
-        default: patch
-        options: [major, minor, patch, none]
-      prerelease_channel:
-        type: choice
-        default: none
-        options: [none, uat, test, rc, beta, alpha]
-      prerelease_number:
-        type: string
-        default: ''
-      increment_mode:
-        type: choice
-        default: release
-        options: [major, minor, patch, release, test]
+        default: lint-fix
+        options: [lint-fix, build, release-major, release-minor, release-patch, release-test, release-rc, release-alpha, monthly-maintenance]
       release_version_override:
         type: string
         default: ''
+      allow_prs:
+        type: boolean
+        default: true
   schedule:
     - cron: '17 3 1 * *'
     - cron: '41 2 * * *'
@@ -1608,7 +1506,7 @@ jobs:
     needs: [route, discover]
     # ...
 
-  go-lint-test:
+  go-test:
     needs: [route, discover, golangci]
     # ...
 
@@ -1657,7 +1555,7 @@ jobs:
     # ...
 
   goreleaser:
-    needs: [route, discover, go-lint-test, prepare-release-tag]
+    needs: [route, discover, go-test, prepare-release-tag]
     # ...
 
   source-deb:
@@ -1726,7 +1624,7 @@ Visibility should be auto-detected (`github.event.repository.private`) and not m
 1. Add config files (`.golangci.yml`, `.goreleaser.yml`, `analysis_options.yaml`, `.gitleaks.toml`, `.clang-format`).
 2. Add packaging scripts under `packaging/scripts/`.
 3. Add `packaging/debian` and `packaging/rpm` metadata.
-4. Dry-run with `workflow_dispatch mode=validate`.
+4. Dry-run with `workflow_dispatch mode=build` or `mode=lint-fix`.
 5. Validate `lint-fix` creates/labels branches correctly.
 6. Validate `pull_request.closed` cleanup against test PRs.
 7. Validate monthly schedule and release lanes.
