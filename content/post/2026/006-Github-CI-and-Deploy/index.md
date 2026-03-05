@@ -638,6 +638,74 @@ This separates `go test` and `go vet` so public repos can run in parallel.
 
 ---
 
+## Step 7.5: Node/TS version automation pattern (from tsobjectutils)
+
+For npm packages, the `tsobjectutils` workflow has strong production ideas worth reusing:
+
+- manual bump levels (`patch|minor|major|prerelease`),
+- optional prerelease creation (`-next`),
+- compute whether publish is allowed (`-next` can skip public publish),
+- idempotent tag/release creation (`actions/github-script` checks if they already exist),
+- publish with correct npm dist-tag (`latest` vs `next`),
+- create a PR for the next development iteration version.
+
+Copy/paste control snippet:
+
+```yaml
+on:
+  workflow_dispatch:
+    inputs:
+      level:
+        description: Version Bump Level
+        required: true
+        default: patch
+        type: choice
+        options: [patch, minor, major, prerelease]
+      create_prerelease:
+        description: Create as prerelease (e.g. -next.0)
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  version-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Manual Version Bump
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          LEVEL="${{ inputs.level }}"
+          CREATE_PRE="${{ inputs.create_prerelease }}"
+          if [ "$LEVEL" = "prerelease" ]; then
+            npm version prerelease --preid=next --no-git-tag-version
+          elif [ "$CREATE_PRE" = "true" ]; then
+            npm version pre$LEVEL --preid=next --no-git-tag-version
+          else
+            npm version $LEVEL --no-git-tag-version
+          fi
+
+      - name: Determine npm tag and prerelease state
+        id: versions
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          if [[ "$CURRENT_VERSION" == *-* ]]; then
+            echo "npm_tag=next" >> "$GITHUB_OUTPUT"
+            echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "npm_tag=latest" >> "$GITHUB_OUTPUT"
+            echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+```
+
+This pattern reduces accidental duplicate tags/releases and gives predictable npm channel behavior.
+
 ## Step 8: Dart + Flutter lanes (including libraries)
 
 You asked to include Dart libs and Flutter libs specifically, with analysis.
@@ -697,6 +765,64 @@ You asked to include Dart libs and Flutter libs specifically, with analysis.
 ### Fastforge note
 
 Fastforge is optional. Keep it if you want it; remove it if you don't. The key pattern is to keep release outputs available through independent lanes (flatpak, source packages, container artifacts, GoReleaser outputs) so your pipeline doesn't depend on a single packaging tool.
+
+### Dart release/version-sync pattern (from dartobjectutils)
+
+For Dart-first repos, one practical pattern is:
+
+1. run `dart analyze` / `dart test`,
+2. on manual dispatch, compute the next version (`patch|minor|major|manual`),
+3. update `pubspec.yaml`, commit, tag, push,
+4. verify tag version matches `pubspec.yaml` and auto-fix with PR fallback when direct push fails.
+
+Copy/paste release prep snippet:
+
+```yaml
+  dart-release-prep:
+    name: Dart release prep
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dart-lang/setup-dart@v1
+      - name: Compute version and tag
+        env:
+          INCREMENT: ${{ inputs.increment }}
+          MANUAL_VERSION_INPUT: ${{ inputs.manual_version }}
+        run: |
+          set -euo pipefail
+          PUBSPEC_VERSION=$(awk '/^version:/ {print $2}' pubspec.yaml)
+          git fetch --tags
+          HIGHEST_TAG=$(git tag -l "v*" | sed 's/^v//' | sort -V | tail -n 1)
+          [ -z "$HIGHEST_TAG" ] && HIGHEST_TAG="0.0.0"
+
+          CURRENT_VERSION=$(echo -e "$PUBSPEC_VERSION
+$HIGHEST_TAG" | sort -V | tail -n 1)
+
+          if [ "$INCREMENT" = "manual" ]; then
+            [ -z "$MANUAL_VERSION_INPUT" ] && { echo "manual_version required"; exit 1; }
+            NEW_VERSION="$MANUAL_VERSION_INPUT"
+          else
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+            case "$INCREMENT" in
+              major) NEW_VERSION="$((MAJOR+1)).0.0" ;;
+              minor) NEW_VERSION="$MAJOR.$((MINOR+1)).0" ;;
+              *) NEW_VERSION="$MAJOR.$MINOR.$((PATCH+1))" ;;
+            esac
+          fi
+
+          sed -i "s/^version: .*/version: $NEW_VERSION/" pubspec.yaml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "release/v$NEW_VERSION"
+          git add pubspec.yaml
+          git commit -m "Bump version to $NEW_VERSION"
+          git tag "v$NEW_VERSION"
+          git push origin "v$NEW_VERSION"
+          git push origin "release/v$NEW_VERSION"
+```
 
 ---
 
