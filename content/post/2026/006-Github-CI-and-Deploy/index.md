@@ -1119,7 +1119,7 @@ If you publish Homebrew formulas, keep the article generic and parameterized, th
             ${{ needs.prepare-release-tag.outputs.release_tag != '' && format('--tag {0}', needs.prepare-release-tag.outputs.release_tag) || '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+          TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }} # inject secrets.TAP_GITHUB_TOKEN
 ```
 
 Example `.goreleaser.yml` baseline (copy/paste):
@@ -1182,7 +1182,9 @@ homebrew_casks:
       pull_request:
         enabled: true
         draft: false
-    directory: Formula
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
 
 scoops:
   - name: app
