@@ -12,7 +12,7 @@ The target outcome:
 
 - One workflow file handles **push**, **PR open/update**, **PR close**, **tags**, **release publish**, **manual dispatch**, and **monthly/nightly schedules**.
 - It supports mixed repos: **Go**, **Node**, **Dart**, **Flutter**, **Qt/C++**, classic **C/Makefile**, and Dockerized components.
-- It can run in **public mode** (wider matrix, more checks) or **private mode** (cost-controlled).
+- It can run in **public mode** (broader checks) or **private mode** (cost-controlled), while keeping default test runners Ubuntu unless cross-OS coverage is explicitly needed.
 - It includes **autofix PR creation + cleanup**, **security checks**, **artifact fan-out**, and **release lanes**.
 - It accounts for packaging outputs beyond standard app bundles, including **source Debian** and **source RPM** pipeline hooks.
 
@@ -702,7 +702,9 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJSON(needs.discover.outputs.profile == 'public' && '["ubuntu-latest","windows-latest","macos-latest"]' || '["ubuntu-latest"]') }}
+        # Cost-aware default: Ubuntu only.
+        # Add windows-latest/macos-latest only for true platform-specific behavior.
+        os: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v6
@@ -754,6 +756,26 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
 ```
 
 This separates lint, test, and vet while keeping a dedicated manual-dispatch `go fmt -> PR` path.
+
+Optional cross-OS lane (only when it really matters):
+
+```yaml
+  go-cross-os-smoke:
+    name: Go cross-OS smoke (${{ matrix.os }})
+    needs: [route, discover, golangci]
+    if: ${{ needs.discover.outputs.has_go == 'true' && needs.route.outputs.run_code_checks == 'true' && (github.event_name == 'workflow_dispatch' && inputs.mode == 'build') }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - run: go build ./...
+```
 
 ---
 
@@ -1695,7 +1717,7 @@ This gives sane defaults while still protecting mixed repos.
 
 | Area | Public | Private |
 |---|---|---|
-| OS matrix | Linux + macOS + Windows | Linux default |
+| OS matrix | Linux default (add macOS/Windows only when required) | Linux default |
 | Parallelism | wide job fan-out | narrower job fan-out, parallel inside step |
 | Security | broader PR scans | monthly/full-mode deep scans |
 | Artifact retention | longer | shorter |
