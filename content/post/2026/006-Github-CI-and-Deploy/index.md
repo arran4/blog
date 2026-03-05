@@ -18,6 +18,14 @@ The target outcome:
 
 The point is not tiny YAML. The point is one intelligent CI/CD platform per repo.
 
+Before the workflow body, add a top-of-file pointer comment so agents and humans know where the generation rules live:
+
+```yaml
+# Agent rules for generation:
+# https://arran4.com/post/2026/006-Github-CI-and-Deploy/
+name: CI/CD
+```
+
 ---
 
 ## Why one file (when multiple files are common)
