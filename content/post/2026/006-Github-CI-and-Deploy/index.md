@@ -1217,6 +1217,22 @@ changelog:
       - '^test:'
 ```
 
+### Important: avoid archive name templates for binaries
+
+Do **not** set custom archive naming templates for multi-arch binary archives unless you have a very strong reason and a tested collision-proof format.
+
+Why:
+
+- New architectures (for example `windows/arm`) can appear over time.
+- A hand-rolled name template that seemed unique can start colliding.
+- Typical failure is `archive ... already exists` during release.
+
+Recommendation:
+
+- Keep GoReleaser archive names on defaults.
+- Keep only `format_overrides` for Windows zip/tar differences.
+- If you ever customize names, include enough dimensions (`os`, `arch`, `arm`, and other variants) and test against the full matrix before release.
+
 ---
 
 ## Step 13: Source Debian and Source RPM pipelines (separate lane)
