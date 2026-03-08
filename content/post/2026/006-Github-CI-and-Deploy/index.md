@@ -262,6 +262,29 @@ This gives explicit behavior control instead of relying only on cancellation.
 
 **Push-wins rule:** for same-repo PRs, code checks run on `push`; PR runs focus on PR-specific checks only. That prevents repeated cancellations like `CI/CD-refs/heads/main` churn.
 
+### Clarification from a working real-world result (`fork-qip` style)
+
+A practical setup that matches your intent closely uses these additional rules:
+
+1. **Conditional cancellation** for concurrency:
+   - cancel in-progress runs on non-main/non-tag refs,
+   - avoid cancelling `main`, `master`, and tag builds.
+2. **Dedicated `format` job** that always runs for Go repos during code-check events:
+   - on manual `lint-fix`, it opens an autofix PR,
+   - otherwise it fails with diff output (forcing dev-side formatting).
+3. **Separate `go-lint`, `go-test`, and `go-vet` jobs** for cleaner diagnostics and release gating.
+4. **Release job guarded with `!failure() && !cancelled()` and `needs` fan-in**.
+
+Copy/paste concurrency pattern from that style:
+
+```yaml
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master' && !startsWith(github.ref, 'refs/tags/') }}
+```
+
+This is stricter and often better than blanket `cancel-in-progress: true` in busy repos.
+
 ---
 
 ## Step 3: Project profile decisions (config-time first, minimal runtime checks)
@@ -677,6 +700,12 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
 ```
 
 This separates lint, test, and vet while keeping a dedicated manual-dispatch `go fmt -> PR` path.
+
+Recommended behavior (from your working result):
+
+- Keep `format` as a required job in normal CI.
+- If `mode == lint-fix`, auto-open PR with fixes.
+- Otherwise fail the job and print diff so formatting is corrected in source branches.
 
 Optional cross-OS lane (only when it really matters):
 
@@ -1115,6 +1144,7 @@ If you publish Homebrew formulas, keep the article generic and parameterized, th
 ```yaml
   goreleaser:
     name: GoReleaser
+    # In practice, include all quality gates here (for example: go-test, go-vet, go-lint, format).
     needs: [route, discover, go-test, prepare-release-tag]
     if: ${{ needs.discover.outputs.has_go == 'true' && needs.discover.outputs.has_goreleaser == 'true' && needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
@@ -1137,6 +1167,12 @@ If you publish Homebrew formulas, keep the article generic and parameterized, th
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }} # inject secrets.TAP_GITHUB_TOKEN
+```
+
+For release robustness, use an `if:` guard like this when aggregating many `needs`:
+
+```yaml
+if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' }}
 ```
 
 Example `.goreleaser.yml` baseline (copy/paste):
