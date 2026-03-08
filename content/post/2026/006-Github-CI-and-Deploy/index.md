@@ -176,11 +176,12 @@ With this approach, `snapshot/prerelease` is inferred from the selected release 
 ## Step 2: Event routing to reduce duplicate runs
 
 
-You noted a real issue: push + PR can duplicate work. We fix it with a routing job and strict `if:` usage.
+You noted a real issue: push + PR can duplicate work. We fix it with routing-first, state-aware `if:` behavior where push wins for code checks, and PR events are mostly metadata/review lanes.
 
 ```yaml
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  # Keep this as a safety net, not the primary dedupe mechanism.
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -220,8 +221,14 @@ jobs:
               if [[ "${{ github.event.action }}" == "closed" ]]; then
                 run_cleanup=true
               else
-                # keep PR checks scoped to metadata/docs/non-build checks where desired
+                # Push wins for code checks on same-repo branches.
+                # PR lane focuses on metadata/docs/review checks.
                 run_pr_meta_checks=true
+
+                # Optional exception for fork PRs where base repo has no push event for the branch:
+                if [[ "${{ github.event.pull_request.head.repo.full_name || '' }}" != "${{ github.repository }}" ]]; then
+                  run_code_checks=true
+                fi
               fi
               ;;
             release)
@@ -252,6 +259,8 @@ jobs:
 ```
 
 This gives explicit behavior control instead of relying only on cancellation.
+
+**Push-wins rule:** for same-repo PRs, code checks run on `push`; PR runs focus on PR-specific checks only. That prevents repeated cancellations like `CI/CD-refs/heads/main` churn.
 
 ---
 
@@ -1476,7 +1485,7 @@ on:
     - cron: '41 2 * * *'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
