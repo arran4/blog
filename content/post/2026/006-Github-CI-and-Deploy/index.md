@@ -1139,6 +1139,11 @@ If repo has Go + Dockerfile or standalone Docker service, build and (optionally)
 
 ## Step 12: GoReleaser lane (binary + packages)
 
+Important reliability guard (from real-world PR fixes): avoid running GoReleaser on both tag-push and `release: published` for the same version. If both fire, you can get duplicate upload errors (`422 already_exists`). Keep GoReleaser scoped to:
+
+- tag push events (`push` + `refs/tags/v*`), or
+- explicit manual release dispatch modes.
+
 If you publish Homebrew formulas, keep the article generic and parameterized, then provide your real tap as an example. For example, a tap can be `OWNER/homebrew-tap` (your concrete case: `arran4/homebrew-tap`). For cross-repo updates, set `TAP_GITHUB_TOKEN` in secrets and wire it to both the workflow env (`TAP_GITHUB_TOKEN`) and GoReleaser config (`{{ .Env.TAP_GITHUB_TOKEN }}`), with PR updates enabled and non-draft (`draft: false`).
 
 ```yaml
@@ -1146,7 +1151,7 @@ If you publish Homebrew formulas, keep the article generic and parameterized, th
     name: GoReleaser
     # In practice, include all quality gates here (for example: go-test, go-vet, go-lint, format).
     needs: [route, discover, go-test, prepare-release-tag]
-    if: ${{ needs.discover.outputs.has_go == 'true' && needs.discover.outputs.has_goreleaser == 'true' && needs.route.outputs.run_release == 'true' }}
+    if: ${{ needs.discover.outputs.has_go == 'true' && needs.discover.outputs.has_goreleaser == 'true' && (((github.event_name == 'push') && startsWith(github.ref, 'refs/tags/v')) || (github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-'))) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -1423,6 +1428,8 @@ For Flutter/Qt desktop apps, keep a manual lane. If Flutter build artifacts were
 ## Step 15: Release fan-in and publish stages
 
 Use multiple deploy stages (package -> publish -> promote).
+
+To avoid duplicate release work, keep artifact publishers scoped by event (for example GoReleaser on tag-push/manual only, not `release: published`).
 
 Integrate language publishers in the same publish stage:
 
