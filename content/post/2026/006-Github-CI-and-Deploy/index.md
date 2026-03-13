@@ -201,6 +201,7 @@ jobs:
       run_cleanup: ${{ steps.route.outputs.run_cleanup }}
       run_release: ${{ steps.route.outputs.run_release }}
       is_monthly: ${{ steps.route.outputs.is_monthly }}
+      is_nightly: ${{ steps.route.outputs.is_nightly }}
     steps:
       - id: route
         shell: bash
@@ -212,6 +213,7 @@ jobs:
           run_cleanup=false
           run_release=false
           is_monthly=false
+          is_nightly=false
 
           case "${{ github.event_name }}" in
             push)
@@ -242,11 +244,18 @@ jobs:
               if [[ "${{ inputs.mode }}" == "monthly-maintenance" ]]; then
                 is_monthly=true
               fi
+              if [[ "${{ inputs.mode }}" == "lint-fix" ]]; then
+                # Manual lint-fix acts as an on-demand nightly-style maintenance pass.
+                is_nightly=true
+              fi
               ;;
             schedule)
               run_code_checks=true
               if [[ "${{ github.event.schedule }}" == "17 3 1 * *" ]]; then
                 is_monthly=true
+              fi
+              if [[ "${{ github.event.schedule }}" == "41 2 * * *" ]]; then
+                is_nightly=true
               fi
               ;;
           esac
@@ -256,6 +265,7 @@ jobs:
           echo "run_cleanup=$run_cleanup" >> "$GITHUB_OUTPUT"
           echo "run_release=$run_release" >> "$GITHUB_OUTPUT"
           echo "is_monthly=$is_monthly" >> "$GITHUB_OUTPUT"
+          echo "is_nightly=$is_nightly" >> "$GITHUB_OUTPUT"
 ```
 
 This gives explicit behavior control instead of relying only on cancellation.
@@ -301,23 +311,45 @@ You are right that most tailoring should be done when installing the workflow. D
     runs-on: ubuntu-latest
     outputs:
       profile: ${{ steps.profile.outputs.profile }}
+      has_go: ${{ steps.detect.outputs.has_go }}
+      has_node: ${{ steps.detect.outputs.has_node }}
+      has_dart: ${{ steps.detect.outputs.has_dart }}
+      has_flutter: ${{ steps.detect.outputs.has_flutter }}
+      has_qt_cpp: ${{ steps.detect.outputs.has_qt_cpp }}
+      has_make_c: ${{ steps.detect.outputs.has_make_c }}
+      has_docker: ${{ steps.detect.outputs.has_docker }}
+      has_goreleaser: ${{ steps.detect.outputs.has_goreleaser }}
       has_dart_or_flutter_tests: ${{ steps.detect.outputs.has_dart_or_flutter_tests }}
       has_packaging: ${{ steps.detect.outputs.has_packaging }}
     steps:
       - uses: actions/checkout@v4
 
-      # Optional template-time toggles (set defaults in your repo and keep these comments)
+      # Template-time toggles (set these once for the repo; avoid broad auto-detection)
       # EXPECT_GO=true
       # EXPECT_NODE=false
+      # EXPECT_DART=false
       # EXPECT_FLUTTER=false
       # EXPECT_QT_CPP=false
+      # EXPECT_MAKE_C=false
+      # EXPECT_DOCKER=false
+      # EXPECT_GORELEASER=true
 
       - id: detect
         shell: bash
         run: |
           set -euo pipefail
           # Keep this minimal: most language choices should be decided at workflow install/customization time.
-          # Runtime check exception: tests/docs folders and optional packaging trees.
+          # Runtime checks stay for optional tests and packaging folders.
+
+          echo "has_go=${EXPECT_GO:-false}" >> "$GITHUB_OUTPUT"
+          echo "has_node=${EXPECT_NODE:-false}" >> "$GITHUB_OUTPUT"
+          echo "has_dart=${EXPECT_DART:-false}" >> "$GITHUB_OUTPUT"
+          echo "has_flutter=${EXPECT_FLUTTER:-false}" >> "$GITHUB_OUTPUT"
+          echo "has_qt_cpp=${EXPECT_QT_CPP:-false}" >> "$GITHUB_OUTPUT"
+          echo "has_make_c=${EXPECT_MAKE_C:-false}" >> "$GITHUB_OUTPUT"
+          echo "has_docker=${EXPECT_DOCKER:-false}" >> "$GITHUB_OUTPUT"
+          echo "has_goreleaser=${EXPECT_GORELEASER:-false}" >> "$GITHUB_OUTPUT"
+
           ([[ -d test ]] || [[ -d tests ]] || [[ -f pubspec.yaml ]]) && echo "has_dart_or_flutter_tests=true" >> "$GITHUB_OUTPUT" || echo "has_dart_or_flutter_tests=false" >> "$GITHUB_OUTPUT"
           ([[ -d packaging ]] || [[ -d pkg ]] || [[ -f debian/control ]]) && echo "has_packaging=true" >> "$GITHUB_OUTPUT" || echo "has_packaging=false" >> "$GITHUB_OUTPUT"
 
@@ -462,7 +494,7 @@ mkdir -p %{buildroot}/usr/bin
   gitleaks:
     name: Secret scan
     needs: [route, discover]
-    if: ${{ needs.route.outputs.run_cleanup != 'true' }}
+    if: ${{ needs.route.outputs.run_cleanup != 'true' && (needs.route.outputs.is_nightly == 'true' || needs.route.outputs.is_monthly == 'true') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -483,7 +515,7 @@ mkdir -p %{buildroot}/usr/bin
 
 Public repos can afford broader checks by default. Private repos keep monthly/full-mode heavy scans.
 
-Leak check policy: run secret/leak scans as part of nightly maintenance only, with manual override when needed.
+Leak check policy: run secret/leak scans as part of nightly/monthly maintenance only (including manual `lint-fix` maintenance dispatch).
 
 ---
 
@@ -1441,6 +1473,52 @@ For Flutter/Qt desktop apps, keep a manual lane. If Flutter build artifacts were
 ## Step 15: Release fan-in and publish stages
 
 Use multiple deploy stages (package -> publish -> promote).
+
+### Manual release creation pattern (gh-release script style)
+
+When you manually create releases, the `arran4/dotfiles` `executable_gh-release.sh` flow is a strong pattern:
+
+- verify default GitHub repo context exists,
+- compute version with `git-tag-inc` (`-print-version-only`),
+- create and push tags with retry,
+- create GitHub release with generated notes,
+- auto-select discussion category when discussions are enabled,
+- mark prerelease automatically for `test|alpha|beta|rc` increments.
+
+You can keep this as a local operator script **and** wire equivalent logic in CI manual-dispatch mode.
+
+Copy/paste CI step style:
+
+```yaml
+  manual-gh-release:
+    name: Manual release creation
+    needs: [prepare-release-tag]
+    if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Push prepared tag (retry)
+        env:
+          TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+          git push origin "$TAG" || { sleep 2; git push origin "$TAG"; }
+      - name: Create release with notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+          prerelease=""
+          case "${{ inputs.mode }}" in
+            release-test|release-rc|release-alpha) prerelease="--prerelease" ;;
+          esac
+          gh release create "$TAG" --generate-notes $prerelease
+```
+
+
 
 To avoid duplicate release work, keep artifact publishers scoped by event (for example GoReleaser on tag-push/manual only, not `release: published`).
 
