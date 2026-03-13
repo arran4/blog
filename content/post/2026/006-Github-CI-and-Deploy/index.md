@@ -895,6 +895,43 @@ You asked to include Dart libs and Flutter libs specifically, with analysis.
       - run: flutter analyze
       - run: flutter test
 
+  flutter-format-pr:
+    name: Flutter format -> PR (manual lint-fix)
+    needs: [route, discover]
+    if: ${{ needs.discover.outputs.has_flutter == 'true' && github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - id: format
+        run: |
+          dart format .
+          if [[ -n $(git status --porcelain -- '*.dart') ]]; then
+            echo "changes=true" >> "$GITHUB_OUTPUT"
+            git status --porcelain -- '*.dart'
+          else
+            echo "changes=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Open PR with formatting fixes
+        if: steps.format.outputs.changes == 'true' && inputs.allow_prs == true
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "style: apply dart format"
+          title: "style: apply dart format"
+          body: "Automated PR for Flutter/Dart formatting fixes."
+          branch: "automated/dart-format-${{ github.ref_name }}"
+          base: ${{ github.ref_name }}
+          delete-branch: true
+      - name: Fail if formatting drift exists
+        if: steps.format.outputs.changes == 'true'
+        run: |
+          echo "Formatting drift detected. Fix directly or merge the generated PR."
+          exit 1
+
   flutter-build-artifacts:
     name: Flutter build artifacts (release/monthly only)
     needs: [route, discover, flutter-analyze-test]
@@ -919,6 +956,10 @@ You asked to include Dart libs and Flutter libs specifically, with analysis.
 ### Fastforge note
 
 Fastforge is optional. Keep it if you want it; remove it if you don't. The key pattern is to keep release outputs available through independent lanes (flatpak, source packages, container artifacts, GoReleaser outputs) so your pipeline doesn't depend on a single packaging tool.
+
+### Confidence note (tested manual dispatch)
+
+The Flutter manual-dispatch pattern above is based on a working pipeline where `mode=lint-fix` plus `allow_prs` has been tested in practice. Treat this as a higher-confidence baseline for Flutter than untested snippets, then add platform build lanes (Linux/Windows/macOS) only when your project actually needs cross-OS deliverables.
 
 ### Dart release/version-sync pattern (from dartobjectutils)
 
