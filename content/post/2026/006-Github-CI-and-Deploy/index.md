@@ -1146,6 +1146,8 @@ Important reliability guard (from real-world PR fixes): avoid running GoReleaser
 
 If you publish Homebrew formulas, keep the article generic and parameterized, then provide your real tap as an example. For example, a tap can be `OWNER/homebrew-tap` (your concrete case: `arran4/homebrew-tap`). For cross-repo updates, set `TAP_GITHUB_TOKEN` in secrets and wire it to both the workflow env (`TAP_GITHUB_TOKEN`) and GoReleaser config (`{{ .Env.TAP_GITHUB_TOKEN }}`), with PR updates enabled and non-draft (`draft: false`).
 
+**Confidence note:** the GoReleaser profile used in `arran4/go-playerctl` (commit `53e2a00`) is a strong practical baseline for manual-dispatch releases and should be preferred over purely theoretical snippets when bootstrapping similar Go projects.
+
 ```yaml
   goreleaser:
     name: GoReleaser
@@ -1260,7 +1262,9 @@ changelog:
 
 ### Important: avoid archive name templates for binaries
 
-Do **not** set custom archive naming templates for multi-arch binary archives unless you have a very strong reason and a tested collision-proof format.
+Do **not** set fragile custom archive naming templates for multi-arch binary archives unless you have a very strong reason and a tested collision-proof format.
+
+A proven exception is a template that includes enough uniqueness dimensions (at minimum: project, version, os, arch), like the working `go-playerctl` pattern.
 
 Why:
 
@@ -1272,7 +1276,16 @@ Recommendation:
 
 - Keep GoReleaser archive names on defaults.
 - Keep only `format_overrides` for Windows zip/tar differences.
-- If you ever customize names, include enough dimensions (`os`, `arch`, `arm`, and other variants) and test against the full matrix before release.
+- If you ever customize names, include enough dimensions (`project`, `version`, `os`, `arch`, and architecture variants) and test against the full matrix before release.
+
+Example of a safer template shape used successfully for manual-dispatch releases:
+
+```yaml
+archives:
+  - formats: [tar.gz]
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+```
 
 ---
 
