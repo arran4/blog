@@ -1269,6 +1269,96 @@ If repo has Go + Dockerfile or standalone Docker service, build and (optionally)
           platforms: linux/amd64,linux/arm64
 ```
 
+### Dotfiles/Chezmoi/Docker lessons (high-value niche pattern)
+
+For most app repos, the generic Docker section above is enough. For **dotfiles + chezmoi** style repos, a few extra checks from a working pipeline are worth copying:
+
+1. **Shell config validity is a real test target** (bash/zsh parse checks after apply).
+2. **Run `chezmoi apply` in CI** to catch template/rendering regressions early.
+3. **Use Docker `build-contexts`** when your Dockerfile expects the repo contents as a named context.
+4. **Use `docker/metadata-action` tag strategy** so manual override tags and semver tags stay consistent.
+5. **Package and publish a dotfiles archive** (`chezmoi archive`) as a first-class release artifact.
+
+Copy/paste pattern:
+
+```yaml
+  shell-check-and-chezmoi-apply:
+    name: ShellCheck + chezmoi apply
+    needs: [route]
+    if: ${{ needs.route.outputs.run_code_checks == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shellcheck and zsh
+        run: sudo apt-get update && sudo apt-get install -y shellcheck zsh
+      - name: ShellCheck scripts
+        run: |
+          shopt -s globstar
+          shellcheck **/*.sh
+      - name: Apply chezmoi source into CI home
+        run: |
+          yes "" | sh -c "$(curl -fsLS get.chezmoi.io)" -- init --no-tty --debug --source=$PWD --apply
+      - name: Verify rendered shell files parse
+        run: |
+          for f in ~/.bashrc ~/.bash_profile ~/.bash_login ~/.bash_logout ~/.profile; do
+            [[ -f "$f" ]] && bash -n "$f"
+          done
+          for f in ~/.zshrc ~/.zprofile ~/.zlogin ~/.zlogout ~/.zshenv; do
+            [[ -f "$f" ]] && zsh -n "$f"
+          done
+
+  docker-release:
+    name: Docker release
+    needs: [route]
+    if: ${{ needs.route.outputs.run_release == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/dev-dotfiles-debian
+          tags: |
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=${{ inputs.release_version_override }},enable=${{ inputs.release_version_override != '' }}
+            type=raw,value=latest,enable={{is_default_branch}}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          build-contexts: dotfiles=.
+          file: containers/dev-dotfiles-debian/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+
+  package-dotfiles:
+    name: Package dotfiles archive
+    needs: [route]
+    if: ${{ needs.route.outputs.run_release == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build dotfiles archive
+        run: |
+          yes "" | sh -c "$(curl -fsLS get.chezmoi.io)" -- init --no-tty --debug --source=$PWD --apply
+          ./bin/chezmoi archive --source=$PWD --format zip --output dotfiles.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dotfiles-archive
+          path: dotfiles.zip
+```
+
+Treat this as an opt-in lane: niche, but very effective when your repo is configuration-driven.
+
 ---
 
 ## Step 12: GoReleaser lane (binary + packages)
