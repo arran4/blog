@@ -149,6 +149,8 @@ To avoid invalid manual-dispatch state combinations, keep a **single release con
           OVERRIDE="${{ inputs.release_version_override }}"
 
           if [[ -n "$OVERRIDE" ]]; then
+            # Accept "1.2.3" or "v1.2.3" override input.
+            OVERRIDE="${OVERRIDE#v}"
             next_tag="v$OVERRIDE"
           else
             case "$MODE" in
@@ -163,13 +165,25 @@ To avoid invalid manual-dispatch state combinations, keep a **single release con
             next_tag=$(git-tag-inc $level $suffix)
           fi
 
+          # Tagging safety guards to avoid duplicate/invalid release states.
+          [[ "$next_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?$ ]] || {
+            echo "Invalid tag format: $next_tag" >&2
+            exit 1
+          }
+          git fetch --tags --force
+          if git rev-parse "$next_tag" >/dev/null 2>&1; then
+            echo "Tag already exists: $next_tag" >&2
+            echo "Choose a new mode or set release_version_override." >&2
+            exit 1
+          fi
+
           echo "release_tag=$next_tag" >> "$GITHUB_OUTPUT"
           clean_tag="${next_tag#v}"; clean_tag="${clean_tag%%-*}"
           IFS='.' read -r maj min pat <<< "$clean_tag"
           echo "next_version=${maj:-0}.${min:-0}.$(( ${pat:-0} + 1 ))-SNAPSHOT" >> "$GITHUB_OUTPUT"
 ```
 
-With this approach, `snapshot/prerelease` is inferred from the selected release mode and tag suffix, not from separate toggles.
+With this approach, `snapshot/prerelease` is inferred from the selected release mode and tag suffix, not from separate toggles. It also fixes common tagging issues by normalizing override input (`v` prefix optional), validating tag shape, and hard-failing on existing tags before publish jobs run.
 
 ---
 
