@@ -839,7 +839,7 @@ Optional cross-OS lane (only when it really matters):
       - uses: actions/upload-artifact@v4
         with:
           name: npm-source-package
-          retention-days: 5
+          retention-days: 1
           path: |
             *.tgz
             npm-pack-result.json
@@ -1006,7 +1006,7 @@ You asked to include Dart libs and Flutter libs specifically, with analysis.
       - uses: actions/upload-artifact@v4
         with:
           name: flutter-release-bundles
-          retention-days: 7
+          retention-days: 1
           path: |
             build/linux/**
             build/app/outputs/flutter-apk/*.apk
@@ -1358,6 +1358,7 @@ Copy/paste pattern:
       - uses: actions/upload-artifact@v4
         with:
           name: dotfiles-archive
+          retention-days: 1
           path: dotfiles.zip
 ```
 
@@ -1556,6 +1557,7 @@ packaging/
       - uses: actions/upload-artifact@v4
         with:
           name: source-deb
+          retention-days: 1
           path: |
             dist/deb-source/*.dsc
             dist/deb-source/*.debian.tar.*
@@ -1610,6 +1612,7 @@ mv /tmp/${APP_NAME}_${VERSION}-1* "$OUTDIR/" || true
       - uses: actions/upload-artifact@v4
         with:
           name: source-rpm
+          retention-days: 1
           path: dist/rpm-source/*.src.rpm
 ```
 
@@ -1661,6 +1664,7 @@ For Flutter/Qt desktop apps, keep a manual lane. If Flutter build artifacts were
       - uses: actions/upload-artifact@v4
         with:
           name: flatpak-bundle
+          retention-days: 1
           path: build-dir
 ```
 
@@ -1987,11 +1991,10 @@ Visibility should be auto-detected (`github.event.repository.private`) and not m
 
 To prevent GitHub Actions storage overages, set `retention-days` on **every** `actions/upload-artifact` step.
 
-Recommended default policy:
+Required policy for this template:
 
-- lint/format/test temporary artifacts: **1–3 days**,
-- build verification artifacts: **5–7 days**,
-- release handoff artifacts: **14 days max** (or less if publish is immediate).
+- set **`retention-days: 1`** on every `actions/upload-artifact` step.
+- publish/promote jobs should consume artifacts immediately in the same workflow run.
 
 Copy/paste baseline:
 
@@ -2000,7 +2003,7 @@ Copy/paste baseline:
   with:
     name: ci-temp-output
     path: dist/**
-    retention-days: 3
+    retention-days: 1
 ```
 
 Optional monthly cleanup (especially useful for private repos with low storage quota):
@@ -2011,12 +2014,12 @@ Optional monthly cleanup (especially useful for private repos with low storage q
     if: ${{ needs.route.outputs.is_monthly == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Delete artifacts older than 14 days
+      - name: Delete artifacts older than 1 day
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          cutoff=$(date -u -d '14 days ago' +%s)
+          cutoff=$(date -u -d '1 day ago' +%s)
           gh api repos/${{ github.repository }}/actions/artifacts --paginate \
             --jq '.artifacts[] | [.id, .created_at] | @tsv' | \
           while IFS=$'	' read -r id created; do
