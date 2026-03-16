@@ -835,9 +835,11 @@ Optional cross-OS lane (only when it really matters):
       - run: npm test --if-present
       - name: Build source npm package
         run: npm pack --json > npm-pack-result.json
+
       - uses: actions/upload-artifact@v4
         with:
           name: npm-source-package
+          retention-days: 5
           path: |
             *.tgz
             npm-pack-result.json
@@ -1000,9 +1002,11 @@ You asked to include Dart libs and Flutter libs specifically, with analysis.
       - run: flutter pub get
       - run: flutter build linux --release
       - run: flutter build apk --release || true
+
       - uses: actions/upload-artifact@v4
         with:
           name: flutter-release-bundles
+          retention-days: 7
           path: |
             build/linux/**
             build/app/outputs/flutter-apk/*.apk
@@ -1978,6 +1982,50 @@ This gives sane defaults while still protecting mixed repos.
 | Validation strictness | maximum | practical baseline + release hardening |
 
 Visibility should be auto-detected (`github.event.repository.private`) and not manually toggled.
+
+### Storage guardrail: artifact expiry policy (important)
+
+To prevent GitHub Actions storage overages, set `retention-days` on **every** `actions/upload-artifact` step.
+
+Recommended default policy:
+
+- lint/format/test temporary artifacts: **1–3 days**,
+- build verification artifacts: **5–7 days**,
+- release handoff artifacts: **14 days max** (or less if publish is immediate).
+
+Copy/paste baseline:
+
+```yaml
+- uses: actions/upload-artifact@v4
+  with:
+    name: ci-temp-output
+    path: dist/**
+    retention-days: 3
+```
+
+Optional monthly cleanup (especially useful for private repos with low storage quota):
+
+```yaml
+  cleanup-old-artifacts:
+    name: Cleanup old CI artifacts
+    if: ${{ needs.route.outputs.is_monthly == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete artifacts older than 14 days
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          cutoff=$(date -u -d '14 days ago' +%s)
+          gh api repos/${{ github.repository }}/actions/artifacts --paginate \
+            --jq '.artifacts[] | [.id, .created_at] | @tsv' | \
+          while IFS=$'	' read -r id created; do
+            created_epoch=$(date -u -d "$created" +%s)
+            if (( created_epoch < cutoff )); then
+              gh api -X DELETE repos/${{ github.repository }}/actions/artifacts/$id || true
+            fi
+          done
+```
 
 ---
 
