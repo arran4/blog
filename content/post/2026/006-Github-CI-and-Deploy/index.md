@@ -1677,13 +1677,13 @@ Use multiple deploy stages (package -> publish -> promote).
 
 ### Manual release creation pattern (gh-release script style)
 
-When you manually create releases, the `arran4/dotfiles` `executable_gh-release.sh` flow is a strong pattern:
+When you manually create releases, the `arran4/dotfiles` `executable_gh-release.sh` flow is a strong pattern, and it closes a common guide gap: generated release notes + discussion creation should be first-class:
 
 - verify default GitHub repo context exists,
 - compute version with `git-tag-inc` (`-print-version-only`),
 - create and push tags with retry,
-- create GitHub release with generated notes,
-- auto-select discussion category when discussions are enabled,
+- create GitHub release with `--generate-notes`,
+- auto-select discussion category (`Announcements` then `General`) when discussions are enabled,
 - mark prerelease automatically for `test|alpha|beta|rc` increments.
 
 You can keep this as a local operator script **and** wire equivalent logic in CI manual-dispatch mode.
@@ -1706,7 +1706,7 @@ Copy/paste CI step style:
         run: |
           set -euo pipefail
           git push origin "$TAG" || { sleep 2; git push origin "$TAG"; }
-      - name: Create release with notes
+      - name: Create release with generated notes + discussion
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
@@ -1716,10 +1716,26 @@ Copy/paste CI step style:
           case "${{ inputs.mode }}" in
             release-test|release-rc|release-alpha) prerelease="--prerelease" ;;
           esac
-          gh release create "$TAG" --generate-notes $prerelease
+
+          discussion_arg=""
+          categories=$(gh api graphql \
+            -f query='              query($owner: String!, $name: String!) {                repository(owner: $owner, name: $name) {                  discussionCategories(first: 20) { nodes { name } }                }              }' \
+            -F owner="${GITHUB_REPOSITORY%%/*}" \
+            -F name="${GITHUB_REPOSITORY##*/}" \
+            --jq '.data.repository.discussionCategories.nodes[].name' \
+            2>/dev/null || true)
+
+          if echo "$categories" | grep -q '^Announcements$'; then
+            discussion_arg='--discussion-category Announcements'
+          elif echo "$categories" | grep -q '^General$'; then
+            discussion_arg='--discussion-category General'
+          fi
+
+          # shellcheck disable=SC2086
+          gh release create "$TAG" --generate-notes $prerelease $discussion_arg
 ```
 
-
+Guide requirement: if you include a manual release lane, include both generated notes (`--generate-notes`) and discussion-category selection fallback logic so the LLM-generated workflow does not omit release discussions in repositories that use them.
 
 To avoid duplicate release work, keep artifact publishers scoped by event (for example GoReleaser on tag-push/manual only, not `release: published`).
 
