@@ -184,7 +184,9 @@ To avoid invalid manual-dispatch state combinations, keep a **single release con
           echo "next_version=${maj:-0}.${min:-0}.$(( ${pat:-0} + 1 ))-SNAPSHOT" >> "$GITHUB_OUTPUT"
 ```
 
-With this approach, `snapshot/prerelease` is inferred from the selected release mode and tag suffix, not from separate toggles. It also fixes common tagging issues by normalizing override input (`v` prefix optional), validating tag shape, and hard-failing on existing tags before publish jobs run.
+With this approach, `snapshot/prerelease` is inferred from the selected release mode and tag suffix, not from separate toggles. It also fixes common tagging issues by normalizing override input (`v` prefix optional), validating tag shape, hard-failing on existing tags before publish jobs run, and reminding you to fetch tags before version math.
+
+If your repository keeps a version in source files as well as tags (for example `CMakeLists.txt`, `pubspec.yaml`, `package.json`, or similar), compute the next version from the **highest of source version and fetched tag version**. That avoids the recurring failure mode where CI bumps from stale source state, reuses an already-published version, and collides on tag creation.
 
 ---
 
@@ -1698,6 +1700,7 @@ When you manually create releases, the `arran4/dotfiles` `executable_gh-release.
 - create GitHub release with `--generate-notes`,
 - auto-select discussion category (`Announcements` then `General`) when discussions are enabled,
 - mark prerelease automatically for `test|alpha|beta|rc` increments.
+- fetch tags and compare the highest tag version against the source-controlled version before bumping, so release automation never bumps from stale in-repo version text.
 
 You can keep this as a local operator script **and** wire equivalent logic in CI manual-dispatch mode.
 
@@ -1713,6 +1716,15 @@ Copy/paste CI step style:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Sync version source with highest existing tag first
+        run: |
+          set -euo pipefail
+          git fetch --tags --force
+          # For repos with a source-controlled version, compare it with the
+          # highest fetched tag and bump from whichever is newer.
+          # Example: CMAKE_VERSION=$(grep -Po 'project\(app VERSION \K[0-9]+\.[0-9]+\.[0-9]+' CMakeLists.txt)
+          # TAG_VERSION=$(git tag -l "v*" | sed 's/^v//' | sort -V | tail -n 1)
+          # CURRENT_VERSION=$(echo -e "$CMAKE_VERSION\n$TAG_VERSION" | sort -V | tail -n 1)
       - name: Push prepared tag (retry)
         env:
           TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
@@ -1759,6 +1771,7 @@ Integrate language publishers in the same publish stage:
 - Dart/Flutter libraries: `dart pub publish` (or dry-run in non-release modes)
 - Docker: release-only buildx push to GHCR, but only if the repo actually ships an image
 - Non-binary repos: tag + GitHub release + generated notes + discussion flow, without inventing binary artifacts
+- Versioned source repos: fetch tags and bump from the maximum of source version and latest tag, not just the checked-in version text
 
 
 ```yaml
