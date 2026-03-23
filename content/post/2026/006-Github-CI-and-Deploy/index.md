@@ -1378,6 +1378,17 @@ If you publish Homebrew formulas, keep the article generic and parameterized, th
 
 **Confidence note:** the GoReleaser profile used in `arran4/go-playerctl` (commit `53e2a00`) is a strong practical baseline for manual-dispatch releases and should be preferred over purely theoretical snippets when bootstrapping similar Go projects.
 
+Important scope rule: **only add binary build/release lanes when the project actually produces binaries**. If the repo is a library, config repo, API schema repo, or another non-binary project, keep:
+
+- tagging,
+- GitHub release creation,
+- release notes generation,
+- discussions,
+- lint/test/vet/fix/security checks,
+- package-manager publication steps that make sense (`npm publish`, `dart pub publish`, etc),
+
+and skip binary-specific lanes like GoReleaser `builds`, app bundle packaging, Homebrew formulas for non-binaries, or Docker image publishing unless the repository genuinely ships those deliverables.
+
 ```yaml
   goreleaser:
     name: GoReleaser
@@ -1413,6 +1424,8 @@ if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' 
 ```
 
 Example `.goreleaser.yml` baseline (copy/paste):
+
+If your repo does **not** emit a binary, do not cargo-cult this whole file. In that case, keep the manual tag/release flow from Step 15 and any relevant package-publish steps, but omit the GoReleaser binary/archive/container sections entirely.
 
 ```yaml
 project_name: your-project
@@ -1741,10 +1754,11 @@ To avoid duplicate release work, keep artifact publishers scoped by event (for e
 
 Integrate language publishers in the same publish stage:
 
-- Go: GoReleaser publish (GitHub releases + packages)
-- Node/TS: `npm publish` with `latest`/`next` dist-tags
-- Dart/Flutter libs: `dart pub publish` (or dry-run in non-release modes)
-- Docker: release-only buildx push to GHCR
+- Go binaries: GoReleaser publish (GitHub releases + packages)
+- Node/TS libraries: `npm publish` with `latest`/`next` dist-tags
+- Dart/Flutter libraries: `dart pub publish` (or dry-run in non-release modes)
+- Docker: release-only buildx push to GHCR, but only if the repo actually ships an image
+- Non-binary repos: tag + GitHub release + generated notes + discussion flow, without inventing binary artifacts
 
 
 ```yaml
@@ -2061,7 +2075,7 @@ Optional monthly cleanup (especially useful for private repos with low storage q
 
 ### README distribution/install checklist (do not skip)
 
-When you add release lanes, update `README.md` so users know how to install from each release target. At minimum, list:
+When you add release lanes, update `README.md` so users know how to install from each release target. Match the README to what the repo actually ships; if there is no binary, do not add fake binary install instructions just because the template has them. At minimum, list:
 
 - **GitHub Releases** (binary/tarball download path),
 - **Homebrew** tap install command,
