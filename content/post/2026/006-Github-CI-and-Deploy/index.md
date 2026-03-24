@@ -193,7 +193,7 @@ If your repository keeps a version in source files as well as tags (for example 
 ## Step 2: Event routing to reduce duplicate runs
 
 
-You noted a real issue: push + PR can duplicate work. We fix it with routing-first, state-aware `if:` behavior where push wins for code checks, and PR events are mostly metadata/review lanes.
+You noted a real issue: push + PR can duplicate work. We fix it with routing-first, state-aware `if:` behavior, but keep an important practical rule: lint/format/vet/test should still appear on PRs so reviewers get direct PR check visibility.
 
 ```yaml
 concurrency:
@@ -240,14 +240,10 @@ jobs:
               if [[ "${{ github.event.action }}" == "closed" ]]; then
                 run_cleanup=true
               else
-                # Push wins for code checks on same-repo branches.
-                # PR lane focuses on metadata/docs/review checks.
                 run_pr_meta_checks=true
-
-                # Optional exception for fork PRs where base repo has no push event for the branch:
-                if [[ "${{ github.event.pull_request.head.repo.full_name || '' }}" != "${{ github.repository }}" ]]; then
-                  run_code_checks=true
-                fi
+                # In practice, also run code checks on PRs so lint/fmt/vet/test
+                # show up directly in the PR UI. Use concurrency to collapse churn.
+                run_code_checks=true
               fi
               ;;
             release)
@@ -328,7 +324,7 @@ This gives you predictable manual dispatch behavior: `lint-fix` runs checks only
 
 This gives explicit behavior control instead of relying only on cancellation.
 
-**Push-wins rule:** for same-repo PRs, code checks run on `push`; PR runs focus on PR-specific checks only. That prevents repeated cancellations like `CI/CD-refs/heads/main` churn.
+**Practical rule:** keep code checks on both `push` and `pull_request` when you want lint/format/vet/test results visible in the PR itself. Let concurrency and event routing reduce churn, rather than hiding the checks from reviewers.
 
 ### Clarification from a working real-world result (`fork-qip` style)
 
@@ -1211,6 +1207,7 @@ You wanted this wired to real formatters and branch-name guessable behavior.
     if: ${{ needs.route.outputs.run_cleanup == 'true' }}
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PARENT_PR: ${{ github.event.pull_request.number }}
@@ -1224,7 +1221,7 @@ You wanted this wired to real formatters and branch-name guessable behavior.
             done
 ```
 
-This uses both a label and a guessable branch pattern with parent linkage.
+This uses both a label and a guessable branch pattern with parent linkage. Also note the checkout step: if the cleanup job deletes remote branches with `git push origin --delete`, it needs a repository checkout first.
 
 ---
 
