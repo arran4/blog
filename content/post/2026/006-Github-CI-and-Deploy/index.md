@@ -142,6 +142,22 @@ To avoid invalid manual-dispatch state combinations, keep a **single release con
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - uses: actions/setup-go@v6
+        with:
+          go-version: 'stable'
+      - name: Install git-tag-inc (or use fallback)
+        shell: bash
+        run: |
+          set -euo pipefail
+          go install github.com/arran4/git-tag-inc@latest || true
+          if command -v git-tag-inc >/dev/null 2>&1; then
+            echo "git-tag-inc found in PATH"
+          elif [[ -x "$HOME/go/bin/git-tag-inc" ]]; then
+            echo "$HOME/go/bin" >> "$GITHUB_PATH"
+            echo "git-tag-inc installed to $HOME/go/bin"
+          else
+            echo "git-tag-inc unavailable; fallback bump logic will be used"
+          fi
       - id: tag
         shell: bash
         run: |
@@ -163,7 +179,26 @@ To avoid invalid manual-dispatch state combinations, keep a **single release con
               release-alpha) level="--patch"; suffix="--prerelease alpha" ;;
               *) echo "Unsupported release mode: $MODE"; exit 1 ;;
             esac
-            next_tag=$(git-tag-inc $level $suffix)
+            if command -v git-tag-inc >/dev/null 2>&1; then
+              next_tag=$(git-tag-inc $level $suffix)
+            else
+              # Fallback implementation when git-tag-inc is not available.
+              git fetch --tags --force
+              latest=$(git tag -l 'v*' | sed 's/^v//' | sort -V | tail -n 1)
+              [[ -z "$latest" ]] && latest='0.0.0'
+              base="${latest%%-*}"
+              IFS='.' read -r maj min pat <<< "$base"
+              case "$level" in
+                --major) maj=$((maj+1)); min=0; pat=0 ;;
+                --minor) min=$((min+1)); pat=0 ;;
+                *) pat=$((pat+1)) ;;
+              esac
+              next_tag="v${maj}.${min}.${pat}"
+              if [[ -n "$suffix" ]]; then
+                channel=$(echo "$suffix" | awk '{print $2}')
+                next_tag="${next_tag}-${channel}.1"
+              fi
+            fi
           fi
 
           # Tagging safety guards to avoid duplicate/invalid release states.
@@ -184,7 +219,7 @@ To avoid invalid manual-dispatch state combinations, keep a **single release con
           echo "next_version=${maj:-0}.${min:-0}.$(( ${pat:-0} + 1 ))-SNAPSHOT" >> "$GITHUB_OUTPUT"
 ```
 
-With this approach, `snapshot/prerelease` is inferred from the selected release mode and tag suffix, not from separate toggles. It also fixes common tagging issues by normalizing override input (`v` prefix optional), validating tag shape, hard-failing on existing tags before publish jobs run, and reminding you to fetch tags before version math.
+With this approach, `snapshot/prerelease` is inferred from the selected release mode and tag suffix, not from separate toggles. It also fixes common tagging issues by normalizing override input (`v` prefix optional), validating tag shape, hard-failing on existing tags before publish jobs run, and reminding you to fetch tags before version math. It explicitly installs `git-tag-inc` (`go install github.com/arran4/git-tag-inc@latest`) and includes a fallback bump path if the binary is not found.
 
 If your repository keeps a version in source files as well as tags (for example `CMakeLists.txt`, `pubspec.yaml`, `package.json`, or similar), compute the next version from the **highest of source version and fetched tag version**. That avoids the recurring failure mode where CI bumps from stale source state, reuses an already-published version, and collides on tag creation.
 
