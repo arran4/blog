@@ -1270,6 +1270,18 @@ You wanted this wired to real formatters and branch-name guessable behavior.
 
 This uses both a label and a guessable branch pattern with parent linkage. Also note the checkout step: if the cleanup job deletes remote branches with `git push origin --delete`, it needs a repository checkout first.
 
+### Repeated gotcha: any `git`-mutating CI job needs checkout first
+
+If a job runs commands like `git push`, `git push origin --delete`, `git commit`, or branch operations, add checkout as the first step.
+
+```yaml
+steps:
+  - uses: actions/checkout@v4
+  - run: git push origin --delete "$BRANCH"
+```
+
+Treat this as a hard rule in generated workflows. The same issue repeatedly appears in real repos when cleanup jobs omit checkout.
+
 ---
 
 ## Step 11: Docker as a release publish step
@@ -2129,6 +2141,7 @@ Optional monthly cleanup (especially useful for private repos with low storage q
 5. Validate `lint-fix` creates/labels branches correctly.
 6. Validate `pull_request.closed` cleanup against test PRs.
 7. Validate monthly schedule and release lanes.
+8. Validate that every `git`-mutating job starts with `actions/checkout@v4`.
 
 ### README distribution/install checklist (do not skip)
 
