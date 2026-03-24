@@ -149,7 +149,7 @@ To avoid invalid manual-dispatch state combinations, keep a **single release con
         shell: bash
         run: |
           set -euo pipefail
-          go install github.com/arran4/git-tag-inc@latest || true
+          go install github.com/arran4/git-tag-inc/cmd/git-tag-inc@latest || true
           if command -v git-tag-inc >/dev/null 2>&1; then
             echo "git-tag-inc found in PATH"
           elif [[ -x "$HOME/go/bin/git-tag-inc" ]]; then
@@ -186,14 +186,26 @@ To avoid invalid manual-dispatch state combinations, keep a **single release con
               git fetch --tags --force
               latest=$(git tag -l 'v*' | sed 's/^v//' | sort -V | tail -n 1)
               [[ -z "$latest" ]] && latest='0.0.0'
-              base="${latest%%-*}"
-              IFS='.' read -r maj min pat <<< "$base"
-              case "$level" in
-                --major) maj=$((maj+1)); min=0; pat=0 ;;
-                --minor) min=$((min+1)); pat=0 ;;
-                *) pat=$((pat+1)) ;;
-              esac
-              next_tag="v${maj}.${min}.${pat}"
+
+              # Prefer npx semver if available (same pattern used in g2 fixes).
+              if command -v npx >/dev/null 2>&1; then
+                case "$level" in
+                  --major) bumped=$(npx --yes semver "$latest" -i major) ;;
+                  --minor) bumped=$(npx --yes semver "$latest" -i minor) ;;
+                  *) bumped=$(npx --yes semver "$latest" -i patch) ;;
+                esac
+                next_tag="v${bumped}"
+              else
+                base="${latest%%-*}"
+                IFS='.' read -r maj min pat <<< "$base"
+                case "$level" in
+                  --major) maj=$((maj+1)); min=0; pat=0 ;;
+                  --minor) min=$((min+1)); pat=0 ;;
+                  *) pat=$((pat+1)) ;;
+                esac
+                next_tag="v${maj}.${min}.${pat}"
+              fi
+
               if [[ -n "$suffix" ]]; then
                 channel=$(echo "$suffix" | awk '{print $2}')
                 next_tag="${next_tag}-${channel}.1"
@@ -219,7 +231,7 @@ To avoid invalid manual-dispatch state combinations, keep a **single release con
           echo "next_version=${maj:-0}.${min:-0}.$(( ${pat:-0} + 1 ))-SNAPSHOT" >> "$GITHUB_OUTPUT"
 ```
 
-With this approach, `snapshot/prerelease` is inferred from the selected release mode and tag suffix, not from separate toggles. It also fixes common tagging issues by normalizing override input (`v` prefix optional), validating tag shape, hard-failing on existing tags before publish jobs run, and reminding you to fetch tags before version math. It explicitly installs `git-tag-inc` (`go install github.com/arran4/git-tag-inc@latest`) and includes a fallback bump path if the binary is not found.
+With this approach, `snapshot/prerelease` is inferred from the selected release mode and tag suffix, not from separate toggles. It also fixes common tagging issues by normalizing override input (`v` prefix optional), validating tag shape, hard-failing on existing tags before publish jobs run, and reminding you to fetch tags before version math. It explicitly installs `git-tag-inc` (`go install github.com/arran4/git-tag-inc/cmd/git-tag-inc@latest`) and includes fallback bump paths (`npx semver`, then pure shell semver math) if the binary is not found.
 
 If your repository keeps a version in source files as well as tags (for example `CMakeLists.txt`, `pubspec.yaml`, `package.json`, or similar), compute the next version from the **highest of source version and fetched tag version**. That avoids the recurring failure mode where CI bumps from stale source state, reuses an already-published version, and collides on tag creation.
 
