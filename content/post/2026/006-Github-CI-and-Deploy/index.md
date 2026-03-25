@@ -1458,6 +1458,9 @@ and skip binary-specific lanes like GoReleaser `builds`, app bundle packaging, H
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
+      - name: Tag commit for release (workflow_dispatch)
+        if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') }}
+        run: git tag ${{ needs.prepare-release-tag.outputs.release_tag }}
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
@@ -1474,7 +1477,7 @@ and skip binary-specific lanes like GoReleaser `builds`, app bundle packaging, H
 
 For release robustness, use an `if:` guard like this when aggregating many `needs`:
 
-Important GoReleaser v2 note: avoid `--tag` in action args (it can fail with "unknown flag: --tag"). Instead set `GORELEASER_CURRENT_TAG` in `env` when you need to force the tag value from a prepared job output.
+Important GoReleaser v2 note: avoid `--tag` in action args (it can fail with "unknown flag: --tag"). Instead set `GORELEASER_CURRENT_TAG` in `env` when you need to force the tag value from a prepared job output. For workflow-dispatch releases, also create the local tag on the checked-out commit before running GoReleaser.
 
 Do/Don’t quick check:
 
