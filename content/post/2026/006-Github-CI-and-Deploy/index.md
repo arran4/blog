@@ -1468,13 +1468,15 @@ and skip binary-specific lanes like GoReleaser `builds`, app bundle packaging, H
           args: >-
             release --clean
             ${{ (github.event_name == 'workflow_dispatch' && (inputs.mode == 'release-test' || inputs.mode == 'release-rc' || inputs.mode == 'release-alpha')) && '--snapshot' || '' }}
-            ${{ needs.prepare-release-tag.outputs.release_tag != '' && format('--tag {0}', needs.prepare-release-tag.outputs.release_tag) || '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }} # inject secrets.TAP_GITHUB_TOKEN
+          GORELEASER_CURRENT_TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
 ```
 
 For release robustness, use an `if:` guard like this when aggregating many `needs`:
+
+Important GoReleaser v2 note: avoid `--tag` in action args (it can fail with "unknown flag: --tag"). Instead set `GORELEASER_CURRENT_TAG` in `env` when you need to force the tag value from a prepared job output.
 
 ```yaml
 if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' }}
