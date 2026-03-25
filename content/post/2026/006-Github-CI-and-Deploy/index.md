@@ -1476,6 +1476,18 @@ For release robustness, use an `if:` guard like this when aggregating many `need
 
 Important GoReleaser v2 note: avoid `--tag` in action args (it can fail with "unknown flag: --tag"). Instead set `GORELEASER_CURRENT_TAG` in `env` when you need to force the tag value from a prepared job output.
 
+Do/Don’t quick check:
+
+```yaml
+# ❌ Don't (fails on v2):
+# args: release --clean --tag v0.0.1
+
+# ✅ Do:
+# args: release --clean
+# env:
+#   GORELEASER_CURRENT_TAG: v0.0.1
+```
+
 ```yaml
 if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' }}
 ```
