@@ -249,6 +249,7 @@ concurrency:
 
 permissions:
   contents: write
+  discussions: write
   pull-requests: write
   checks: write
   packages: write
@@ -1769,6 +1770,9 @@ Copy/paste CI step style:
     needs: [prepare-release-tag]
     if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      discussions: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1811,7 +1815,7 @@ Copy/paste CI step style:
           fi
 ```
 
-Guide requirement: if you include a manual release lane, include both generated notes (`--generate-notes`) and discussion-category selection fallback logic so the LLM-generated workflow does not omit release discussions in repositories that use them. Use a fixed default discussion category (`Announcements`) and fall back to plain `gh release create --generate-notes` when permissions or discussions configuration block category linking.
+Guide requirement: if you include a manual release lane, include both generated notes (`--generate-notes`) and discussion-category selection fallback logic so the LLM-generated workflow does not omit release discussions in repositories that use them. Use a fixed default discussion category (`Announcements`) and fall back to plain `gh release create --generate-notes` when permissions or discussions configuration block category linking. When running in Actions, set `permissions.discussions: write` (plus `contents: write`) for this lane.
 
 To avoid duplicate release work, keep artifact publishers scoped by event (for example GoReleaser on tag-push/manual only, not `release: published`).
 
