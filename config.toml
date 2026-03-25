@@ -43,3 +43,10 @@ defaultContentLanguage = "en"
     b-beeper = "beeper://@arran4:beeper.com"
     s-mastodon = "https://mstdn.party/@arran4"
     t-youtube = "https://www.youtube.com/channel/UC7KmXWaDOYLa5pv-h2pimog"
+
+[markup]
+  [markup.highlight]
+    codeFences = true
+    guessSyntax = true
+    lineNos = true
+    noClasses = false
