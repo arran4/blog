@@ -146,6 +146,8 @@ To avoid invalid manual-dispatch state combinations, keep a **single release con
         uses: arran4/git-tag-inc-action@v1
         with:
           mode: install
+      # Do not also run `go install github.com/arran4/git-tag-inc/...` in this job.
+      # Using both is redundant and has caused avoidable CI drift.
       - id: tag
         shell: bash
         run: |
@@ -225,7 +227,7 @@ To avoid invalid manual-dispatch state combinations, keep a **single release con
           echo "next_version=${maj:-0}.${min:-0}.$(( ${pat:-0} + 1 ))-SNAPSHOT" >> "$GITHUB_OUTPUT"
 ```
 
-With this approach, `snapshot/prerelease` is inferred from the selected release mode and tag suffix, not from separate toggles. It also fixes common tagging issues by normalizing override input (`v` prefix optional), validating tag shape, hard-failing on existing tags before publish jobs run, and reminding you to fetch tags before version math. It explicitly installs `git-tag-inc` via `arran4/git-tag-inc-action@v1` (`mode: install`) and includes fallback bump paths (`npx semver`, then pure shell semver math) if the binary is not found. Use `git-tag-inc -print-version-only <major|minor|patch> [test|rc|alpha]` positional arguments to avoid the recurring argument-format mistake. Never use `-patch`/`-major`/`-minor` as flags; those are invalid. Also configure git user/email in the job before running release tag tooling so CI tag operations do not fail on identity checks.
+With this approach, `snapshot/prerelease` is inferred from the selected release mode and tag suffix, not from separate toggles. It also fixes common tagging issues by normalizing override input (`v` prefix optional), validating tag shape, hard-failing on existing tags before publish jobs run, and reminding you to fetch tags before version math. It explicitly installs `git-tag-inc` via `arran4/git-tag-inc-action@v1` (`mode: install`) and includes fallback bump paths (`npx semver`, then pure shell semver math) if the binary is not found. Do not double-install with a separate manual `go install` in the same job. Use `git-tag-inc -print-version-only <major|minor|patch> [test|rc|alpha]` positional arguments to avoid the recurring argument-format mistake. Never use `-patch`/`-major`/`-minor` as flags; those are invalid. Also configure git user/email in the job before running release tag tooling so CI tag operations do not fail on identity checks.
 
 If your repository keeps a version in source files as well as tags (for example `CMakeLists.txt`, `pubspec.yaml`, `package.json`, or similar), compute the next version from the **highest of source version and fetched tag version**. That avoids the recurring failure mode where CI bumps from stale source state, reuses an already-published version, and collides on tag creation.
 
