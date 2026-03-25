@@ -180,7 +180,12 @@ To avoid invalid manual-dispatch state combinations, keep a **single release con
               *) echo "Unsupported release mode: $MODE"; exit 1 ;;
             esac
             if command -v git-tag-inc >/dev/null 2>&1; then
-              next_tag=$(git-tag-inc -print-version-only $level $suffix)
+              # git-tag-inc uses positional commands (patch/major/minor/test/rc...)
+              # and NOT flag forms like -patch.
+              level="${level#-}"
+              args=(-print-version-only "$level")
+              [[ -n "$suffix" ]] && args+=("$suffix")
+              next_tag=$(git-tag-inc "${args[@]}")
             else
               # Fallback implementation when git-tag-inc is not available.
               git fetch --tags --force
@@ -230,7 +235,7 @@ To avoid invalid manual-dispatch state combinations, keep a **single release con
           echo "next_version=${maj:-0}.${min:-0}.$(( ${pat:-0} + 1 ))-SNAPSHOT" >> "$GITHUB_OUTPUT"
 ```
 
-With this approach, `snapshot/prerelease` is inferred from the selected release mode and tag suffix, not from separate toggles. It also fixes common tagging issues by normalizing override input (`v` prefix optional), validating tag shape, hard-failing on existing tags before publish jobs run, and reminding you to fetch tags before version math. It explicitly installs `git-tag-inc` (`go install github.com/arran4/git-tag-inc/cmd/git-tag-inc@latest`) and includes fallback bump paths (`npx semver`, then pure shell semver math) if the binary is not found. Use `git-tag-inc -print-version-only <major|minor|patch> [test|rc|alpha]` positional arguments to avoid the recurring argument-format mistake.
+With this approach, `snapshot/prerelease` is inferred from the selected release mode and tag suffix, not from separate toggles. It also fixes common tagging issues by normalizing override input (`v` prefix optional), validating tag shape, hard-failing on existing tags before publish jobs run, and reminding you to fetch tags before version math. It explicitly installs `git-tag-inc` (`go install github.com/arran4/git-tag-inc/cmd/git-tag-inc@latest`) and includes fallback bump paths (`npx semver`, then pure shell semver math) if the binary is not found. Use `git-tag-inc -print-version-only <major|minor|patch> [test|rc|alpha]` positional arguments to avoid the recurring argument-format mistake. Never use `-patch`/`-major`/`-minor` as flags; those are invalid.
 
 If your repository keeps a version in source files as well as tags (for example `CMakeLists.txt`, `pubspec.yaml`, `package.json`, or similar), compute the next version from the **highest of source version and fetched tag version**. That avoids the recurring failure mode where CI bumps from stale source state, reuses an already-published version, and collides on tag creation.
 
