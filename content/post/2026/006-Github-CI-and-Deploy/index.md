@@ -1754,7 +1754,7 @@ When you manually create releases, the `arran4/dotfiles` `executable_gh-release.
 - compute version with `git-tag-inc` (`-print-version-only`),
 - create and push tags with retry,
 - create GitHub release with `--generate-notes`,
-- auto-select discussion category (`announcements` then `general`) with case-insensitive matching,
+- auto-select discussion category from fetched names (`Announcements` then `General`) using case-insensitive matching while preserving the matched value,
 - mark prerelease automatically for `test|alpha|beta|rc` increments.
 - fetch tags and compare the highest tag version against the source-controlled version before bumping, so release automation never bumps from stale in-repo version text.
 
@@ -1806,17 +1806,21 @@ Copy/paste CI step style:
             --jq '.data.repository.discussionCategories.nodes[].name' \
             2>/dev/null || true)
 
-          if echo "$categories" | grep -i -q '^Announcements$'; then
-            discussion_arg='--discussion-category announcements'
-          elif echo "$categories" | grep -i -q '^General$'; then
-            discussion_arg='--discussion-category general'
+          if match=$(echo "$categories" | grep -i '^Announcements$'); then
+            echo "Matched $match category"
+            discussion_arg="--discussion-category $match"
+          elif match=$(echo "$categories" | grep -i '^General$'); then
+            echo "Matched $match category"
+            discussion_arg="--discussion-category $match"
+          else
+            echo "Did not match any known discussion categories"
           fi
 
           # shellcheck disable=SC2086
           gh release create "$TAG" --generate-notes $prerelease $discussion_arg
 ```
 
-Guide requirement: if you include a manual release lane, include both generated notes (`--generate-notes`) and discussion-category selection fallback logic so the LLM-generated workflow does not omit release discussions in repositories that use them. Lowercase discussion category values are safer in practice (for example `announcements` / `general`) with case-insensitive detection.
+Guide requirement: if you include a manual release lane, include both generated notes (`--generate-notes`) and discussion-category selection fallback logic so the LLM-generated workflow does not omit release discussions in repositories that use them. Use case-insensitive detection, but pass through the matched category value (`$match`) so repositories with category-case differences still work reliably.
 
 To avoid duplicate release work, keep artifact publishers scoped by event (for example GoReleaser on tag-push/manual only, not `release: published`).
 
