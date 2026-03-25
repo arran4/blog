@@ -1755,7 +1755,7 @@ When you manually create releases, the `arran4/dotfiles` `executable_gh-release.
 - compute version with `git-tag-inc` (`-print-version-only`),
 - create and push tags with retry,
 - create GitHub release with `--generate-notes`,
-- auto-select discussion category from fetched names (`Announcements` then `General`) using case-insensitive matching while preserving the matched value,
+- use a default discussion category of `Announcements` (safe for default discussion setups), with graceful fallback when permissions/discussions prevent linking,
 - mark prerelease automatically for `test|alpha|beta|rc` increments.
 - fetch tags and compare the highest tag version against the source-controlled version before bumping, so release automation never bumps from stale in-repo version text.
 
@@ -1799,29 +1799,19 @@ Copy/paste CI step style:
             release-test|release-rc|release-alpha) prerelease="--prerelease" ;;
           esac
 
-          discussion_arg=""
-          categories=$(gh api graphql \
-            -f query='              query($owner: String!, $name: String!) {                repository(owner: $owner, name: $name) {                  discussionCategories(first: 20) { nodes { name } }                }              }' \
-            -F owner="${GITHUB_REPOSITORY%%/*}" \
-            -F name="${GITHUB_REPOSITORY##*/}" \
-            --jq '.data.repository.discussionCategories.nodes[].name' \
-            2>/dev/null || true)
+          discussion_arg="--discussion-category Announcements"
 
-          if match=$(echo "$categories" | grep -i '^Announcements$'); then
-            echo "Matched $match category"
-            discussion_arg="--discussion-category $match"
-          elif match=$(echo "$categories" | grep -i '^General$'); then
-            echo "Matched $match category"
-            discussion_arg="--discussion-category $match"
+          # Permissions/discussions can block discussion linking in some repos.
+          # Fall back to plain release creation if category linking fails.
+          if [[ -n "$prerelease" ]]; then
+            gh release create "$TAG" --generate-notes $prerelease || true
           else
-            echo "Did not match any known discussion categories"
+            gh release create "$TAG" --generate-notes $discussion_arg || \
+              gh release create "$TAG" --generate-notes
           fi
-
-          # shellcheck disable=SC2086
-          gh release create "$TAG" --generate-notes $prerelease $discussion_arg
 ```
 
-Guide requirement: if you include a manual release lane, include both generated notes (`--generate-notes`) and discussion-category selection fallback logic so the LLM-generated workflow does not omit release discussions in repositories that use them. Use case-insensitive detection, but pass through the matched category value (`$match`) so repositories with category-case differences still work reliably.
+Guide requirement: if you include a manual release lane, include both generated notes (`--generate-notes`) and discussion-category selection fallback logic so the LLM-generated workflow does not omit release discussions in repositories that use them. Use a fixed default discussion category (`Announcements`) and fall back to plain `gh release create --generate-notes` when permissions or discussions configuration block category linking.
 
 To avoid duplicate release work, keep artifact publishers scoped by event (for example GoReleaser on tag-push/manual only, not `release: published`).
 
