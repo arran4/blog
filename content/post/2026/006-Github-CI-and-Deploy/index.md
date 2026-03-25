@@ -171,16 +171,16 @@ To avoid invalid manual-dispatch state combinations, keep a **single release con
             next_tag="v$OVERRIDE"
           else
             case "$MODE" in
-              release-major) level="--major"; suffix="" ;;
-              release-minor) level="--minor"; suffix="" ;;
-              release-patch) level="--patch"; suffix="" ;;
-              release-test)  level="--patch"; suffix="--prerelease test" ;;
-              release-rc)    level="--patch"; suffix="--prerelease rc" ;;
-              release-alpha) level="--patch"; suffix="--prerelease alpha" ;;
+              release-major) level="major"; suffix="" ;;
+              release-minor) level="minor"; suffix="" ;;
+              release-patch) level="patch"; suffix="" ;;
+              release-test)  level="patch"; suffix="test" ;;
+              release-rc)    level="patch"; suffix="rc" ;;
+              release-alpha) level="patch"; suffix="alpha" ;;
               *) echo "Unsupported release mode: $MODE"; exit 1 ;;
             esac
             if command -v git-tag-inc >/dev/null 2>&1; then
-              next_tag=$(git-tag-inc $level $suffix)
+              next_tag=$(git-tag-inc -print-version-only $level $suffix)
             else
               # Fallback implementation when git-tag-inc is not available.
               git fetch --tags --force
@@ -190,8 +190,8 @@ To avoid invalid manual-dispatch state combinations, keep a **single release con
               # Prefer npx semver if available (same pattern used in g2 fixes).
               if command -v npx >/dev/null 2>&1; then
                 case "$level" in
-                  --major) bumped=$(npx --yes semver "$latest" -i major) ;;
-                  --minor) bumped=$(npx --yes semver "$latest" -i minor) ;;
+                  major) bumped=$(npx --yes semver "$latest" -i major) ;;
+                  minor) bumped=$(npx --yes semver "$latest" -i minor) ;;
                   *) bumped=$(npx --yes semver "$latest" -i patch) ;;
                 esac
                 next_tag="v${bumped}"
@@ -199,16 +199,15 @@ To avoid invalid manual-dispatch state combinations, keep a **single release con
                 base="${latest%%-*}"
                 IFS='.' read -r maj min pat <<< "$base"
                 case "$level" in
-                  --major) maj=$((maj+1)); min=0; pat=0 ;;
-                  --minor) min=$((min+1)); pat=0 ;;
+                  major) maj=$((maj+1)); min=0; pat=0 ;;
+                  minor) min=$((min+1)); pat=0 ;;
                   *) pat=$((pat+1)) ;;
                 esac
                 next_tag="v${maj}.${min}.${pat}"
               fi
 
               if [[ -n "$suffix" ]]; then
-                channel=$(echo "$suffix" | awk '{print $2}')
-                next_tag="${next_tag}-${channel}.1"
+                next_tag="${next_tag}-${suffix}.1"
               fi
             fi
           fi
@@ -231,7 +230,7 @@ To avoid invalid manual-dispatch state combinations, keep a **single release con
           echo "next_version=${maj:-0}.${min:-0}.$(( ${pat:-0} + 1 ))-SNAPSHOT" >> "$GITHUB_OUTPUT"
 ```
 
-With this approach, `snapshot/prerelease` is inferred from the selected release mode and tag suffix, not from separate toggles. It also fixes common tagging issues by normalizing override input (`v` prefix optional), validating tag shape, hard-failing on existing tags before publish jobs run, and reminding you to fetch tags before version math. It explicitly installs `git-tag-inc` (`go install github.com/arran4/git-tag-inc/cmd/git-tag-inc@latest`) and includes fallback bump paths (`npx semver`, then pure shell semver math) if the binary is not found.
+With this approach, `snapshot/prerelease` is inferred from the selected release mode and tag suffix, not from separate toggles. It also fixes common tagging issues by normalizing override input (`v` prefix optional), validating tag shape, hard-failing on existing tags before publish jobs run, and reminding you to fetch tags before version math. It explicitly installs `git-tag-inc` (`go install github.com/arran4/git-tag-inc/cmd/git-tag-inc@latest`) and includes fallback bump paths (`npx semver`, then pure shell semver math) if the binary is not found. Use `git-tag-inc -print-version-only <major|minor|patch> [test|rc|alpha]` positional arguments to avoid the recurring argument-format mistake.
 
 If your repository keeps a version in source files as well as tags (for example `CMakeLists.txt`, `pubspec.yaml`, `package.json`, or similar), compute the next version from the **highest of source version and fetched tag version**. That avoids the recurring failure mode where CI bumps from stale source state, reuses an already-published version, and collides on tag creation.
 
