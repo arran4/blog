@@ -1,13 +1,13 @@
 <!doctype html><html lang=en itemscope itemtype=http://schema.org/WebPage><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>Txtar Test Systems in Practice: Data, Scenarios, and Embedded Walkers - Arrans Technical blog</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,user-scalable=yes"><meta name=MobileOptimized content="width"><meta name=HandheldFriendly content="true"><meta name=applicable-device content="pc,mobile"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=mobile-web-app-capable content="yes"><meta name=author content="Arran Ubels"><meta name=description content="I use txtar as a practical test and fixture format across multiple repositories. This post is my reference for how I expect agents (and future me) to structure and evolve txtar-based systems.
 Repositories discussed:
 arran4/golang-rcs (testdata/txtar) arran4/golang-diff (pkg/diff/testdata) arran4/editorconfig-guesser (testdata) Related pattern: arran4/goa4web templates (core/templates) The core theme is that there is a range of sophistication:
-Simple input/output data pairs Case metadata + descriptions Full scenario definitions with options and assertions Why txtar txtar is great when you want fixtures that are:"><meta name=generator content="Hugo 0.119.0"><link rel=canonical href=https://arran4.github.io/blog/post/2026/004-txtar-patterns-for-agents/><link rel=icon href=/blog/favicon.ico><link rel=stylesheet href=/blog/sass/jane.min.e826e860368147e5a6685e686355e4d7789023c18c9ea2e78b35f6786ce92736.css integrity="sha256-6CboYDaBR+WmaF5oY1Xk13iQI8GMnqLnizX2eGzpJzY=" media=screen crossorigin=anonymous><meta property="og:title" content="Txtar Test Systems in Practice: Data, Scenarios, and Embedded Walkers"><meta property="og:description" content="I use txtar as a practical test and fixture format across multiple repositories. This post is my reference for how I expect agents (and future me) to structure and evolve txtar-based systems.
+Simple input/output data pairs Case metadata + descriptions Full scenario definitions with options and assertions Why txtar txtar is great when you want fixtures that are:"><meta name=generator content="Hugo 0.119.0"><link rel=canonical href=https://arran4.github.io/blog/post/2026/004-txtar-patterns-for-agents/><link rel=icon href=/blog/favicon.ico><link rel=stylesheet href=/blog/sass/jane.min.f9262af3ca090228f797e9afd57b77890669002ff3bcf72f365ba318d5e6cbfa.css integrity="sha256-+SYq88oJAij3l+mv1Xt3iQZpAC/zvPcvNlujGNXmy/o=" media=screen crossorigin=anonymous><meta property="og:title" content="Txtar Test Systems in Practice: Data, Scenarios, and Embedded Walkers"><meta property="og:description" content="I use txtar as a practical test and fixture format across multiple repositories. This post is my reference for how I expect agents (and future me) to structure and evolve txtar-based systems.
 Repositories discussed:
 arran4/golang-rcs (testdata/txtar) arran4/golang-diff (pkg/diff/testdata) arran4/editorconfig-guesser (testdata) Related pattern: arran4/goa4web templates (core/templates) The core theme is that there is a range of sophistication:
 Simple input/output data pairs Case metadata + descriptions Full scenario definitions with options and assertions Why txtar txtar is great when you want fixtures that are:"><meta property="og:type" content="article"><meta property="og:url" content="https://arran4.github.io/blog/post/2026/004-txtar-patterns-for-agents/"><meta property="article:section" content="post"><meta property="article:published_time" content="2026-02-16T00:00:00+00:00"><meta property="article:modified_time" content="2026-02-16T00:00:00+00:00"><meta itemprop=name content="Txtar Test Systems in Practice: Data, Scenarios, and Embedded Walkers"><meta itemprop=description content="I use txtar as a practical test and fixture format across multiple repositories. This post is my reference for how I expect agents (and future me) to structure and evolve txtar-based systems.
 Repositories discussed:
 arran4/golang-rcs (testdata/txtar) arran4/golang-diff (pkg/diff/testdata) arran4/editorconfig-guesser (testdata) Related pattern: arran4/goa4web templates (core/templates) The core theme is that there is a range of sophistication:
-Simple input/output data pairs Case metadata + descriptions Full scenario definitions with options and assertions Why txtar txtar is great when you want fixtures that are:"><meta itemprop=datePublished content="2026-02-16T00:00:00+00:00"><meta itemprop=dateModified content="2026-02-16T00:00:00+00:00"><meta itemprop=wordCount content="1506"><meta itemprop=keywords content="go,testing,txtar,embed,golden-files,agents,"><meta name=twitter:card content="summary"><meta name=twitter:title content="Txtar Test Systems in Practice: Data, Scenarios, and Embedded Walkers"><meta name=twitter:description content="I use txtar as a practical test and fixture format across multiple repositories. This post is my reference for how I expect agents (and future me) to structure and evolve txtar-based systems.
+Simple input/output data pairs Case metadata + descriptions Full scenario definitions with options and assertions Why txtar txtar is great when you want fixtures that are:"><meta itemprop=datePublished content="2026-02-16T00:00:00+00:00"><meta itemprop=dateModified content="2026-02-16T00:00:00+00:00"><meta itemprop=wordCount content="1702"><meta itemprop=keywords content="go,testing,txtar,embed,golden-files,agents,"><meta name=twitter:card content="summary"><meta name=twitter:title content="Txtar Test Systems in Practice: Data, Scenarios, and Embedded Walkers"><meta name=twitter:description content="I use txtar as a practical test and fixture format across multiple repositories. This post is my reference for how I expect agents (and future me) to structure and evolve txtar-based systems.
 Repositories discussed:
 arran4/golang-rcs (testdata/txtar) arran4/golang-diff (pkg/diff/testdata) arran4/editorconfig-guesser (testdata) Related pattern: arran4/goa4web templates (core/templates) The core theme is that there is a range of sophistication:
 Simple input/output data pairs Case metadata + descriptions Full scenario definitions with options and assertions Why txtar txtar is great when you want fixtures that are:"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script>
@@ -18,222 +18,418 @@ Arran Ubels</div><div class=post-meta-time><time datetime=2026-02-16>2026-02-16<
 <a href=https://arran4.github.io/blog/categories/testing/>testing</a></div></div></div></header><div class=post-content><p>I use <code>txtar</code> as a practical test and fixture format across multiple repositories.
 This post is my reference for how I expect agents (and future me) to structure
 and evolve txtar-based systems.</p><p>Repositories discussed:</p><ul><li><code>arran4/golang-rcs</code> (<code>testdata/txtar</code>)</li><li><code>arran4/golang-diff</code> (<code>pkg/diff/testdata</code>)</li><li><code>arran4/editorconfig-guesser</code> (<code>testdata</code>)</li><li>Related pattern: <code>arran4/goa4web</code> templates (<code>core/templates</code>)</li></ul><p>The core theme is that there is a <strong>range of sophistication</strong>:</p><ol><li>Simple input/output data pairs</li><li>Case metadata + descriptions</li><li>Full scenario definitions with options and assertions</li></ol><h2 id=why-txtar>Why txtar</h2><p><code>txtar</code> is great when you want fixtures that are:</p><ul><li>Human-readable in reviews</li><li>Easy to compose from multiple files</li><li>Stable enough for golden-style assertions</li><li>Friendly to tooling and directory walking</li></ul><p>In practice, this means tests can start tiny and grow naturally without changing
-fixture format.</p><h2 id=pattern-1-simple-pairs-minimum-viable-structure>Pattern 1: simple pairs (minimum viable structure)</h2><p>At the low end, a txtar can just model pairs:</p><ul><li>one file for input</li><li>one file for expected output</li></ul><p>Example shape:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>-- input.txt --
-</span></span><span style=display:flex><span>line 1
-</span></span><span style=display:flex><span>line 2
-</span></span><span style=display:flex><span>-- expected.txt --
-</span></span><span style=display:flex><span>line 1
-</span></span><span style=display:flex><span>line 2 (normalized)
-</span></span></code></pre></div><p>This is ideal for parser normalization, text transforms, or diff behaviour where
-you only need deterministic before/after checks.</p><h3 id=when-to-choose-this>When to choose this</h3><ul><li>Algorithm is pure and deterministic</li><li>No runtime options are required</li><li>You want quick fixture authoring speed</li></ul><h2 id=pattern-2-descriptive-cases-metadata--intent>Pattern 2: descriptive cases (metadata + intent)</h2><p>The middle pattern keeps txtar file payloads but adds semantic context:</p><ul><li><code>description.txt</code> or top-level comments for intent</li><li>extra files for knobs (<code>options.json</code>, <code>flags.txt</code>, etc.)</li><li>explicit failure/success expectation</li></ul><p>Example:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>test: trim trailing spaces in mixed indentation
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>-- input.txt --
-</span></span><span style=display:flex><span>a  
-</span></span><span style=display:flex><span>\tb\t 
-</span></span><span style=display:flex><span>-- options.json --
-</span></span><span style=display:flex><span>{&#34;trim_trailing&#34;: true, &#34;normalize_tabs&#34;: false}
-</span></span><span style=display:flex><span>-- expected.txt --
-</span></span><span style=display:flex><span>a
-</span></span><span style=display:flex><span>\tb
-</span></span></code></pre></div><p>This is useful for repositories where fixture meaning matters as much as fixture
-content, especially when agents generate or maintain these cases.</p><h2 id=pattern-3-full-scenario-tests-options--assertions-matrix>Pattern 3: full scenario tests (options + assertions matrix)</h2><p>At the high end, txtar becomes a scenario container:</p><ul><li>multi-file source tree inside one archive</li><li>per-case options</li><li>expected outputs and/or expected errors</li><li>optional snapshots of diagnostics</li></ul><p>Example:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>test: recursive editorconfig inference with override
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>-- fs/src/main.go --
-</span></span><span style=display:flex><span>package main
-</span></span><span style=display:flex><span>-- fs/.editorconfig --
-</span></span><span style=display:flex><span>root = true
-</span></span><span style=display:flex><span>[*]
-</span></span><span style=display:flex><span>indent_style = space
-</span></span><span style=display:flex><span>-- fs/sub/.editorconfig --
-</span></span><span style=display:flex><span>[*.go]
-</span></span><span style=display:flex><span>indent_style = tab
-</span></span><span style=display:flex><span>-- request.json --
-</span></span><span style=display:flex><span>{&#34;path&#34;:&#34;fs/src/main.go&#34;}
-</span></span><span style=display:flex><span>-- expected.json --
-</span></span><span style=display:flex><span>{&#34;indent_style&#34;:&#34;tab&#34;}
-</span></span></code></pre></div><p>This style maps well to systems like <code>editorconfig-guesser</code>, where behaviour is
+fixture format.</p><h2 id=pattern-1-simple-pairs-minimum-viable-structure>Pattern 1: simple pairs (minimum viable structure)</h2><p>At the low end, a txtar can just model pairs:</p><ul><li>one file for input</li><li>one file for expected output</li></ul><p>Example shape:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>-- input.txt --
+</span></span><span class=line><span class=cl>line 1
+</span></span><span class=line><span class=cl>line 2
+</span></span><span class=line><span class=cl>-- expected.txt --
+</span></span><span class=line><span class=cl>line 1
+</span></span><span class=line><span class=cl>line 2 (normalized)
+</span></span></code></pre></td></tr></table></div></div><p>This is ideal for parser normalization, text transforms, or diff behaviour where
+you only need deterministic before/after checks.</p><h3 id=when-to-choose-this>When to choose this</h3><ul><li>Algorithm is pure and deterministic</li><li>No runtime options are required</li><li>You want quick fixture authoring speed</li></ul><h2 id=pattern-2-descriptive-cases-metadata--intent>Pattern 2: descriptive cases (metadata + intent)</h2><p>The middle pattern keeps txtar file payloads but adds semantic context:</p><ul><li><code>description.txt</code> or top-level comments for intent</li><li>extra files for knobs (<code>options.json</code>, <code>flags.txt</code>, etc.)</li><li>explicit failure/success expectation</li></ul><p>Example:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>test: trim trailing spaces in mixed indentation
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-- input.txt --
+</span></span><span class=line><span class=cl>a  
+</span></span><span class=line><span class=cl>\tb\t 
+</span></span><span class=line><span class=cl>-- options.json --
+</span></span><span class=line><span class=cl>{&#34;trim_trailing&#34;: true, &#34;normalize_tabs&#34;: false}
+</span></span><span class=line><span class=cl>-- expected.txt --
+</span></span><span class=line><span class=cl>a
+</span></span><span class=line><span class=cl>\tb
+</span></span></code></pre></td></tr></table></div></div><p>This is useful for repositories where fixture meaning matters as much as fixture
+content, especially when agents generate or maintain these cases.</p><h2 id=pattern-3-full-scenario-tests-options--assertions-matrix>Pattern 3: full scenario tests (options + assertions matrix)</h2><p>At the high end, txtar becomes a scenario container:</p><ul><li>multi-file source tree inside one archive</li><li>per-case options</li><li>expected outputs and/or expected errors</li><li>optional snapshots of diagnostics</li></ul><p>Example:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>test: recursive editorconfig inference with override
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-- fs/src/main.go --
+</span></span><span class=line><span class=cl>package main
+</span></span><span class=line><span class=cl>-- fs/.editorconfig --
+</span></span><span class=line><span class=cl>root = true
+</span></span><span class=line><span class=cl>[*]
+</span></span><span class=line><span class=cl>indent_style = space
+</span></span><span class=line><span class=cl>-- fs/sub/.editorconfig --
+</span></span><span class=line><span class=cl>[*.go]
+</span></span><span class=line><span class=cl>indent_style = tab
+</span></span><span class=line><span class=cl>-- request.json --
+</span></span><span class=line><span class=cl>{&#34;path&#34;:&#34;fs/src/main.go&#34;}
+</span></span><span class=line><span class=cl>-- expected.json --
+</span></span><span class=line><span class=cl>{&#34;indent_style&#34;:&#34;tab&#34;}
+</span></span></code></pre></td></tr></table></div></div><p>This style maps well to systems like <code>editorconfig-guesser</code>, where behaviour is
 contextual and directory-sensitive.</p><h2 id=the-important-go-harness-pieces>The important Go harness pieces</h2><p>The fixture format is only half the system. The harness design decides whether
-the tests stay maintainable.</p><h3 id=1-use-goembed-for-fixture-loading>1) Use <code>go:embed</code> for fixture loading</h3><p>I prefer embedding test fixtures into the test binary:</p><ul><li>avoids path bugs from different working directories</li><li>avoids accidental I/O differences in CI vs local runs</li><li>keeps tests hermetic and easier for tooling/agents</li></ul><p>Typical structure:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>mypkg_test</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
-</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;embed&#34;</span>
-</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;io/fs&#34;</span>
-</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;path&#34;</span>
-</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;strings&#34;</span>
-</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;testing&#34;</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;golang.org/x/tools/txtar&#34;</span>
-</span></span><span style=display:flex><span>)
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>//go:embed testdata/**/*.txtar
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>testdataFS</span> <span style=color:#a6e22e>embed</span>.<span style=color:#a6e22e>FS</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>TestCases</span>(<span style=color:#a6e22e>t</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>testing</span>.<span style=color:#a6e22e>T</span>) {
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>entries</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>fs</span>.<span style=color:#a6e22e>Glob</span>(<span style=color:#a6e22e>testdataFS</span>, <span style=color:#e6db74>&#34;testdata/**/*.txtar&#34;</span>)
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>t</span>.<span style=color:#a6e22e>Fatalf</span>(<span style=color:#e6db74>&#34;glob fixtures: %v&#34;</span>, <span style=color:#a6e22e>err</span>)
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> <span style=color:#a6e22e>_</span>, <span style=color:#a6e22e>fixture</span> <span style=color:#f92672>:=</span> <span style=color:#66d9ef>range</span> <span style=color:#a6e22e>entries</span> {
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>fixture</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>fixture</span>
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>t</span>.<span style=color:#a6e22e>Run</span>(<span style=color:#a6e22e>strings</span>.<span style=color:#a6e22e>TrimSuffix</span>(<span style=color:#a6e22e>path</span>.<span style=color:#a6e22e>Base</span>(<span style=color:#a6e22e>fixture</span>), <span style=color:#e6db74>&#34;.txtar&#34;</span>), <span style=color:#66d9ef>func</span>(<span style=color:#a6e22e>t</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>testing</span>.<span style=color:#a6e22e>T</span>) {
-</span></span><span style=display:flex><span>            <span style=color:#a6e22e>raw</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>testdataFS</span>.<span style=color:#a6e22e>ReadFile</span>(<span style=color:#a6e22e>fixture</span>)
-</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
-</span></span><span style=display:flex><span>                <span style=color:#a6e22e>t</span>.<span style=color:#a6e22e>Fatalf</span>(<span style=color:#e6db74>&#34;read fixture %s: %v&#34;</span>, <span style=color:#a6e22e>fixture</span>, <span style=color:#a6e22e>err</span>)
-</span></span><span style=display:flex><span>            }
-</span></span><span style=display:flex><span>            <span style=color:#a6e22e>ar</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>txtar</span>.<span style=color:#a6e22e>Parse</span>(<span style=color:#a6e22e>raw</span>)
-</span></span><span style=display:flex><span>            <span style=color:#a6e22e>_</span> = <span style=color:#a6e22e>ar</span> <span style=color:#75715e>// decode files and assert behaviour
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        })
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h3 id=2-use-trun-inside-directory-walking-loops>2) Use <code>t.Run</code> inside directory walking loops</h3><p>This is non-negotiable for large fixture sets:</p><ul><li>gives one subtest per fixture</li><li>isolates failures to specific case names</li><li>allows future <code>t.Parallel()</code> where safe</li><li>makes generated or agent-authored fixture diffs easier to review</li></ul><p>Important implementation detail: shadow loop variables (<code>fixture := fixture</code>) so
+the tests stay maintainable.</p><h3 id=1-use-goembed-for-fixture-loading>1) Use <code>go:embed</code> for fixture loading</h3><p>I prefer embedding test fixtures into the test binary:</p><ul><li>avoids path bugs from different working directories</li><li>avoids accidental I/O differences in CI vs local runs</li><li>keeps tests hermetic and easier for tooling/agents</li></ul><p>Typical structure:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kn>package</span> <span class=nx>mypkg_test</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=p>(</span>
+</span></span><span class=line><span class=cl>    <span class=s>&#34;embed&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=s>&#34;io/fs&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=s>&#34;path&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=s>&#34;strings&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=s>&#34;testing&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=s>&#34;golang.org/x/tools/txtar&#34;</span>
+</span></span><span class=line><span class=cl><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>//go:embed testdata/**/*.txtar
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>var</span> <span class=nx>testdataFS</span> <span class=nx>embed</span><span class=p>.</span><span class=nx>FS</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=nf>TestCases</span><span class=p>(</span><span class=nx>t</span> <span class=o>*</span><span class=nx>testing</span><span class=p>.</span><span class=nx>T</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=nx>entries</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>fs</span><span class=p>.</span><span class=nf>Glob</span><span class=p>(</span><span class=nx>testdataFS</span><span class=p>,</span> <span class=s>&#34;testdata/**/*.txtar&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nx>t</span><span class=p>.</span><span class=nf>Fatalf</span><span class=p>(</span><span class=s>&#34;glob fixtures: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=k>for</span> <span class=nx>_</span><span class=p>,</span> <span class=nx>fixture</span> <span class=o>:=</span> <span class=k>range</span> <span class=nx>entries</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nx>fixture</span> <span class=o>:=</span> <span class=nx>fixture</span>
+</span></span><span class=line><span class=cl>        <span class=nx>t</span><span class=p>.</span><span class=nf>Run</span><span class=p>(</span><span class=nx>strings</span><span class=p>.</span><span class=nf>TrimSuffix</span><span class=p>(</span><span class=nx>path</span><span class=p>.</span><span class=nf>Base</span><span class=p>(</span><span class=nx>fixture</span><span class=p>),</span> <span class=s>&#34;.txtar&#34;</span><span class=p>),</span> <span class=kd>func</span><span class=p>(</span><span class=nx>t</span> <span class=o>*</span><span class=nx>testing</span><span class=p>.</span><span class=nx>T</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nx>raw</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>testdataFS</span><span class=p>.</span><span class=nf>ReadFile</span><span class=p>(</span><span class=nx>fixture</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>            <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=nx>t</span><span class=p>.</span><span class=nf>Fatalf</span><span class=p>(</span><span class=s>&#34;read fixture %s: %v&#34;</span><span class=p>,</span> <span class=nx>fixture</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>            <span class=p>}</span>
+</span></span><span class=line><span class=cl>            <span class=nx>ar</span> <span class=o>:=</span> <span class=nx>txtar</span><span class=p>.</span><span class=nf>Parse</span><span class=p>(</span><span class=nx>raw</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>            <span class=nx>_</span> <span class=p>=</span> <span class=nx>ar</span> <span class=c1>// decode files and assert behaviour
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=p>})</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=2-use-trun-inside-directory-walking-loops>2) Use <code>t.Run</code> inside directory walking loops</h3><p>This is non-negotiable for large fixture sets:</p><ul><li>gives one subtest per fixture</li><li>isolates failures to specific case names</li><li>allows future <code>t.Parallel()</code> where safe</li><li>makes generated or agent-authored fixture diffs easier to review</li></ul><p>Important implementation detail: shadow loop variables (<code>fixture := fixture</code>) so
 closures don’t capture the wrong value.</p><h3 id=3-keep-directory-walking-explicit-and-deterministic>3) Keep directory walking explicit and deterministic</h3><p>Use <code>fs.Glob</code> or <code>fs.WalkDir</code> with predictable ordering rules.</p><p>If ordering matters, sort inputs before execution. Reproducibility matters when
 fixture counts grow.</p><h2 id=deprojected-snippets-txtar-to-fsfs-and-deterministic-walking>Deprojected snippets: txtar to <code>fs.FS</code> and deterministic walking</h2><p>This is the bit I want agents to internalise: parse once, convert to an in-memory
-<code>fs.FS</code>, then run your product code against that virtual tree.</p><h3 id=minimal-conversion-txtar-archive-to-fstestmapfs>Minimal conversion: <code>txtar</code> archive to <code>fstest.MapFS</code></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>fixturefs</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
-</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;path&#34;</span>
-</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;strings&#34;</span>
-</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;testing/fstest&#34;</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;golang.org/x/tools/txtar&#34;</span>
-</span></span><span style=display:flex><span>)
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>ArchiveToMapFS</span>(<span style=color:#a6e22e>ar</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>txtar</span>.<span style=color:#a6e22e>Archive</span>) <span style=color:#a6e22e>fstest</span>.<span style=color:#a6e22e>MapFS</span> {
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>out</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>fstest</span>.<span style=color:#a6e22e>MapFS</span>{}
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> <span style=color:#a6e22e>_</span>, <span style=color:#a6e22e>f</span> <span style=color:#f92672>:=</span> <span style=color:#66d9ef>range</span> <span style=color:#a6e22e>ar</span>.<span style=color:#a6e22e>Files</span> {
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>name</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>path</span>.<span style=color:#a6e22e>Clean</span>(<span style=color:#a6e22e>strings</span>.<span style=color:#a6e22e>TrimPrefix</span>(<span style=color:#a6e22e>f</span>.<span style=color:#a6e22e>Name</span>, <span style=color:#e6db74>&#34;/&#34;</span>))
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>name</span> <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;.&#34;</span> {
-</span></span><span style=display:flex><span>            <span style=color:#66d9ef>continue</span>
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>out</span>[<span style=color:#a6e22e>name</span>] = <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>fstest</span>.<span style=color:#a6e22e>MapFile</span>{<span style=color:#a6e22e>Data</span>: append([]byte(<span style=color:#66d9ef>nil</span>), <span style=color:#a6e22e>f</span>.<span style=color:#a6e22e>Data</span><span style=color:#f92672>...</span>)}
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>out</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>This lets you remove runtime disk I/O from the test itself while still exercising
+<code>fs.FS</code>, then run your product code against that virtual tree.</p><h3 id=minimal-conversion-txtar-archive-to-fstestmapfs>Minimal conversion: <code>txtar</code> archive to <code>fstest.MapFS</code></h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kn>package</span> <span class=nx>fixturefs</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=p>(</span>
+</span></span><span class=line><span class=cl>    <span class=s>&#34;path&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=s>&#34;strings&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=s>&#34;testing/fstest&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=s>&#34;golang.org/x/tools/txtar&#34;</span>
+</span></span><span class=line><span class=cl><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=nf>ArchiveToMapFS</span><span class=p>(</span><span class=nx>ar</span> <span class=o>*</span><span class=nx>txtar</span><span class=p>.</span><span class=nx>Archive</span><span class=p>)</span> <span class=nx>fstest</span><span class=p>.</span><span class=nx>MapFS</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=nx>out</span> <span class=o>:=</span> <span class=nx>fstest</span><span class=p>.</span><span class=nx>MapFS</span><span class=p>{}</span>
+</span></span><span class=line><span class=cl>    <span class=k>for</span> <span class=nx>_</span><span class=p>,</span> <span class=nx>f</span> <span class=o>:=</span> <span class=k>range</span> <span class=nx>ar</span><span class=p>.</span><span class=nx>Files</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nx>name</span> <span class=o>:=</span> <span class=nx>path</span><span class=p>.</span><span class=nf>Clean</span><span class=p>(</span><span class=nx>strings</span><span class=p>.</span><span class=nf>TrimPrefix</span><span class=p>(</span><span class=nx>f</span><span class=p>.</span><span class=nx>Name</span><span class=p>,</span> <span class=s>&#34;/&#34;</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=nx>name</span> <span class=o>==</span> <span class=s>&#34;.&#34;</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=k>continue</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>        <span class=nx>out</span><span class=p>[</span><span class=nx>name</span><span class=p>]</span> <span class=p>=</span> <span class=o>&amp;</span><span class=nx>fstest</span><span class=p>.</span><span class=nx>MapFile</span><span class=p>{</span><span class=nx>Data</span><span class=p>:</span> <span class=nb>append</span><span class=p>([]</span><span class=nb>byte</span><span class=p>(</span><span class=kc>nil</span><span class=p>),</span> <span class=nx>f</span><span class=p>.</span><span class=nx>Data</span><span class=o>...</span><span class=p>)}</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=nx>out</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>This lets you remove runtime disk I/O from the test itself while still exercising
 code that accepts an <code>fs.FS</code>.</p><h3 id=convention-helper-split-one-txtar-into-inputexpected-filesystems>Convention helper: split one txtar into input/expected filesystems</h3><p>If your archive stores source files under <code>input/</code> and expected files under
-<code>expected/</code>, split them into two independent trees:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>SplitInputExpected</span>(<span style=color:#a6e22e>ar</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>txtar</span>.<span style=color:#a6e22e>Archive</span>) (<span style=color:#a6e22e>input</span>, <span style=color:#a6e22e>expected</span> <span style=color:#a6e22e>fstest</span>.<span style=color:#a6e22e>MapFS</span>) {
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>input</span> = <span style=color:#a6e22e>fstest</span>.<span style=color:#a6e22e>MapFS</span>{}
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>expected</span> = <span style=color:#a6e22e>fstest</span>.<span style=color:#a6e22e>MapFS</span>{}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> <span style=color:#a6e22e>_</span>, <span style=color:#a6e22e>f</span> <span style=color:#f92672>:=</span> <span style=color:#66d9ef>range</span> <span style=color:#a6e22e>ar</span>.<span style=color:#a6e22e>Files</span> {
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>switch</span> {
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>case</span> <span style=color:#a6e22e>strings</span>.<span style=color:#a6e22e>HasPrefix</span>(<span style=color:#a6e22e>f</span>.<span style=color:#a6e22e>Name</span>, <span style=color:#e6db74>&#34;input/&#34;</span>):
-</span></span><span style=display:flex><span>            <span style=color:#a6e22e>input</span>[<span style=color:#a6e22e>strings</span>.<span style=color:#a6e22e>TrimPrefix</span>(<span style=color:#a6e22e>f</span>.<span style=color:#a6e22e>Name</span>, <span style=color:#e6db74>&#34;input/&#34;</span>)] = <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>fstest</span>.<span style=color:#a6e22e>MapFile</span>{<span style=color:#a6e22e>Data</span>: <span style=color:#a6e22e>f</span>.<span style=color:#a6e22e>Data</span>}
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>case</span> <span style=color:#a6e22e>strings</span>.<span style=color:#a6e22e>HasPrefix</span>(<span style=color:#a6e22e>f</span>.<span style=color:#a6e22e>Name</span>, <span style=color:#e6db74>&#34;expected/&#34;</span>):
-</span></span><span style=display:flex><span>            <span style=color:#a6e22e>expected</span>[<span style=color:#a6e22e>strings</span>.<span style=color:#a6e22e>TrimPrefix</span>(<span style=color:#a6e22e>f</span>.<span style=color:#a6e22e>Name</span>, <span style=color:#e6db74>&#34;expected/&#34;</span>)] = <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>fstest</span>.<span style=color:#a6e22e>MapFile</span>{<span style=color:#a6e22e>Data</span>: <span style=color:#a6e22e>f</span>.<span style=color:#a6e22e>Data</span>}
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>input</span>, <span style=color:#a6e22e>expected</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>That pattern is deliberately boring and explicit: easy for humans to read, easy
-for agents to generate, easy to validate.</p><h3 id=deterministic-walker-over-virtual-fs>Deterministic walker over virtual FS</h3><p>Even with an in-memory filesystem, keep ordering explicit:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>WalkFiles</span>(<span style=color:#a6e22e>root</span> <span style=color:#a6e22e>fs</span>.<span style=color:#a6e22e>FS</span>, <span style=color:#a6e22e>dir</span> <span style=color:#66d9ef>string</span>) ([]<span style=color:#66d9ef>string</span>, <span style=color:#66d9ef>error</span>) {
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>var</span> <span style=color:#a6e22e>files</span> []<span style=color:#66d9ef>string</span>
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>fs</span>.<span style=color:#a6e22e>WalkDir</span>(<span style=color:#a6e22e>root</span>, <span style=color:#a6e22e>dir</span>, <span style=color:#66d9ef>func</span>(<span style=color:#a6e22e>p</span> <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>d</span> <span style=color:#a6e22e>fs</span>.<span style=color:#a6e22e>DirEntry</span>, <span style=color:#a6e22e>err</span> <span style=color:#66d9ef>error</span>) <span style=color:#66d9ef>error</span> {
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
-</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>err</span>
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>d</span>.<span style=color:#a6e22e>IsDir</span>() {
-</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>files</span> = append(<span style=color:#a6e22e>files</span>, <span style=color:#a6e22e>p</span>)
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>
-</span></span><span style=display:flex><span>    })
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>sort</span>.<span style=color:#a6e22e>Strings</span>(<span style=color:#a6e22e>files</span>)
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>files</span>, <span style=color:#a6e22e>err</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>That gives stable case execution and stable diffs.</p><h3 id=end-to-end-sketch-parse-fixture-construct-fs-run-assertions>End-to-end sketch: parse fixture, construct FS, run assertions</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>TestTransform</span>(<span style=color:#a6e22e>t</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>testing</span>.<span style=color:#a6e22e>T</span>) {
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>raw</span>, <span style=color:#a6e22e>_</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>fixtures</span>.<span style=color:#a6e22e>ReadFile</span>(<span style=color:#e6db74>&#34;testdata/cases/basic.txtar&#34;</span>)
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>ar</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>txtar</span>.<span style=color:#a6e22e>Parse</span>(<span style=color:#a6e22e>raw</span>)
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>inputFS</span>, <span style=color:#a6e22e>expectedFS</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>SplitInputExpected</span>(<span style=color:#a6e22e>ar</span>)
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>gotFS</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>transform</span>.<span style=color:#a6e22e>Run</span>(<span style=color:#a6e22e>inputFS</span>)
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>t</span>.<span style=color:#a6e22e>Fatalf</span>(<span style=color:#e6db74>&#34;run transform: %v&#34;</span>, <span style=color:#a6e22e>err</span>)
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>wantFiles</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>WalkFiles</span>(<span style=color:#a6e22e>expectedFS</span>, <span style=color:#e6db74>&#34;.&#34;</span>)
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>t</span>.<span style=color:#a6e22e>Fatalf</span>(<span style=color:#e6db74>&#34;walk expected: %v&#34;</span>, <span style=color:#a6e22e>err</span>)
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> <span style=color:#a6e22e>_</span>, <span style=color:#a6e22e>name</span> <span style=color:#f92672>:=</span> <span style=color:#66d9ef>range</span> <span style=color:#a6e22e>wantFiles</span> {
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>want</span>, <span style=color:#a6e22e>_</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>fs</span>.<span style=color:#a6e22e>ReadFile</span>(<span style=color:#a6e22e>expectedFS</span>, <span style=color:#a6e22e>name</span>)
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>got</span>, <span style=color:#a6e22e>_</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>fs</span>.<span style=color:#a6e22e>ReadFile</span>(<span style=color:#a6e22e>gotFS</span>, <span style=color:#a6e22e>name</span>)
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> string(<span style=color:#a6e22e>got</span>) <span style=color:#f92672>!=</span> string(<span style=color:#a6e22e>want</span>) {
-</span></span><span style=display:flex><span>            <span style=color:#a6e22e>t</span>.<span style=color:#a6e22e>Fatalf</span>(<span style=color:#e6db74>&#34;file %s mismatch\nwant:\n%s\n\ngot:\n%s&#34;</span>, <span style=color:#a6e22e>name</span>, <span style=color:#a6e22e>want</span>, <span style=color:#a6e22e>got</span>)
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h2 id=multi-template-directory-loop-goa4web-style-pattern>Multi-template directory loop (goa4web-style pattern)</h2><p>For template corpora (for example email templates where each body type has its
+<code>expected/</code>, split them into two independent trees:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kd>func</span> <span class=nf>SplitInputExpected</span><span class=p>(</span><span class=nx>ar</span> <span class=o>*</span><span class=nx>txtar</span><span class=p>.</span><span class=nx>Archive</span><span class=p>)</span> <span class=p>(</span><span class=nx>input</span><span class=p>,</span> <span class=nx>expected</span> <span class=nx>fstest</span><span class=p>.</span><span class=nx>MapFS</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=nx>input</span> <span class=p>=</span> <span class=nx>fstest</span><span class=p>.</span><span class=nx>MapFS</span><span class=p>{}</span>
+</span></span><span class=line><span class=cl>    <span class=nx>expected</span> <span class=p>=</span> <span class=nx>fstest</span><span class=p>.</span><span class=nx>MapFS</span><span class=p>{}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=k>for</span> <span class=nx>_</span><span class=p>,</span> <span class=nx>f</span> <span class=o>:=</span> <span class=k>range</span> <span class=nx>ar</span><span class=p>.</span><span class=nx>Files</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=k>switch</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=k>case</span> <span class=nx>strings</span><span class=p>.</span><span class=nf>HasPrefix</span><span class=p>(</span><span class=nx>f</span><span class=p>.</span><span class=nx>Name</span><span class=p>,</span> <span class=s>&#34;input/&#34;</span><span class=p>):</span>
+</span></span><span class=line><span class=cl>            <span class=nx>input</span><span class=p>[</span><span class=nx>strings</span><span class=p>.</span><span class=nf>TrimPrefix</span><span class=p>(</span><span class=nx>f</span><span class=p>.</span><span class=nx>Name</span><span class=p>,</span> <span class=s>&#34;input/&#34;</span><span class=p>)]</span> <span class=p>=</span> <span class=o>&amp;</span><span class=nx>fstest</span><span class=p>.</span><span class=nx>MapFile</span><span class=p>{</span><span class=nx>Data</span><span class=p>:</span> <span class=nx>f</span><span class=p>.</span><span class=nx>Data</span><span class=p>}</span>
+</span></span><span class=line><span class=cl>        <span class=k>case</span> <span class=nx>strings</span><span class=p>.</span><span class=nf>HasPrefix</span><span class=p>(</span><span class=nx>f</span><span class=p>.</span><span class=nx>Name</span><span class=p>,</span> <span class=s>&#34;expected/&#34;</span><span class=p>):</span>
+</span></span><span class=line><span class=cl>            <span class=nx>expected</span><span class=p>[</span><span class=nx>strings</span><span class=p>.</span><span class=nf>TrimPrefix</span><span class=p>(</span><span class=nx>f</span><span class=p>.</span><span class=nx>Name</span><span class=p>,</span> <span class=s>&#34;expected/&#34;</span><span class=p>)]</span> <span class=p>=</span> <span class=o>&amp;</span><span class=nx>fstest</span><span class=p>.</span><span class=nx>MapFile</span><span class=p>{</span><span class=nx>Data</span><span class=p>:</span> <span class=nx>f</span><span class=p>.</span><span class=nx>Data</span><span class=p>}</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=nx>input</span><span class=p>,</span> <span class=nx>expected</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>That pattern is deliberately boring and explicit: easy for humans to read, easy
+for agents to generate, easy to validate.</p><h3 id=deterministic-walker-over-virtual-fs>Deterministic walker over virtual FS</h3><p>Even with an in-memory filesystem, keep ordering explicit:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kd>func</span> <span class=nf>WalkFiles</span><span class=p>(</span><span class=nx>root</span> <span class=nx>fs</span><span class=p>.</span><span class=nx>FS</span><span class=p>,</span> <span class=nx>dir</span> <span class=kt>string</span><span class=p>)</span> <span class=p>([]</span><span class=kt>string</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=kd>var</span> <span class=nx>files</span> <span class=p>[]</span><span class=kt>string</span>
+</span></span><span class=line><span class=cl>    <span class=nx>err</span> <span class=o>:=</span> <span class=nx>fs</span><span class=p>.</span><span class=nf>WalkDir</span><span class=p>(</span><span class=nx>root</span><span class=p>,</span> <span class=nx>dir</span><span class=p>,</span> <span class=kd>func</span><span class=p>(</span><span class=nx>p</span> <span class=kt>string</span><span class=p>,</span> <span class=nx>d</span> <span class=nx>fs</span><span class=p>.</span><span class=nx>DirEntry</span><span class=p>,</span> <span class=nx>err</span> <span class=kt>error</span><span class=p>)</span> <span class=kt>error</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=nx>err</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=nx>d</span><span class=p>.</span><span class=nf>IsDir</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>        <span class=nx>files</span> <span class=p>=</span> <span class=nb>append</span><span class=p>(</span><span class=nx>files</span><span class=p>,</span> <span class=nx>p</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>        <span class=k>return</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl>    <span class=p>})</span>
+</span></span><span class=line><span class=cl>    <span class=nx>sort</span><span class=p>.</span><span class=nf>Strings</span><span class=p>(</span><span class=nx>files</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=nx>files</span><span class=p>,</span> <span class=nx>err</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>That gives stable case execution and stable diffs.</p><h3 id=end-to-end-sketch-parse-fixture-construct-fs-run-assertions>End-to-end sketch: parse fixture, construct FS, run assertions</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kd>func</span> <span class=nf>TestTransform</span><span class=p>(</span><span class=nx>t</span> <span class=o>*</span><span class=nx>testing</span><span class=p>.</span><span class=nx>T</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=nx>raw</span><span class=p>,</span> <span class=nx>_</span> <span class=o>:=</span> <span class=nx>fixtures</span><span class=p>.</span><span class=nf>ReadFile</span><span class=p>(</span><span class=s>&#34;testdata/cases/basic.txtar&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=nx>ar</span> <span class=o>:=</span> <span class=nx>txtar</span><span class=p>.</span><span class=nf>Parse</span><span class=p>(</span><span class=nx>raw</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=nx>inputFS</span><span class=p>,</span> <span class=nx>expectedFS</span> <span class=o>:=</span> <span class=nf>SplitInputExpected</span><span class=p>(</span><span class=nx>ar</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=nx>gotFS</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>transform</span><span class=p>.</span><span class=nf>Run</span><span class=p>(</span><span class=nx>inputFS</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nx>t</span><span class=p>.</span><span class=nf>Fatalf</span><span class=p>(</span><span class=s>&#34;run transform: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=nx>wantFiles</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nf>WalkFiles</span><span class=p>(</span><span class=nx>expectedFS</span><span class=p>,</span> <span class=s>&#34;.&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nx>t</span><span class=p>.</span><span class=nf>Fatalf</span><span class=p>(</span><span class=s>&#34;walk expected: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>    <span class=k>for</span> <span class=nx>_</span><span class=p>,</span> <span class=nx>name</span> <span class=o>:=</span> <span class=k>range</span> <span class=nx>wantFiles</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nx>want</span><span class=p>,</span> <span class=nx>_</span> <span class=o>:=</span> <span class=nx>fs</span><span class=p>.</span><span class=nf>ReadFile</span><span class=p>(</span><span class=nx>expectedFS</span><span class=p>,</span> <span class=nx>name</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>        <span class=nx>got</span><span class=p>,</span> <span class=nx>_</span> <span class=o>:=</span> <span class=nx>fs</span><span class=p>.</span><span class=nf>ReadFile</span><span class=p>(</span><span class=nx>gotFS</span><span class=p>,</span> <span class=nx>name</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=nb>string</span><span class=p>(</span><span class=nx>got</span><span class=p>)</span> <span class=o>!=</span> <span class=nb>string</span><span class=p>(</span><span class=nx>want</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nx>t</span><span class=p>.</span><span class=nf>Fatalf</span><span class=p>(</span><span class=s>&#34;file %s mismatch\nwant:\n%s\n\ngot:\n%s&#34;</span><span class=p>,</span> <span class=nx>name</span><span class=p>,</span> <span class=nx>want</span><span class=p>,</span> <span class=nx>got</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><h2 id=multi-template-directory-loop-goa4web-style-pattern>Multi-template directory loop (goa4web-style pattern)</h2><p>For template corpora (for example email templates where each body type has its
 own txtar), I want one subtest per template archive discovered by walking a
-directory.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#75715e>//go:embed testdata/templates/**/*.txtar
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>templateCases</span> <span style=color:#a6e22e>embed</span>.<span style=color:#a6e22e>FS</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>TestTemplateMatrix</span>(<span style=color:#a6e22e>t</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>testing</span>.<span style=color:#a6e22e>T</span>) {
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>var</span> <span style=color:#a6e22e>cases</span> []<span style=color:#66d9ef>string</span>
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>fs</span>.<span style=color:#a6e22e>WalkDir</span>(<span style=color:#a6e22e>templateCases</span>, <span style=color:#e6db74>&#34;testdata/templates&#34;</span>, <span style=color:#66d9ef>func</span>(<span style=color:#a6e22e>p</span> <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>d</span> <span style=color:#a6e22e>fs</span>.<span style=color:#a6e22e>DirEntry</span>, <span style=color:#a6e22e>err</span> <span style=color:#66d9ef>error</span>) <span style=color:#66d9ef>error</span> {
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
-</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>err</span>
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>d</span>.<span style=color:#a6e22e>IsDir</span>() <span style=color:#f92672>||</span> !<span style=color:#a6e22e>strings</span>.<span style=color:#a6e22e>HasSuffix</span>(<span style=color:#a6e22e>p</span>, <span style=color:#e6db74>&#34;.txtar&#34;</span>) {
-</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>cases</span> = append(<span style=color:#a6e22e>cases</span>, <span style=color:#a6e22e>p</span>)
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>
-</span></span><span style=display:flex><span>    })
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>t</span>.<span style=color:#a6e22e>Fatalf</span>(<span style=color:#e6db74>&#34;walk template cases: %v&#34;</span>, <span style=color:#a6e22e>err</span>)
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>sort</span>.<span style=color:#a6e22e>Strings</span>(<span style=color:#a6e22e>cases</span>)
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> <span style=color:#a6e22e>_</span>, <span style=color:#a6e22e>tc</span> <span style=color:#f92672>:=</span> <span style=color:#66d9ef>range</span> <span style=color:#a6e22e>cases</span> {
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>tc</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>tc</span>
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>t</span>.<span style=color:#a6e22e>Run</span>(<span style=color:#a6e22e>strings</span>.<span style=color:#a6e22e>TrimSuffix</span>(<span style=color:#a6e22e>path</span>.<span style=color:#a6e22e>Base</span>(<span style=color:#a6e22e>tc</span>), <span style=color:#e6db74>&#34;.txtar&#34;</span>), <span style=color:#66d9ef>func</span>(<span style=color:#a6e22e>t</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>testing</span>.<span style=color:#a6e22e>T</span>) {
-</span></span><span style=display:flex><span>            <span style=color:#a6e22e>raw</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>templateCases</span>.<span style=color:#a6e22e>ReadFile</span>(<span style=color:#a6e22e>tc</span>)
-</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
-</span></span><span style=display:flex><span>                <span style=color:#a6e22e>t</span>.<span style=color:#a6e22e>Fatalf</span>(<span style=color:#e6db74>&#34;read %s: %v&#34;</span>, <span style=color:#a6e22e>tc</span>, <span style=color:#a6e22e>err</span>)
-</span></span><span style=display:flex><span>            }
-</span></span><span style=display:flex><span>            <span style=color:#a6e22e>ar</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>txtar</span>.<span style=color:#a6e22e>Parse</span>(<span style=color:#a6e22e>raw</span>)
-</span></span><span style=display:flex><span>            <span style=color:#a6e22e>inputFS</span>, <span style=color:#a6e22e>expectedFS</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>SplitInputExpected</span>(<span style=color:#a6e22e>ar</span>)
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>            <span style=color:#a6e22e>gotFS</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>renderTemplates</span>(<span style=color:#a6e22e>inputFS</span>)
-</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
-</span></span><span style=display:flex><span>                <span style=color:#a6e22e>t</span>.<span style=color:#a6e22e>Fatalf</span>(<span style=color:#e6db74>&#34;render %s: %v&#34;</span>, <span style=color:#a6e22e>tc</span>, <span style=color:#a6e22e>err</span>)
-</span></span><span style=display:flex><span>            }
-</span></span><span style=display:flex><span>            <span style=color:#a6e22e>assertTreeEqual</span>(<span style=color:#a6e22e>t</span>, <span style=color:#a6e22e>expectedFS</span>, <span style=color:#a6e22e>gotFS</span>)
-</span></span><span style=display:flex><span>        })
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>This pattern scales from a handful of templates to hundreds while still making
+directory.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=c1>//go:embed testdata/templates/**/*.txtar
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>var</span> <span class=nx>templateCases</span> <span class=nx>embed</span><span class=p>.</span><span class=nx>FS</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=nf>TestTemplateMatrix</span><span class=p>(</span><span class=nx>t</span> <span class=o>*</span><span class=nx>testing</span><span class=p>.</span><span class=nx>T</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=kd>var</span> <span class=nx>cases</span> <span class=p>[]</span><span class=kt>string</span>
+</span></span><span class=line><span class=cl>    <span class=nx>err</span> <span class=o>:=</span> <span class=nx>fs</span><span class=p>.</span><span class=nf>WalkDir</span><span class=p>(</span><span class=nx>templateCases</span><span class=p>,</span> <span class=s>&#34;testdata/templates&#34;</span><span class=p>,</span> <span class=kd>func</span><span class=p>(</span><span class=nx>p</span> <span class=kt>string</span><span class=p>,</span> <span class=nx>d</span> <span class=nx>fs</span><span class=p>.</span><span class=nx>DirEntry</span><span class=p>,</span> <span class=nx>err</span> <span class=kt>error</span><span class=p>)</span> <span class=kt>error</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=nx>err</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=nx>d</span><span class=p>.</span><span class=nf>IsDir</span><span class=p>()</span> <span class=o>||</span> <span class=p>!</span><span class=nx>strings</span><span class=p>.</span><span class=nf>HasSuffix</span><span class=p>(</span><span class=nx>p</span><span class=p>,</span> <span class=s>&#34;.txtar&#34;</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>        <span class=nx>cases</span> <span class=p>=</span> <span class=nb>append</span><span class=p>(</span><span class=nx>cases</span><span class=p>,</span> <span class=nx>p</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>        <span class=k>return</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl>    <span class=p>})</span>
+</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nx>t</span><span class=p>.</span><span class=nf>Fatalf</span><span class=p>(</span><span class=s>&#34;walk template cases: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>    <span class=nx>sort</span><span class=p>.</span><span class=nf>Strings</span><span class=p>(</span><span class=nx>cases</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=k>for</span> <span class=nx>_</span><span class=p>,</span> <span class=nx>tc</span> <span class=o>:=</span> <span class=k>range</span> <span class=nx>cases</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nx>tc</span> <span class=o>:=</span> <span class=nx>tc</span>
+</span></span><span class=line><span class=cl>        <span class=nx>t</span><span class=p>.</span><span class=nf>Run</span><span class=p>(</span><span class=nx>strings</span><span class=p>.</span><span class=nf>TrimSuffix</span><span class=p>(</span><span class=nx>path</span><span class=p>.</span><span class=nf>Base</span><span class=p>(</span><span class=nx>tc</span><span class=p>),</span> <span class=s>&#34;.txtar&#34;</span><span class=p>),</span> <span class=kd>func</span><span class=p>(</span><span class=nx>t</span> <span class=o>*</span><span class=nx>testing</span><span class=p>.</span><span class=nx>T</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nx>raw</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>templateCases</span><span class=p>.</span><span class=nf>ReadFile</span><span class=p>(</span><span class=nx>tc</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>            <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=nx>t</span><span class=p>.</span><span class=nf>Fatalf</span><span class=p>(</span><span class=s>&#34;read %s: %v&#34;</span><span class=p>,</span> <span class=nx>tc</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>            <span class=p>}</span>
+</span></span><span class=line><span class=cl>            <span class=nx>ar</span> <span class=o>:=</span> <span class=nx>txtar</span><span class=p>.</span><span class=nf>Parse</span><span class=p>(</span><span class=nx>raw</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>            <span class=nx>inputFS</span><span class=p>,</span> <span class=nx>expectedFS</span> <span class=o>:=</span> <span class=nf>SplitInputExpected</span><span class=p>(</span><span class=nx>ar</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=nx>gotFS</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nf>renderTemplates</span><span class=p>(</span><span class=nx>inputFS</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>            <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=nx>t</span><span class=p>.</span><span class=nf>Fatalf</span><span class=p>(</span><span class=s>&#34;render %s: %v&#34;</span><span class=p>,</span> <span class=nx>tc</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>            <span class=p>}</span>
+</span></span><span class=line><span class=cl>            <span class=nf>assertTreeEqual</span><span class=p>(</span><span class=nx>t</span><span class=p>,</span> <span class=nx>expectedFS</span><span class=p>,</span> <span class=nx>gotFS</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>        <span class=p>})</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>This pattern scales from a handful of templates to hundreds while still making
 failures obvious and localised.</p><h2 id=why-this-helps-agents-and-embedded-script-runners>Why this helps agents and embedded script runners</h2><p>Packing all case inputs/expectations into txtar + in-memory <code>fs.FS</code> gives two
 big practical wins:</p><ul><li><strong>Single source of case truth</strong>: readers only inspect one fixture blob.</li><li><strong>Host-independent execution</strong>: fewer path/permission surprises in CI, local,
 and agent sandboxes.</li></ul><p>The same structure also ports well to Go-based embedded scripting engines:</p><ul><li>pass a virtual filesystem adapter into the script runtime</li><li>let scripts read <code>input/...</code> and write <code>output/...</code> in-memory</li><li>compare <code>output/...</code> against <code>expected/...</code> without touching host disk</li></ul><p>So tests, generators, and scripted transforms can all share one fixture model.</p><h2 id=bridging-to-template-systems-goa4webcoretemplates>Bridging to template systems (<code>goa4web/core/templates</code>)</h2><p>While <code>goa4web/core/templates</code> is template-driven rather than testdata-driven,
 it shares the same operating pattern:</p><ul><li>walk directories</li><li>load file bundles</li><li>transform/render</li><li>compare against expectations or desired outputs</li></ul><p>The same harness discipline applies:</p><ul><li>stable directory traversal</li><li>deterministic file naming</li><li>explicit options per case</li><li>clear failure messages tied to relative paths</li></ul><p>So even outside strict tests, txtar thinking is still useful: package related
 inputs as a single scenario unit, then run predictable transformations.</p><h2 id=suggested-canonical-fixture-contract-for-agents>Suggested canonical fixture contract for agents</h2><p>When asking agents to add or update fixtures, I want this contract:</p><ol><li>Each <code>.txtar</code> has a short case identifier and intent.</li><li>Required file names are documented (<code>input.*</code>, <code>expected.*</code>, optional
 <code>options.json</code>, optional <code>error.txt</code>).</li><li>Harness supports both success and expected-failure scenarios.</li><li>Fixture discovery is embed-based and path-stable.</li><li>Tests are <code>t.Run</code> subtests by relative fixture path.</li></ol><p>This keeps changes scalable from simple pairs to full scenarios without changing
-project fundamentals.</p><h2 id=practical-evolution-strategy>Practical evolution strategy</h2><p>A pattern that has worked well for me:</p><ul><li>Start new behaviour with Pattern 1 fixture pairs.</li><li>If meaning becomes ambiguous, introduce Pattern 2 description/options files.</li><li>If behaviour becomes contextual or tree-based, move to Pattern 3 scenarios.</li><li>Keep old fixtures valid whenever possible to avoid churn.</li></ul><p>That path gives fast feedback early and strong coverage later.</p><h2 id=copy-paste-starter-layout>Copy-paste starter layout</h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>testdata/
-</span></span><span style=display:flex><span>  txtar/
-</span></span><span style=display:flex><span>    normalize-whitespace.txtar
-</span></span><span style=display:flex><span>    parser-error-missing-header.txtar
-</span></span><span style=display:flex><span>    nested-resolution-basic.txtar
-</span></span></code></pre></div><p>And inside a richer case:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>test: nested resolution basic
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>-- description.txt --
-</span></span><span style=display:flex><span>Ensures nearest config wins over parent defaults.
-</span></span><span style=display:flex><span>-- options.json --
-</span></span><span style=display:flex><span>{&#34;strict&#34;:true}
-</span></span><span style=display:flex><span>-- fs/project/.editorconfig --
-</span></span><span style=display:flex><span>root = true
-</span></span><span style=display:flex><span>[*]
-</span></span><span style=display:flex><span>indent_style = space
-</span></span><span style=display:flex><span>-- fs/project/pkg/.editorconfig --
-</span></span><span style=display:flex><span>[*.go]
-</span></span><span style=display:flex><span>indent_style = tab
-</span></span><span style=display:flex><span>-- fs/project/pkg/main.go --
-</span></span><span style=display:flex><span>package main
-</span></span><span style=display:flex><span>-- expected.json --
-</span></span><span style=display:flex><span>{&#34;indent_style&#34;:&#34;tab&#34;}
-</span></span></code></pre></div><h2 id=final-guidance-for-agent-authored-changes>Final guidance for agent-authored changes</h2><p>When I ask for txtar updates, optimize for:</p><ul><li>readability first</li><li>deterministic harness behaviour</li><li>easy case-level debugging with <code>t.Run</code></li><li>no runtime path fragility (<code>go:embed</code> preferred)</li></ul><p>If there’s a trade-off, choose explicit structure over clever compactness.
+project fundamentals.</p><h2 id=practical-evolution-strategy>Practical evolution strategy</h2><p>A pattern that has worked well for me:</p><ul><li>Start new behaviour with Pattern 1 fixture pairs.</li><li>If meaning becomes ambiguous, introduce Pattern 2 description/options files.</li><li>If behaviour becomes contextual or tree-based, move to Pattern 3 scenarios.</li><li>Keep old fixtures valid whenever possible to avoid churn.</li></ul><p>That path gives fast feedback early and strong coverage later.</p><h2 id=copy-paste-starter-layout>Copy-paste starter layout</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>testdata/
+</span></span><span class=line><span class=cl>  txtar/
+</span></span><span class=line><span class=cl>    normalize-whitespace.txtar
+</span></span><span class=line><span class=cl>    parser-error-missing-header.txtar
+</span></span><span class=line><span class=cl>    nested-resolution-basic.txtar
+</span></span></code></pre></td></tr></table></div></div><p>And inside a richer case:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>test: nested resolution basic
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-- description.txt --
+</span></span><span class=line><span class=cl>Ensures nearest config wins over parent defaults.
+</span></span><span class=line><span class=cl>-- options.json --
+</span></span><span class=line><span class=cl>{&#34;strict&#34;:true}
+</span></span><span class=line><span class=cl>-- fs/project/.editorconfig --
+</span></span><span class=line><span class=cl>root = true
+</span></span><span class=line><span class=cl>[*]
+</span></span><span class=line><span class=cl>indent_style = space
+</span></span><span class=line><span class=cl>-- fs/project/pkg/.editorconfig --
+</span></span><span class=line><span class=cl>[*.go]
+</span></span><span class=line><span class=cl>indent_style = tab
+</span></span><span class=line><span class=cl>-- fs/project/pkg/main.go --
+</span></span><span class=line><span class=cl>package main
+</span></span><span class=line><span class=cl>-- expected.json --
+</span></span><span class=line><span class=cl>{&#34;indent_style&#34;:&#34;tab&#34;}
+</span></span></code></pre></td></tr></table></div></div><h2 id=final-guidance-for-agent-authored-changes>Final guidance for agent-authored changes</h2><p>When I ask for txtar updates, optimize for:</p><ul><li>readability first</li><li>deterministic harness behaviour</li><li>easy case-level debugging with <code>t.Run</code></li><li>no runtime path fragility (<code>go:embed</code> preferred)</li></ul><p>If there’s a trade-off, choose explicit structure over clever compactness.
 That pays off when the fixture corpus gets large.</p></div><div class=post-copyright><p class=copyright-item><span class=item-title>Author</span>
 <span class=item-content>Arran Ubels</span></p><p class=copyright-item><span class=item-title>LastMod</span>
 <span class=item-content>2026-02-16</span></p><p class=copyright-item><span class=item-title>License</span>

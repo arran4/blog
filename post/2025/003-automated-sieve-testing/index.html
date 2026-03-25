@@ -1,101 +1,190 @@
 <!doctype html><html lang=en itemscope itemtype=http://schema.org/WebPage><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>Automated Sieve Testing with Cargo - Arrans Technical blog</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,user-scalable=yes"><meta name=MobileOptimized content="width"><meta name=HandheldFriendly content="true"><meta name=applicable-device content="pc,mobile"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=mobile-web-app-capable content="yes"><meta name=author content="Arran Ubels"><meta name=description content="In my earlier posts I uploaded Sieve filters straight to the server using GitHub Actions. That worked well until a typo slipped through and broke my inbox. To catch those mistakes before deploying I created a small Rust project that runs my Sieve rules against a set of example messages. The tests run locally and in pull requests so I can fix issues early.
-Project layout The test harness lives in a new Cargo project."><meta name=generator content="Hugo 0.119.0"><link rel=canonical href=https://arran4.github.io/blog/post/2025/003-automated-sieve-testing/><link rel=icon href=/blog/favicon.ico><link rel=stylesheet href=/blog/sass/jane.min.e826e860368147e5a6685e686355e4d7789023c18c9ea2e78b35f6786ce92736.css integrity="sha256-6CboYDaBR+WmaF5oY1Xk13iQI8GMnqLnizX2eGzpJzY=" media=screen crossorigin=anonymous><meta property="og:title" content="Automated Sieve Testing with Cargo"><meta property="og:description" content="In my earlier posts I uploaded Sieve filters straight to the server using GitHub Actions. That worked well until a typo slipped through and broke my inbox. To catch those mistakes before deploying I created a small Rust project that runs my Sieve rules against a set of example messages. The tests run locally and in pull requests so I can fix issues early.
+Project layout The test harness lives in a new Cargo project."><meta name=generator content="Hugo 0.119.0"><link rel=canonical href=https://arran4.github.io/blog/post/2025/003-automated-sieve-testing/><link rel=icon href=/blog/favicon.ico><link rel=stylesheet href=/blog/sass/jane.min.f9262af3ca090228f797e9afd57b77890669002ff3bcf72f365ba318d5e6cbfa.css integrity="sha256-+SYq88oJAij3l+mv1Xt3iQZpAC/zvPcvNlujGNXmy/o=" media=screen crossorigin=anonymous><meta property="og:title" content="Automated Sieve Testing with Cargo"><meta property="og:description" content="In my earlier posts I uploaded Sieve filters straight to the server using GitHub Actions. That worked well until a typo slipped through and broke my inbox. To catch those mistakes before deploying I created a small Rust project that runs my Sieve rules against a set of example messages. The tests run locally and in pull requests so I can fix issues early.
 Project layout The test harness lives in a new Cargo project."><meta property="og:type" content="article"><meta property="og:url" content="https://arran4.github.io/blog/post/2025/003-automated-sieve-testing/"><meta property="article:section" content="post"><meta property="article:published_time" content="2025-06-18T12:25:48+10:00"><meta property="article:modified_time" content="2025-06-18T12:25:48+10:00"><meta itemprop=name content="Automated Sieve Testing with Cargo"><meta itemprop=description content="In my earlier posts I uploaded Sieve filters straight to the server using GitHub Actions. That worked well until a typo slipped through and broke my inbox. To catch those mistakes before deploying I created a small Rust project that runs my Sieve rules against a set of example messages. The tests run locally and in pull requests so I can fix issues early.
-Project layout The test harness lives in a new Cargo project."><meta itemprop=datePublished content="2025-06-18T12:25:48+10:00"><meta itemprop=dateModified content="2025-06-18T12:25:48+10:00"><meta itemprop=wordCount content="555"><meta itemprop=keywords content="sieve,rust,testing,"><meta name=twitter:card content="summary"><meta name=twitter:title content="Automated Sieve Testing with Cargo"><meta name=twitter:description content="In my earlier posts I uploaded Sieve filters straight to the server using GitHub Actions. That worked well until a typo slipped through and broke my inbox. To catch those mistakes before deploying I created a small Rust project that runs my Sieve rules against a set of example messages. The tests run locally and in pull requests so I can fix issues early.
+Project layout The test harness lives in a new Cargo project."><meta itemprop=datePublished content="2025-06-18T12:25:48+10:00"><meta itemprop=dateModified content="2025-06-18T12:25:48+10:00"><meta itemprop=wordCount content="644"><meta itemprop=keywords content="sieve,rust,testing,"><meta name=twitter:card content="summary"><meta name=twitter:title content="Automated Sieve Testing with Cargo"><meta name=twitter:description content="In my earlier posts I uploaded Sieve filters straight to the server using GitHub Actions. That worked well until a typo slipped through and broke my inbox. To catch those mistakes before deploying I created a small Rust project that runs my Sieve rules against a set of example messages. The tests run locally and in pull requests so I can fix issues early.
 Project layout The test harness lives in a new Cargo project."><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script>
 <script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=back-to-top></div><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>Arrans Technical blog</a></div><div class=mobile-navbar-icon><span></span>
 <span></span>
 <span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list></ul></nav><header id=header class=header><div class=logo-wrapper><a href=/ class=logo>Arrans Technical blog</a></div><nav class=site-navbar><ul id=menu class=menu></ul></nav></header><div id=mobile-panel><main id=main class="main bg-llight wallpaper"><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>Automated Sieve Testing with Cargo</h1><div class=post-meta><div class=post-meta-author>by
-Arran Ubels</div><div class=post-meta-time><time datetime=2025-06-18>2025-06-18</time></div><div class=post-meta__right><div class=post-meta-category><a href=https://arran4.github.io/blog/categories/tutorial/>tutorial</a></div></div></div></header><div class=post-content><p>In my earlier posts I uploaded Sieve filters straight to the server using GitHub Actions. That worked well until a typo slipped through and broke my inbox. To catch those mistakes before deploying I created a small Rust project that runs my Sieve rules against a set of example messages. The tests run locally and in pull requests so I can fix issues early.</p><h2 id=project-layout>Project layout</h2><p>The test harness lives in a new Cargo project. Running <code>cargo init</code> creates the structure and a <code>Cargo.toml</code> file. Add the following dependencies:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-toml data-lang=toml><span style=display:flex><span>[<span style=color:#a6e22e>dependencies</span>]
-</span></span><span style=display:flex><span><span style=color:#a6e22e>sieve-rs</span> = <span style=color:#e6db74>&#34;0.7&#34;</span>
-</span></span><span style=display:flex><span><span style=color:#a6e22e>serde</span> = { <span style=color:#a6e22e>version</span> = <span style=color:#e6db74>&#34;1&#34;</span>, <span style=color:#a6e22e>features</span> = [<span style=color:#e6db74>&#34;derive&#34;</span>] }
-</span></span><span style=display:flex><span><span style=color:#a6e22e>serde_json</span> = <span style=color:#e6db74>&#34;1&#34;</span>
-</span></span></code></pre></div><p><code>sieve-rs</code> compiles and executes the filter, while <code>serde</code> and <code>serde_json</code> load the expected results for each test case.</p><p>Create <code>src/lib.rs</code> with a helper that compiles a Sieve script, feeds it a message and returns the actions requested by the script. The function checks for <code>fileinto</code> and <code>\Seen</code> flags so we can assert on them in tests.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=display:flex><span><span style=color:#66d9ef>use</span> sieve::{Compiler, Event, Input, Runtime};
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>#[derive(Default, Debug)]</span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>pub</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>ActionResult</span> {
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>pub</span> fileinto: Vec<span style=color:#f92672>&lt;</span>String<span style=color:#f92672>&gt;</span>,
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>pub</span> flags: Vec<span style=color:#f92672>&lt;</span>String<span style=color:#f92672>&gt;</span>,
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>pub</span> <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>actions_for_message</span>(script: <span style=color:#66d9ef>&amp;</span>[<span style=color:#66d9ef>u8</span>], message: <span style=color:#66d9ef>&amp;</span><span style=color:#66d9ef>str</span>) -&gt; <span style=color:#a6e22e>ActionResult</span> {
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> compiler <span style=color:#f92672>=</span> Compiler::new();
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> compiled <span style=color:#f92672>=</span> compiler.compile(script).expect(<span style=color:#e6db74>&#34;compile sieve&#34;</span>);
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> runtime <span style=color:#f92672>=</span> Runtime::new();
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> <span style=color:#66d9ef>mut</span> instance <span style=color:#f92672>=</span> runtime.filter(message.as_bytes());
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> <span style=color:#66d9ef>mut</span> input <span style=color:#f92672>=</span> Input::script(<span style=color:#e6db74>&#34;test&#34;</span>, compiled);
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> <span style=color:#66d9ef>mut</span> result <span style=color:#f92672>=</span> ActionResult::default();
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>while</span> <span style=color:#66d9ef>let</span> Some(run) <span style=color:#f92672>=</span> instance.run(input) {
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>match</span> run {
-</span></span><span style=display:flex><span>            Ok(event) <span style=color:#f92672>=&gt;</span> <span style=color:#66d9ef>match</span> event {
-</span></span><span style=display:flex><span>                Event::FileInto { folder, flags, <span style=color:#f92672>..</span> } <span style=color:#f92672>=&gt;</span> {
-</span></span><span style=display:flex><span>                    result.fileinto.push(folder);
-</span></span><span style=display:flex><span>                    result.flags.extend(flags);
-</span></span><span style=display:flex><span>                    input <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>.into();
-</span></span><span style=display:flex><span>                }
-</span></span><span style=display:flex><span>                Event::Keep { flags, <span style=color:#f92672>..</span> } <span style=color:#f92672>=&gt;</span> {
-</span></span><span style=display:flex><span>                    result.flags.extend(flags);
-</span></span><span style=display:flex><span>                    input <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>.into();
-</span></span><span style=display:flex><span>                }
-</span></span><span style=display:flex><span>                Event::MailboxExists { <span style=color:#f92672>..</span> }
-</span></span><span style=display:flex><span>                <span style=color:#f92672>|</span> Event::ListContains { <span style=color:#f92672>..</span> }
-</span></span><span style=display:flex><span>                <span style=color:#f92672>|</span> Event::DuplicateId { <span style=color:#f92672>..</span> } <span style=color:#f92672>=&gt;</span> input <span style=color:#f92672>=</span> <span style=color:#66d9ef>false</span>.into(),
-</span></span><span style=display:flex><span>                Event::IncludeScript { <span style=color:#f92672>..</span> } <span style=color:#f92672>=&gt;</span> input <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>.into(),
-</span></span><span style=display:flex><span>                _ <span style=color:#f92672>=&gt;</span> input <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>.into(),
-</span></span><span style=display:flex><span>            },
-</span></span><span style=display:flex><span>            Err(_) <span style=color:#f92672>=&gt;</span> <span style=color:#66d9ef>break</span>,
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    result
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>With this helper in place you can write normal Rust tests. Each test loads an <code>.eml</code> file and a matching <code>.json</code> file describing the expected folder and flags. Here&rsquo;s an example case for a GitHub notification:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=display:flex><span><span style=color:#75715e>#[test]</span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>github_routing</span>() {
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> script <span style=color:#f92672>=</span> std::fs::read(<span style=color:#e6db74>&#34;stalwart.sieve&#34;</span>).unwrap();
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> message <span style=color:#f92672>=</span> std::fs::read_to_string(<span style=color:#e6db74>&#34;testcases/github_notification.eml&#34;</span>).unwrap();
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> expected: <span style=color:#a6e22e>Expected</span> <span style=color:#f92672>=</span> serde_json::from_str(<span style=color:#f92672>&amp;</span>std::fs::read_to_string(
-</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;testcases/github_notification.json&#34;</span>,
-</span></span><span style=display:flex><span>    ).unwrap()).unwrap();
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> result <span style=color:#f92672>=</span> actions_for_message(<span style=color:#f92672>&amp;</span>script, <span style=color:#f92672>&amp;</span>message);
-</span></span><span style=display:flex><span>    assert_eq!(result.fileinto, expected.fileinto);
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> seen <span style=color:#f92672>=</span> result.flags.iter().any(<span style=color:#f92672>|</span>f<span style=color:#f92672>|</span> f <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;</span><span style=color:#ae81ff>\\</span><span style=color:#e6db74>Seen&#34;</span>);
-</span></span><span style=display:flex><span>    assert_eq!(seen, expected.seen);
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h3 id=test-messages>Test messages</h3><p>Place sample emails under <code>testcases/</code>. For each message there is a <code>.eml</code> file with the raw headers and a <code>.json</code> file describing the expected result. For instance, a DMARC report looks like:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>From: noreply-dmarc@example.com
-</span></span><span style=display:flex><span>To: user@example.com
-</span></span><span style=display:flex><span>Subject: DMARC Authentication Failure Report
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>Body
-</span></span></code></pre></div><p>And the matching JSON:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json><span style=display:flex><span>{
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;fileinto&#34;</span>: [<span style=color:#e6db74>&#34;Inbox/dmarc&#34;</span>],
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;seen&#34;</span>: <span style=color:#66d9ef>true</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>The GitHub notification example follows the same pattern but files the message into a repository specific folder.</p><h2 id=continuous-integration>Continuous integration</h2><p>A small workflow in <code>.github/workflows/tests.yml</code> runs the tests whenever <code>stalwart.sieve</code> or the Rust code changes:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>name</span>: <span style=color:#ae81ff>Test Sieve scripts</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>on</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>push</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>paths</span>:
-</span></span><span style=display:flex><span>      - <span style=color:#e6db74>&#39;stalwart.sieve&#39;</span>
-</span></span><span style=display:flex><span>      - <span style=color:#e6db74>&#39;Cargo.toml&#39;</span>
-</span></span><span style=display:flex><span>      - <span style=color:#e6db74>&#39;src/**&#39;</span>
-</span></span><span style=display:flex><span>      - <span style=color:#e6db74>&#39;testcases/**&#39;</span>
-</span></span><span style=display:flex><span>      - <span style=color:#e6db74>&#39;.github/workflows/tests.yml&#39;</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>pull_request</span>:
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#f92672>jobs</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>test</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>runs-on</span>: <span style=color:#ae81ff>ubuntu-latest</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>steps</span>:
-</span></span><span style=display:flex><span>      - <span style=color:#f92672>uses</span>: <span style=color:#ae81ff>actions/checkout@v3</span>
-</span></span><span style=display:flex><span>      - <span style=color:#f92672>uses</span>: <span style=color:#ae81ff>actions-rs/toolchain@v1</span>
-</span></span><span style=display:flex><span>        <span style=color:#f92672>with</span>:
-</span></span><span style=display:flex><span>          <span style=color:#f92672>toolchain</span>: <span style=color:#ae81ff>stable</span>
-</span></span><span style=display:flex><span>          <span style=color:#f92672>override</span>: <span style=color:#66d9ef>true</span>
-</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Install dependencies</span>
-</span></span><span style=display:flex><span>        <span style=color:#f92672>run</span>: <span style=color:#ae81ff>sudo apt-get update</span>
-</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Run tests</span>
-</span></span><span style=display:flex><span>        <span style=color:#f92672>run</span>: <span style=color:#ae81ff>cargo test --all-features --locked</span>
-</span></span></code></pre></div><p>Because everything runs in a local Rust process the workflow works even in restricted environments. Running <code>cargo test</code> locally gives the same result as CI, so you can confidently merge pull requests once the tests pass.</p><p><em>This post was written with the assistance of an AI tool.</em></p></div><div class=post-copyright><p class=copyright-item><span class=item-title>Author</span>
+Arran Ubels</div><div class=post-meta-time><time datetime=2025-06-18>2025-06-18</time></div><div class=post-meta__right><div class=post-meta-category><a href=https://arran4.github.io/blog/categories/tutorial/>tutorial</a></div></div></div></header><div class=post-content><p>In my earlier posts I uploaded Sieve filters straight to the server using GitHub Actions. That worked well until a typo slipped through and broke my inbox. To catch those mistakes before deploying I created a small Rust project that runs my Sieve rules against a set of example messages. The tests run locally and in pull requests so I can fix issues early.</p><h2 id=project-layout>Project layout</h2><p>The test harness lives in a new Cargo project. Running <code>cargo init</code> creates the structure and a <code>Cargo.toml</code> file. Add the following dependencies:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-toml data-lang=toml><span class=line><span class=cl><span class=p>[</span><span class=nx>dependencies</span><span class=p>]</span>
+</span></span><span class=line><span class=cl><span class=nx>sieve-rs</span> <span class=p>=</span> <span class=s2>&#34;0.7&#34;</span>
+</span></span><span class=line><span class=cl><span class=nx>serde</span> <span class=p>=</span> <span class=p>{</span> <span class=nx>version</span> <span class=p>=</span> <span class=s2>&#34;1&#34;</span><span class=p>,</span> <span class=nx>features</span> <span class=p>=</span> <span class=p>[</span><span class=s2>&#34;derive&#34;</span><span class=p>]</span> <span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=nx>serde_json</span> <span class=p>=</span> <span class=s2>&#34;1&#34;</span>
+</span></span></code></pre></td></tr></table></div></div><p><code>sieve-rs</code> compiles and executes the filter, while <code>serde</code> and <code>serde_json</code> load the expected results for each test case.</p><p>Create <code>src/lib.rs</code> with a helper that compiles a Sieve script, feeds it a message and returns the actions requested by the script. The function checks for <code>fileinto</code> and <code>\Seen</code> flags so we can assert on them in tests.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>sieve</span>::<span class=p>{</span><span class=n>Compiler</span><span class=p>,</span><span class=w> </span><span class=n>Event</span><span class=p>,</span><span class=w> </span><span class=n>Input</span><span class=p>,</span><span class=w> </span><span class=n>Runtime</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=cp>#[derive(Default, Debug)]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>pub</span><span class=w> </span><span class=k>struct</span> <span class=nc>ActionResult</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>pub</span><span class=w> </span><span class=n>fileinto</span>: <span class=nb>Vec</span><span class=o>&lt;</span><span class=nb>String</span><span class=o>&gt;</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>pub</span><span class=w> </span><span class=n>flags</span>: <span class=nb>Vec</span><span class=o>&lt;</span><span class=nb>String</span><span class=o>&gt;</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>pub</span><span class=w> </span><span class=k>fn</span> <span class=nf>actions_for_message</span><span class=p>(</span><span class=n>script</span>: <span class=kp>&amp;</span><span class=p>[</span><span class=kt>u8</span><span class=p>],</span><span class=w> </span><span class=n>message</span>: <span class=kp>&amp;</span><span class=kt>str</span><span class=p>)</span><span class=w> </span>-&gt; <span class=nc>ActionResult</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>compiler</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Compiler</span>::<span class=n>new</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>compiled</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>compiler</span><span class=p>.</span><span class=n>compile</span><span class=p>(</span><span class=n>script</span><span class=p>).</span><span class=n>expect</span><span class=p>(</span><span class=s>&#34;compile sieve&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>runtime</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>instance</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>runtime</span><span class=p>.</span><span class=n>filter</span><span class=p>(</span><span class=n>message</span><span class=p>.</span><span class=n>as_bytes</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>input</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Input</span>::<span class=n>script</span><span class=p>(</span><span class=s>&#34;test&#34;</span><span class=p>,</span><span class=w> </span><span class=n>compiled</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>result</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>ActionResult</span>::<span class=n>default</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>while</span><span class=w> </span><span class=kd>let</span><span class=w> </span><span class=nb>Some</span><span class=p>(</span><span class=n>run</span><span class=p>)</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>instance</span><span class=p>.</span><span class=n>run</span><span class=p>(</span><span class=n>input</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>match</span><span class=w> </span><span class=n>run</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nb>Ok</span><span class=p>(</span><span class=n>event</span><span class=p>)</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=k>match</span><span class=w> </span><span class=n>event</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>Event</span>::<span class=n>FileInto</span><span class=w> </span><span class=p>{</span><span class=w> </span><span class=n>folder</span><span class=p>,</span><span class=w> </span><span class=n>flags</span><span class=p>,</span><span class=w> </span><span class=o>..</span><span class=w> </span><span class=p>}</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=n>result</span><span class=p>.</span><span class=n>fileinto</span><span class=p>.</span><span class=n>push</span><span class=p>(</span><span class=n>folder</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=n>result</span><span class=p>.</span><span class=n>flags</span><span class=p>.</span><span class=n>extend</span><span class=p>(</span><span class=n>flags</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=n>input</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=kc>true</span><span class=p>.</span><span class=n>into</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>Event</span>::<span class=n>Keep</span><span class=w> </span><span class=p>{</span><span class=w> </span><span class=n>flags</span><span class=p>,</span><span class=w> </span><span class=o>..</span><span class=w> </span><span class=p>}</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=n>result</span><span class=p>.</span><span class=n>flags</span><span class=p>.</span><span class=n>extend</span><span class=p>(</span><span class=n>flags</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=n>input</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=kc>true</span><span class=p>.</span><span class=n>into</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>Event</span>::<span class=n>MailboxExists</span><span class=w> </span><span class=p>{</span><span class=w> </span><span class=o>..</span><span class=w> </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=o>|</span><span class=w> </span><span class=n>Event</span>::<span class=n>ListContains</span><span class=w> </span><span class=p>{</span><span class=w> </span><span class=o>..</span><span class=w> </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=o>|</span><span class=w> </span><span class=n>Event</span>::<span class=n>DuplicateId</span><span class=w> </span><span class=p>{</span><span class=w> </span><span class=o>..</span><span class=w> </span><span class=p>}</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=n>input</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=kc>false</span><span class=p>.</span><span class=n>into</span><span class=p>(),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>Event</span>::<span class=n>IncludeScript</span><span class=w> </span><span class=p>{</span><span class=w> </span><span class=o>..</span><span class=w> </span><span class=p>}</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=n>input</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=kc>true</span><span class=p>.</span><span class=n>into</span><span class=p>(),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>_</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=n>input</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=kc>true</span><span class=p>.</span><span class=n>into</span><span class=p>(),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>},</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nb>Err</span><span class=p>(</span><span class=n>_</span><span class=p>)</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=k>break</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>result</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>With this helper in place you can write normal Rust tests. Each test loads an <code>.eml</code> file and a matching <code>.json</code> file describing the expected folder and flags. Here&rsquo;s an example case for a GitHub notification:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=cp>#[test]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>github_routing</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>script</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>std</span>::<span class=n>fs</span>::<span class=n>read</span><span class=p>(</span><span class=s>&#34;stalwart.sieve&#34;</span><span class=p>).</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>message</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>std</span>::<span class=n>fs</span>::<span class=n>read_to_string</span><span class=p>(</span><span class=s>&#34;testcases/github_notification.eml&#34;</span><span class=p>).</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>expected</span>: <span class=nc>Expected</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>serde_json</span>::<span class=n>from_str</span><span class=p>(</span><span class=o>&amp;</span><span class=n>std</span>::<span class=n>fs</span>::<span class=n>read_to_string</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=s>&#34;testcases/github_notification.json&#34;</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>).</span><span class=n>unwrap</span><span class=p>()).</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>result</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>actions_for_message</span><span class=p>(</span><span class=o>&amp;</span><span class=n>script</span><span class=p>,</span><span class=w> </span><span class=o>&amp;</span><span class=n>message</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>assert_eq!</span><span class=p>(</span><span class=n>result</span><span class=p>.</span><span class=n>fileinto</span><span class=p>,</span><span class=w> </span><span class=n>expected</span><span class=p>.</span><span class=n>fileinto</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>seen</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>result</span><span class=p>.</span><span class=n>flags</span><span class=p>.</span><span class=n>iter</span><span class=p>().</span><span class=n>any</span><span class=p>(</span><span class=o>|</span><span class=n>f</span><span class=o>|</span><span class=w> </span><span class=n>f</span><span class=w> </span><span class=o>==</span><span class=w> </span><span class=s>&#34;</span><span class=se>\\</span><span class=s>Seen&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>assert_eq!</span><span class=p>(</span><span class=n>seen</span><span class=p>,</span><span class=w> </span><span class=n>expected</span><span class=p>.</span><span class=n>seen</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h3 id=test-messages>Test messages</h3><p>Place sample emails under <code>testcases/</code>. For each message there is a <code>.eml</code> file with the raw headers and a <code>.json</code> file describing the expected result. For instance, a DMARC report looks like:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>From: noreply-dmarc@example.com
+</span></span><span class=line><span class=cl>To: user@example.com
+</span></span><span class=line><span class=cl>Subject: DMARC Authentication Failure Report
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Body
+</span></span></code></pre></td></tr></table></div></div><p>And the matching JSON:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-json data-lang=json><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>  <span class=nt>&#34;fileinto&#34;</span><span class=p>:</span> <span class=p>[</span><span class=s2>&#34;Inbox/dmarc&#34;</span><span class=p>],</span>
+</span></span><span class=line><span class=cl>  <span class=nt>&#34;seen&#34;</span><span class=p>:</span> <span class=kc>true</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>The GitHub notification example follows the same pattern but files the message into a repository specific folder.</p><h2 id=continuous-integration>Continuous integration</h2><p>A small workflow in <code>.github/workflows/tests.yml</code> runs the tests whenever <code>stalwart.sieve</code> or the Rust code changes:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>Test Sieve scripts</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>on</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>push</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>paths</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=s1>&#39;stalwart.sieve&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=s1>&#39;Cargo.toml&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=s1>&#39;src/**&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=s1>&#39;testcases/**&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=s1>&#39;.github/workflows/tests.yml&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>pull_request</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>jobs</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>test</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>runs-on</span><span class=p>:</span><span class=w> </span><span class=l>ubuntu-latest</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>steps</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/checkout@v3</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions-rs/toolchain@v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>toolchain</span><span class=p>:</span><span class=w> </span><span class=l>stable</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>override</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>Install dependencies</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>run</span><span class=p>:</span><span class=w> </span><span class=l>sudo apt-get update</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>Run tests</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>run</span><span class=p>:</span><span class=w> </span><span class=l>cargo test --all-features --locked</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>Because everything runs in a local Rust process the workflow works even in restricted environments. Running <code>cargo test</code> locally gives the same result as CI, so you can confidently merge pull requests once the tests pass.</p><p><em>This post was written with the assistance of an AI tool.</em></p></div><div class=post-copyright><p class=copyright-item><span class=item-title>Author</span>
 <span class=item-content>Arran Ubels</span></p><p class=copyright-item><span class=item-title>LastMod</span>
 <span class=item-content>2025-06-18</span></p><p class=copyright-item><span class=item-title>License</span>
 <span class=item-content><a rel="license noopener" href=https://spdx.org/licenses/MIT-0.html target=_blank>MIT No Attribution</a></span></p></div><footer class=post-footer><div class=post-tags><a href=https://arran4.github.io/blog/tags/sieve/>sieve</a>

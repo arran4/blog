@@ -1,87 +1,162 @@
 <!doctype html><html lang=en itemscope itemtype=http://schema.org/WebPage><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>Update to Sieve Deployment Workflow - Arrans Technical blog</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,user-scalable=yes"><meta name=MobileOptimized content="width"><meta name=HandheldFriendly content="true"><meta name=applicable-device content="pc,mobile"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=mobile-web-app-capable content="yes"><meta name=author content="Arran Ubels"><meta name=description content="In the previous post on deploying Sieve filters to Stalwart using JMAP the workflow always created a new script. After some testing I realised it should update the existing script when one already exists. Below is the corrected workflow.
-name: Deploy to Stalwart &amp;#34;on&amp;#34;: push: paths: - &amp;#39;stalwart.sieve&amp;#39; branches: - main workflow_dispatch: jobs: deploy: runs-on: ubuntu-latest steps: - uses: actions/checkout@v3 - name: Install tools run: | sudo apt-get update sudo apt-get install -y jq - name: Upload via JMAP env: STALWART_JMAP_URL: ${{ vars."><meta name=generator content="Hugo 0.119.0"><link rel=canonical href=https://arran4.github.io/blog/post/2025/002-sieve-workflow-fix/><link rel=icon href=/blog/favicon.ico><link rel=stylesheet href=/blog/sass/jane.min.e826e860368147e5a6685e686355e4d7789023c18c9ea2e78b35f6786ce92736.css integrity="sha256-6CboYDaBR+WmaF5oY1Xk13iQI8GMnqLnizX2eGzpJzY=" media=screen crossorigin=anonymous><meta property="og:title" content="Update to Sieve Deployment Workflow"><meta property="og:description" content="In the previous post on deploying Sieve filters to Stalwart using JMAP the workflow always created a new script. After some testing I realised it should update the existing script when one already exists. Below is the corrected workflow.
-name: Deploy to Stalwart &#34;on&#34;: push: paths: - 'stalwart.sieve' branches: - main workflow_dispatch: jobs: deploy: runs-on: ubuntu-latest steps: - uses: actions/checkout@v3 - name: Install tools run: | sudo apt-get update sudo apt-get install -y jq - name: Upload via JMAP env: STALWART_JMAP_URL: ${{ vars."><meta property="og:type" content="article"><meta property="og:url" content="https://arran4.github.io/blog/post/2025/002-sieve-workflow-fix/"><meta property="article:section" content="post"><meta property="article:published_time" content="2025-06-09T10:00:00+10:00"><meta property="article:modified_time" content="2025-06-09T10:00:00+10:00"><meta itemprop=name content="Update to Sieve Deployment Workflow"><meta itemprop=description content="In the previous post on deploying Sieve filters to Stalwart using JMAP the workflow always created a new script. After some testing I realised it should update the existing script when one already exists. Below is the corrected workflow.
-name: Deploy to Stalwart &#34;on&#34;: push: paths: - 'stalwart.sieve' branches: - main workflow_dispatch: jobs: deploy: runs-on: ubuntu-latest steps: - uses: actions/checkout@v3 - name: Install tools run: | sudo apt-get update sudo apt-get install -y jq - name: Upload via JMAP env: STALWART_JMAP_URL: ${{ vars."><meta itemprop=datePublished content="2025-06-09T10:00:00+10:00"><meta itemprop=dateModified content="2025-06-09T10:00:00+10:00"><meta itemprop=wordCount content="313"><meta itemprop=keywords content="sieve,jmap,stalwart,"><meta name=twitter:card content="summary"><meta name=twitter:title content="Update to Sieve Deployment Workflow"><meta name=twitter:description content="In the previous post on deploying Sieve filters to Stalwart using JMAP the workflow always created a new script. After some testing I realised it should update the existing script when one already exists. Below is the corrected workflow.
-name: Deploy to Stalwart &#34;on&#34;: push: paths: - 'stalwart.sieve' branches: - main workflow_dispatch: jobs: deploy: runs-on: ubuntu-latest steps: - uses: actions/checkout@v3 - name: Install tools run: | sudo apt-get update sudo apt-get install -y jq - name: Upload via JMAP env: STALWART_JMAP_URL: ${{ vars."><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script>
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 name: Deploy to Stalwart &amp;#34;on&amp;#34;: push: paths: - &amp;#39;stalwart."><meta name=generator content="Hugo 0.119.0"><link rel=canonical href=https://arran4.github.io/blog/post/2025/002-sieve-workflow-fix/><link rel=icon href=/blog/favicon.ico><link rel=stylesheet href=/blog/sass/jane.min.f9262af3ca090228f797e9afd57b77890669002ff3bcf72f365ba318d5e6cbfa.css integrity="sha256-+SYq88oJAij3l+mv1Xt3iQZpAC/zvPcvNlujGNXmy/o=" media=screen crossorigin=anonymous><meta property="og:title" content="Update to Sieve Deployment Workflow"><meta property="og:description" content="In the previous post on deploying Sieve filters to Stalwart using JMAP the workflow always created a new script. After some testing I realised it should update the existing script when one already exists. Below is the corrected workflow.
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 name: Deploy to Stalwart &#34;on&#34;: push: paths: - 'stalwart."><meta property="og:type" content="article"><meta property="og:url" content="https://arran4.github.io/blog/post/2025/002-sieve-workflow-fix/"><meta property="article:section" content="post"><meta property="article:published_time" content="2025-06-09T10:00:00+10:00"><meta property="article:modified_time" content="2025-06-09T10:00:00+10:00"><meta itemprop=name content="Update to Sieve Deployment Workflow"><meta itemprop=description content="In the previous post on deploying Sieve filters to Stalwart using JMAP the workflow always created a new script. After some testing I realised it should update the existing script when one already exists. Below is the corrected workflow.
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 name: Deploy to Stalwart &#34;on&#34;: push: paths: - 'stalwart."><meta itemprop=datePublished content="2025-06-09T10:00:00+10:00"><meta itemprop=dateModified content="2025-06-09T10:00:00+10:00"><meta itemprop=wordCount content="388"><meta itemprop=keywords content="sieve,jmap,stalwart,"><meta name=twitter:card content="summary"><meta name=twitter:title content="Update to Sieve Deployment Workflow"><meta name=twitter:description content="In the previous post on deploying Sieve filters to Stalwart using JMAP the workflow always created a new script. After some testing I realised it should update the existing script when one already exists. Below is the corrected workflow.
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 name: Deploy to Stalwart &#34;on&#34;: push: paths: - 'stalwart."><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script>
 <script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=back-to-top></div><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>Arrans Technical blog</a></div><div class=mobile-navbar-icon><span></span>
 <span></span>
 <span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list></ul></nav><header id=header class=header><div class=logo-wrapper><a href=/ class=logo>Arrans Technical blog</a></div><nav class=site-navbar><ul id=menu class=menu></ul></nav></header><div id=mobile-panel><main id=main class="main bg-llight wallpaper"><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>Update to Sieve Deployment Workflow</h1><div class=post-meta><div class=post-meta-author>by
-Arran Ubels</div><div class=post-meta-time><time datetime=2025-06-09>2025-06-09</time></div><div class=post-meta__right><div class=post-meta-category><a href=https://arran4.github.io/blog/categories/tutorial/>tutorial</a></div></div></div></header><div class=post-content><p>In the previous post on deploying Sieve filters to Stalwart using JMAP the workflow always created a new script. After some testing I realised it should update the existing script when one already exists. Below is the corrected workflow.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>name</span>: <span style=color:#ae81ff>Deploy to Stalwart</span>
-</span></span><span style=display:flex><span><span style=color:#e6db74>&#34;on&#34;</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>push</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>paths</span>:
-</span></span><span style=display:flex><span>      - <span style=color:#e6db74>&#39;stalwart.sieve&#39;</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>branches</span>:
-</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>main</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>workflow_dispatch</span>:
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#f92672>jobs</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>deploy</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>runs-on</span>: <span style=color:#ae81ff>ubuntu-latest</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>steps</span>:
-</span></span><span style=display:flex><span>      - <span style=color:#f92672>uses</span>: <span style=color:#ae81ff>actions/checkout@v3</span>
-</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Install tools</span>
-</span></span><span style=display:flex><span>        <span style=color:#f92672>run</span>: |<span style=color:#e6db74>
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          sudo apt-get update
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          sudo apt-get install -y jq</span>          
-</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Upload via JMAP</span>
-</span></span><span style=display:flex><span>        <span style=color:#f92672>env</span>:
-</span></span><span style=display:flex><span>          <span style=color:#f92672>STALWART_JMAP_URL</span>: <span style=color:#ae81ff>${{ vars.STALWART_JMAP_URL }}</span>
-</span></span><span style=display:flex><span>          <span style=color:#f92672>STALWART_USER</span>: <span style=color:#ae81ff>${{ secrets.STALWART_USER }}</span>
-</span></span><span style=display:flex><span>          <span style=color:#f92672>STALWART_PASS</span>: <span style=color:#ae81ff>${{ secrets.STALWART_PASS }}</span>
-</span></span><span style=display:flex><span>        <span style=color:#f92672>run</span>: |<span style=color:#e6db74>
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          set -e
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          set -x
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          base_url=&#34;${STALWART_JMAP_URL%/jmap*}&#34;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          session_json=$(curl -X GET -k -u &#34;$STALWART_USER:$STALWART_PASS&#34; &#34;$base_url/.well-known/jmap&#34;)
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          account_id=$(echo &#34;$session_json&#34; | jq -r &#39;.primaryAccounts[&#34;urn:ietf:params:jmap:sieve&#34;]&#39;)
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          jmap_endpoint=&#34;${STALWART_JMAP_URL%/}&#34;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          upload_url=&#34;${jmap_endpoint}/upload/${account_id}&#34;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          curl -X POST -k -u &#34;$STALWART_USER:$STALWART_PASS&#34; \
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>            -H &#34;Content-Type: application/sieve&#34; \
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>            --data-binary @stalwart.sieve &#34;$upload_url&#34; &gt; upload.json
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          blob_id=$(jq -r &#39;.blobId&#39; upload.json)
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          if [ &#34;$blob_id&#34; = &#34;null&#34; ] || [ -z &#34;$blob_id&#34; ]; then
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>            echo &#34;Upload failed&#34; &gt;&amp;2
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>            cat upload.json
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>            exit 1
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          fi
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          list_body=$(jq -n --arg accountId &#34;$account_id&#34; &#39;{
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>            &#34;using&#34;: [&#34;urn:ietf:params:jmap:core&#34;, &#34;urn:ietf:params:jmap:sieve&#34;],
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>            &#34;methodCalls&#34;: [[&#34;SieveScript/get&#34;, {&#34;accountId&#34;: $accountId}, &#34;0&#34;]]
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          }&#39;)
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          list_resp=$(curl -X POST -k -u &#34;$STALWART_USER:$STALWART_PASS&#34; \
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>            -H &#34;Content-Type: application/json&#34; \
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>            -d &#34;$list_body&#34; &#34;$jmap_endpoint&#34;)
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          echo &#34;$list_resp&#34; | jq
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          existing_id=$(echo &#34;$list_resp&#34; | jq -r &#39;.methodResponses[0][1].list[] | select(.name==&#34;stalwart.sieve&#34;) | .id&#39;)
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          if [ -n &#34;$existing_id&#34; ] &amp;&amp; [ &#34;$existing_id&#34; != &#34;null&#34; ]; then
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>            set_body=$(jq -n --arg accountId &#34;$account_id&#34; --arg blob &#34;$blob_id&#34; --arg id &#34;$existing_id&#34; &#39;{
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>              &#34;using&#34;: [&#34;urn:ietf:params:jmap:core&#34;, &#34;urn:ietf:params:jmap:sieve&#34;],
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>              &#34;methodCalls&#34;: [[&#34;SieveScript/set&#34;, {
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>                &#34;accountId&#34;: $accountId,
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>                &#34;update&#34;: {($id): {&#34;blobId&#34;: $blob}},
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>                &#34;onSuccessActivateScript&#34;: $id
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>              }, &#34;0&#34;]]
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>            }&#39;)
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          else
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>            set_body=$(jq -n --arg accountId &#34;$account_id&#34; --arg blob &#34;$blob_id&#34; &#39;{
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>              &#34;using&#34;: [&#34;urn:ietf:params:jmap:core&#34;, &#34;urn:ietf:params:jmap:sieve&#34;],
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>              &#34;methodCalls&#34;: [[&#34;SieveScript/set&#34;, {
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>                &#34;accountId&#34;: $accountId,
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>                &#34;create&#34;: {&#34;A&#34;: {&#34;name&#34;: &#34;stalwart.sieve&#34;, &#34;blobId&#34;: $blob}},
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>                &#34;onSuccessActivateScript&#34;: &#34;#A&#34;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>              }, &#34;0&#34;]]
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>            }&#39;)
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          fi
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          curl -X POST -k -u &#34;$STALWART_USER:$STALWART_PASS&#34; \
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>            -H &#34;Content-Type: application/json&#34; \
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>            -d &#34;$set_body&#34; &#34;$jmap_endpoint&#34; | jq</span>          
-</span></span></code></pre></div><p>This version first queries existing scripts and either updates the current one or creates it if missing.</p><p><em>This post was written with the assistance of an AI tool.</em></p></div><div class=post-copyright><p class=copyright-item><span class=item-title>Author</span>
+Arran Ubels</div><div class=post-meta-time><time datetime=2025-06-09>2025-06-09</time></div><div class=post-meta__right><div class=post-meta-category><a href=https://arran4.github.io/blog/categories/tutorial/>tutorial</a></div></div></div></header><div class=post-content><p>In the previous post on deploying Sieve filters to Stalwart using JMAP the workflow always created a new script. After some testing I realised it should update the existing script when one already exists. Below is the corrected workflow.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span><span class=lnt>59
+</span><span class=lnt>60
+</span><span class=lnt>61
+</span><span class=lnt>62
+</span><span class=lnt>63
+</span><span class=lnt>64
+</span><span class=lnt>65
+</span><span class=lnt>66
+</span><span class=lnt>67
+</span><span class=lnt>68
+</span><span class=lnt>69
+</span><span class=lnt>70
+</span><span class=lnt>71
+</span><span class=lnt>72
+</span><span class=lnt>73
+</span><span class=lnt>74
+</span><span class=lnt>75
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>Deploy to Stalwart</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=s2>&#34;on&#34;</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>push</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>paths</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=s1>&#39;stalwart.sieve&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>branches</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=l>main</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>workflow_dispatch</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>jobs</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>deploy</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>runs-on</span><span class=p>:</span><span class=w> </span><span class=l>ubuntu-latest</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>steps</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/checkout@v3</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>Install tools</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>run</span><span class=p>:</span><span class=w> </span><span class=p>|</span><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>          sudo apt-get update
+</span></span></span><span class=line><span class=cl><span class=sd>          sudo apt-get install -y jq</span><span class=w>          
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>Upload via JMAP</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>env</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>STALWART_JMAP_URL</span><span class=p>:</span><span class=w> </span><span class=l>${{ vars.STALWART_JMAP_URL }}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>STALWART_USER</span><span class=p>:</span><span class=w> </span><span class=l>${{ secrets.STALWART_USER }}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>STALWART_PASS</span><span class=p>:</span><span class=w> </span><span class=l>${{ secrets.STALWART_PASS }}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>run</span><span class=p>:</span><span class=w> </span><span class=p>|</span><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>          set -e
+</span></span></span><span class=line><span class=cl><span class=sd>          set -x
+</span></span></span><span class=line><span class=cl><span class=sd>          base_url=&#34;${STALWART_JMAP_URL%/jmap*}&#34;
+</span></span></span><span class=line><span class=cl><span class=sd>          session_json=$(curl -X GET -k -u &#34;$STALWART_USER:$STALWART_PASS&#34; &#34;$base_url/.well-known/jmap&#34;)
+</span></span></span><span class=line><span class=cl><span class=sd>          account_id=$(echo &#34;$session_json&#34; | jq -r &#39;.primaryAccounts[&#34;urn:ietf:params:jmap:sieve&#34;]&#39;)
+</span></span></span><span class=line><span class=cl><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>          jmap_endpoint=&#34;${STALWART_JMAP_URL%/}&#34;
+</span></span></span><span class=line><span class=cl><span class=sd>          upload_url=&#34;${jmap_endpoint}/upload/${account_id}&#34;
+</span></span></span><span class=line><span class=cl><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>          curl -X POST -k -u &#34;$STALWART_USER:$STALWART_PASS&#34; \
+</span></span></span><span class=line><span class=cl><span class=sd>            -H &#34;Content-Type: application/sieve&#34; \
+</span></span></span><span class=line><span class=cl><span class=sd>            --data-binary @stalwart.sieve &#34;$upload_url&#34; &gt; upload.json
+</span></span></span><span class=line><span class=cl><span class=sd>          blob_id=$(jq -r &#39;.blobId&#39; upload.json)
+</span></span></span><span class=line><span class=cl><span class=sd>          if [ &#34;$blob_id&#34; = &#34;null&#34; ] || [ -z &#34;$blob_id&#34; ]; then
+</span></span></span><span class=line><span class=cl><span class=sd>            echo &#34;Upload failed&#34; &gt;&amp;2
+</span></span></span><span class=line><span class=cl><span class=sd>            cat upload.json
+</span></span></span><span class=line><span class=cl><span class=sd>            exit 1
+</span></span></span><span class=line><span class=cl><span class=sd>          fi
+</span></span></span><span class=line><span class=cl><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>          list_body=$(jq -n --arg accountId &#34;$account_id&#34; &#39;{
+</span></span></span><span class=line><span class=cl><span class=sd>            &#34;using&#34;: [&#34;urn:ietf:params:jmap:core&#34;, &#34;urn:ietf:params:jmap:sieve&#34;],
+</span></span></span><span class=line><span class=cl><span class=sd>            &#34;methodCalls&#34;: [[&#34;SieveScript/get&#34;, {&#34;accountId&#34;: $accountId}, &#34;0&#34;]]
+</span></span></span><span class=line><span class=cl><span class=sd>          }&#39;)
+</span></span></span><span class=line><span class=cl><span class=sd>          list_resp=$(curl -X POST -k -u &#34;$STALWART_USER:$STALWART_PASS&#34; \
+</span></span></span><span class=line><span class=cl><span class=sd>            -H &#34;Content-Type: application/json&#34; \
+</span></span></span><span class=line><span class=cl><span class=sd>            -d &#34;$list_body&#34; &#34;$jmap_endpoint&#34;)
+</span></span></span><span class=line><span class=cl><span class=sd>          echo &#34;$list_resp&#34; | jq
+</span></span></span><span class=line><span class=cl><span class=sd>          existing_id=$(echo &#34;$list_resp&#34; | jq -r &#39;.methodResponses[0][1].list[] | select(.name==&#34;stalwart.sieve&#34;) | .id&#39;)
+</span></span></span><span class=line><span class=cl><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>          if [ -n &#34;$existing_id&#34; ] &amp;&amp; [ &#34;$existing_id&#34; != &#34;null&#34; ]; then
+</span></span></span><span class=line><span class=cl><span class=sd>            set_body=$(jq -n --arg accountId &#34;$account_id&#34; --arg blob &#34;$blob_id&#34; --arg id &#34;$existing_id&#34; &#39;{
+</span></span></span><span class=line><span class=cl><span class=sd>              &#34;using&#34;: [&#34;urn:ietf:params:jmap:core&#34;, &#34;urn:ietf:params:jmap:sieve&#34;],
+</span></span></span><span class=line><span class=cl><span class=sd>              &#34;methodCalls&#34;: [[&#34;SieveScript/set&#34;, {
+</span></span></span><span class=line><span class=cl><span class=sd>                &#34;accountId&#34;: $accountId,
+</span></span></span><span class=line><span class=cl><span class=sd>                &#34;update&#34;: {($id): {&#34;blobId&#34;: $blob}},
+</span></span></span><span class=line><span class=cl><span class=sd>                &#34;onSuccessActivateScript&#34;: $id
+</span></span></span><span class=line><span class=cl><span class=sd>              }, &#34;0&#34;]]
+</span></span></span><span class=line><span class=cl><span class=sd>            }&#39;)
+</span></span></span><span class=line><span class=cl><span class=sd>          else
+</span></span></span><span class=line><span class=cl><span class=sd>            set_body=$(jq -n --arg accountId &#34;$account_id&#34; --arg blob &#34;$blob_id&#34; &#39;{
+</span></span></span><span class=line><span class=cl><span class=sd>              &#34;using&#34;: [&#34;urn:ietf:params:jmap:core&#34;, &#34;urn:ietf:params:jmap:sieve&#34;],
+</span></span></span><span class=line><span class=cl><span class=sd>              &#34;methodCalls&#34;: [[&#34;SieveScript/set&#34;, {
+</span></span></span><span class=line><span class=cl><span class=sd>                &#34;accountId&#34;: $accountId,
+</span></span></span><span class=line><span class=cl><span class=sd>                &#34;create&#34;: {&#34;A&#34;: {&#34;name&#34;: &#34;stalwart.sieve&#34;, &#34;blobId&#34;: $blob}},
+</span></span></span><span class=line><span class=cl><span class=sd>                &#34;onSuccessActivateScript&#34;: &#34;#A&#34;
+</span></span></span><span class=line><span class=cl><span class=sd>              }, &#34;0&#34;]]
+</span></span></span><span class=line><span class=cl><span class=sd>            }&#39;)
+</span></span></span><span class=line><span class=cl><span class=sd>          fi
+</span></span></span><span class=line><span class=cl><span class=sd>          curl -X POST -k -u &#34;$STALWART_USER:$STALWART_PASS&#34; \
+</span></span></span><span class=line><span class=cl><span class=sd>            -H &#34;Content-Type: application/json&#34; \
+</span></span></span><span class=line><span class=cl><span class=sd>            -d &#34;$set_body&#34; &#34;$jmap_endpoint&#34; | jq</span><span class=w>          
+</span></span></span></code></pre></td></tr></table></div></div><p>This version first queries existing scripts and either updates the current one or creates it if missing.</p><p><em>This post was written with the assistance of an AI tool.</em></p></div><div class=post-copyright><p class=copyright-item><span class=item-title>Author</span>
 <span class=item-content>Arran Ubels</span></p><p class=copyright-item><span class=item-title>LastMod</span>
 <span class=item-content>2025-06-09</span></p><p class=copyright-item><span class=item-title>License</span>
 <span class=item-content><a rel="license noopener" href=https://spdx.org/licenses/MIT-0.html target=_blank>MIT No Attribution</a></span></p></div><footer class=post-footer><div class=post-tags><a href=https://arran4.github.io/blog/tags/sieve/>sieve</a>
