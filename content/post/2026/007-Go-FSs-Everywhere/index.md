@@ -367,6 +367,7 @@ Use MapFS for most tests, then keep a smaller integration layer like this.
 ### Example D: `txtar` for multi-file fixtures
 
 `golang.org/x/tools/txtar` is useful when you want many fixture files in one compact text blob and then expose them as an FS.
+If you require an extended `fs.FS` interface with write capabilities (such as `Create`, `Remove`, and `Rename`), you can use the fork [`github.com/arran4/txtar`](https://github.com/arran4/txtar), but you should stick to the standard library unless you specifically need these features.
 
 ```go
 ar := txtar.Parse([]byte(`-- go.mod --

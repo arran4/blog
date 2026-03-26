@@ -35,6 +35,8 @@ The core theme is that there is a **range of sophistication**:
 In practice, this means tests can start tiny and grow naturally without changing
 fixture format.
 
+For advanced use cases requiring programmatic modification of archives or a writable `fs.FS` interface, you can use the fork [`github.com/arran4/txtar`](https://github.com/arran4/txtar). However, it should only be used when it provides a clear benefit over the standard [`golang.org/x/tools/txtar`](https://pkg.go.dev/golang.org/x/tools/txtar) tooling and library.
+
 ## Pattern 1: simple pairs (minimum viable structure)
 
 At the low end, a txtar can just model pairs:

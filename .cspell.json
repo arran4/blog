@@ -320,6 +320,7 @@
     "fstest",
     "fixturefs",
     "Fprintf",
-    "gotmpl"
+    "gotmpl",
+    "writable"
   ]
 }
