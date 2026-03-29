@@ -1,4 +1,10 @@
-# Go FSs Everywhere: Treat Side Effects as Dependencies
+---
+title: "Go FSs Everywhere: Treat Side Effects as Dependencies"
+date: 2026-03-08T00:00:00+00:00
+draft: false
+tags: ["go", "testing", "architecture", "patterns"]
+categories: ["engineering-process", "reference"]
+---
 
 If your Go code calls `os.Create`, `os.Stat`, `exec.LookPath`, or `net.Dial` directly from business logic, your tests are forced to touch real side effects more often than necessary.
 
