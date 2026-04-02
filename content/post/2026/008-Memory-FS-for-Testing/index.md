@@ -1,5 +1,5 @@
 ---
-title: "Go Memory FSs Everywhere: Treat Side Effects as Dependencies"
+title: "Go Memory FSs Everywhere in Test: Treat Side Effects as Dependencies"
 date: 2026-03-08T00:00:00+00:00
 draft: false
 tags: ["go", "testing", "architecture", "patterns", "memory-fs"]
