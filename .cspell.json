@@ -321,6 +321,12 @@
     "fixturefs",
     "Fprintf",
     "gotmpl",
-    "writable"
+    "writable",
+    "jsonlz",
+    "sessionstore",
+    "baklz",
+    "oneshot",
+    "pathlib",
+    "btrfs"
   ]
 }
