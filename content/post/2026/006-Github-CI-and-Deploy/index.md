@@ -531,9 +531,6 @@ linters:
     - errcheck
     - ineffassign
     - revive
-
-issues:
-  exclude-use-default: false
 ```
 
 ### `.prettierrc.json`
@@ -1803,6 +1800,7 @@ Copy/paste CI step style:
           TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
         run: |
           set -euo pipefail
+          git tag "$TAG"
           git push origin "$TAG" || { sleep 2; git push origin "$TAG"; }
       - name: Create release with generated notes + discussion
         env:
