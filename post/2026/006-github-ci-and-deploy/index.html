@@ -4,7 +4,7 @@ One workflow file handles push, PR open/update, PR close, tags, release publish,
 The target outcome:
 One workflow file handles push, PR open/update, PR close, tags, release publish, manual dispatch, and monthly/nightly schedules. It supports mixed repos: Go, Node, Dart, Flutter, Qt/C++, classic C/Makefile, and Dockerized components. It can run in public mode (broader checks) or private mode (cost-controlled), while keeping default test runners Ubuntu unless cross-OS coverage is explicitly needed."><meta property="og:type" content="article"><meta property="og:url" content="https://arran4.github.io/blog/post/2026/006-github-ci-and-deploy/"><meta property="article:section" content="post"><meta property="article:published_time" content="2026-03-04T00:00:00+00:00"><meta property="article:modified_time" content="2026-03-04T00:00:00+00:00"><meta itemprop=name content="The Ultimate Single GitHub Actions CI/CD File: Go, Node, Flutter, Dart, Qt/C++, Docker, and Packaging"><meta itemprop=description content="This is a practical build-up guide for creating one large ci.yml that is still readable, maintainable, and tailored to real repositories.
 The target outcome:
-One workflow file handles push, PR open/update, PR close, tags, release publish, manual dispatch, and monthly/nightly schedules. It supports mixed repos: Go, Node, Dart, Flutter, Qt/C++, classic C/Makefile, and Dockerized components. It can run in public mode (broader checks) or private mode (cost-controlled), while keeping default test runners Ubuntu unless cross-OS coverage is explicitly needed."><meta itemprop=datePublished content="2026-03-04T00:00:00+00:00"><meta itemprop=dateModified content="2026-03-04T00:00:00+00:00"><meta itemprop=wordCount content="9574"><meta itemprop=keywords content="github-actions,ci,cd,go,node,dart,flutter,qt,c++,docker,goreleaser,packaging,"><meta name=twitter:card content="summary"><meta name=twitter:title content="The Ultimate Single GitHub Actions CI/CD File: Go, Node, Flutter, Dart, Qt/C++, Docker, and Packaging"><meta name=twitter:description content="This is a practical build-up guide for creating one large ci.yml that is still readable, maintainable, and tailored to real repositories.
+One workflow file handles push, PR open/update, PR close, tags, release publish, manual dispatch, and monthly/nightly schedules. It supports mixed repos: Go, Node, Dart, Flutter, Qt/C++, classic C/Makefile, and Dockerized components. It can run in public mode (broader checks) or private mode (cost-controlled), while keeping default test runners Ubuntu unless cross-OS coverage is explicitly needed."><meta itemprop=datePublished content="2026-03-04T00:00:00+00:00"><meta itemprop=dateModified content="2026-03-04T00:00:00+00:00"><meta itemprop=wordCount content="9572"><meta itemprop=keywords content="github-actions,ci,cd,go,node,dart,flutter,qt,c++,docker,goreleaser,packaging,"><meta name=twitter:card content="summary"><meta name=twitter:title content="The Ultimate Single GitHub Actions CI/CD File: Go, Node, Flutter, Dart, Qt/C++, Docker, and Packaging"><meta name=twitter:description content="This is a practical build-up guide for creating one large ci.yml that is still readable, maintainable, and tailored to real repositories.
 The target outcome:
 One workflow file handles push, PR open/update, PR close, tags, release publish, manual dispatch, and monthly/nightly schedules. It supports mixed repos: Go, Node, Dart, Flutter, Qt/C++, classic C/Makefile, and Dockerized components. It can run in public mode (broader checks) or private mode (cost-controlled), while keeping default test runners Ubuntu unless cross-OS coverage is explicitly needed."><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script>
 <script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=back-to-top></div><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>Arrans Technical blog</a></div><div class=mobile-navbar-icon><span></span>
@@ -708,9 +708,6 @@ Arran Ubels</div><div class=post-meta-time><time datetime=2026-03-04>2026-03-04<
 </span><span class=lnt> 8
 </span><span class=lnt> 9
 </span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
 </span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>run</span><span class=p>:</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>timeout</span><span class=p>:</span><span class=w> </span><span class=l>5m</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
@@ -721,9 +718,6 @@ Arran Ubels</div><div class=post-meta-time><time datetime=2026-03-04>2026-03-04<
 </span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=l>errcheck</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=l>ineffassign</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=l>revive</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>issues</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>exclude-use-default</span><span class=p>:</span><span class=w> </span><span class=kc>false</span><span class=w>
 </span></span></span></code></pre></td></tr></table></div></div><h3 id=prettierrcjson><code>.prettierrc.json</code></h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
 </span><span class=lnt>2
 </span><span class=lnt>3
@@ -2568,6 +2562,7 @@ Arran Ubels</div><div class=post-meta-time><time datetime=2026-03-04>2026-03-04<
 </span><span class=lnt>46
 </span><span class=lnt>47
 </span><span class=lnt>48
+</span><span class=lnt>49
 </span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=w>  </span><span class=nt>manual-gh-release</span><span class=p>:</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>Manual release creation</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>needs</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=l>prepare-release-tag]</span><span class=w>
@@ -2594,6 +2589,7 @@ Arran Ubels</div><div class=post-meta-time><time datetime=2026-03-04>2026-03-04<
 </span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>TAG</span><span class=p>:</span><span class=w> </span><span class=l>${{ needs.prepare-release-tag.outputs.release_tag }}</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>run</span><span class=p>:</span><span class=w> </span><span class=p>|</span><span class=sd>
 </span></span></span><span class=line><span class=cl><span class=sd>          set -euo pipefail
+</span></span></span><span class=line><span class=cl><span class=sd>          git tag &#34;$TAG&#34;
 </span></span></span><span class=line><span class=cl><span class=sd>          git push origin &#34;$TAG&#34; || { sleep 2; git push origin &#34;$TAG&#34;; }</span><span class=w>          
 </span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>Create release with generated notes + discussion</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>env</span><span class=p>:</span><span class=w>
