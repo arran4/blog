@@ -1795,7 +1795,7 @@ Copy/paste CI step style:
           # Example for CMake:
           # RELEASE_VERSION="${{ needs.prepare-release-tag.outputs.release_tag }}"
           # RELEASE_VERSION="${RELEASE_VERSION#v}"
-          # sed -i -E "s/project\(kabc VERSION [^)]+\)/project(kabc VERSION $RELEASE_VERSION)/" CMakeLists.txt
+          # sed -i -E "s/(project\([^ ]+ VERSION )[^ )]+/\1$RELEASE_VERSION/" CMakeLists.txt
           # git add CMakeLists.txt
           # git commit -m "chore: bump release version to $RELEASE_VERSION"
       - name: Push prepared tag (retry)
@@ -1904,7 +1904,7 @@ This pattern from the referenced workflow is useful for repos that keep `-SNAPSH
 
           # Replace with repo-specific version bump command(s)
           # mvn versions:set -DnewVersion="$NEXT_VERSION" -DgenerateBackupPoms=false
-          # sed -i -E "s/project\(kabc VERSION [^)]+\)/project(kabc VERSION $NEXT_VERSION)/" CMakeLists.txt
+          # sed -i -E "s/(project\([^ ]+ VERSION )[^ )]+/\1$NEXT_VERSION/" CMakeLists.txt
 
           git add -A
           git commit -m "Prepare next development iteration $NEXT_VERSION"
