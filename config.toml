@@ -50,3 +50,24 @@ defaultContentLanguage = "en"
     guessSyntax = true
     lineNos = true
     noClasses = false
+
+[params.giscus]
+  enable = true
+  repo = "arran4/blog"
+  repoId = "R_kgDOHNgfGQ"
+  category = "Announcements"
+  categoryId = "DIC_kwDOHNgfGc4COv86"
+  mapping = "pathname"
+  strict = 0
+  reactionsEnabled = 1
+  emitMetadata = 0
+  inputPosition = "top"
+  theme = "light"
+  lang = "en"
+  lazyLoading = false
+
+[params.utteranc]
+  enable = false
+
+[params.utterances]
+  enable = false
