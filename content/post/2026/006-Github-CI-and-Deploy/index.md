@@ -1790,11 +1790,14 @@ Copy/paste CI step style:
         run: |
           set -euo pipefail
           git fetch --tags --force
-          # For repos with a source-controlled version, compare it with the
-          # highest fetched tag and bump from whichever is newer.
-          # Example: CMAKE_VERSION=$(grep -Po 'project\(app VERSION \K[0-9]+\.[0-9]+\.[0-9]+' CMakeLists.txt)
-          # TAG_VERSION=$(git tag -l "v*" | sed 's/^v//' | sort -V | tail -n 1)
-          # CURRENT_VERSION=$(echo -e "$CMAKE_VERSION\n$TAG_VERSION" | sort -V | tail -n 1)
+          # For repos with a source-controlled version, bump it to the release version
+          # and commit it before tagging (so the tag includes the bump).
+          # Example for CMake:
+          # RELEASE_VERSION="${{ needs.prepare-release-tag.outputs.release_tag }}"
+          # RELEASE_VERSION="${RELEASE_VERSION#v}"
+          # sed -i -E "s/(project\([^ ]+ VERSION )[^ )]+/\1$RELEASE_VERSION/" CMakeLists.txt
+          # git add CMakeLists.txt
+          # git commit -m "chore: bump release version to $RELEASE_VERSION"
       - name: Push prepared tag (retry)
         env:
           TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
@@ -1901,6 +1904,7 @@ This pattern from the referenced workflow is useful for repos that keep `-SNAPSH
 
           # Replace with repo-specific version bump command(s)
           # mvn versions:set -DnewVersion="$NEXT_VERSION" -DgenerateBackupPoms=false
+          # sed -i -E "s/(project\([^ ]+ VERSION )[^ )]+/\1$NEXT_VERSION/" CMakeLists.txt
 
           git add -A
           git commit -m "Prepare next development iteration $NEXT_VERSION"
