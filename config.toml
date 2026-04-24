@@ -49,4 +49,5 @@ defaultContentLanguage = "en"
     codeFences = true
     guessSyntax = true
     lineNos = true
+    lineNumbersInTable = false
     noClasses = false
