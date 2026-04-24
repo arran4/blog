@@ -65,9 +65,3 @@ defaultContentLanguage = "en"
   theme = "light"
   lang = "en"
   lazyLoading = false
-
-[params.utteranc]
-  enable = false
-
-[params.utterances]
-  enable = false

@@ -10,7 +10,6 @@
     {{ partial "comments/giscus.html" . }}
   {{ end }}
 
-
   <!-- changyan -->
   {{- if and .Site.Params.changyanAppid .Site.Params.changyanAppkey -}}
     {{ partial "comments/changyan.html" . }}
