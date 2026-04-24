@@ -1,333 +1,177 @@
 <!doctype html><html lang=en itemscope itemtype=http://schema.org/WebPage><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>GitHub Actions + golangci-lint: Go Version Compatibility Matrix (with Copy/Paste Workflows) - Arrans Technical blog</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,user-scalable=yes"><meta name=MobileOptimized content="width"><meta name=HandheldFriendly content="true"><meta name=applicable-device content="pc,mobile"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=mobile-web-app-capable content="yes"><meta name=author content="Arran Ubels"><meta name=description content="If you use this in GitHub Actions:
-1 2 3 4 - name: golangci-lint uses: golangci/golangci-lint-action@v9 with: version: latest you are absolutely right to be cautious: latest can move to a new golangci-lint release that adds support for a new Go minor while your workflow, runner, or repo expectations are still pinned to older assumptions.
+1- name: golangci-lint 2 uses: golangci/golangci-lint-action@v9 3 with: 4 version: latest you are absolutely right to be cautious: latest can move to a new golangci-lint release that adds support for a new Go minor while your workflow, runner, or repo expectations are still pinned to older assumptions.
 This guide gives you:
 a practical version pairing table (Go ↔ golangci-lint ↔ action), safe version ranges you can reuse, and many copy/paste workflow examples."><meta name=generator content="Hugo 0.119.0"><link rel=canonical href=https://arran4.github.io/blog/post/2026/002-golangci-lint-action-go-version-matrix/><link rel=icon href=/blog/favicon.ico><link rel=stylesheet href=/blog/sass/jane.min.f9262af3ca090228f797e9afd57b77890669002ff3bcf72f365ba318d5e6cbfa.css integrity="sha256-+SYq88oJAij3l+mv1Xt3iQZpAC/zvPcvNlujGNXmy/o=" media=screen crossorigin=anonymous><meta property="og:title" content="GitHub Actions + golangci-lint: Go Version Compatibility Matrix (with Copy/Paste Workflows)"><meta property="og:description" content="If you use this in GitHub Actions:
-1 2 3 4 - name: golangci-lint uses: golangci/golangci-lint-action@v9 with: version: latest you are absolutely right to be cautious: latest can move to a new golangci-lint release that adds support for a new Go minor while your workflow, runner, or repo expectations are still pinned to older assumptions.
+1- name: golangci-lint 2 uses: golangci/golangci-lint-action@v9 3 with: 4 version: latest you are absolutely right to be cautious: latest can move to a new golangci-lint release that adds support for a new Go minor while your workflow, runner, or repo expectations are still pinned to older assumptions.
 This guide gives you:
 a practical version pairing table (Go ↔ golangci-lint ↔ action), safe version ranges you can reuse, and many copy/paste workflow examples."><meta property="og:type" content="article"><meta property="og:url" content="https://arran4.github.io/blog/post/2026/002-golangci-lint-action-go-version-matrix/"><meta property="article:section" content="post"><meta property="article:published_time" content="2026-02-14T00:00:00+00:00"><meta property="article:modified_time" content="2026-02-14T00:00:00+00:00"><meta itemprop=name content="GitHub Actions + golangci-lint: Go Version Compatibility Matrix (with Copy/Paste Workflows)"><meta itemprop=description content="If you use this in GitHub Actions:
-1 2 3 4 - name: golangci-lint uses: golangci/golangci-lint-action@v9 with: version: latest you are absolutely right to be cautious: latest can move to a new golangci-lint release that adds support for a new Go minor while your workflow, runner, or repo expectations are still pinned to older assumptions.
+1- name: golangci-lint 2 uses: golangci/golangci-lint-action@v9 3 with: 4 version: latest you are absolutely right to be cautious: latest can move to a new golangci-lint release that adds support for a new Go minor while your workflow, runner, or repo expectations are still pinned to older assumptions.
 This guide gives you:
-a practical version pairing table (Go ↔ golangci-lint ↔ action), safe version ranges you can reuse, and many copy/paste workflow examples."><meta itemprop=datePublished content="2026-02-14T00:00:00+00:00"><meta itemprop=dateModified content="2026-02-14T00:00:00+00:00"><meta itemprop=wordCount content="1131"><meta itemprop=keywords content="go,golangci-lint,github-actions,ci,linting,"><meta name=twitter:card content="summary"><meta name=twitter:title content="GitHub Actions + golangci-lint: Go Version Compatibility Matrix (with Copy/Paste Workflows)"><meta name=twitter:description content="If you use this in GitHub Actions:
-1 2 3 4 - name: golangci-lint uses: golangci/golangci-lint-action@v9 with: version: latest you are absolutely right to be cautious: latest can move to a new golangci-lint release that adds support for a new Go minor while your workflow, runner, or repo expectations are still pinned to older assumptions.
+a practical version pairing table (Go ↔ golangci-lint ↔ action), safe version ranges you can reuse, and many copy/paste workflow examples."><meta itemprop=datePublished content="2026-02-14T00:00:00+00:00"><meta itemprop=dateModified content="2026-02-14T00:00:00+00:00"><meta itemprop=wordCount content="1105"><meta itemprop=keywords content="go,golangci-lint,github-actions,ci,linting,"><meta name=twitter:card content="summary"><meta name=twitter:title content="GitHub Actions + golangci-lint: Go Version Compatibility Matrix (with Copy/Paste Workflows)"><meta name=twitter:description content="If you use this in GitHub Actions:
+1- name: golangci-lint 2 uses: golangci/golangci-lint-action@v9 3 with: 4 version: latest you are absolutely right to be cautious: latest can move to a new golangci-lint release that adds support for a new Go minor while your workflow, runner, or repo expectations are still pinned to older assumptions.
 This guide gives you:
 a practical version pairing table (Go ↔ golangci-lint ↔ action), safe version ranges you can reuse, and many copy/paste workflow examples."><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script>
 <script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=back-to-top></div><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>Arrans Technical blog</a></div><div class=mobile-navbar-icon><span></span>
 <span></span>
 <span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list></ul></nav><header id=header class=header><div class=logo-wrapper><a href=/ class=logo>Arrans Technical blog</a></div><nav class=site-navbar><ul id=menu class=menu></ul></nav></header><div id=mobile-panel><main id=main class="main bg-llight wallpaper"><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>GitHub Actions + golangci-lint: Go Version Compatibility Matrix (with Copy/Paste Workflows)</h1><div class=post-meta><div class=post-meta-author>by
 Arran Ubels</div><div class=post-meta-time><time datetime=2026-02-14>2026-02-14</time></div><div class=post-meta__right><div class=post-meta-category><a href=https://arran4.github.io/blog/categories/reference/>reference</a>
-<a href=https://arran4.github.io/blog/categories/devops/>devops</a></div></div></div></header><div class=post-content><p>If you use this in GitHub Actions:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>golangci-lint</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>golangci/golangci-lint-action@v9</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>with</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=l>latest</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>you are absolutely right to be cautious: <code>latest</code> can move to a new golangci-lint release that adds support for a new Go minor while your workflow, runner, or repo expectations are still pinned to older assumptions.</p><p>This guide gives you:</p><ul><li>a practical <strong>version pairing table</strong> (Go ↔ golangci-lint ↔ action),</li><li><strong>safe version ranges</strong> you can reuse,</li><li>and many <strong>copy/paste workflow examples</strong>.</li></ul><hr><h2 id=tldr-recommended-defaults>TL;DR (recommended defaults)</h2><p>If you want a robust setup today:</p><ol><li>Pin the action major (<code>@v9</code>) and pin a golangci-lint minor line (<code>v2.6.x</code>, <code>v2.8.x</code>, etc.) instead of <code>latest</code>.</li><li>Use <code>actions/setup-go@v6</code> before golangci-lint.</li><li>Test at least <code>stable</code> and <code>oldstable</code> Go in CI matrix.</li><li>Keep in mind golangci-lint policy: supports the <strong>two latest Go minor versions</strong>.</li></ol><hr><h2 id=why-version-latest-can-surprise-you>Why <code>version: latest</code> can surprise you</h2><p><code>golangci-lint-action</code> accepts <code>version: latest</code>, but that means each CI run can pick newer golangci-lint binaries as they are released. Newer binaries can include parser/toolchain behaviour changes and new Go-version support windows. Great for fast adoption, risky for deterministic CI.</p><p>In short:</p><ul><li><code>latest</code> = convenience,</li><li>pinned version/range = reproducibility.</li></ul><hr><h2 id=compatibility-facts-you-should-anchor-on>Compatibility facts you should anchor on</h2><h3 id=1-golangci-lint-actionv9-runtime-and-action-compatibility>1) <code>golangci-lint-action@v9</code> runtime and action compatibility</h3><p>From action docs:</p><ul><li><code>v9.0.0</code> requires Node.js runtime <code>node24</code>.</li><li><code>v8.0.0</code> works with golangci-lint <code>>= v2.1.0</code>.</li><li><code>v7.0.0</code> supports golangci-lint v2 only.</li><li><code>v4.0.0+</code> requires an explicit <code>actions/setup-go</code> step.</li></ul><p>So for <code>@v9</code>, pair it with <code>setup-go@v6</code> (also node24 generation).</p><h3 id=2-actionssetup-gov6-runtime-note>2) <code>actions/setup-go@v6</code> runtime note</h3><p><code>setup-go@v6</code> moved from Node 20 to Node 24 and calls out runner compatibility requirements in its README/release notes.</p><h3 id=3-golangci-lint-go-support-policy>3) golangci-lint Go support policy</h3><p>golangci-lint FAQ says it tracks Go team policy (the <strong>2 latest minor versions</strong>) and that practical support depends on the Go version used to build golangci-lint and linter ecosystem readiness.</p><h3 id=4-recent-go-support-milestones-in-golangci-lint-releases>4) recent Go support milestones in golangci-lint releases</h3><p>From changelog/release notes:</p><ul><li>Go 1.22 support: <code>v1.56.0</code> line.</li><li>Go 1.23 support: <code>v1.60.1</code>.</li><li>Go 1.24 support: <code>v1.64.2</code>.</li><li>Go 1.25 support: <code>v2.4.0</code>.</li><li>Go 1.26 support: <code>v2.9.0</code>.</li></ul><hr><h2 id=practical-pairing-matrix-recommended>Practical pairing matrix (recommended)</h2><blockquote><p>Legend:</p><ul><li><strong>Minimum known support</strong> = first release explicitly mentioning support.</li><li><strong>Recommended today</strong> = practical pin choice for modern CI.</li><li>Keep <code>golangci-lint-action</code> on <code>@v9</code> unless you have a legacy constraint.</li></ul></blockquote><table><thead><tr><th>Target Go version</th><th style=text-align:right>Minimum golangci-lint with explicit support</th><th>Recommended golangci-lint pin style</th><th>Action major</th><th>setup-go</th></tr></thead><tbody><tr><td>Go 1.22</td><td style=text-align:right>v1.56.0</td><td>Prefer v2 line if possible (for modern action/docs), otherwise late v1 for legacy repos</td><td>v9</td><td>v6</td></tr><tr><td>Go 1.23</td><td style=text-align:right>v1.60.1</td><td>v2.x pinned (<code>v2.4+</code>)</td><td>v9</td><td>v6</td></tr><tr><td>Go 1.24</td><td style=text-align:right>v1.64.2</td><td>v2.x pinned (<code>v2.4+</code>)</td><td>v9</td><td>v6</td></tr><tr><td>Go 1.25</td><td style=text-align:right>v2.4.0</td><td>v2.4+ pinned (<code>v2.4.x</code> / <code>v2.5.x</code> / <code>v2.6.x</code>)</td><td>v9</td><td>v6</td></tr><tr><td>Go 1.26</td><td style=text-align:right>v2.9.0</td><td>v2.9+ pinned (<code>v2.9.x</code>)</td><td>v9</td><td>v6</td></tr></tbody></table><h3 id=version-ranges-you-can-adopt>Version ranges you can adopt</h3><p>If you like semver-ish policy language in docs/team standards, these are good operational ranges:</p><ul><li>For Go 1.22–1.24 repos: use golangci-lint <code>>=2.4.0, &lt;3.0.0</code> and pin exact patch in workflow.</li><li>For Go 1.25 repos: use golangci-lint <code>>=2.4.0, &lt;3.0.0</code> (pin exact).</li><li>For Go 1.26 repos: use golangci-lint <code>>=2.9.0, &lt;3.0.0</code> (pin exact).</li></ul><hr><h2 id=copypaste-workflow-examples>Copy/paste workflow examples</h2><h2 id=1-most-deterministic-single-go-exact-lint-version>1) Most deterministic (single Go, exact lint version)</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>lint</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>on</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>pull_request</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>push</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>branches</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=w> </span><span class=l>main ]</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>jobs</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>golangci</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>runs-on</span><span class=p>:</span><span class=w> </span><span class=l>ubuntu-latest</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>steps</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/checkout@v4</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/setup-go@v6</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>with</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>go-version</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;1.25&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>golangci-lint</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>golangci/golangci-lint-action@v9</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>with</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=l>v2.6.1</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>args</span><span class=p>:</span><span class=w> </span>--<span class=l>timeout=5m</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h2 id=2-stable--oldstable-matrix-recommended-baseline>2) Stable + oldstable matrix (recommended baseline)</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>lint</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>on</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>pull_request</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>push</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>branches</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=w> </span><span class=l>main ]</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>jobs</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>golangci</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>runs-on</span><span class=p>:</span><span class=w> </span><span class=l>ubuntu-latest</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>strategy</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>fail-fast</span><span class=p>:</span><span class=w> </span><span class=kc>false</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>matrix</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>go-version</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=l>stable, oldstable]</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>steps</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/checkout@v4</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/setup-go@v6</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>with</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>go-version</span><span class=p>:</span><span class=w> </span><span class=l>${{ matrix.go-version }}</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>golangci-lint</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>golangci/golangci-lint-action@v9</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>with</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=l>v2.9.0</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>args</span><span class=p>:</span><span class=w> </span>--<span class=l>timeout=5m</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h2 id=3-if-you-insist-on-latest-guardrails>3) If you insist on <code>latest</code> (guardrails)</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>lint</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>on</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>schedule</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>cron</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;0 3 * * *&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>pull_request</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>jobs</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>golangci</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>runs-on</span><span class=p>:</span><span class=w> </span><span class=l>ubuntu-latest</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>steps</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/checkout@v4</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/setup-go@v6</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>with</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>go-version</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;stable&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>golangci-lint</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>golangci/golangci-lint-action@v9</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>with</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=l>latest</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>args</span><span class=p>:</span><span class=w> </span>--<span class=l>timeout=5m</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>Use this only if your team accepts occasional churn; combine with scheduled runs so breakage appears before business hours.</p><h2 id=4-go-122-pinned-example>4) Go 1.22 pinned example</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span><span class=lnt>8
-</span><span class=lnt>9
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/setup-go@v6</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>with</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>go-version</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;1.22&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>golangci-lint</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>golangci/golangci-lint-action@v9</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>with</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=l>v2.4.0</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>args</span><span class=p>:</span><span class=w> </span>--<span class=l>timeout=5m</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h2 id=5-go-123-pinned-example>5) Go 1.23 pinned example</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span><span class=lnt>8
-</span><span class=lnt>9
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/setup-go@v6</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>with</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>go-version</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;1.23&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>golangci-lint</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>golangci/golangci-lint-action@v9</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>with</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=l>v2.4.0</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>args</span><span class=p>:</span><span class=w> </span>--<span class=l>timeout=5m</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h2 id=6-go-124-pinned-example>6) Go 1.24 pinned example</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span><span class=lnt>8
-</span><span class=lnt>9
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/setup-go@v6</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>with</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>go-version</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;1.24&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>golangci-lint</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>golangci/golangci-lint-action@v9</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>with</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=l>v2.6.1</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>args</span><span class=p>:</span><span class=w> </span>--<span class=l>timeout=5m</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h2 id=7-go-125-pinned-example>7) Go 1.25 pinned example</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span><span class=lnt>8
-</span><span class=lnt>9
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/setup-go@v6</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>with</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>go-version</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;1.25&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>golangci-lint</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>golangci/golangci-lint-action@v9</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>with</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=l>v2.6.1</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>args</span><span class=p>:</span><span class=w> </span>--<span class=l>timeout=5m</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h2 id=8-go-126-pinned-example>8) Go 1.26 pinned example</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span><span class=lnt>8
-</span><span class=lnt>9
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/setup-go@v6</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>with</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>go-version</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;1.26&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>golangci-lint</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>golangci/golangci-lint-action@v9</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>with</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=l>v2.9.0</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>args</span><span class=p>:</span><span class=w> </span>--<span class=l>timeout=5m</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h2 id=9-use-golangci-lint-version-file>9) Use <code>.golangci-lint-version</code> file</h2><p><code>.golangci-lint-version</code></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>v2.9.0
-</span></span></code></pre></td></tr></table></div></div><p>Workflow:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>golangci-lint</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>golangci/golangci-lint-action@v9</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>with</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>version-file</span><span class=p>:</span><span class=w> </span><span class=l>.golangci-lint-version</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>args</span><span class=p>:</span><span class=w> </span>--<span class=l>timeout=5m</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h2 id=10-reusable-workflow-pattern-for-org-wide-consistency>10) Reusable workflow pattern for org-wide consistency</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>reusable-golangci</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>on</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>workflow_call</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>inputs</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>go-version</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>required</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>string</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>golangci-version</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>required</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>string</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>jobs</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>lint</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>runs-on</span><span class=p>:</span><span class=w> </span><span class=l>ubuntu-latest</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>steps</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/checkout@v4</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/setup-go@v6</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>with</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>go-version</span><span class=p>:</span><span class=w> </span><span class=l>${{ inputs.go-version }}</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>golangci/golangci-lint-action@v9</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>with</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=l>${{ inputs.golangci-version }}</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>args</span><span class=p>:</span><span class=w> </span>--<span class=l>timeout=5m</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>Caller example:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>jobs</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>call-lint</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>your-org/your-repo/.github/workflows/reusable-golangci.yml@main</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>with</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>go-version</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;1.25&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>golangci-version</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;v2.6.1&#39;</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><hr><h2 id=migration-guidance-if-you-are-currently-using-version-latest>Migration guidance (if you are currently using <code>version: latest</code>)</h2><ol><li>Keep action at <code>@v9</code>.</li><li>Replace <code>version: latest</code> with an exact version (<code>v2.9.0</code> for Go 1.26, <code>v2.6.1</code> for Go 1.24/1.25, etc.).</li><li>Add a weekly scheduled workflow that temporarily runs <code>latest</code> to preview upcoming breaks.</li><li>Bump pinned version intentionally in PRs.</li></ol><hr><h2 id=common-pitfalls>Common pitfalls</h2><ul><li>Forgetting the explicit <code>setup-go</code> step (required by modern action versions).</li><li>Using unquoted Go versions (<code>1.22</code> parsed as <code>1.2</code> by YAML).</li><li>Upgrading action major without runner compatibility checks.</li><li>Using <code>latest</code> on critical branches without canary/scheduled workflows.</li></ul><hr><h2 id=source-links>Source links</h2><ul><li>golangci-lint-action README (compatibility + options): <a href=https://github.com/golangci/golangci-lint-action/blob/v9.2.0/README.md>https://github.com/golangci/golangci-lint-action/blob/v9.2.0/README.md</a></li><li>golangci-lint-action v9.0.0 release notes (node24 runtime): <a href=https://github.com/golangci/golangci-lint-action/releases/tag/v9.0.0>https://github.com/golangci/golangci-lint-action/releases/tag/v9.0.0</a></li><li>actions/setup-go README (v6 Node 24 + examples): <a href=https://github.com/actions/setup-go/blob/main/README.md>https://github.com/actions/setup-go/blob/main/README.md</a></li><li>golangci-lint FAQ (supported Go versions policy): <a href=https://github.com/golangci/golangci-lint/blob/master/docs/src/docs/welcome/faq.mdx>https://github.com/golangci/golangci-lint/blob/master/docs/src/docs/welcome/faq.mdx</a></li><li>golangci-lint changelog (Go 1.22/1.23/1.24 support milestones): <a href=https://github.com/golangci/golangci-lint/blob/master/CHANGELOG.md>https://github.com/golangci/golangci-lint/blob/master/CHANGELOG.md</a></li><li>golangci-lint v2.4.0 release (Go 1.25 support): <a href=https://github.com/golangci/golangci-lint/releases/tag/v2.4.0>https://github.com/golangci/golangci-lint/releases/tag/v2.4.0</a></li><li>golangci-lint v2.9.0 release (Go 1.26 support): <a href=https://github.com/golangci/golangci-lint/releases/tag/v2.9.0>https://github.com/golangci/golangci-lint/releases/tag/v2.9.0</a></li></ul><hr><p>If you want, you can keep this short policy in your repo:</p><blockquote><p>We pin <code>golangci/golangci-lint-action@v9</code>, use <code>actions/setup-go@v6</code>, pin golangci-lint to an exact v2.x tag, and update it intentionally.</p></blockquote></div><div class=post-copyright><p class=copyright-item><span class=item-title>Author</span>
+<a href=https://arran4.github.io/blog/categories/devops/>devops</a></div></div></div></header><div class=post-content><p>If you use this in GitHub Actions:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=ln>1</span><span class=cl>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>golangci-lint</span><span class=w>
+</span></span></span><span class=line><span class=ln>2</span><span class=cl><span class=w>  </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>golangci/golangci-lint-action@v9</span><span class=w>
+</span></span></span><span class=line><span class=ln>3</span><span class=cl><span class=w>  </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>4</span><span class=cl><span class=w>    </span><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=l>latest</span><span class=w>
+</span></span></span></code></pre></div><p>you are absolutely right to be cautious: <code>latest</code> can move to a new golangci-lint release that adds support for a new Go minor while your workflow, runner, or repo expectations are still pinned to older assumptions.</p><p>This guide gives you:</p><ul><li>a practical <strong>version pairing table</strong> (Go ↔ golangci-lint ↔ action),</li><li><strong>safe version ranges</strong> you can reuse,</li><li>and many <strong>copy/paste workflow examples</strong>.</li></ul><hr><h2 id=tldr-recommended-defaults>TL;DR (recommended defaults)</h2><p>If you want a robust setup today:</p><ol><li>Pin the action major (<code>@v9</code>) and pin a golangci-lint minor line (<code>v2.6.x</code>, <code>v2.8.x</code>, etc.) instead of <code>latest</code>.</li><li>Use <code>actions/setup-go@v6</code> before golangci-lint.</li><li>Test at least <code>stable</code> and <code>oldstable</code> Go in CI matrix.</li><li>Keep in mind golangci-lint policy: supports the <strong>two latest Go minor versions</strong>.</li></ol><hr><h2 id=why-version-latest-can-surprise-you>Why <code>version: latest</code> can surprise you</h2><p><code>golangci-lint-action</code> accepts <code>version: latest</code>, but that means each CI run can pick newer golangci-lint binaries as they are released. Newer binaries can include parser/toolchain behaviour changes and new Go-version support windows. Great for fast adoption, risky for deterministic CI.</p><p>In short:</p><ul><li><code>latest</code> = convenience,</li><li>pinned version/range = reproducibility.</li></ul><hr><h2 id=compatibility-facts-you-should-anchor-on>Compatibility facts you should anchor on</h2><h3 id=1-golangci-lint-actionv9-runtime-and-action-compatibility>1) <code>golangci-lint-action@v9</code> runtime and action compatibility</h3><p>From action docs:</p><ul><li><code>v9.0.0</code> requires Node.js runtime <code>node24</code>.</li><li><code>v8.0.0</code> works with golangci-lint <code>>= v2.1.0</code>.</li><li><code>v7.0.0</code> supports golangci-lint v2 only.</li><li><code>v4.0.0+</code> requires an explicit <code>actions/setup-go</code> step.</li></ul><p>So for <code>@v9</code>, pair it with <code>setup-go@v6</code> (also node24 generation).</p><h3 id=2-actionssetup-gov6-runtime-note>2) <code>actions/setup-go@v6</code> runtime note</h3><p><code>setup-go@v6</code> moved from Node 20 to Node 24 and calls out runner compatibility requirements in its README/release notes.</p><h3 id=3-golangci-lint-go-support-policy>3) golangci-lint Go support policy</h3><p>golangci-lint FAQ says it tracks Go team policy (the <strong>2 latest minor versions</strong>) and that practical support depends on the Go version used to build golangci-lint and linter ecosystem readiness.</p><h3 id=4-recent-go-support-milestones-in-golangci-lint-releases>4) recent Go support milestones in golangci-lint releases</h3><p>From changelog/release notes:</p><ul><li>Go 1.22 support: <code>v1.56.0</code> line.</li><li>Go 1.23 support: <code>v1.60.1</code>.</li><li>Go 1.24 support: <code>v1.64.2</code>.</li><li>Go 1.25 support: <code>v2.4.0</code>.</li><li>Go 1.26 support: <code>v2.9.0</code>.</li></ul><hr><h2 id=practical-pairing-matrix-recommended>Practical pairing matrix (recommended)</h2><blockquote><p>Legend:</p><ul><li><strong>Minimum known support</strong> = first release explicitly mentioning support.</li><li><strong>Recommended today</strong> = practical pin choice for modern CI.</li><li>Keep <code>golangci-lint-action</code> on <code>@v9</code> unless you have a legacy constraint.</li></ul></blockquote><table><thead><tr><th>Target Go version</th><th style=text-align:right>Minimum golangci-lint with explicit support</th><th>Recommended golangci-lint pin style</th><th>Action major</th><th>setup-go</th></tr></thead><tbody><tr><td>Go 1.22</td><td style=text-align:right>v1.56.0</td><td>Prefer v2 line if possible (for modern action/docs), otherwise late v1 for legacy repos</td><td>v9</td><td>v6</td></tr><tr><td>Go 1.23</td><td style=text-align:right>v1.60.1</td><td>v2.x pinned (<code>v2.4+</code>)</td><td>v9</td><td>v6</td></tr><tr><td>Go 1.24</td><td style=text-align:right>v1.64.2</td><td>v2.x pinned (<code>v2.4+</code>)</td><td>v9</td><td>v6</td></tr><tr><td>Go 1.25</td><td style=text-align:right>v2.4.0</td><td>v2.4+ pinned (<code>v2.4.x</code> / <code>v2.5.x</code> / <code>v2.6.x</code>)</td><td>v9</td><td>v6</td></tr><tr><td>Go 1.26</td><td style=text-align:right>v2.9.0</td><td>v2.9+ pinned (<code>v2.9.x</code>)</td><td>v9</td><td>v6</td></tr></tbody></table><h3 id=version-ranges-you-can-adopt>Version ranges you can adopt</h3><p>If you like semver-ish policy language in docs/team standards, these are good operational ranges:</p><ul><li>For Go 1.22–1.24 repos: use golangci-lint <code>>=2.4.0, &lt;3.0.0</code> and pin exact patch in workflow.</li><li>For Go 1.25 repos: use golangci-lint <code>>=2.4.0, &lt;3.0.0</code> (pin exact).</li><li>For Go 1.26 repos: use golangci-lint <code>>=2.9.0, &lt;3.0.0</code> (pin exact).</li></ul><hr><h2 id=copypaste-workflow-examples>Copy/paste workflow examples</h2><h2 id=1-most-deterministic-single-go-exact-lint-version>1) Most deterministic (single Go, exact lint version)</h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=ln> 1</span><span class=cl><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>lint</span><span class=w>
+</span></span></span><span class=line><span class=ln> 2</span><span class=cl><span class=w>
+</span></span></span><span class=line><span class=ln> 3</span><span class=cl><span class=w></span><span class=nt>on</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln> 4</span><span class=cl><span class=w>  </span><span class=nt>pull_request</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln> 5</span><span class=cl><span class=w>  </span><span class=nt>push</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln> 6</span><span class=cl><span class=w>    </span><span class=nt>branches</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=w> </span><span class=l>main ]</span><span class=w>
+</span></span></span><span class=line><span class=ln> 7</span><span class=cl><span class=w>
+</span></span></span><span class=line><span class=ln> 8</span><span class=cl><span class=w></span><span class=nt>jobs</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln> 9</span><span class=cl><span class=w>  </span><span class=nt>golangci</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>10</span><span class=cl><span class=w>    </span><span class=nt>runs-on</span><span class=p>:</span><span class=w> </span><span class=l>ubuntu-latest</span><span class=w>
+</span></span></span><span class=line><span class=ln>11</span><span class=cl><span class=w>    </span><span class=nt>steps</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>12</span><span class=cl><span class=w>      </span>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/checkout@v4</span><span class=w>
+</span></span></span><span class=line><span class=ln>13</span><span class=cl><span class=w>
+</span></span></span><span class=line><span class=ln>14</span><span class=cl><span class=w>      </span>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/setup-go@v6</span><span class=w>
+</span></span></span><span class=line><span class=ln>15</span><span class=cl><span class=w>        </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>16</span><span class=cl><span class=w>          </span><span class=nt>go-version</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;1.25&#39;</span><span class=w>
+</span></span></span><span class=line><span class=ln>17</span><span class=cl><span class=w>
+</span></span></span><span class=line><span class=ln>18</span><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>golangci-lint</span><span class=w>
+</span></span></span><span class=line><span class=ln>19</span><span class=cl><span class=w>        </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>golangci/golangci-lint-action@v9</span><span class=w>
+</span></span></span><span class=line><span class=ln>20</span><span class=cl><span class=w>        </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>21</span><span class=cl><span class=w>          </span><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=l>v2.6.1</span><span class=w>
+</span></span></span><span class=line><span class=ln>22</span><span class=cl><span class=w>          </span><span class=nt>args</span><span class=p>:</span><span class=w> </span>--<span class=l>timeout=5m</span><span class=w>
+</span></span></span></code></pre></div><h2 id=2-stable--oldstable-matrix-recommended-baseline>2) Stable + oldstable matrix (recommended baseline)</h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=ln> 1</span><span class=cl><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>lint</span><span class=w>
+</span></span></span><span class=line><span class=ln> 2</span><span class=cl><span class=w>
+</span></span></span><span class=line><span class=ln> 3</span><span class=cl><span class=w></span><span class=nt>on</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln> 4</span><span class=cl><span class=w>  </span><span class=nt>pull_request</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln> 5</span><span class=cl><span class=w>  </span><span class=nt>push</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln> 6</span><span class=cl><span class=w>    </span><span class=nt>branches</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=w> </span><span class=l>main ]</span><span class=w>
+</span></span></span><span class=line><span class=ln> 7</span><span class=cl><span class=w>
+</span></span></span><span class=line><span class=ln> 8</span><span class=cl><span class=w></span><span class=nt>jobs</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln> 9</span><span class=cl><span class=w>  </span><span class=nt>golangci</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>10</span><span class=cl><span class=w>    </span><span class=nt>runs-on</span><span class=p>:</span><span class=w> </span><span class=l>ubuntu-latest</span><span class=w>
+</span></span></span><span class=line><span class=ln>11</span><span class=cl><span class=w>    </span><span class=nt>strategy</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>12</span><span class=cl><span class=w>      </span><span class=nt>fail-fast</span><span class=p>:</span><span class=w> </span><span class=kc>false</span><span class=w>
+</span></span></span><span class=line><span class=ln>13</span><span class=cl><span class=w>      </span><span class=nt>matrix</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>14</span><span class=cl><span class=w>        </span><span class=nt>go-version</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=l>stable, oldstable]</span><span class=w>
+</span></span></span><span class=line><span class=ln>15</span><span class=cl><span class=w>
+</span></span></span><span class=line><span class=ln>16</span><span class=cl><span class=w>    </span><span class=nt>steps</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>17</span><span class=cl><span class=w>      </span>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/checkout@v4</span><span class=w>
+</span></span></span><span class=line><span class=ln>18</span><span class=cl><span class=w>
+</span></span></span><span class=line><span class=ln>19</span><span class=cl><span class=w>      </span>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/setup-go@v6</span><span class=w>
+</span></span></span><span class=line><span class=ln>20</span><span class=cl><span class=w>        </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>21</span><span class=cl><span class=w>          </span><span class=nt>go-version</span><span class=p>:</span><span class=w> </span><span class=l>${{ matrix.go-version }}</span><span class=w>
+</span></span></span><span class=line><span class=ln>22</span><span class=cl><span class=w>
+</span></span></span><span class=line><span class=ln>23</span><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>golangci-lint</span><span class=w>
+</span></span></span><span class=line><span class=ln>24</span><span class=cl><span class=w>        </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>golangci/golangci-lint-action@v9</span><span class=w>
+</span></span></span><span class=line><span class=ln>25</span><span class=cl><span class=w>        </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>26</span><span class=cl><span class=w>          </span><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=l>v2.9.0</span><span class=w>
+</span></span></span><span class=line><span class=ln>27</span><span class=cl><span class=w>          </span><span class=nt>args</span><span class=p>:</span><span class=w> </span>--<span class=l>timeout=5m</span><span class=w>
+</span></span></span></code></pre></div><h2 id=3-if-you-insist-on-latest-guardrails>3) If you insist on <code>latest</code> (guardrails)</h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=ln> 1</span><span class=cl><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>lint</span><span class=w>
+</span></span></span><span class=line><span class=ln> 2</span><span class=cl><span class=w>
+</span></span></span><span class=line><span class=ln> 3</span><span class=cl><span class=w></span><span class=nt>on</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln> 4</span><span class=cl><span class=w>  </span><span class=nt>schedule</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln> 5</span><span class=cl><span class=w>    </span>- <span class=nt>cron</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;0 3 * * *&#39;</span><span class=w>
+</span></span></span><span class=line><span class=ln> 6</span><span class=cl><span class=w>  </span><span class=nt>pull_request</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln> 7</span><span class=cl><span class=w>
+</span></span></span><span class=line><span class=ln> 8</span><span class=cl><span class=w></span><span class=nt>jobs</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln> 9</span><span class=cl><span class=w>  </span><span class=nt>golangci</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>10</span><span class=cl><span class=w>    </span><span class=nt>runs-on</span><span class=p>:</span><span class=w> </span><span class=l>ubuntu-latest</span><span class=w>
+</span></span></span><span class=line><span class=ln>11</span><span class=cl><span class=w>    </span><span class=nt>steps</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>12</span><span class=cl><span class=w>      </span>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/checkout@v4</span><span class=w>
+</span></span></span><span class=line><span class=ln>13</span><span class=cl><span class=w>
+</span></span></span><span class=line><span class=ln>14</span><span class=cl><span class=w>      </span>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/setup-go@v6</span><span class=w>
+</span></span></span><span class=line><span class=ln>15</span><span class=cl><span class=w>        </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>16</span><span class=cl><span class=w>          </span><span class=nt>go-version</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;stable&#39;</span><span class=w>
+</span></span></span><span class=line><span class=ln>17</span><span class=cl><span class=w>
+</span></span></span><span class=line><span class=ln>18</span><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>golangci-lint</span><span class=w>
+</span></span></span><span class=line><span class=ln>19</span><span class=cl><span class=w>        </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>golangci/golangci-lint-action@v9</span><span class=w>
+</span></span></span><span class=line><span class=ln>20</span><span class=cl><span class=w>        </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>21</span><span class=cl><span class=w>          </span><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=l>latest</span><span class=w>
+</span></span></span><span class=line><span class=ln>22</span><span class=cl><span class=w>          </span><span class=nt>args</span><span class=p>:</span><span class=w> </span>--<span class=l>timeout=5m</span><span class=w>
+</span></span></span></code></pre></div><p>Use this only if your team accepts occasional churn; combine with scheduled runs so breakage appears before business hours.</p><h2 id=4-go-122-pinned-example>4) Go 1.22 pinned example</h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=ln>1</span><span class=cl>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/setup-go@v6</span><span class=w>
+</span></span></span><span class=line><span class=ln>2</span><span class=cl><span class=w>  </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>3</span><span class=cl><span class=w>    </span><span class=nt>go-version</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;1.22&#39;</span><span class=w>
+</span></span></span><span class=line><span class=ln>4</span><span class=cl><span class=w>
+</span></span></span><span class=line><span class=ln>5</span><span class=cl><span class=w></span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>golangci-lint</span><span class=w>
+</span></span></span><span class=line><span class=ln>6</span><span class=cl><span class=w>  </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>golangci/golangci-lint-action@v9</span><span class=w>
+</span></span></span><span class=line><span class=ln>7</span><span class=cl><span class=w>  </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>8</span><span class=cl><span class=w>    </span><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=l>v2.4.0</span><span class=w>
+</span></span></span><span class=line><span class=ln>9</span><span class=cl><span class=w>    </span><span class=nt>args</span><span class=p>:</span><span class=w> </span>--<span class=l>timeout=5m</span><span class=w>
+</span></span></span></code></pre></div><h2 id=5-go-123-pinned-example>5) Go 1.23 pinned example</h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=ln>1</span><span class=cl>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/setup-go@v6</span><span class=w>
+</span></span></span><span class=line><span class=ln>2</span><span class=cl><span class=w>  </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>3</span><span class=cl><span class=w>    </span><span class=nt>go-version</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;1.23&#39;</span><span class=w>
+</span></span></span><span class=line><span class=ln>4</span><span class=cl><span class=w>
+</span></span></span><span class=line><span class=ln>5</span><span class=cl><span class=w></span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>golangci-lint</span><span class=w>
+</span></span></span><span class=line><span class=ln>6</span><span class=cl><span class=w>  </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>golangci/golangci-lint-action@v9</span><span class=w>
+</span></span></span><span class=line><span class=ln>7</span><span class=cl><span class=w>  </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>8</span><span class=cl><span class=w>    </span><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=l>v2.4.0</span><span class=w>
+</span></span></span><span class=line><span class=ln>9</span><span class=cl><span class=w>    </span><span class=nt>args</span><span class=p>:</span><span class=w> </span>--<span class=l>timeout=5m</span><span class=w>
+</span></span></span></code></pre></div><h2 id=6-go-124-pinned-example>6) Go 1.24 pinned example</h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=ln>1</span><span class=cl>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/setup-go@v6</span><span class=w>
+</span></span></span><span class=line><span class=ln>2</span><span class=cl><span class=w>  </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>3</span><span class=cl><span class=w>    </span><span class=nt>go-version</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;1.24&#39;</span><span class=w>
+</span></span></span><span class=line><span class=ln>4</span><span class=cl><span class=w>
+</span></span></span><span class=line><span class=ln>5</span><span class=cl><span class=w></span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>golangci-lint</span><span class=w>
+</span></span></span><span class=line><span class=ln>6</span><span class=cl><span class=w>  </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>golangci/golangci-lint-action@v9</span><span class=w>
+</span></span></span><span class=line><span class=ln>7</span><span class=cl><span class=w>  </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>8</span><span class=cl><span class=w>    </span><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=l>v2.6.1</span><span class=w>
+</span></span></span><span class=line><span class=ln>9</span><span class=cl><span class=w>    </span><span class=nt>args</span><span class=p>:</span><span class=w> </span>--<span class=l>timeout=5m</span><span class=w>
+</span></span></span></code></pre></div><h2 id=7-go-125-pinned-example>7) Go 1.25 pinned example</h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=ln>1</span><span class=cl>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/setup-go@v6</span><span class=w>
+</span></span></span><span class=line><span class=ln>2</span><span class=cl><span class=w>  </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>3</span><span class=cl><span class=w>    </span><span class=nt>go-version</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;1.25&#39;</span><span class=w>
+</span></span></span><span class=line><span class=ln>4</span><span class=cl><span class=w>
+</span></span></span><span class=line><span class=ln>5</span><span class=cl><span class=w></span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>golangci-lint</span><span class=w>
+</span></span></span><span class=line><span class=ln>6</span><span class=cl><span class=w>  </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>golangci/golangci-lint-action@v9</span><span class=w>
+</span></span></span><span class=line><span class=ln>7</span><span class=cl><span class=w>  </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>8</span><span class=cl><span class=w>    </span><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=l>v2.6.1</span><span class=w>
+</span></span></span><span class=line><span class=ln>9</span><span class=cl><span class=w>    </span><span class=nt>args</span><span class=p>:</span><span class=w> </span>--<span class=l>timeout=5m</span><span class=w>
+</span></span></span></code></pre></div><h2 id=8-go-126-pinned-example>8) Go 1.26 pinned example</h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=ln>1</span><span class=cl>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/setup-go@v6</span><span class=w>
+</span></span></span><span class=line><span class=ln>2</span><span class=cl><span class=w>  </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>3</span><span class=cl><span class=w>    </span><span class=nt>go-version</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;1.26&#39;</span><span class=w>
+</span></span></span><span class=line><span class=ln>4</span><span class=cl><span class=w>
+</span></span></span><span class=line><span class=ln>5</span><span class=cl><span class=w></span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>golangci-lint</span><span class=w>
+</span></span></span><span class=line><span class=ln>6</span><span class=cl><span class=w>  </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>golangci/golangci-lint-action@v9</span><span class=w>
+</span></span></span><span class=line><span class=ln>7</span><span class=cl><span class=w>  </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>8</span><span class=cl><span class=w>    </span><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=l>v2.9.0</span><span class=w>
+</span></span></span><span class=line><span class=ln>9</span><span class=cl><span class=w>    </span><span class=nt>args</span><span class=p>:</span><span class=w> </span>--<span class=l>timeout=5m</span><span class=w>
+</span></span></span></code></pre></div><h2 id=9-use-golangci-lint-version-file>9) Use <code>.golangci-lint-version</code> file</h2><p><code>.golangci-lint-version</code></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=ln>1</span><span class=cl>v2.9.0
+</span></span></code></pre></div><p>Workflow:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=ln>1</span><span class=cl>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>golangci-lint</span><span class=w>
+</span></span></span><span class=line><span class=ln>2</span><span class=cl><span class=w>  </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>golangci/golangci-lint-action@v9</span><span class=w>
+</span></span></span><span class=line><span class=ln>3</span><span class=cl><span class=w>  </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>4</span><span class=cl><span class=w>    </span><span class=nt>version-file</span><span class=p>:</span><span class=w> </span><span class=l>.golangci-lint-version</span><span class=w>
+</span></span></span><span class=line><span class=ln>5</span><span class=cl><span class=w>    </span><span class=nt>args</span><span class=p>:</span><span class=w> </span>--<span class=l>timeout=5m</span><span class=w>
+</span></span></span></code></pre></div><h2 id=10-reusable-workflow-pattern-for-org-wide-consistency>10) Reusable workflow pattern for org-wide consistency</h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=ln> 1</span><span class=cl><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>reusable-golangci</span><span class=w>
+</span></span></span><span class=line><span class=ln> 2</span><span class=cl><span class=w>
+</span></span></span><span class=line><span class=ln> 3</span><span class=cl><span class=w></span><span class=nt>on</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln> 4</span><span class=cl><span class=w>  </span><span class=nt>workflow_call</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln> 5</span><span class=cl><span class=w>    </span><span class=nt>inputs</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln> 6</span><span class=cl><span class=w>      </span><span class=nt>go-version</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln> 7</span><span class=cl><span class=w>        </span><span class=nt>required</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
+</span></span></span><span class=line><span class=ln> 8</span><span class=cl><span class=w>        </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>string</span><span class=w>
+</span></span></span><span class=line><span class=ln> 9</span><span class=cl><span class=w>      </span><span class=nt>golangci-version</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>10</span><span class=cl><span class=w>        </span><span class=nt>required</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
+</span></span></span><span class=line><span class=ln>11</span><span class=cl><span class=w>        </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>string</span><span class=w>
+</span></span></span><span class=line><span class=ln>12</span><span class=cl><span class=w>
+</span></span></span><span class=line><span class=ln>13</span><span class=cl><span class=w></span><span class=nt>jobs</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>14</span><span class=cl><span class=w>  </span><span class=nt>lint</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>15</span><span class=cl><span class=w>    </span><span class=nt>runs-on</span><span class=p>:</span><span class=w> </span><span class=l>ubuntu-latest</span><span class=w>
+</span></span></span><span class=line><span class=ln>16</span><span class=cl><span class=w>    </span><span class=nt>steps</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>17</span><span class=cl><span class=w>      </span>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/checkout@v4</span><span class=w>
+</span></span></span><span class=line><span class=ln>18</span><span class=cl><span class=w>      </span>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>actions/setup-go@v6</span><span class=w>
+</span></span></span><span class=line><span class=ln>19</span><span class=cl><span class=w>        </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>20</span><span class=cl><span class=w>          </span><span class=nt>go-version</span><span class=p>:</span><span class=w> </span><span class=l>${{ inputs.go-version }}</span><span class=w>
+</span></span></span><span class=line><span class=ln>21</span><span class=cl><span class=w>      </span>- <span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>golangci/golangci-lint-action@v9</span><span class=w>
+</span></span></span><span class=line><span class=ln>22</span><span class=cl><span class=w>        </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>23</span><span class=cl><span class=w>          </span><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=l>${{ inputs.golangci-version }}</span><span class=w>
+</span></span></span><span class=line><span class=ln>24</span><span class=cl><span class=w>          </span><span class=nt>args</span><span class=p>:</span><span class=w> </span>--<span class=l>timeout=5m</span><span class=w>
+</span></span></span></code></pre></div><p>Caller example:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=ln>1</span><span class=cl><span class=nt>jobs</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>2</span><span class=cl><span class=w>  </span><span class=nt>call-lint</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>3</span><span class=cl><span class=w>    </span><span class=nt>uses</span><span class=p>:</span><span class=w> </span><span class=l>your-org/your-repo/.github/workflows/reusable-golangci.yml@main</span><span class=w>
+</span></span></span><span class=line><span class=ln>4</span><span class=cl><span class=w>    </span><span class=nt>with</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=ln>5</span><span class=cl><span class=w>      </span><span class=nt>go-version</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;1.25&#39;</span><span class=w>
+</span></span></span><span class=line><span class=ln>6</span><span class=cl><span class=w>      </span><span class=nt>golangci-version</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;v2.6.1&#39;</span><span class=w>
+</span></span></span></code></pre></div><hr><h2 id=migration-guidance-if-you-are-currently-using-version-latest>Migration guidance (if you are currently using <code>version: latest</code>)</h2><ol><li>Keep action at <code>@v9</code>.</li><li>Replace <code>version: latest</code> with an exact version (<code>v2.9.0</code> for Go 1.26, <code>v2.6.1</code> for Go 1.24/1.25, etc.).</li><li>Add a weekly scheduled workflow that temporarily runs <code>latest</code> to preview upcoming breaks.</li><li>Bump pinned version intentionally in PRs.</li></ol><hr><h2 id=common-pitfalls>Common pitfalls</h2><ul><li>Forgetting the explicit <code>setup-go</code> step (required by modern action versions).</li><li>Using unquoted Go versions (<code>1.22</code> parsed as <code>1.2</code> by YAML).</li><li>Upgrading action major without runner compatibility checks.</li><li>Using <code>latest</code> on critical branches without canary/scheduled workflows.</li></ul><hr><h2 id=source-links>Source links</h2><ul><li>golangci-lint-action README (compatibility + options): <a href=https://github.com/golangci/golangci-lint-action/blob/v9.2.0/README.md>https://github.com/golangci/golangci-lint-action/blob/v9.2.0/README.md</a></li><li>golangci-lint-action v9.0.0 release notes (node24 runtime): <a href=https://github.com/golangci/golangci-lint-action/releases/tag/v9.0.0>https://github.com/golangci/golangci-lint-action/releases/tag/v9.0.0</a></li><li>actions/setup-go README (v6 Node 24 + examples): <a href=https://github.com/actions/setup-go/blob/main/README.md>https://github.com/actions/setup-go/blob/main/README.md</a></li><li>golangci-lint FAQ (supported Go versions policy): <a href=https://github.com/golangci/golangci-lint/blob/master/docs/src/docs/welcome/faq.mdx>https://github.com/golangci/golangci-lint/blob/master/docs/src/docs/welcome/faq.mdx</a></li><li>golangci-lint changelog (Go 1.22/1.23/1.24 support milestones): <a href=https://github.com/golangci/golangci-lint/blob/master/CHANGELOG.md>https://github.com/golangci/golangci-lint/blob/master/CHANGELOG.md</a></li><li>golangci-lint v2.4.0 release (Go 1.25 support): <a href=https://github.com/golangci/golangci-lint/releases/tag/v2.4.0>https://github.com/golangci/golangci-lint/releases/tag/v2.4.0</a></li><li>golangci-lint v2.9.0 release (Go 1.26 support): <a href=https://github.com/golangci/golangci-lint/releases/tag/v2.9.0>https://github.com/golangci/golangci-lint/releases/tag/v2.9.0</a></li></ul><hr><p>If you want, you can keep this short policy in your repo:</p><blockquote><p>We pin <code>golangci/golangci-lint-action@v9</code>, use <code>actions/setup-go@v6</code>, pin golangci-lint to an exact v2.x tag, and update it intentionally.</p></blockquote></div><div class=post-copyright><p class=copyright-item><span class=item-title>Author</span>
 <span class=item-content>Arran Ubels</span></p><p class=copyright-item><span class=item-title>LastMod</span>
 <span class=item-content>2026-02-14</span></p><p class=copyright-item><span class=item-title>License</span>
 <span class=item-content><a rel="license noopener" href=https://spdx.org/licenses/MIT-0.html target=_blank>MIT No Attribution</a></span></p></div><footer class=post-footer><div class=post-tags><a href=https://arran4.github.io/blog/tags/go/>go</a>
