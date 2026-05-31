@@ -22,7 +22,7 @@ Before the workflow body, add a top-of-file pointer comment so agents and humans
 
 ```yaml
 # Agent rules for generation:
-# https://arran4.com/post/2026/006-Github-CI-and-Deploy/
+# https://arran4.github.io/blog/post/2026/006-github-ci-and-deploy/
 # Built using this post as a reference/guide.
 name: CI/CD
 ```

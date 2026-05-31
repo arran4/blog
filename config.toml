@@ -48,7 +48,7 @@ defaultContentLanguage = "en"
   [markup.highlight]
     codeFences = true
     guessSyntax = true
-    lineNos = true
+    lineNos = false
     lineNumbersInTable = false
     noClasses = false
 
