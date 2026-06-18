@@ -2210,3 +2210,46 @@ The winning pattern is:
 - and automate cleanup lifecycle.
 
 That gives you the giant file you wanted, with practical behavior for real repos rather than demo YAML.
+
+---
+
+## Troubleshooting: GoReleaser `fatal: tag already exists`
+
+If you use GoReleaser inside your GitHub Action workflow to automatically build and release binaries, you might occasionally encounter an error that halts your pipeline:
+
+```text
+Run git tag v0.0.2
+
+fatal: tag 'v0.0.2' already exists
+
+Error: Process completed with exit code 128.
+```
+
+Git correctly refuses to create a tag that has already been created. This typically happens when:
+
+1. **Triggering manually without incrementing the version:** If you have a `workflow_dispatch` trigger that takes a version string, running it twice with the same version will fail the second time.
+2. **Failed previous releases:** If your CI workflow previously ran and successfully created the tag but failed in a later step (e.g., during building or uploading assets), the tag will still exist. Re-running the pipeline hits the same tagging step and fails.
+3. **Duplicate automated tagging:** Your script may unconditionally attempt to tag the commit without first checking if the remote branch already has that tag.
+
+### Option 1: Delete the conflicting tag and retry (For failed releases)
+
+If you are explicitly trying to retry or overwrite that exact same release version (e.g., `v0.0.2`) due to a failed pipeline, you must delete the tag both locally and remotely:
+
+```bash
+# Delete the tag locally
+git tag -d v0.0.2
+
+# Delete the tag on the remote repository
+git push origin :refs/tags/v0.0.2
+```
+
+Once removed from the remote, you can safely trigger your workflow again.
+
+### Option 2: Increment the version (For new releases)
+
+If the previous release was successful and you are actually trying to push new changes, increment your version number according to Semantic Versioning (e.g., to `v0.0.3`) and trigger the workflow with the new tag:
+
+```bash
+git tag v0.0.3
+git push origin v0.0.3
+```
