@@ -403,110 +403,6 @@ You are right that most tailoring should be done when installing the workflow. D
 - runtime detection as guard rails.
 
 ```yaml
-  discover:
-    name: Discover capabilities and cost profile
-    needs: route
-    runs-on: ubuntu-latest
-    outputs:
-      profile: ${{ steps.profile.outputs.profile }}
-      has_go: ${{ steps.detect.outputs.has_go }}
-      has_node: ${{ steps.detect.outputs.has_node }}
-      has_dart: ${{ steps.detect.outputs.has_dart }}
-      has_flutter: ${{ steps.detect.outputs.has_flutter }}
-      has_qt_cpp: ${{ steps.detect.outputs.has_qt_cpp }}
-      has_make_c: ${{ steps.detect.outputs.has_make_c }}
-      has_docker: ${{ steps.detect.outputs.has_docker }}
-      has_goreleaser: ${{ steps.detect.outputs.has_goreleaser }}
-      has_dart_or_flutter_tests: ${{ steps.detect.outputs.has_dart_or_flutter_tests }}
-      has_packaging: ${{ steps.detect.outputs.has_packaging }}
-    steps:
-      - uses: actions/checkout@v4
-
-      # Template-time toggles (set these once for the repo; avoid broad auto-detection)
-      # EXPECT_GO=true
-      # EXPECT_NODE=false
-      # EXPECT_DART=false
-      # EXPECT_FLUTTER=false
-      # EXPECT_QT_CPP=false
-      # EXPECT_MAKE_C=false
-      # EXPECT_DOCKER=false
-      # EXPECT_GORELEASER=true
-
-      - id: detect
-        shell: bash
-        run: |
-          set -euo pipefail
-          # Keep this minimal: most language choices should be decided at workflow install/customization time.
-          # Runtime checks stay for optional tests and packaging folders.
-
-          echo "has_go=${EXPECT_GO:-false}" >> "$GITHUB_OUTPUT"
-          echo "has_node=${EXPECT_NODE:-false}" >> "$GITHUB_OUTPUT"
-          echo "has_dart=${EXPECT_DART:-false}" >> "$GITHUB_OUTPUT"
-          echo "has_flutter=${EXPECT_FLUTTER:-false}" >> "$GITHUB_OUTPUT"
-          echo "has_qt_cpp=${EXPECT_QT_CPP:-false}" >> "$GITHUB_OUTPUT"
-          echo "has_make_c=${EXPECT_MAKE_C:-false}" >> "$GITHUB_OUTPUT"
-          echo "has_docker=${EXPECT_DOCKER:-false}" >> "$GITHUB_OUTPUT"
-          echo "has_goreleaser=${EXPECT_GORELEASER:-false}" >> "$GITHUB_OUTPUT"
-
-          ([[ -d test ]] || [[ -d tests ]] || [[ -f pubspec.yaml ]]) && echo "has_dart_or_flutter_tests=true" >> "$GITHUB_OUTPUT" || echo "has_dart_or_flutter_tests=false" >> "$GITHUB_OUTPUT"
-          ([[ -d packaging ]] || [[ -d pkg ]] || [[ -f debian/control ]]) && echo "has_packaging=true" >> "$GITHUB_OUTPUT" || echo "has_packaging=false" >> "$GITHUB_OUTPUT"
-
-      - id: profile
-        shell: bash
-        run: |
-          set -euo pipefail
-          # repo visibility is authoritative
-          if [[ "${{ github.event.repository.private }}" == "true" ]]; then
-            echo "profile=private" >> "$GITHUB_OUTPUT"
-          else
-            echo "profile=public" >> "$GITHUB_OUTPUT"
-          fi
-```
-
-### Why this is not just cost control
-
-Conditional outputs are also for:
-
-- correctness (only run valid lanes),
-- readability (clear `if` graph),
-- reliability (fewer false failures in unrelated stacks),
-- maintainability (easy to extend per language).
-
----
-
-## Step 4: Lint config and tool config files you should keep in repo
-
-A single CI file works best when lint/build settings are stored in repo config files, not inline shell flags.
-
-Recommended baseline:
-
-- Go: `.golangci.yml`
-- Node: `.eslintrc.*`, `.prettierrc*`
-- Dart/Flutter: `analysis_options.yaml`
-- C/C++: `.clang-format`, `cppcheck` config or suppressions file
-- Gitleaks: `.gitleaks.toml`
-- GoReleaser: `.goreleaser.yml`
-- Packaging: `packaging/` tree (`debian/`, `.spec`, templates)
-
-Example `.gitleaks.toml` starter:
-
-```toml
-title = "repo gitleaks config"
-
-[allowlist]
-description = "global allowlist"
-paths = [
-  '''^docs/''',
-  '''^testdata/'''
-]
-```
-
-Example `analysis_options.yaml` starter:
-
-```yaml
-include: package:flutter_lints/flutter.yaml
-
-analyzer:
   language:
     strict-casts: true
 
@@ -588,7 +484,7 @@ mkdir -p %{buildroot}/usr/bin
 ```yaml
   gitleaks:
     name: Secret scan
-    needs: [route, discover]
+    needs: [route]
     if: ${{ needs.route.outputs.run_cleanup != 'true' && (needs.route.outputs.is_nightly == 'true' || needs.route.outputs.is_monthly == 'true') }}
     runs-on: ubuntu-latest
     steps:
@@ -601,8 +497,8 @@ mkdir -p %{buildroot}/usr/bin
 
   dependency-review:
     name: Dependency review (public/full)
-    needs: [route, discover]
-    if: ${{ needs.discover.outputs.profile == 'public' && github.event_name == 'pull_request' && github.event.action != 'closed' }}
+    needs: [route]
+    if: ${{ github.event_name == 'pull_request' && github.event.action != 'closed' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/dependency-review-action@v4
@@ -621,7 +517,7 @@ If a repo has `pom.xml`, add this lane. It is useful for polyglot repos where Ja
 ```yaml
   java-build-test:
     name: Java build/test
-    needs: [route, discover]
+    needs: [route]
     if: ${{ needs.route.outputs.run_code_checks == 'true' && hashFiles('pom.xml') != '' }}
     runs-on: ubuntu-latest
     steps:
@@ -646,12 +542,11 @@ If the repository includes a Hugo docs/site directory (example: `site/mydocs`), 
 Key ideas from the referenced workflow:
 
 - route-level `run_pages` output (separate from code-check/release output),
-- discovery output `has_hugo` for conditional execution,
 - workflow permissions include `pages: write` and `id-token: write`,
 - split build and deploy jobs (`hugo-build` -> `hugo-deploy`),
 - deployment concurrency uses the `pages` group.
 
-### Route/discovery additions (copy/paste)
+### Route additions (copy/paste)
 
 ```yaml
 permissions:
@@ -678,22 +573,10 @@ jobs:
           fi
           echo "run_pages=$run_pages" >> "$GITHUB_OUTPUT"
 
-  discover:
-    outputs:
-      has_hugo: ${{ steps.detect.outputs.has_hugo }}
-    steps:
-      - id: detect
-        run: |
-          [[ -d site/mydocs ]] && echo "has_hugo=true" >> "$GITHUB_OUTPUT" || echo "has_hugo=false" >> "$GITHUB_OUTPUT"
-```
-
-### Build + deploy jobs (copy/paste)
-
-```yaml
   hugo-build:
     name: Build Hugo site
-    needs: [route, discover]
-    if: ${{ needs.discover.outputs.has_hugo == 'true' && needs.route.outputs.run_pages == 'true' }}
+    needs: [route]
+    if: ${{ needs.route.outputs.run_pages == 'true' }}
     runs-on: ubuntu-latest
     env:
       HUGO_VERSION: 0.123.7
@@ -725,8 +608,8 @@ jobs:
 
   hugo-deploy:
     name: Deploy to GitHub Pages
-    needs: [route, discover, hugo-build]
-    if: ${{ needs.discover.outputs.has_hugo == 'true' && needs.route.outputs.run_pages == 'true' }}
+    needs: [route, hugo-build]
+    if: ${{ needs.route.outputs.run_pages == 'true' }}
     runs-on: ubuntu-latest
     concurrency:
       group: pages
@@ -752,8 +635,8 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
   # Requested baseline snippet (modern versions)
   golangci:
     name: lint
-    needs: [route, discover]
-    if: ${{ needs.discover.outputs.has_go == 'true' && needs.route.outputs.run_code_checks == 'true' }}
+    needs: [route]
+    if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -767,8 +650,8 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
 
   go-test:
     name: Go lint/test (${{ matrix.os }})
-    needs: [route, discover, golangci]
-    if: ${{ needs.discover.outputs.has_go == 'true' && needs.route.outputs.run_code_checks == 'true' }}
+    needs: [route, golangci]
+    if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -787,8 +670,8 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
 
   go-vet:
     name: Go vet
-    needs: [route, discover]
-    if: ${{ needs.discover.outputs.has_go == 'true' && needs.route.outputs.run_code_checks == 'true' && needs.discover.outputs.profile == 'public' }}
+    needs: [route]
+    if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -800,8 +683,8 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
 
   go-fmt-pr:
     name: go fmt -> PR (manual dispatch)
-    needs: [route, discover]
-    if: ${{ needs.discover.outputs.has_go == 'true' && github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' && inputs.allow_prs == true }}
+    needs: [route]
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' && inputs.allow_prs == true }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -839,8 +722,8 @@ Optional cross-OS lane (only when it really matters):
 ```yaml
   go-cross-os-smoke:
     name: Go cross-OS smoke (${{ matrix.os }})
-    needs: [route, discover, golangci]
-    if: ${{ needs.discover.outputs.has_go == 'true' && needs.route.outputs.run_code_checks == 'true' && (github.event_name == 'workflow_dispatch' && inputs.mode == 'build') }}
+    needs: [route, golangci]
+    if: ${{ needs.route.outputs.run_code_checks == 'true' && (github.event_name == 'workflow_dispatch' && inputs.mode == 'build') }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -861,8 +744,8 @@ Optional cross-OS lane (only when it really matters):
 ```yaml
   node-lint-test:
     name: Node lint/test
-    needs: [route, discover]
-    if: ${{ needs.discover.outputs.has_node == 'true' && needs.route.outputs.run_code_checks == 'true' }}
+    needs: [route]
+    if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -964,8 +847,8 @@ You asked to include Dart libs and Flutter libs specifically, with analysis.
 ```yaml
   dart-analyze-test:
     name: Dart analyze/test
-    needs: [route, discover]
-    if: ${{ needs.discover.outputs.has_dart == 'true' && needs.route.outputs.run_code_checks == 'true' }}
+    needs: [route]
+    if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -978,8 +861,8 @@ You asked to include Dart libs and Flutter libs specifically, with analysis.
 
   flutter-analyze-test:
     name: Flutter analyze/test (fast path)
-    needs: [route, discover]
-    if: ${{ needs.discover.outputs.has_flutter == 'true' && needs.route.outputs.run_code_checks == 'true' }}
+    needs: [route]
+    if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -994,8 +877,8 @@ You asked to include Dart libs and Flutter libs specifically, with analysis.
 
   flutter-format-pr:
     name: Flutter format -> PR (manual lint-fix)
-    needs: [route, discover]
-    if: ${{ needs.discover.outputs.has_flutter == 'true' && github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' }}
+    needs: [route]
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -1031,8 +914,8 @@ You asked to include Dart libs and Flutter libs specifically, with analysis.
 
   flutter-build-artifacts:
     name: Flutter build artifacts (release/monthly only)
-    needs: [route, discover, flutter-analyze-test]
-    if: ${{ needs.discover.outputs.has_flutter == 'true' && (needs.route.outputs.run_release == 'true' || needs.route.outputs.is_monthly == 'true' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'build')) }}
+    needs: [route, flutter-analyze-test]
+    if: ${{ (needs.route.outputs.run_release == 'true' || needs.route.outputs.is_monthly == 'true' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'build')) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -1133,8 +1016,8 @@ Include both Qt/CMake and Makefile detection paths.
 ```yaml
   cpp-qt-build-test:
     name: Qt/C++ build
-    needs: [route, discover]
-    if: ${{ needs.discover.outputs.has_qt_cpp == 'true' && needs.route.outputs.run_code_checks == 'true' }}
+    needs: [route]
+    if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -1150,8 +1033,8 @@ Include both Qt/CMake and Makefile detection paths.
 
   c-make-build-test:
     name: Classic C Makefile build
-    needs: [route, discover]
-    if: ${{ needs.discover.outputs.has_make_c == 'true' && needs.route.outputs.run_code_checks == 'true' }}
+    needs: [route]
+    if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -1168,27 +1051,25 @@ You wanted this wired to real formatters and branch-name guessable behavior.
 ```yaml
   autofix:
     name: Auto-format and open PR
-    needs: [route, discover]
+    needs: [route]
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' && inputs.allow_prs == true }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup Go (if needed)
-        if: ${{ needs.discover.outputs.has_go == 'true' }}
-        uses: actions/setup-go@v6
+                uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
 
       - name: Setup Node (if needed)
-        if: ${{ needs.discover.outputs.has_node == 'true' }}
-        uses: actions/setup-node@v4
+                uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
 
       - name: Setup Dart/Flutter (if needed)
-        if: ${{ needs.discover.outputs.has_dart == 'true' || needs.discover.outputs.has_flutter == 'true' }}
+        if: ${{  ||  }}
         uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -1197,15 +1078,15 @@ You wanted this wired to real formatters and branch-name guessable behavior.
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "${{ needs.discover.outputs.has_go }}" == "true" ]]; then
+          if true; then
             go fix ./... || true
             go fmt ./... || true
           fi
-          if [[ "${{ needs.discover.outputs.has_node }}" == "true" ]]; then
+          if true; then
             npm ci || true
             npx prettier . --write || true
           fi
-          if [[ "${{ needs.discover.outputs.has_dart }}" == "true" || "${{ needs.discover.outputs.has_flutter }}" == "true" ]]; then
+          if true; then
             dart format . || true
           fi
 
@@ -1285,8 +1166,8 @@ If repo has Go + Dockerfile or standalone Docker service, build and (optionally)
 ```yaml
   docker-build:
     name: Docker build
-    needs: [route, discover]
-    if: ${{ needs.discover.outputs.has_docker == 'true' && needs.route.outputs.run_release == 'true' }}
+    needs: [route]
+    if: ${{ needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -1301,8 +1182,8 @@ If repo has Go + Dockerfile or standalone Docker service, build and (optionally)
 
   docker-release:
     name: Docker release
-    needs: [route, discover, docker-build]
-    if: ${{ needs.discover.outputs.has_docker == 'true' && needs.route.outputs.run_release == 'true' }}
+    needs: [route, docker-build]
+    if: ${{ needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -1445,8 +1326,8 @@ and skip binary-specific lanes like GoReleaser `builds`, app bundle packaging, H
   goreleaser:
     name: GoReleaser
     # In practice, include all quality gates here (for example: go-test, go-vet, go-lint, format).
-    needs: [route, discover, go-test, prepare-release-tag]
-    if: ${{ needs.discover.outputs.has_go == 'true' && needs.discover.outputs.has_goreleaser == 'true' && (((github.event_name == 'push') && startsWith(github.ref, 'refs/tags/v')) || (github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-'))) }}
+    needs: [route, go-test, prepare-release-tag]
+    if: ${{ (((github.event_name == 'push') && startsWith(github.ref, 'refs/tags/v')) || (github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-'))) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -1626,8 +1507,8 @@ packaging/
 ```yaml
   source-deb:
     name: Build source .dsc/.orig.tar.*
-    needs: [route, discover]
-    if: ${{ needs.discover.outputs.has_packaging == 'true' && needs.route.outputs.run_release == 'true' }}
+    needs: [route]
+    if: ${{ needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -1681,8 +1562,8 @@ mv /tmp/${APP_NAME}_${VERSION}-1* "$OUTDIR/" || true
 ```yaml
   source-rpm:
     name: Build source .src.rpm
-    needs: [route, discover]
-    if: ${{ needs.discover.outputs.has_packaging == 'true' && needs.route.outputs.run_release == 'true' }}
+    needs: [route]
+    if: ${{ needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -1734,8 +1615,8 @@ For Flutter/Qt desktop apps, keep a manual lane. If Flutter build artifacts were
 ```yaml
   flatpak-build:
     name: Flatpak package
-    needs: [route, discover]
-    if: ${{ needs.route.outputs.run_release == 'true' && (needs.discover.outputs.has_flutter == 'true' || needs.discover.outputs.has_qt_cpp == 'true') }}
+    needs: [route]
+    if: ${{ needs.route.outputs.run_release == 'true' && ( || ) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -1965,72 +1846,68 @@ jobs:
     needs: [route]
     # ... from section above
 
-  discover:
-    needs: route
-    # ... from section above
-
   gitleaks:
-    needs: [route, discover]
+    needs: [route]
     # ...
 
   java-build-test:
-    needs: [route, discover]
+    needs: [route]
     # ...
 
   hugo-build:
-    needs: [route, discover]
+    needs: [route]
     # ...
 
   hugo-deploy:
-    needs: [route, discover, hugo-build]
+    needs: [route, hugo-build]
     # ...
 
   golangci:
-    needs: [route, discover]
+    needs: [route]
     # ...
 
   go-test:
-    needs: [route, discover, golangci]
+    needs: [route, golangci]
     # ...
 
   go-vet:
-    needs: [route, discover]
+    needs: [route]
     # ...
 
   go-fmt-pr:
-    needs: [route, discover]
+    needs: [route]
     # ...
 
   node-lint-test:
-    needs: [route, discover]
+    needs: [route]
     # ...
 
   dart-analyze-test:
-    needs: [route, discover]
+    needs: [route]
     # ...
 
   flutter-analyze-test:
-    needs: [route, discover]
+    needs: [route]
     # ...
 
   flutter-build-artifacts:
-    needs: [route, discover, flutter-analyze-test]
+    needs: [route, flutter-analyze-test]
     # ...
 
   cpp-qt-build-test:
-    needs: [route, discover]
+    needs: [route]
     # ...
 
   c-make-build-test:
-    needs: [route, discover]
+    needs: [route]
     # ...
 
   docker-build:
-    needs: [route, discover]
+    needs: [route]
     # ...
 
   autofix:
-    needs: [route, discover]
+    needs: [route]
     # ...
 
   cleanup-autofix-prs:
@@ -2038,19 +1915,19 @@ jobs:
     # ...
 
   goreleaser:
-    needs: [route, discover, go-test, prepare-release-tag]
+    needs: [route, go-test, prepare-release-tag]
     # ...
 
   source-deb:
-    needs: [route, discover]
+    needs: [route]
     # ...
 
   source-rpm:
-    needs: [route, discover]
+    needs: [route]
     # ...
 
   docker-release:
-    needs: [route, discover, docker-build]
+    needs: [route, docker-build]
     # ...
 
   publish-draft:
