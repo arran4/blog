@@ -416,6 +416,7 @@
     "urlesc",
     "webmproject",
     "xerrors",
-    "yuin"
+    "yuin",
+    "golangcilint"
   ]
 }
