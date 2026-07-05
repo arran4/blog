@@ -29,6 +29,8 @@ name: CI/CD
 
 ---
 
+> **Note on Action Versions:** The GitHub Actions versions used in this guide (such as `actions/checkout@v7`, `actions/setup-go@v6`, or `golangci/golangci-lint-action@v9`) were current at the time of writing. You should always verify externally that you are using the latest available major versions by checking the respective action's GitHub repository README or the GitHub Marketplace API.
+
 ## Why one file (when multiple files are common)
 
 Multiple files can work, but they drift over time:
@@ -139,7 +141,7 @@ To avoid invalid manual-dispatch state combinations, keep a **single release con
       release_tag: ${{ steps.tag.outputs.release_tag }}
       next_version: ${{ steps.tag.outputs.next_version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Setup git-tag-inc
@@ -420,7 +422,7 @@ You are right that most tailoring should be done when installing the workflow. D
       has_dart_or_flutter_tests: ${{ steps.detect.outputs.has_dart_or_flutter_tests }}
       has_packaging: ${{ steps.detect.outputs.has_packaging }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Template-time toggles (set these once for the repo; avoid broad auto-detection)
       # EXPECT_GO=true
@@ -592,7 +594,7 @@ mkdir -p %{buildroot}/usr/bin
     if: ${{ needs.route.outputs.run_cleanup != 'true' && (needs.route.outputs.is_nightly == 'true' || needs.route.outputs.is_monthly == 'true') }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@v2
@@ -625,7 +627,7 @@ If a repo has `pom.xml`, add this lane. It is useful for polyglot repos where Ja
     if: ${{ needs.route.outputs.run_code_checks == 'true' && hashFiles('pom.xml') != '' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-java@v4
         with:
           java-version: '11'
@@ -704,7 +706,7 @@ jobs:
           sudo dpkg -i ${{ runner.temp }}/hugo.deb
       - name: Install Dart Sass
         run: sudo snap install dart-sass
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
       - id: pages
@@ -756,7 +758,7 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
     if: ${{ needs.discover.outputs.has_go == 'true' && needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
@@ -777,7 +779,7 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
         # Add windows-latest/macos-latest only for true platform-specific behavior.
         os: [ubuntu-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
@@ -791,7 +793,7 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
     if: ${{ needs.discover.outputs.has_go == 'true' && needs.route.outputs.run_code_checks == 'true' && needs.discover.outputs.profile == 'public' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
@@ -804,7 +806,7 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
     if: ${{ needs.discover.outputs.has_go == 'true' && github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' && inputs.allow_prs == true }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
@@ -847,7 +849,7 @@ Optional cross-OS lane (only when it really matters):
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
@@ -865,7 +867,7 @@ Optional cross-OS lane (only when it really matters):
     if: ${{ needs.discover.outputs.has_node == 'true' && needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -922,7 +924,7 @@ jobs:
   version-and-release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: actions/setup-node@v4
@@ -968,7 +970,7 @@ You asked to include Dart libs and Flutter libs specifically, with analysis.
     if: ${{ needs.discover.outputs.has_dart == 'true' && needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dart-lang/setup-dart@v1
       - run: dart --version
       - run: dart pub get
@@ -982,7 +984,7 @@ You asked to include Dart libs and Flutter libs specifically, with analysis.
     if: ${{ needs.discover.outputs.has_flutter == 'true' && needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -998,7 +1000,7 @@ You asked to include Dart libs and Flutter libs specifically, with analysis.
     if: ${{ needs.discover.outputs.has_flutter == 'true' && github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -1035,7 +1037,7 @@ You asked to include Dart libs and Flutter libs specifically, with analysis.
     if: ${{ needs.discover.outputs.has_flutter == 'true' && (needs.route.outputs.run_release == 'true' || needs.route.outputs.is_monthly == 'true' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'build')) }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -1083,7 +1085,7 @@ Copy/paste release prep snippet:
     if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: dart-lang/setup-dart@v1
@@ -1137,7 +1139,7 @@ Include both Qt/CMake and Makefile detection paths.
     if: ${{ needs.discover.outputs.has_qt_cpp == 'true' && needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: sudo apt-get update
       - run: sudo apt-get install -y cmake ninja-build build-essential qt6-base-dev qt6-tools-dev clang-format cppcheck
       - name: Lint style and static checks
@@ -1154,7 +1156,7 @@ Include both Qt/CMake and Makefile detection paths.
     if: ${{ needs.discover.outputs.has_make_c == 'true' && needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: make -j"$(nproc)" all
       - run: make test || true
 ```
@@ -1172,7 +1174,7 @@ You wanted this wired to real formatters and branch-name guessable behavior.
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' && inputs.allow_prs == true }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Go (if needed)
         if: ${{ needs.discover.outputs.has_go == 'true' }}
@@ -1248,7 +1250,7 @@ You wanted this wired to real formatters and branch-name guessable behavior.
     if: ${{ needs.route.outputs.run_cleanup == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PARENT_PR: ${{ github.event.pull_request.number }}
@@ -1270,7 +1272,7 @@ If a job runs commands like `git push`, `git push origin --delete`, `git commit`
 
 ```yaml
 steps:
-  - uses: actions/checkout@v4
+  - uses: actions/checkout@v7
   - run: git push origin --delete "$BRANCH"
 ```
 
@@ -1289,7 +1291,7 @@ If repo has Go + Dockerfile or standalone Docker service, build and (optionally)
     if: ${{ needs.discover.outputs.has_docker == 'true' && needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
       - uses: docker/build-push-action@v6
@@ -1308,7 +1310,7 @@ If repo has Go + Dockerfile or standalone Docker service, build and (optionally)
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
@@ -1345,7 +1347,7 @@ Copy/paste pattern:
     if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install shellcheck and zsh
         run: sudo apt-get update && sudo apt-get install -y shellcheck zsh
       - name: ShellCheck scripts
@@ -1370,7 +1372,7 @@ Copy/paste pattern:
     if: ${{ needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
@@ -1403,7 +1405,7 @@ Copy/paste pattern:
     if: ${{ needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build dotfiles archive
         run: |
           yes "" | sh -c "$(curl -fsLS get.chezmoi.io)" -- init --no-tty --debug --source=$PWD --apply
@@ -1449,7 +1451,7 @@ and skip binary-specific lanes like GoReleaser `builds`, app bundle packaging, H
     if: ${{ needs.discover.outputs.has_go == 'true' && needs.discover.outputs.has_goreleaser == 'true' && (((github.event_name == 'push') && startsWith(github.ref, 'refs/tags/v')) || (github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-'))) }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: actions/setup-go@v6
@@ -1630,7 +1632,7 @@ packaging/
     if: ${{ needs.discover.outputs.has_packaging == 'true' && needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: sudo apt-get update
       - run: sudo apt-get install -y devscripts debhelper build-essential fakeroot
       - name: Build source Debian package
@@ -1685,7 +1687,7 @@ mv /tmp/${APP_NAME}_${VERSION}-1* "$OUTDIR/" || true
     if: ${{ needs.discover.outputs.has_packaging == 'true' && needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: sudo apt-get update
       - run: sudo apt-get install -y rpm
       - name: Build source RPM
@@ -1738,7 +1740,7 @@ For Flutter/Qt desktop apps, keep a manual lane. If Flutter build artifacts were
     if: ${{ needs.route.outputs.run_release == 'true' && (needs.discover.outputs.has_flutter == 'true' || needs.discover.outputs.has_qt_cpp == 'true') }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: sudo apt-get update
       - run: sudo apt-get install -y flatpak flatpak-builder
       - name: Build Flatpak
@@ -1783,7 +1785,7 @@ Copy/paste CI step style:
       contents: write
       discussions: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Sync version source with highest existing tag first
@@ -1888,7 +1890,7 @@ This pattern from the referenced workflow is useful for repos that keep `-SNAPSH
     if: ${{ github.event_name == 'workflow_dispatch' && (startsWith(inputs.mode, 'release-') || inputs.mode == 'release-test') }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Bump to next version and open PR
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -2154,7 +2156,7 @@ Optional monthly cleanup (especially useful for private repos with low storage q
 5. Validate `lint-fix` creates/labels branches correctly.
 6. Validate `pull_request.closed` cleanup against test PRs.
 7. Validate monthly schedule and release lanes.
-8. Validate that every `git`-mutating job starts with `actions/checkout@v4`.
+8. Validate that every `git`-mutating job starts with `actions/checkout@v7`.
 
 ### README distribution/install checklist (do not skip)
 
