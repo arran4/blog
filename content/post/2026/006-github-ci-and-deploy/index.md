@@ -1121,8 +1121,8 @@ $HIGHEST_TAG" | sort -V | tail -n 1)
           git checkout -b "release/v$NEW_VERSION"
           git add pubspec.yaml
           git commit -m "Bump version to $NEW_VERSION"
-          git tag "v$NEW_VERSION"
-          git push origin "v$NEW_VERSION"
+          git tag -f "v$NEW_VERSION"
+          git push -f origin "v$NEW_VERSION"
           git push origin "release/v$NEW_VERSION"
 ```
 
@@ -1459,7 +1459,7 @@ and skip binary-specific lanes like GoReleaser `builds`, app bundle packaging, H
           go-version-file: go.mod
       - name: Tag commit for release (workflow_dispatch)
         if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') }}
-        run: git tag ${{ needs.prepare-release-tag.outputs.release_tag }}
+        run: git tag -f ${{ needs.prepare-release-tag.outputs.release_tag }}
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
@@ -1805,8 +1805,8 @@ Copy/paste CI step style:
           TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
         run: |
           set -euo pipefail
-          git tag "$TAG"
-          git push origin "$TAG" || { sleep 2; git push origin "$TAG"; }
+          git tag -f "$TAG"
+          git push -f origin "$TAG" || { sleep 2; git push -f origin "$TAG"; }
       - name: Create release with generated notes + discussion
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
