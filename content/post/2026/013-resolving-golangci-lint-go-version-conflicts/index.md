@@ -42,7 +42,7 @@ When this happens, here is the six-step process to get everything back in sync a
 | Component | Example Version | Verification Source |
 |---|---|---|
 | Go Language | `1.25.0` | [go.dev releases](https://go.dev/dl/) |
-| golangci-lint | `v1.64.8` | [golangci-lint releases](https://github.com/golangci/golangci-lint/releases) |
+| golangci-lint | `latest` | [golangci-lint releases](https://github.com/golangci/golangci-lint/releases) |
 | golangci-lint-action | `v9` | [golangci-lint-action releases](https://github.com/golangci/golangci-lint-action/releases) |
 
 Here is an example snippet showing an updated workflow configuration:
