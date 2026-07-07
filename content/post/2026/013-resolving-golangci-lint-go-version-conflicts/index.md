@@ -28,12 +28,22 @@ This error usually appears when your repository's Go version outpaces the Go ver
 
 When this happens, here is the six-step process to get everything back in sync and passing:
 
-1. **Delete golangci-lint.conf files:** Remove any existing `golangci-lint.conf` (or `.golangci.yml`) files to clear the slate.
-2. **Update the GitHub Action:** Update the `golangci-lint-action` reference in your workflow to the latest version (use external references to verify the most current version).
+1. **Delete old configurations:** Remove any existing `golangci-lint.conf` (or `.golangci.yml`) files to clear the slate.
+2. **Update the GitHub Action:** Update the `golangci-lint-action` reference in your workflow to the latest version. Verify current versions against their official sources:
+   - For `golangci-lint-action`, check the [official repository](https://github.com/golangci/golangci-lint-action/releases) (e.g. `v9`).
+   - For Go itself, verify the latest stable release at [go.dev](https://go.dev/dl/).
 3. **Upgrade Go everywhere to match:** Ensure your GitHub Actions workflows are using a `version-file: go.mod` (or similar) strategy to keep the Go version automatically in sync with the codebase.
-4. **Resolve issues iteratively:** Rerun `golangci-lint` (ensure it is the same version) in a loop to resolve issues. Do not create a new config file immediately; instead, attempt to solve all issues by fixing a couple of them in each loop until they are all resolved.
+4. **Resolve issues iteratively:** Rerun `golangci-lint` (ensure it is the same version) in a loop to resolve issues. Do not create a new config file immediately; instead, attempt to solve all issues by fixing a couple of them in each loop until they are all resolved. Note exceptions: If the project explicitly requires an older Go version for legacy compatibility, you should pin both the Go version and the `golangci-lint` binary version to compatible older releases instead of blindly upgrading to `latest`.
 5. **Format your code:** Run `go fmt ./...`.
 6. **Submit:** Once everything is green and formatted, submit your changes.
+
+### Version Reference Table
+
+| Component | Example Version | Verification Source |
+|---|---|---|
+| Go Language | `1.25.0` (or `stable`) | [go.dev releases](https://go.dev/dl/) |
+| golangci-lint | `v1.64.8` | [golangci-lint releases](https://github.com/golangci/golangci-lint/releases) |
+| golangci-lint-action | `v9` | [golangci-lint-action releases](https://github.com/golangci/golangci-lint-action/releases) |
 
 Here is an example snippet showing an updated workflow configuration:
 
