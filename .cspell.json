@@ -416,6 +416,9 @@
     "urlesc",
     "webmproject",
     "xerrors",
-    "yuin"
+    "yuin",
+    "sqflite",
+    "timezone",
+    "xanzy"
   ]
 }
