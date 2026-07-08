@@ -32,7 +32,7 @@ When upgrading a repository, always target the latest versions of the following 
 1. **Verify External Sources**: Always check external sources for the actual latest version (e.g., checking `github.com/actions/checkout` for the checkout action). LLM memory is often outdated or wrong and frequently overwrites defaults with older versions.
 2. **Local Environment Upgrades**: Ensure that the local LLM environment version is also upgraded to match the target versions. This is crucial for local testing. If it cannot be done locally for whatever reason, utilize the CI system for testing.
 3. **Enforce Minimum Requirements**: Minimum language requirements must be updated in the project's configuration files (e.g., updating the `go` directive in `go.mod`, or the Flutter SDK version range in `pubspec.yaml`) to enforce the upgrade.
-4. **GitHub Actions Constraints**: Check GitHub actions, all constants, and versions referred to. Ensure that, if possible, CI steps are bound to the versions specified in the code. For example, use `use-version-file: go.mod` instead of hardcoding a Go version in a GitHub Action, unless a hardcoded version is required for another specific reason (like regression testing, forward compatibility testing, matrix testing, etc.).
+4. **GitHub Actions Constraints**: Check GitHub actions, all constants, and versions referred to. Ensure that, if possible, CI steps are bound to the versions specified in the code. For example, use `go-version-file: go.mod` instead of hardcoding a Go version in a GitHub Action, unless a hardcoded version is required for another specific reason (like regression testing, forward compatibility testing, matrix testing, etc.).
 
 ## Upgrade Process and Testing
 
