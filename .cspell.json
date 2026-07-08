@@ -419,6 +419,9 @@
     "yuin",
     "sqflite",
     "timezone",
-    "xanzy"
+    "xanzy",
+    "golangcilint",
+    "repoless",
+    "mdtohtml"
   ]
 }
