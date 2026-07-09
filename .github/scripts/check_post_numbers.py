@@ -25,18 +25,13 @@ def get_local_posts():
             # Extract number from start of folder name, e.g., "001-Type-Switched-Variadic-System"
             match = re.match(r'^(\d+)-', post)
             if match:
-                number = match.group(1)
+                number = int(match.group(1))
                 posts[year].append((number, post))
 
     return posts
 
 def get_pr_files(repo, pr_number, token):
     url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}/files?per_page=100"
-    req = urllib.request.Request(url)
-    req.add_header('Authorization', f'token {token}')
-    req.add_header('Accept', 'application/vnd.github.v3+json')
-    req.add_header('User-Agent', 'check-post-numbers-script')
-
     files = []
     page = 1
     try:
@@ -60,11 +55,6 @@ def get_pr_files(repo, pr_number, token):
 
 def get_open_prs(repo, token):
     url = f"https://api.github.com/repos/{repo}/pulls?state=open&per_page=100"
-    req = urllib.request.Request(url)
-    req.add_header('Authorization', f'token {token}')
-    req.add_header('Accept', 'application/vnd.github.v3+json')
-    req.add_header('User-Agent', 'check-post-numbers-script')
-
     prs = []
     page = 1
     try:
@@ -95,7 +85,7 @@ def extract_post_info_from_path(path):
         if year.isdigit():
             match = re.match(r'^(\d+)-', folder)
             if match:
-                return year, match.group(1), folder
+                return year, int(match.group(1)), folder
     return None, None, None
 
 def main():
@@ -122,7 +112,7 @@ def main():
     current_pr_folders = set()
     for f in current_pr_files:
         year, number, folder = extract_post_info_from_path(f)
-        if year and number:
+        if year is not None and number is not None:
             current_pr_posts[(year, number)] = folder
             current_pr_folders.add(folder)
 
@@ -162,7 +152,7 @@ def main():
         pr_files = get_pr_files(repo, pr, token)
         for f in pr_files:
             year, number, folder = extract_post_info_from_path(f)
-            if year and number:
+            if year is not None and number is not None:
                 if (year, number) in current_pr_posts:
                     current_folder = current_pr_posts[(year, number)]
                     if current_folder != folder:

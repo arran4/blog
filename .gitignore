@@ -2,5 +2,5 @@
 /.idea
 *.iml
 /.hugo_build.lock
-.pyc
+*.pyc
 __pycache__
