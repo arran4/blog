@@ -39,7 +39,7 @@ Using sentinel errors allows callers to confidently check for specific failures 
 
 When an error occurs deep within a call stack, simply returning it up the chain strips away valuable context. When the error finally surfaces, it might just say `"no such file or directory"`, leaving you wondering *which* file and *why* it was being accessed.
 
-Go 1.13 introduced error wrapping using the `%w` verb in `fmt.Errorf`. This is crucial for building an informative trail.
+Go 1.13 introduced error wrapping using the `%w` verb in `fmt.Errorf`, and Go 1.20 added the ability to use multiple `%w` verbs in a single `fmt.Errorf` call. This is crucial for building an informative trail.
 
 ### The Rule of Thumb: Wrap Generously
 
@@ -49,7 +49,7 @@ Whenever you pass an error up the stack, wrap it with context about what you wer
 func processUserFile(filename string) error {
     file, err := os.Open(filename)
     if err != nil {
-        // We wrap the sentinel/os error and provide details
+        // We wrap the sentinel/os error and provide details using multiple %w verbs
         return fmt.Errorf("failed to open user config %w in %s: %w", ErrNotFound, filename, err)
     }
     defer file.Close()
@@ -122,7 +122,8 @@ func (e *UserError) Error() string {
     return fmt.Sprintf("HTTP %d - %s", e.StatusCode, e.Message)
 }
 
-// Unwrap allows errors.Is and errors.As to work with the wrapped error
+// Unwrap allows errors.Is and errors.As to work with the wrapped error.
+// If multiple errors were wrapped, Go 1.20+ supports returning a slice: func (e *UserError) Unwrap() []error
 func (e *UserError) Unwrap() error {
     return e.Err
 }
