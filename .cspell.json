@@ -419,6 +419,8 @@
     "yuin",
     "sqflite",
     "timezone",
-    "xanzy"
+    "xanzy",
+    "httperr",
+    "Println"
   ]
 }
