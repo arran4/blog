@@ -30,19 +30,6 @@ def get_local_posts():
 
     return posts
 
-def check_local_collisions(local_posts):
-    collision_found = False
-    for year, posts in local_posts.items():
-        seen = defaultdict(list)
-        for number, folder in posts:
-            seen[number].append(folder)
-
-        for number, folders in seen.items():
-            if len(folders) > 1:
-                print(f"Error: Local collision detected in year {year} for number {number}. Folders: {', '.join(folders)}")
-                collision_found = True
-    return collision_found
-
 def get_pr_files(repo, pr_number, token):
     url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}/files?per_page=100"
     req = urllib.request.Request(url)
@@ -78,10 +65,23 @@ def get_open_prs(repo, token):
     req.add_header('Accept', 'application/vnd.github.v3+json')
     req.add_header('User-Agent', 'check-post-numbers-script')
 
+    prs = []
+    page = 1
     try:
-        with urllib.request.urlopen(req) as response:
-            data = json.loads(response.read().decode())
-            return [pr['number'] for pr in data]
+        while True:
+            paginated_url = f"{url}&page={page}"
+            req = urllib.request.Request(paginated_url)
+            req.add_header('Authorization', f'token {token}')
+            req.add_header('Accept', 'application/vnd.github.v3+json')
+            req.add_header('User-Agent', 'check-post-numbers-script')
+
+            with urllib.request.urlopen(req) as response:
+                data = json.loads(response.read().decode())
+                if not data:
+                    break
+                prs.extend([pr['number'] for pr in data])
+                page += 1
+        return prs
     except Exception as e:
         print(f"Failed to fetch open PRs: {e}")
         return []
@@ -99,14 +99,6 @@ def extract_post_info_from_path(path):
     return None, None, None
 
 def main():
-    # 1. Check local collisions (handles main branch and this PR's own conflicts)
-    local_posts = get_local_posts()
-    local_collision = check_local_collisions(local_posts)
-
-    if local_collision:
-        print("Local collisions found. Exiting with error.")
-        sys.exit(1)
-
     repo = os.environ.get('GITHUB_REPOSITORY')
     token = os.environ.get('GITHUB_TOKEN')
 
@@ -124,19 +116,40 @@ def main():
 
     print(f"Current PR: {current_pr}")
 
-    # 2. Get files changed in current PR
+    # 1. Get files changed in current PR
     current_pr_files = get_pr_files(repo, current_pr, token)
     current_pr_posts = {} # (year, number) -> folder
+    current_pr_folders = set()
     for f in current_pr_files:
         year, number, folder = extract_post_info_from_path(f)
         if year and number:
             current_pr_posts[(year, number)] = folder
+            current_pr_folders.add(folder)
 
     if not current_pr_posts:
         print("No new/modified posts in this PR. Success.")
         sys.exit(0)
 
     print(f"Posts modified in this PR: {current_pr_posts}")
+
+    # 2. Check local collisions, but only fail if they involve folders modified in this PR
+    local_posts = get_local_posts()
+    local_collision_found = False
+    for year, posts in local_posts.items():
+        seen = defaultdict(list)
+        for number, folder in posts:
+            seen[number].append(folder)
+
+        for number, folders in seen.items():
+            if len(folders) > 1:
+                # Only care if this PR actually touched one of the colliding folders
+                if any(f in current_pr_folders for f in folders):
+                    print(f"Error: Local collision detected in year {year} for number {number}. Folders: {', '.join(folders)} (involves current PR)")
+                    local_collision_found = True
+
+    if local_collision_found:
+        print("Local collisions involving PR found. Exiting with error.")
+        sys.exit(1)
 
     # 3. Check against open PRs with lower numbers
     open_prs = get_open_prs(repo, token)
