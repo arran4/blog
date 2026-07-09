@@ -421,6 +421,8 @@
     "timezone",
     "xanzy",
     "httperr",
-    "Println"
+    "Println",
+    "debuggable",
+    "Debuggability"
   ]
 }
