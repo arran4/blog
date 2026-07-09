@@ -26,9 +26,11 @@ package user
 import "errors"
 
 // Sentinel errors
-var ErrNotFound = errors.New("user not found")
-var ErrInvalidEmail = errors.New("invalid email format")
-var ErrDatabaseConnection = errors.New("database connection failed")
+var (
+	ErrNotFound           = errors.New("user not found")
+	ErrInvalidEmail       = errors.New("invalid email format")
+	ErrDatabaseConnection = errors.New("database connection failed")
+)
 ```
 
 Using sentinel errors allows callers to confidently check for specific failures without parsing error strings (which is brittle and prone to breaking on typos or refactors).
