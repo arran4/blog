@@ -108,9 +108,13 @@ Furthermore, we can leverage implicit success assertions. If `expected/validatio
 ```go
 wantOutputBytes, err := fs.ReadFile(expectedFS, "validationerrors.txt")
 if err != nil {
-    // No expected output provided, meaning it should be valid
-    if len(allSuggestions) > 0 {
-        t.Fatalf("expected valid entry to have no suggestions, got %v for file %s", allSuggestions, tc)
+    if errors.Is(err, fs.ErrNotExist) {
+        // No expected output provided, meaning it should be valid
+        if len(allSuggestions) > 0 {
+            t.Fatalf("expected valid entry to have no suggestions, got %v for file %s", allSuggestions, tc)
+        }
+    } else {
+        t.Fatalf("unexpected error reading expected output: %v", err)
     }
 } else {
     // Expected output provided, assert against it
