@@ -20,15 +20,15 @@ This post establishes strict rules and alternative strategies to ensure complian
 
 ## The Problem: Training Data vs. Current Reality
 
-Older models like Gemini 3.1 have old versions built into their knowledge base. Even when instructed to use external references, they often default to pinning specific older patch versions (e.g., `v9.4.3`) instead of using generic major tags (like `@v9`) or the `latest` keyword, and they might inadvertently downgrade Go to match an older tool version.
+Older models (such as Gemini 1.5) have old versions built into their knowledge base. Even when instructed to use external references, they often default to pinning specific older patch versions (e.g., "v9.4.3") instead of using generic major tags (like "@v9") or the "latest" keyword, and they might inadvertently downgrade Go to match an older tool version.
 
 ## The Solution: Explicit Upgrade Instructions
 
 When resolving `golangci-lint` Go version mismatches, LLM agents must follow these exact directives:
 
-1.  **Delete Config Files:** Delete any existing `golangci-lint.conf` files to start fresh.
+1.  **Delete Config Files:** Delete any existing golangci-lint.conf, .golangci.yml, or .golangci.yaml files to start fresh.
 2.  **Update Actions to Latest:** Update `golangci-lint` and `golangci-lint-action` to the latest versions. Rely on external references. Use generic major version tags and the `latest` keyword. Do not over-specify version numbers.
-3.  **Upgrade Go (Never Downgrade):** Upgrade Go everywhere to match. Ensure GitHub Actions use `go-version-file: go.mod` (or similar) to keep versions in sync. Update the `go.mod` file to the appropriate newer version required by `golangci-lint` (e.g., 1.25 or 1.26). **Under no circumstances should you downgrade Go or any other dependency to resolve an issue.** If a downgrade seems necessary, submit a partial fix and let CI fail so the user can intervene.
+3.  **Upgrade Go (Never Downgrade):** Upgrade Go everywhere to match. Ensure GitHub Actions use "go-version-file: go.mod" (or similar) to keep versions in sync. Update the go.mod file to the appropriate newer version required by the project (e.g., 1.25 or 1.26). **Under no circumstances should you downgrade Go or any other dependency to resolve an issue.** If a downgrade seems necessary, submit a partial fix and let CI fail so the user can intervene.
 4.  **Iterative Resolution:** Rerun `golangci-lint` (ensuring it's the exact same version) in a loop to resolve issues. Do not create a new config file. Attempt to solve all issues iteratively (a couple each loop) until done.
 5.  **Format:** Run `go fmt ./...`.
 6.  **Submit:** Submit the clean, formatted code.
