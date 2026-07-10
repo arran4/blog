@@ -425,6 +425,16 @@
     "debuggable",
     "Debuggability",
     "repoless",
-    "mdtohtml"
+    "mdtohtml",
+    "proc",
+    "nodev",
+    "sysfs",
+    "tsysfs",
+    "nnodev",
+    "tproc",
+    "tvfat",
+    "validationerrors",
+    "Fallbacks",
+    "tsquashfs"
   ]
 }
