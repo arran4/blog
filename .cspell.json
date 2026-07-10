@@ -425,7 +425,6 @@
     "debuggable",
     "Debuggability",
     "repoless",
-    "mdtohtml",
-    "golangcilint"
+    "mdtohtml"
   ]
 }

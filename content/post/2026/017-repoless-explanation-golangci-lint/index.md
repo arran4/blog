@@ -27,11 +27,11 @@ run golangci-lint
 
 This specific error means you must perform the following steps to properly resolve it:
 
-1. **Delete configuration files:** Delete `golangcilint.conf` or other old configuration files.
+1. **Delete configuration files:** Delete `golangci-lint.conf` or other old configuration files.
 2. **Update dependencies:** Update `golangci-lint` and `golangci-lint-action` to the latest versions. Use external references to find the latest versions, do not default to old versions.
 3. **Upgrade Go everywhere:** Upgrade Go across the entire repository to match the required version. Ensure GitHub Actions are using `go-version-file: go.mod` (or similar) to keep versions in sync.
 4. **Resolve lint issues in a loop:** Rerun `golangci-lint` ensuring it uses the updated version. **Do not create a new config file.** Instead, attempt to solve all issues iteratively in a loop (resolving a couple of issues each loop) until done.
-5. **Format code:** Run `go fmt` on the codebase.
+5. **Format code:** Run `go fmt ./...` on the codebase.
 6. **Submit:** Once all steps are complete and the build passes, submit the changes.
 
 ### Example Correct GitHub Action Configuration
