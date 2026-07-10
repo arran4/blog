@@ -50,7 +50,9 @@ func processUserFile(filename string) error {
     file, err := os.Open(filename)
     if err != nil {
         // We wrap the sentinel/os error and provide details using multiple %w verbs
-        return fmt.Errorf("failed to open user config %w in %s: %w", ErrNotFound, filename, err)
+        // Note: os.Open's error often contains the filename already, but wrapping
+        // ensures we capture the context if the failure happens elsewhere (like read/close).
+        return fmt.Errorf("failed to open user config %w: %w", ErrNotFound, err)
     }
     defer file.Close()
 
@@ -59,10 +61,10 @@ func processUserFile(filename string) error {
 }
 ```
 
-Notice the pattern here: `fmt.Errorf("(details if necessary) %w (details if necessary in %s for files etc.): %w", sentinel error, nested error)`.
+Notice the pattern here: `fmt.Errorf("(details if necessary) %w: %w", sentinel error, nested error)`.
 
 **Desirable Consequences:**
-- **Debuggability:** When an error is logged at the top level, it prints a complete sentence explaining the failure chain: `"failed to open user config user not found in /etc/config.json: open /etc/config.json: no such file or directory"`.
+- **Debuggability:** When an error is logged at the top level, it prints a complete sentence explaining the failure chain: `"failed to open user config user not found: open /etc/config.json: no such file or directory"`.
 - **Traceability:** You can see exactly which layers of your application the error passed through.
 
 *Tip: Er on the side of adding more context rather than less.*
@@ -82,6 +84,23 @@ err := processUserFile("missing.json")
 if errors.Is(err, ErrNotFound) {
     // Handle the specific 'not found' case
     fmt.Println("Looks like the file is missing, falling back to defaults.")
+}
+```
+
+You can also use a `switch` statement when checking against multiple specific sentinels. This approach scales beautifully, especially when handling special cases like `io.EOF`:
+
+```go
+err := performAction()
+switch {
+case errors.Is(err, io.EOF):
+    // EOF often requires different handling, such as silently returning
+    // rather than treating it as a true error.
+    return nil
+case errors.Is(err, ErrNotFound):
+    return handleNotFound()
+case err != nil:
+    // A catch-all for any other error
+    return fmt.Errorf("unexpected error occurred: %w", err)
 }
 ```
 
