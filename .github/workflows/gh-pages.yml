@@ -11,6 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
+    permissions:
+      contents: write
+      discussions: write
     steps:
       - uses: actions/checkout@v2
         with:
@@ -32,3 +35,44 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
+
+      - name: Create Discussions for New Posts
+        if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+
+          if [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
+            echo "New branch pushed, skipping discussion creation."
+            exit 0
+          fi
+
+          # Find files that were Added (A) in this push
+          NEW_FILES=$(git diff --name-status ${{ github.event.before }} ${{ github.event.after }} | grep '^A' | grep 'content/post/.*/index.md' | awk '{print $2}' || true)
+
+          if [ -z "$NEW_FILES" ]; then
+            echo "No new blog posts found in this push."
+            exit 0
+          fi
+
+          for POST_FILE in $NEW_FILES; do
+            echo "Processing new post: $POST_FILE"
+
+            DIR_NAME=$(dirname "$POST_FILE")
+            YEAR=$(echo "$DIR_NAME" | cut -d'/' -f3)
+            SLUG=$(echo "$DIR_NAME" | cut -d'/' -f4)
+
+            PATHNAME="/blog/post/$YEAR/$SLUG/"
+
+            ACTUAL_TITLE=$(grep -m1 '^title:' "$POST_FILE" | sed -E "s/^title:[[:space:]]*['\"]?(.*[^'\"])['\"]?[[:space:]]*$/\1/")
+            DISCUSSION_TITLE="$ACTUAL_TITLE - $PATHNAME"
+
+            echo "Creating discussion for: $DISCUSSION_TITLE"
+
+            gh discussion create \
+              --repo ${{ github.repository }} \
+              --category "Announcements" \
+              --title "$DISCUSSION_TITLE" \
+              --body "A new blog post has been published: **$ACTUAL_TITLE**! @arran4"
+          done
