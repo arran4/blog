@@ -420,7 +420,6 @@
     "sqflite",
     "timezone",
     "xanzy",
-    "golangcilint",
     "repoless",
     "mdtohtml"
   ]
