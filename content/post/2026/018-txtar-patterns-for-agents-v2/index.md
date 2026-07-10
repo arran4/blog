@@ -78,6 +78,7 @@ Example:
 
 ```txt
 test: trim trailing spaces in mixed indentation
+Ensures nearest config wins over parent defaults.
 
 -- input.txt --
 a
@@ -105,6 +106,12 @@ Example:
 
 ```txt
 test: recursive editorconfig inference with override
+Ensures nearest config wins over parent defaults.
+-- test-options.json --
+{"run_checks": ["indentation"]}
+
+-- input.json --
+{"data": true}
 
 -- fs/src/main.go --
 package main
@@ -207,8 +214,8 @@ Now, a standard valid case can be incredibly concise:
 
 ```txt
 test: valid swap partition entry
-
 Ensures that correctly formatted swap fstab entries pass validation.
+
 -- input/etc/fstab --
 UUID=ccd57c54-3caf-47ba none swap defaults 0 0
 ```

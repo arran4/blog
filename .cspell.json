@@ -434,6 +434,7 @@
     "tproc",
     "tvfat",
     "validationerrors",
-    "Fallbacks"
+    "Fallbacks",
+    "tsquashfs"
   ]
 }
