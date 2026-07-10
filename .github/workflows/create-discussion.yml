@@ -1,0 +1,66 @@
+name: Create Discussion for New Posts
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'content/post/**'
+
+jobs:
+  create-discussion:
+    runs-on: ubuntu-latest
+    permissions:
+      discussions: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history to safely handle pushes with multiple commits
+
+      - name: Create Discussions for New Posts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+
+          if [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
+            # If it's a new branch, compare with its parent or just don't try to find "new" files here
+            echo "New branch pushed, skipping."
+            exit 0
+          fi
+
+          # Find files that were Added (A) in this push
+          NEW_FILES=$(git diff --name-status ${{ github.event.before }} ${{ github.event.after }} | grep '^A' | grep 'content/post/.*/index.md' | awk '{print $2}' || true)
+
+          if [ -z "$NEW_FILES" ]; then
+            echo "No new blog posts found in this push."
+            exit 0
+          fi
+
+          for POST_FILE in $NEW_FILES; do
+            echo "Processing new post: $POST_FILE"
+
+            # Extract directory name which will be used for the path
+            DIR_NAME=$(dirname "$POST_FILE")
+
+            # Extract path segments: content/post/YEAR/SLUG
+            YEAR=$(echo "$DIR_NAME" | cut -d'/' -f3)
+            SLUG=$(echo "$DIR_NAME" | cut -d'/' -f4)
+
+            PATHNAME="/blog/post/$YEAR/$SLUG/"
+
+            # Extract the actual title, being careful not to match trailing quotes
+            ACTUAL_TITLE=$(grep -m1 '^title:' "$POST_FILE" | sed -E "s/^title:[[:space:]]*['\"]?(.*[^'\"])['\"]?[[:space:]]*$/\1/")
+            DISCUSSION_TITLE="$ACTUAL_TITLE - $PATHNAME"
+
+            echo "Creating discussion for: $DISCUSSION_TITLE"
+
+            gh discussion create \
+              --repo ${{ github.repository }} \
+              --category "Announcements" \
+              --title "$DISCUSSION_TITLE" \
+              --body "A new blog post has been published: **$ACTUAL_TITLE**! @arran4"
+          done
