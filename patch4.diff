@@ -1,0 +1,30 @@
+--- content/post/2026/018-txtar-patterns-for-agents-v2/index.md
++++ content/post/2026/018-txtar-patterns-for-agents-v2/index.md
+@@ -7,9 +7,29 @@
+ ---
+
+ I use `txtar` as a practical test and fixture format across multiple repositories.
+-In a [previous post](/blog/post/2026/004-txtar-patterns-for-agents/), I laid out my reference for how I expect agents (and future me) to structure and evolve txtar-based systems.
++This post is my updated v2 reference for how I expect agents (and future me) to structure
++and evolve txtar-based systems.
++
++Repositories discussed:
++
++- `arran4/golang-rcs` (`testdata/txtar`)
++- `arran4/golang-diff` (`pkg/diff/testdata`)
++- `arran4/editorconfig-guesser` (`testdata`)
++- Related pattern: `arran4/goa4web` templates (`core/templates`)
++
++The core theme is that there is a **range of sophistication**:
++
++1. Simple input/output data pairs
++2. Case metadata + descriptions
++3. Full scenario definitions with options and assertions
+
+ Since then, the approach has evolved, specifically when dealing with larger test suites and complex context mocking (like validating `fstab` entries against a mock `/proc/filesystems`). This post covers the iteration of these patterns to scale better, as demonstrated by recent pull requests.
++
++For advanced use cases requiring programmatic modification of archives or a writable `fs.FS` interface, you can use the fork [`github.com/arran4/txtar`](https://github.com/arran4/txtar). However, it should only be used when it provides a clear benefit over the standard [`golang.org/x/tools/txtar`](https://pkg.go.dev/golang.org/x/tools/txtar) tooling and library.
++
++## Pattern 1: simple pairs (minimum viable structure)
++
++[... continuing the merge ...]

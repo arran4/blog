@@ -1,3 +1,8 @@
+#!/bin/bash
+# First, let's just directly overwrite 018 by combining the original 004 content
+# with the new Iteration 1-3 content injected logically.
+
+cat << 'INNER_EOF' > content/post/2026/018-txtar-patterns-for-agents-v2/index.md
 ---
 title: "Txtar Test Systems in Practice: Iterating to Scale (v2)"
 date: 2026-02-17T00:00:00+00:00
@@ -476,3 +481,4 @@ When I ask for txtar updates, optimize for:
 
 If there’s a trade-off, choose explicit structure over clever compactness.
 That pays off when the fixture corpus gets large.
+INNER_EOF
