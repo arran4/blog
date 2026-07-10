@@ -2,6 +2,8 @@
 
 I guess always under development.
 
+This blog is mostly used for agent prompt templates.
+
 Found at:
 
 https://arran4.github.io/blog/
