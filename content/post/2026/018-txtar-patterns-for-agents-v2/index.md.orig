@@ -54,9 +54,6 @@ func TestRules(t *testing.T) {
         return nil
     })
     // ...
-    if err != nil {
-        t.Fatalf("failed to walk testdata: %v", err)
-    }
     sort.Strings(cases)
 
     for _, tc := range cases {
