@@ -47,7 +47,6 @@ package dataformats
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"myapp/fsys" // Your custom FS interface package
 )
