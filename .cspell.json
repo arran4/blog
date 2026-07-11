@@ -442,6 +442,10 @@
     "FODMAP",
     "Pandoc",
     "xelatex",
-    "EPUB"
+    "EPUB",
+    "oneline",
+    "texlive",
+    "xetex",
+    "reimplementing"
   ]
 }
