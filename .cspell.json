@@ -438,6 +438,9 @@
     "tsquashfs",
     "dataformats",
     "myapp",
-    "RDONLY"
+    "RDONLY",
+    "FODMAP",
+    "Pandoc",
+    "xelatex"
   ]
 }
