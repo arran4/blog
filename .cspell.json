@@ -441,6 +441,7 @@
     "RDONLY",
     "FODMAP",
     "Pandoc",
-    "xelatex"
+    "xelatex",
+    "EPUB"
   ]
 }
