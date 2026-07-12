@@ -54,7 +54,7 @@ fi
 
 ### 3. Compiling the Artifacts
 
-If changes exist (`if: steps.check_updates.outputs.has_updates == 'true'`), you build the artifact. This could involve Pandoc for EPUBs, `xelatex` for PDFs, or custom scripts for HTML generation.
+If changes exist (`if: steps.check_updates.outputs.has_updates == 'true'`), you build the artifact. This could involve Pandoc for EPUBs, `xelatex` for PDFs, `wkhtmltopdf`, Hugo, or custom scripts for HTML/Markdown generation.
 
 ```yaml
 - name: Generate PDF
@@ -87,6 +87,10 @@ Beyond public-facing content, this automation is incredible for personal metrics
 
 - **Monthly Reports:** Run a Python script to gather your data and use the GitHub CLI (`gh issue create`) or the REST API to generate a report issue. This works well for private projects, scheduled right when your monthly data resets.
 - **Automated READMEs:** Run a script that regenerates a table in your `README.md`. Use `git diff` to detect changes, and if changes exist, use `peter-evans/create-pull-request` to automatically submit a PR.
+
+## Setting Expectations with Users
+
+When transitioning to this model, it is crucial to update your repository's documentation. The `README.md` should be updated to ask users to subscribe to updates using GitHub's **Watch -> Custom -> Releases** feature, rather than just starring the repository. This clarifies how they can actually receive the issues you are generating.
 
 ## The Importance of SEO and Accessibility
 

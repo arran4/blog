@@ -447,6 +447,7 @@
     "texlive",
     "xetex",
     "reimplementing",
-    "timeframe"
+    "timeframe",
+    "wkhtmltopdf"
   ]
 }
