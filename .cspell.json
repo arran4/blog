@@ -438,6 +438,16 @@
     "tsquashfs",
     "dataformats",
     "myapp",
-    "RDONLY"
+    "RDONLY",
+    "FODMAP",
+    "Pandoc",
+    "xelatex",
+    "EPUB",
+    "oneline",
+    "texlive",
+    "xetex",
+    "reimplementing",
+    "timeframe",
+    "wkhtmltopdf"
   ]
 }
