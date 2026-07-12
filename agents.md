@@ -26,3 +26,5 @@ Run the following command:
 ```bash
 npx cspell --config .cspell.json "README.md" "content/**/*.md"
 ```
+
+When adding new words to the custom dictionary in `.cspell.json`, ensure that the `words` array remains alphabetically sorted (case-insensitive) and does not contain duplicates.
