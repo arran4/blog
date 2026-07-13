@@ -1,5 +1,5 @@
 ---
-title: "Why LLMs Should Expand Regex and Aim for Exhaustive Test Coverage"
+title: "Why LLMs Should Conditionally Avoid Regex and Aim for Exhaustive Test Coverage"
 date: 2026-07-12T00:00:00Z
 draft: false
 tags:
