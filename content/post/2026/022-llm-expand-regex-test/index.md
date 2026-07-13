@@ -2,8 +2,15 @@
 title: "Why LLMs Should Expand Regex and Aim for Exhaustive Test Coverage"
 date: 2026-07-12T00:00:00Z
 draft: false
-tags: ["llm", "testing", "best-practices", "regex", "code-generation"]
-categories: ["llms", "engineering"]
+tags:
+  - llm
+  - testing
+  - best-practices
+  - regex
+  - code-generation
+categories:
+  - llms
+  - engineering
 ---
 
 When generating code, Large Language Models (LLMs) often default to using Regular Expressions (regex) for string parsing and validation tasks. While regex is a powerful tool for human developers aiming for concise code, it is rarely the optimal choice for LLMs writing production-grade software.
@@ -54,7 +61,7 @@ By generating a large table of inputs and expected outputs, the LLM proves that 
 
 If you want an LLM to adhere to this pattern, provide it with the following instructions in your prompt or agent configuration:
 
-```text
+```markdown
 # String Parsing and Validation Guidelines
 
 1. **No Regular Expressions:** Do not use regular expressions (`regexp`, `re`, etc.) for string parsing, validation, or manipulation.
