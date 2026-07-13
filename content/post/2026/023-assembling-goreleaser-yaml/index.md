@@ -28,6 +28,28 @@ builds:
       - linux
       - windows
       - darwin
+      - freebsd
+      - openbsd
+      - netbsd
+      - plan9
+      - illumos
+    goarch:
+      - amd64
+      - 386
+      - arm
+      - arm64
+      - mips
+      - mipsle
+      - mips64
+      - mips64le
+      - ppc64
+      - ppc64le
+      - s390x
+      - riscv64
+    goarm:
+      - 5
+      - 6
+      - 7
 ```
 
 ### Build Flags and Variables
@@ -42,7 +64,7 @@ Remember, the goal is always the maximum number of targets. Specify different ar
 Running `go mod tidy` shouldn't be part of the GoReleaser process. It puts the repository in an uncommitted state, which GoReleaser is highly sensitive to. This task belongs in the CI system, ideally opening a PR with the updates if possible (the CI system can be updated to add that functionality).
 
 ### Splitting Complex Builds
-Because I'm not a professional GoReleaser configuration expert, I often have to split CGO or library-based configurations into separate, OS-specific files (e.g., `.goreleaser-linux.yaml`, `.goreleaser-windows.yaml`) and update the CI accordingly. It's not ideal, but it's a practical workaround for complex scenarios.
+I often have to split CGO or library-based configurations into separate, OS-specific files (e.g., `.goreleaser-linux.yaml`, `.goreleaser-windows.yaml`) and update the CI accordingly. It's not ideal, but it's a practical workaround for complex scenarios.
 
 ## Packaging (nFPM)
 
@@ -66,6 +88,8 @@ nfpms:
       - deb
       - rpm
       - apk
+      - archlinux
+      - termux
     contents:
       - src: README.md
         dst: /usr/share/doc/my-project/README.md
