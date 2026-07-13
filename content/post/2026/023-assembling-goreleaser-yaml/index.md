@@ -78,6 +78,19 @@ When configuring nFPMs, keep the following in mind:
 *   **Explicit Inclusions:** Explicitly include the `README` and `LICENSE`. The license should match the project license.
 
 ```yaml
+brews:
+  - name: my-project
+    homepage: "https://github.com/arran4/my-project"
+    description: "A description of the project"
+    repository:
+      owner: arran4
+      name: homebrew-my-project
+    commit_author:
+      name: arran4
+      email: arran4@users.noreply.github.com
+    test: |
+      system "#{bin}/my-project --version"
+
 nfpms:
   - id: default
     homepage: "https://github.com/arran4/my-project"
@@ -123,6 +136,21 @@ dockers:
       - "--label=org.opencontainers.image.version={{.Version}}"
 ```
 
+
+## Snapcraft
+
+For snapcraft, I usually specify the summary and description, and set the confinement to strict.
+
+```yaml
+snapcrafts:
+  - summary: "A description of the project"
+    description: |
+      A longer description of the project.
+      This can span multiple lines.
+    publish: true
+    confinement: strict
+```
+
 ## Future / TODOs
 
 There is a long list of targets and features I want to integrate in the future to maximize distribution:
@@ -135,4 +163,4 @@ There is a long list of targets and features I want to integrate in the future t
 *   **Release Notes:** I like the default Git release notes, but combining them with custom changelogs is something I would like to start doing.
 *   **Gentoo/ebuilds:** I am also doing ebuilds/Gentoo, which should be used as a sample for when it's working and accepted.
 
-A good example of where I'm starting to use `homebrew_casks` can be seen in my newer configurations, which should set the template going forward.
+For Homebrew Casks, a good example of where I'm starting to use `homebrew_casks` can be seen in my newer configurations, which should set the template going forward.
