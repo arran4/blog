@@ -95,6 +95,10 @@ nfpms:
         dst: /usr/share/doc/my-project/README.md
       - src: LICENSE
         dst: /usr/share/doc/my-project/LICENSE
+      - src: my-project.service
+        dst: /etc/systemd/system/my-project.service
+      - src: my-project.rc.d
+        dst: /usr/local/etc/rc.d/my-project
 ```
 
 ## Docker
