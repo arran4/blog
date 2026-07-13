@@ -15,13 +15,18 @@ categories:
 
 When generating code, Large Language Models (LLMs) often default to using Regular Expressions (regex) for string parsing and validation tasks. While regex is a powerful tool for human developers aiming for concise code, it is rarely the optimal choice for LLMs writing production-grade software.
 
-Instead of writing dense regular expressions, LLMs should expand logic into explicit, step-by-step procedural code and accompany that code with comprehensive, table-driven unit tests.
+Instead of always defaulting to dense regular expressions, LLMs should often expand logic into explicit, step-by-step procedural code and accompany that code with comprehensive, table-driven unit tests.
 
 Here is a full justification, followed by instructions you can provide to an LLM to enforce this pattern.
 
-## Why LLMs Should Avoid Regex
+## When and Why LLMs Should Prefer Expanded Code
 
-### 1. LLMs Don't Need to Optimize for Brevity
+### 1. Nuance and Performance
+It is important to acknowledge nuance: regular expressions are sometimes the better choice. For instance, simple regexes without too many alternate paths of significant difference can actually be easier to read as a regex than as expanded procedural code. Furthermore, if a piece of code is a performance hot spot and loops repeatedly, a well-crafted regex engine can sometimes be more efficient than interpreted custom logic. However, the more complex the parsing logic or the hotter the loop, the more it leans toward needing highly optimized, custom explicit code.
+
+Since coding LLMs are highly capable (regularly passing LeetCode and HackerRank challenges), they are perfectly equipped to write this highly optimized, custom explicit code when instructed. The choice often comes down to readability, reliability, and predictability.
+
+### 2. LLMs Don't Need to Optimize for Brevity
 Human developers use regex because it saves keystrokes and condensing complex logic into a single line can feel satisfying. However, an LLM doesn't experience fatigue from typing. Writing 50 lines of explicit string-parsing logic takes an LLM the same minimal effort as writing a single, dense regex string.
 
 ### 2. Readability and Maintainability
@@ -37,12 +42,14 @@ When logic is expanded out, you can return specific, actionable errors at every 
 
 This granularity significantly improves the user experience and makes debugging system failures much easier.
 
-### 4. Deterministic Execution and ReDoS Vulnerabilities
+### 5. Deterministic Execution and ReDoS Vulnerabilities
 Complex regular expressions are prone to ReDoS (Regular Expression Denial of Service) attacks. Catastrophic backtracking can cause a regex engine to consume massive amounts of CPU when processing specific malformed strings. Expanded, imperative parsing logic (e.g., using linear state machines or simple string operations) operates in predictable time complexity, eliminating this entire class of vulnerability.
 
 ## The Importance of Comprehensive Testing
 
-LLMs excel at pattern recognition, making them perfectly suited to generate extensive test data.
+Regardless of whether you use a regular expression or expanded procedural code, exhaustive testing is absolutely mandatory. Tests serve as runnable documentation, helping humans quickly understand exactly what the parsing logic is intended to do and how it handles edge cases.
+
+LLMs excel at pattern recognition, making them perfectly suited to generate this extensive test data.
 
 ### Gleaning Samples for Exhaustive Coverage
 When an LLM is tasked with parsing, it should generate a comprehensive suite of unit tests. Because LLMs have vast contextual knowledge, they can "glean" edge cases that a human might forget.
@@ -64,8 +71,8 @@ If you want an LLM to adhere to this pattern, provide it with the following inst
 ```markdown
 # String Parsing and Validation Guidelines
 
-1. **No Regular Expressions:** Do not use regular expressions (`regexp`, `re`, etc.) for string parsing, validation, or manipulation.
-2. **Expand Logic:** Write explicit, step-by-step procedural logic to parse or validate strings. Use standard library string manipulation functions (e.g., split, contains, index, character iteration).
+1. **Prefer Expanded Logic Over Regex:** Avoid using complex regular expressions for parsing, validation, or manipulation unless the regex is trivially simple and straightforward.
+2. **Expand Logic:** Write explicit, step-by-step procedural logic to parse or validate strings. Use standard library string manipulation functions (e.g., split, contains, index, character iteration) or highly optimized custom code, especially for hot spots.
 3. **Granular Errors:** Your expanded logic must return specific, descriptive errors indicating exactly *why* parsing or validation failed (e.g., "invalid character '!' at position 4").
 4. **Exhaustive Unit Testing:** You must write table-driven unit tests for all parsing and validation logic.
 5. **Glean Edge Cases:** Use your extensive knowledge to generate a massive variety of test cases. Do not just test the happy path. Aim for complete test coverage by including edge cases, unusual but valid formats, malformed data, empty strings, boundary conditions, and malicious inputs.
