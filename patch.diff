@@ -1,0 +1,18 @@
+--- layouts/partials/post/meta.html
++++ layouts/partials/post/meta.html
+@@ -43,6 +43,13 @@
+             data-url="{{ .Permalink }}"
+           ></span> {{ i18n "comments" }}
+       {{ end -}}
++      {{ if .Site.Params.giscus.enable }}
++        - <a href="https://github.com/{{ .Site.Params.giscus.repo }}/discussions?discussions_q={{ .RelPermalink }}">Discussion</a>
++      {{ end }}
++      </span>
++    {{- else }}
++      {{ if .Site.Params.giscus.enable }}
++        <span class="post-meta-more"><a href="https://github.com/{{ .Site.Params.giscus.repo }}/discussions?discussions_q={{ .RelPermalink }}">Discussion</a></span>
++      {{ end }}
+-      </span>
+     {{- end }}
+
+     {{ with .Params.categories -}}
