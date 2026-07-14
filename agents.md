@@ -21,7 +21,11 @@ done
 
 ## Nested Directories
 
-Hugo requires `_index.md` files in nested content directories (like `content/post/<year>/`) to render category listing pages correctly. If you create a new year directory or any nested directory, you must also create an `_index.md` file within it containing basic front matter (e.g., `title: <Year> Posts`).
+Hugo requires `_index.md` files in nested content directories (like `content/post/<year>/`) to render category listing pages correctly. If you create a new year directory or any nested directory, you must also create an `_index.md` file within it containing basic front matter (e.g., `title: <Year> Posts`). You can easily create this using a one-liner like:
+
+```bash
+echo -e "---\ntitle: 2027 Posts\n---" > content/post/2027/_index.md
+```
 
 You should verify this by running:
 ```bash
