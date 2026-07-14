@@ -1,6 +1,6 @@
 ---
 title: "Git Bash and WSL on Windows Terminal Preview vs IntelliJ"
-date: 2022-06-14T10:03:29+10:00
+date: 2022-06-14T10:10:52+10:00
 draft: false
 tags: ["windows", "issues", "IntelliJ", "WSL", "git"]
 categories: ["complaints"]

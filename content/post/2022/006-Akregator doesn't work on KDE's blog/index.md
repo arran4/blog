@@ -1,6 +1,6 @@
 ---
 title: "Akregator Doesn't Work on KDE's Blog"
-date: 2022-06-01T23:40:45+10:00
+date: 2022-06-01T23:43:26+10:00
 draft: false
 tags: ["kde", "issues"]
 categories: ["gripes"]

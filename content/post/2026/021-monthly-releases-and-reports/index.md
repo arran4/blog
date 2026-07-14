@@ -1,6 +1,6 @@
 ---
 title: "Automating Monthly Releases and Reports for GitHub Projects"
-date: 2026-07-11T00:00:00Z
+date: 2026-07-12T16:20:36+10:00
 draft: false
 tags: ["github-actions", "automation", "reporting", "static-sites", "seo"]
 categories: ["automation", "best-practices"]

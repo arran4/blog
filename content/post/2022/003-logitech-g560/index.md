@@ -1,6 +1,6 @@
 ---
 title: "Logitech G560"
-date: 2022-04-26 23:16:23+10:00
+date: 2022-04-26T23:16:45+10:00
 draft: false 
 tags: ["review", "complaints", "logitech"]
 categories: ["review"]

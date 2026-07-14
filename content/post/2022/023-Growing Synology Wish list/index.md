@@ -1,6 +1,6 @@
 ---
 title: "Growing Synology Wish List"
-date: 2022-09-25T14:17:40+10:00
+date: 2022-09-25T15:39:05+10:00
 draft: false
 tags: ["wish list"]
 categories: ["wish list", "synology"]

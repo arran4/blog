@@ -1,6 +1,6 @@
 ---
 title: "JetBrains and SSH Config Files"
-date: 2022-09-25T13:39:00+10:00
+date: 2022-09-25T14:03:15+10:00
 draft: false
 tags: ["complaints"]
 categories: ["complaints"]

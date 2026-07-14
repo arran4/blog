@@ -1,6 +1,6 @@
 ---
 title: "Status Bar in Browsers"
-date: 2022-08-20T18:27:56+10:00
+date: 2022-08-20T18:33:55+10:00
 draft: false
 tags: ["rants"]
 categories: ["UI"]

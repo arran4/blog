@@ -1,6 +1,6 @@
 ---
 title: "GitHub Actions + golangci-lint: Go Version Compatibility Matrix (with Copy/Paste Workflows)"
-date: 2026-02-14T00:00:00+00:00
+date: 2026-02-18T18:55:04+11:00
 draft: false
 tags: ["go", "golangci-lint", "github-actions", "ci", "linting"]
 categories: ["reference", "devops"]

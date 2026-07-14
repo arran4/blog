@@ -1,6 +1,6 @@
 ---
 title: "Synology Chat and Open Standards"
-date: 2024-06-18T13:11:41+10:00
+date: 2024-06-18T13:14:04+10:00
 draft: false
 tags: ["untagged"]
 categories: ["uncategorized"]

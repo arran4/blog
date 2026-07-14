@@ -1,6 +1,6 @@
 ---
 title: "Synology Mail Reports Caught by Synology Spam Detector -- Why!?"
-date: 2022-11-04T08:48:53+11:00
+date: 2022-11-04T08:52:41+11:00
 draft: false
 tags: ["synology"]
 categories: ["bugs"]

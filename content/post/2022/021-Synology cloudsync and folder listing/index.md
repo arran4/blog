@@ -1,6 +1,6 @@
 ---
 title: "Synology Cloudsync and Folder Listing"
-date: 2022-08-21T08:51:02+10:00
+date: 2022-08-21T08:52:13+10:00
 draft: false
 tags: ["synology"]
 categories: ["ui"]

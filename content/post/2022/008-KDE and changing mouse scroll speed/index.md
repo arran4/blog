@@ -1,6 +1,6 @@
 ---
 title: "KDE and Changing Mouse Scroll Speed"
-date: 2022-06-02T22:02:12+10:00
+date: 2022-06-02T22:10:53+10:00
 draft: false
 tags: ["kde", "gripe"]
 categories: ["kde"]

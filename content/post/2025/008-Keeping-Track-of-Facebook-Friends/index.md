@@ -1,6 +1,6 @@
 ---
 title: "Keeping Track of Friends on Facebook When Their Accounts Keep Disappearing"
-date: 2025-07-21T12:00:00+10:00
+date: 2025-10-13T14:57:33+11:00
 draft: false
 tags: ["facebook", "automation", "personal-process"]
 categories: ["notes"]

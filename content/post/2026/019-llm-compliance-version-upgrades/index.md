@@ -1,6 +1,6 @@
 ---
 title: "LLM Compliance: Handling Version Upgrades and golangci-lint"
-date: "2026-07-10T09:00:00Z"
+date: 2026-07-11T13:21:18+10:00
 draft: false
 tags:
   - llm

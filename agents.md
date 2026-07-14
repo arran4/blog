@@ -45,3 +45,7 @@ npx cspell --config .cspell.json "README.md" "content/**/*.md"
 ```
 
 When adding new words to the custom dictionary in `.cspell.json`, ensure that the `words` array remains alphabetically sorted (case-insensitive) and does not contain duplicates.
+
+## Post Dates
+
+When creating or modifying new articles (posts) in the blog, ensure that the `date` field in the frontmatter is updated to the current date/time on every commit. Continue to update this date on each commit until the article is first merged into the blog repository (i.e. to keep the published date matching the merge date). Once an article has been merged, its `date` should not be updated further.

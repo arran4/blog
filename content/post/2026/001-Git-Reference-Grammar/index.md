@@ -1,6 +1,6 @@
 ---
 title: "Git Refs and Refspecs: Grammar Reference"
-date: 2026-01-05T23:59:52+00:00
+date: 2026-01-06T12:20:32+11:00
 draft: false
 tags: ["git", "refspec", "references"]
 categories: ["reference"]

@@ -1,6 +1,6 @@
 ---
 title: "The Ultimate Single GitHub Actions CI/CD File: Go, Node, Flutter, Dart, Qt/C++, Docker, and Packaging"
-date: 2026-03-04T00:00:00+00:00
+date: 2026-05-31T22:07:22+10:00
 draft: false
 tags: ["github-actions", "ci", "cd", "go", "node", "dart", "flutter", "qt", "c++", "docker", "goreleaser", "packaging"]
 categories: ["devops", "reference", "automation"]

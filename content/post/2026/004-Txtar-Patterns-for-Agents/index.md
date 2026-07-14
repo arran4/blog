@@ -1,6 +1,6 @@
 ---
 title: "Txtar Test Systems in Practice: Data, Scenarios, and Embedded Walkers"
-date: 2026-02-16T00:00:00+00:00
+date: 2026-02-18T19:00:01+11:00
 draft: false
 tags: ["go", "testing", "txtar", "embed", "golden-files", "agents"]
 categories: ["reference", "testing"]

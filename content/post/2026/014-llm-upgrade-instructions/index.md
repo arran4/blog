@@ -1,6 +1,6 @@
 ---
 title: "LLM Instructions: Upgrading Projects"
-date: "2026-07-07T12:00:00Z"
+date: 2026-07-08T11:33:21+10:00
 draft: false
 tags:
   - llm

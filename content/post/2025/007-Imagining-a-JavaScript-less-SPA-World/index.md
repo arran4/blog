@@ -1,6 +1,6 @@
 ---
 title: "Imagining a JavaScript-less SPA World"
-date: 2025-07-17T12:00:00+10:00
+date: 2025-07-21T10:25:01+10:00
 draft: false
 tags: ["javascript", "webdev", "standards"]
 categories: ["notes"]

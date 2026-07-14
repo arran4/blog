@@ -1,6 +1,6 @@
 ---
 title: "Update to Sieve Deployment Workflow"
-date: 2025-06-09T10:00:00+10:00
+date: 2025-06-13T23:54:19+10:00
 draft: false
 tags: ["sieve", "jmap", "stalwart"]
 categories: ["tutorial"]

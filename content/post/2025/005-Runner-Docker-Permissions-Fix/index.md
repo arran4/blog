@@ -1,6 +1,6 @@
 ---
 title: "Fixing Docker Permissions in the Self-Hosted Runner Image"
-date: 2025-07-08T15:00:00+10:00
+date: 2025-07-08T20:26:26+10:00
 draft: false
 tags: ["github-actions", "docker", "devops"]
 categories: ["devops"]

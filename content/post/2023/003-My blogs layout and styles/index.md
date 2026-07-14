@@ -1,6 +1,6 @@
 ---
 title: "My Blogs Layout and Styles"
-date: 2023-03-07T00:14:08+11:00
+date: 2023-03-07T00:14:40+11:00
 draft: false
 tags: ["untagged"]
 categories: ["uncategorized"]

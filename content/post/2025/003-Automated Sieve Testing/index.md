@@ -1,6 +1,6 @@
 ---
 title: "Automated Sieve Testing with Cargo"
-date: 2025-06-18T12:25:48+10:00
+date: 2025-06-18T13:36:23+10:00
 draft: false
 tags: ["sieve", "rust", "testing"]
 categories: ["tutorial"]

@@ -1,6 +1,6 @@
 ---
 title: "Go FSs Everywhere: Treat Side Effects as Dependencies"
-date: 2026-03-08T00:00:00+00:00
+date: 2026-03-26T10:57:11+11:00
 draft: false
 tags: ["go", "testing", "architecture", "patterns"]
 categories: ["engineering-process", "reference"]

@@ -1,6 +1,6 @@
 ---
 title: "LastPass"
-date: 2022-08-20T18:19:19+10:00
+date: 2022-08-20T18:25:29+10:00
 draft: false
 tags: ["lastpass"]
 categories: ["UI"]

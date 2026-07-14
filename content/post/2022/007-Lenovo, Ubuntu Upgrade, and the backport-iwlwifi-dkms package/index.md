@@ -1,6 +1,6 @@
 ---
 title: "Lenovo, Ubuntu Upgrade, and the Backport Iwlwifi Dkms Package"
-date: 2022-06-02T21:36:08+10:00
+date: 2022-06-02T21:45:02+10:00
 draft: false
 tags: ["ubuntu", "issues"]
 categories: ["tech-issue"]

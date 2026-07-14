@@ -1,6 +1,6 @@
 ---
 title: "LLM Instructions: Fixing golangci-lint Go Version Mismatches"
-date: "2026-07-08T02:00:00Z"
+date: 2026-07-10T13:32:21+10:00
 draft: false
 tags:
   - llm

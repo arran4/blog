@@ -1,6 +1,6 @@
 ---
 title: "Simple Screen Recorder"
-date: 2022-08-20T18:14:16+10:00
+date: 2022-08-20T18:18:39+10:00
 draft: false
 tags: ["Tools"]
 categories: ["Complaints"]

@@ -1,6 +1,6 @@
 ---
 title: "Why LLMs Should Conditionally Avoid Regex and Aim for Exhaustive Test Coverage"
-date: 2026-07-12T00:00:00Z
+date: 2026-07-13T13:33:09+10:00
 draft: false
 tags:
   - llm

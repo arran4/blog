@@ -1,6 +1,6 @@
 ---
 title: "GoLand Refactor Dialogue"
-date: 2022-06-13T17:17:26+10:00
+date: 2022-06-13T17:19:26+10:00
 draft: false
 tags: ["goland", "should be on a bugtracker"]
 categories: ["uncategorized"]

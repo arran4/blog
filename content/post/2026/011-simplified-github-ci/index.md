@@ -1,6 +1,6 @@
 ---
 title: "Simplified Single GitHub Actions CI/CD File"
-date: 2026-03-04T00:00:00+00:00
+date: 2026-07-05T13:44:48+10:00
 draft: false
 tags: ["github-actions", "ci", "cd", "go", "node", "dart", "flutter", "qt", "c++", "docker", "goreleaser", "packaging"]
 categories: ["devops", "reference", "automation"]

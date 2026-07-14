@@ -1,6 +1,6 @@
 ---
 title: "Signal System Tray Icon Why Doesn't It Have One?"
-date: 2022-08-20T18:25:58+10:00
+date: 2022-08-20T18:27:39+10:00
 draft: false
 tags: ["Signal"]
 categories: ["UI"]
