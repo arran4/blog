@@ -1,6 +1,6 @@
 ---
 title: "Synology and UI text: The Package Manager"
-date: 2023-02-15T09:38:26+11:00
+date: 2023-02-15T09:53:49+11:00
 draft: false
 tags: ["complaint", "synology"]
 categories: ["synology"]

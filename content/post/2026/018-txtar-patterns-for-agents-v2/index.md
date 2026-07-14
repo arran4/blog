@@ -1,6 +1,6 @@
 ---
 title: "Txtar Test Systems in Practice: Iterating to Scale (v2)"
-date: 2026-02-17T00:00:00+00:00
+date: 2026-07-10T19:12:28+10:00
 draft: false
 tags: ["go", "testing", "txtar", "embed", "golden-files", "agents"]
 categories: ["reference", "testing"]

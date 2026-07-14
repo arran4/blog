@@ -1,6 +1,6 @@
 ---
 title: "How to Prevent KDE From Starting"
-date: 2022-08-14T01:11:45+10:00
+date: 2022-08-14T01:15:58+10:00
 draft: false
 tags: ["bugs"]
 categories: ["kde"]

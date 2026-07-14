@@ -1,6 +1,6 @@
 ---
 title: "Linux, Dmesg, and Issue Reporting"
-date: 2022-06-02T22:19:37+10:00
+date: 2022-06-02T22:26:09+10:00
 draft: false
 tags: ["issue", "gripe", "bug tracking", "linux"]
 categories: ["issue"]

@@ -1,6 +1,6 @@
 ---
 title: "Aws New Glue Fail"
-date: 2022-05-09T15:25:28+10:00
+date: 2022-05-09T15:30:12+10:00
 draft: false
 tags: ["review", "complaints", "aws"]
 categories: ["complaints"]

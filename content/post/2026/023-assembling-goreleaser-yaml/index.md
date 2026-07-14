@@ -1,6 +1,6 @@
 ---
 title: "Assembling a .goreleaser.yaml File: Standards and Best Practices"
-date: 2026-07-13T04:42:00Z
+date: 2026-07-13T16:58:16+10:00
 draft: false
 tags: ["golang", "goreleaser", "ci", "docker", "release"]
 categories: ["Programming", "Tutorial"]

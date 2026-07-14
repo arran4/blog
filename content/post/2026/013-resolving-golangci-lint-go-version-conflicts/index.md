@@ -1,6 +1,6 @@
 ---
 title: "Resolving golangci-lint Go Version Conflicts in GitHub Actions"
-date: 2026-03-05T00:00:00+00:00
+date: 2026-07-07T21:49:40+10:00
 draft: false
 tags: ["go", "golangci-lint", "github-actions", "ci", "linting", "automation"]
 categories: ["devops", "reference", "go"]

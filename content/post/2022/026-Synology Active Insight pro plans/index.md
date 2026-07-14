@@ -1,6 +1,6 @@
 ---
 title: "Synology Active Insight Pro Plans"
-date: 2022-11-04T09:31:39+11:00
+date: 2022-11-04T09:34:03+11:00
 draft: false
 tags: ["opinion"]
 categories: ["synology"]

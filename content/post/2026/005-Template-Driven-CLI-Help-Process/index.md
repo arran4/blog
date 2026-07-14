@@ -1,6 +1,6 @@
 ---
 title: "From Patch to Playbook: A Repeatable Process for Refactoring CLI Help Text"
-date: 2026-02-27T00:00:00+00:00
+date: 2026-02-27T14:12:39+11:00
 draft: false
 tags: ["go", "cli", "templates", "process", "agents"]
 categories: ["reference", "engineering-process"]

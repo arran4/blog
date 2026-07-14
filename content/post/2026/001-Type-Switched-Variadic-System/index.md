@@ -1,6 +1,6 @@
 ---
 title: "The Type-Switched Variadic System I Keep Reusing in Go"
-date: 2026-02-16T10:00:00+10:00
+date: 2026-02-18T15:44:02+11:00
 draft: false
 tags: ["go", "api-design", "options-pattern", "ergonomics"]
 categories: ["notes"]

@@ -1,6 +1,6 @@
 ---
 title: "Synology Security Advisor and SSH"
-date: 2022-04-24 12:12:08+10:00
+date: 2022-04-24T12:19:14+10:00
 draft: false
 tags: ["complaints", "synology"]
 categories: ["complaints"]

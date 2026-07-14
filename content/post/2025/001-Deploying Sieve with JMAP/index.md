@@ -1,6 +1,6 @@
 ---
 title: "Deploying Sieve with JMAP"
-date: 2025-06-08T17:05:00+10:00
+date: 2025-06-08T17:13:23+10:00
 draft: false
 tags: ["sieve", "jmap", "stalwart"]
 categories: ["tutorial"]

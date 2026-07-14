@@ -1,6 +1,6 @@
 ---
 title: "Golangci Lint Thoughts"
-date: 2023-07-23T11:18:29+10:00
+date: 2023-07-23T13:40:45+10:00
 draft: false
 tags: ["golang"]
 categories: ["thoughts", "programming"]

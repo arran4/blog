@@ -1,6 +1,6 @@
 ---
 title: "Back to KDE   My Observations"
-date: 2022-08-20T16:43:13+10:00
+date: 2022-08-20T17:55:04+10:00
 draft: false
 tags: ["kde"]
 categories: ["UI", "KDE"]

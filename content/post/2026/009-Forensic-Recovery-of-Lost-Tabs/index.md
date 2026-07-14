@@ -1,6 +1,6 @@
 ---
 title: "When Firefox Fails You: Forensic Recovery of Lost Tabs on Linux"
-date: 2026-04-06T01:03:38+00:00
+date: 2026-04-06T12:28:25+10:00
 draft: false
 tags: ["linux", "firefox", "recovery", "jsonlz4", "python"]
 categories: ["tutorial", "forensics"]

@@ -1,6 +1,6 @@
 ---
 title: "Synology Office Encryption"
-date: 2022-05-19T11:25:18+10:00
+date: 2022-05-19T12:57:07+10:00
 draft: false
 tags: ["complaints", "bugs", "synology"]
 categories: ["bugs"]

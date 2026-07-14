@@ -1,6 +1,6 @@
 ---
 title: "KDE Discover"
-date: 2023-02-15T10:57:05+11:00
+date: 2023-02-15T11:03:28+11:00
 draft: false
 tags: ["KDE", "complaint"]
 categories: ["KDE"]

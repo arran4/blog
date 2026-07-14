@@ -1,6 +1,6 @@
 ---
 title: "Fixing golangci-lint Go Version Mismatch"
-date: "2026-07-10T04:30:00Z"
+date: 2026-07-10T15:57:37+10:00
 draft: false
 tags:
   - golang

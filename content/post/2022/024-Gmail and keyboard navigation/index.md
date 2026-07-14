@@ -1,6 +1,6 @@
 ---
 title: "Gmail and Keyboard Navigation"
-date: 2022-10-01T14:14:03+10:00
+date: 2022-10-01T14:17:58+10:00
 draft: false
 tags: ["suggestions", "gmail", "keyboard"]
 categories: ["suggestions"]

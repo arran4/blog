@@ -1,6 +1,6 @@
 ---
 title: "Ubuntu and Pip3"
-date: 2023-05-28T21:52:36+10:00
+date: 2023-05-28T21:55:00+10:00
 draft: false
 tags: ["untagged"]
 categories: ["uncategorized"]

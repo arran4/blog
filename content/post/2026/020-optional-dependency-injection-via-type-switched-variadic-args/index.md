@@ -1,6 +1,6 @@
 ---
 title: "Go Memory FSs Everywhere in Test: Optional Dependency Injection via Type-Switched Variadic Args"
-date: 2026-03-19T00:00:00+00:00
+date: 2026-07-11T13:03:55+10:00
 draft: false
 tags: ["go", "testing", "architecture", "patterns", "memory-fs", "api-design", "options-pattern"]
 categories: ["engineering-process", "reference"]

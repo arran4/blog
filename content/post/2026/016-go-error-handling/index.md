@@ -1,6 +1,6 @@
 ---
 title: "Effective Error Handling in Go: Wrapping, Sentinels, and Custom Types"
-date: "2026-07-09T06:00:00Z"
+date: 2026-07-10T13:32:59+10:00
 draft: false
 tags:
   - golang

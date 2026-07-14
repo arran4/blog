@@ -1,6 +1,6 @@
 ---
 title: "BTOP Running in Various Terminals"
-date: 2025-07-16T17:20:25+10:00
+date: 2025-07-16T18:25:09+10:00
 draft: false
 tags: ["btop", "linux", "terminals"]
 categories: ["tools"]
