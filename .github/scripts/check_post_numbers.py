@@ -168,7 +168,8 @@ def main():
                 if (year, number) in current_pr_posts:
                     current_folders = current_pr_posts[(year, number)]
                     if folder not in current_folders:
-                        print(f"Error: Collision detected! Current PR {current_pr} uses {year}/{number} for {current_folders}, but lower priority PR {pr} uses it for '{folder}'.")
+                        folders_str = ", ".join(f"'{f}'" for f in current_folders)
+                        print(f"Error: Collision detected! Current PR {current_pr} uses {year}/{number} for {folders_str}, but lower priority PR {pr} uses it for '{folder}'.")
                         conflict_found = True
 
     if conflict_found:
