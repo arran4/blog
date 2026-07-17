@@ -24,24 +24,24 @@ Consider the following snippet:
 
 ```go
 // Compile-time check to ensure our mappers conform to the interface
-var _ strings2.WordMapper = (*mappers.WordReverser)(nil)
-var _ strings2.SubPartMapper = (*mappers.Acronymifier)(nil)
-var _ strings2.PartMapper = (*mappers.PartReverser)(nil)
+var _ myproject.WordMapper = (*mappers.WordReverser)(nil)
+var _ myproject.SubPartMapper = (*mappers.Acronymifier)(nil)
+var _ myproject.PartMapper = (*mappers.PartReverser)(nil)
 ```
 
 Let's break down what's happening here:
 
 1.  **`var _`**: We are declaring a variable but discarding its name using the blank identifier `_`. This tells the compiler, "I don't need to use this variable later, so don't complain about it being unused."
-2.  **`strings2.WordMapper`**: This is the interface we want to check against.
+2.  **`myproject.WordMapper`**: This is the interface we want to check against.
 3.  **`(*mappers.WordReverser)(nil)`**: We are casting a `nil` pointer to the concrete type `*mappers.WordReverser`. This idiomatically provides a typed value to check against the interface without actually allocating memory for the struct. It also uses noun-based naming which is standard for types in Go.
 
 ### Why Do This?
 
-The magic happens during compilation. If `*mappers.WordReverser` does not implement the `strings2.WordMapper` interface—perhaps because a method signature changed or a method is missing—the Go compiler will throw an error immediately:
+The magic happens during compilation. If `*mappers.WordReverser` does not implement the `myproject.WordMapper` interface—perhaps because a method signature changed or a method is missing—the Go compiler will throw an error immediately:
 
 ```text
-cannot use (*mappers.WordReverser)(nil) (value of type *mappers.WordReverser) as type strings2.WordMapper in assignment:
-	*mappers.WordReverser does not implement strings2.WordMapper (missing ... method)
+cannot use (*mappers.WordReverser)(nil) (value of type *mappers.WordReverser) as type myproject.WordMapper in assignment:
+	*mappers.WordReverser does not implement myproject.WordMapper (missing ... method)
 ```
 
 This immediate feedback loop is invaluable. It catches regression errors the moment you try to build your code, rather than waiting for a test to fail (or worse, a runtime panic if the interface is asserted dynamically).
@@ -62,12 +62,13 @@ package mappers_test
 
 import (
     "testing"
-    "yourproject/mappers"
-    "yourproject/strings2"
+
+    "github.com/yourorg/myproject"
+    "github.com/yourorg/myproject/mappers"
 )
 
 // Compile-time assurances
-var _ strings2.WordMapper = (*mappers.WordReverser)(nil)
+var _ myproject.WordMapper = (*mappers.WordReverser)(nil)
 // ... other checks
 
 func TestWordReverser(t *testing.T) {
