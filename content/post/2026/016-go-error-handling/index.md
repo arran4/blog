@@ -195,7 +195,7 @@ While robust error handling is critical, it is equally important to recognize wh
 
 ### Application Outcomes Are Not Always Errors
 
-If you are building an application designed to informatively exit successfully or unsuccessfully—such as a linter, a validation tool, or a sanity checking sort of app used in a script—a failure in validation is often an expected outcome, not a system error. Returning a standard `error` in these cases can be unusual.
+If you are building an application designed to informatively exit successfully or unsuccessfully—such as a linter, a validation tool, or a sanity checking sort of app used in a script—a failure in validation is often an expected outcome, not a system error. While returning an error to represent these states is common in Go, treating them as exceptional system failures is what we want to avoid.
 
 Technically, a linter finding a violation is an `ApplicationOutcome`, not an `ApplicationOutcomeError`. There was no system failure, so there is absolutely no reason to create a stack trace. Structuring your program to return an outcome result rather than an error for these expected states keeps your application logic clean and prevents expected failures from being treated as catastrophic system crashes.
 
