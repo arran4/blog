@@ -23,25 +23,30 @@ Go provides a neat, idiomatic way to achieve this using the blank identifier `_`
 Consider the following snippet:
 
 ```go
-// Compile-time check to ensure our mappers conform to the interface
-var _ myproject.WordMapper = (*mappers.WordReverser)(nil)
-var _ myproject.SubPartMapper = (*mappers.Acronymifier)(nil)
-var _ myproject.PartMapper = (*mappers.PartReverser)(nil)
+import (
+	"encoding/json"
+	"fmt"
+)
+
+// Compile-time checks to ensure our types conform to standard interfaces
+var _ fmt.Stringer = (*myproject.User)(nil)
+var _ json.Marshaler = (*myproject.User)(nil)
+var _ json.Unmarshaler = (*myproject.User)(nil)
 ```
 
 Let's break down what's happening here:
 
 1.  **`var _`**: We are declaring a variable but discarding its name using the blank identifier `_`. This tells the compiler, "I don't need to use this variable later, so don't complain about it being unused."
-2.  **`myproject.WordMapper`**: This is the interface we want to check against.
-3.  **`(*mappers.WordReverser)(nil)`**: We are casting a `nil` pointer to the concrete type `*mappers.WordReverser`. This idiomatically provides a typed value to check against the interface without actually allocating memory for the struct. It also uses noun-based naming which is standard for types in Go.
+2.  **`fmt.Stringer`**: This is the standard library interface we want to check against.
+3.  **`(*myproject.User)(nil)`**: We are casting a `nil` pointer to the concrete type `*myproject.User`. This idiomatically provides a typed value to check against the interface without actually allocating memory for the struct.
 
 ### Why Do This?
 
-The magic happens during compilation. If `*mappers.WordReverser` does not implement the `myproject.WordMapper` interface—perhaps because a method signature changed or a method is missing—the Go compiler will throw an error immediately:
+The magic happens during compilation. If `*myproject.User` does not implement the `fmt.Stringer` interface—perhaps because a method signature changed or a method is missing (like `String() string`)—the Go compiler will throw an error immediately:
 
 ```text
-cannot use (*mappers.WordReverser)(nil) (value of type *mappers.WordReverser) as type myproject.WordMapper in assignment:
-	*mappers.WordReverser does not implement myproject.WordMapper (missing ... method)
+cannot use (*myproject.User)(nil) (value of type *myproject.User) as type fmt.Stringer in assignment:
+	*myproject.User does not implement fmt.Stringer (missing String method)
 ```
 
 This immediate feedback loop is invaluable. It catches regression errors the moment you try to build your code, rather than waiting for a test to fail (or worse, a runtime panic if the interface is asserted dynamically).
@@ -57,21 +62,23 @@ While you can place these checks anywhere in your code, putting them in **test f
 A common pattern is to place them at the top level of a test file corresponding to the package where the concrete types are defined:
 
 ```go
-// mapper_test.go
-package mappers_test
+// user_test.go
+package myproject_test
 
 import (
+    "encoding/json"
+    "fmt"
     "testing"
 
     "github.com/yourorg/myproject"
-    "github.com/yourorg/myproject/mappers"
 )
 
 // Compile-time assurances
-var _ myproject.WordMapper = (*mappers.WordReverser)(nil)
+var _ fmt.Stringer = (*myproject.User)(nil)
+var _ json.Marshaler = (*myproject.User)(nil)
 // ... other checks
 
-func TestWordReverser(t *testing.T) {
+func TestUser_MarshalJSON(t *testing.T) {
     // ... actual test logic
 }
 ```
