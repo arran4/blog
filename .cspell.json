@@ -11,6 +11,8 @@
   ],
   "words": [
     "acpi",
+    "Acronymifier",
+    "Acronymify",
     "afero",
     "Akonadi",
     "Akregator",
@@ -225,6 +227,7 @@
     "manualofstylechecker",
     "mapstructure",
     "marekm",
+    "Marshaler",
     "mattn",
     "maxdepth",
     "mclib",
@@ -391,6 +394,7 @@
     "Ubels",
     "uncategorized",
     "unclickable",
+    "Unmarshaler",
     "unselectable",
     "Unshade",
     "urlesc",
@@ -421,6 +425,8 @@
     "xerrors",
     "xetex",
     "Yeahconsole",
+    "yourorg",
+    "yourproject",
     "yuin",
     "zutty"
   ]
