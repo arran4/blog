@@ -300,9 +300,15 @@ func SplitInputExpected(ar *txtar.Archive) (input, expected fstest.MapFS) {
     for _, f := range ar.Files {
         switch {
         case strings.HasPrefix(f.Name, "input/"):
-            input[strings.TrimPrefix(f.Name, "input/")] = &fstest.MapFile{Data: f.Data}
+            name := path.Clean(strings.TrimPrefix(f.Name, "input/"))
+            if name != "." && name != "/" {
+                input[name] = &fstest.MapFile{Data: f.Data}
+            }
         case strings.HasPrefix(f.Name, "expected/"):
-            expected[strings.TrimPrefix(f.Name, "expected/")] = &fstest.MapFile{Data: f.Data}
+            name := path.Clean(strings.TrimPrefix(f.Name, "expected/"))
+            if name != "." && name != "/" {
+                expected[name] = &fstest.MapFile{Data: f.Data}
+            }
         }
     }
     return input, expected
@@ -343,7 +349,7 @@ own txtar), I want one subtest per template archive discovered by walking a
 directory.
 
 ```go
-//go:embed testdata/templates/**/*.txtar
+//go:embed testdata/templates
 var templateCases embed.FS
 
 func TestTemplateMatrix(t *testing.T) {
