@@ -63,19 +63,17 @@ A common pattern is to place them at the top level of a test file corresponding 
 
 ```go
 // user_test.go
-package myproject_test
+package myproject
 
 import (
     "encoding/json"
     "fmt"
     "testing"
-
-    "github.com/yourorg/myproject"
 )
 
 // Compile-time assurances
-var _ fmt.Stringer = (*myproject.User)(nil)
-var _ json.Marshaler = (*myproject.User)(nil)
+var _ fmt.Stringer = (*User)(nil)
+var _ json.Marshaler = (*User)(nil)
 // ... other checks
 
 func TestUser_MarshalJSON(t *testing.T) {
