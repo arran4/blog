@@ -189,6 +189,25 @@ func handleHTTPError(w http.ResponseWriter, err error) {
 }
 ```
 
+## 5. When Not To Use Errors: Application Outcomes vs. Unexpected Faults
+
+While robust error handling is critical, it is equally important to recognize when *not* to use errors, or at least how to categorize them properly to avoid unnecessary noise like stack traces or panics.
+
+### Application Outcomes Are Not Always Errors
+
+If you are building an application designed to informatively exit successfully or unsuccessfully—such as a linter, a validation tool, or a sanity checking sort of app used in a script—a failure in validation is often an expected outcome, not a system error. While returning an error to represent these states is common in Go, treating them as exceptional system failures is what we want to avoid.
+
+Technically, a linter finding a violation is an `ApplicationOutcome`, not an `ApplicationOutcomeError`. There was no system failure, so there is absolutely no reason to create a stack trace. Structuring your program to return an outcome result rather than an error for these expected states keeps your application logic clean and prevents expected failures from being treated as catastrophic system crashes.
+
+### User Errors vs. Unexpected Outcomes
+
+Similarly, we must distinguish between errors caused by the user (like providing invalid input) and truly unexpected system faults.
+
+User-caused errors do not need a stack trace. They should be handled gracefully using custom types, much like the `UserError` discussed above. When encountering a user error, you should inform the user of what they did wrong and exit cleanly, without causing a panic (e.g., never use `log.Panic` for invalid input).
+
+Stack trace logs and panics should be strictly limited to unexpected outcomes—situations where the system enters an invalid state and we cannot immediately pinpoint the blame to user input. By reserving stack traces for actual bugs, you ensure that your logs remain actionable and aren't cluttered with user mistakes.
+
+
 ## Conclusion
 
 By defining clear sentinel errors, generously wrapping errors with contextual information, and leveraging `errors.Is`, `errors.As`, and custom error types, you transform Go's error handling from a tedious chore into a powerful tool for building resilient systems. It takes slightly more typing up front, but pays massive dividends when debugging production issues at 3 AM.
