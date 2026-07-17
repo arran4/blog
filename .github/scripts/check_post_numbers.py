@@ -108,19 +108,31 @@ def main():
 
     # 1. Get files changed in current PR
     current_pr_files = get_pr_files(repo, current_pr, token)
-    current_pr_posts = {} # (year, number) -> folder
+    current_pr_posts = defaultdict(set) # (year, number) -> set of folders
     current_pr_folders = set()
     for f in current_pr_files:
         year, number, folder = extract_post_info_from_path(f)
         if year is not None and number is not None:
-            current_pr_posts[(year, number)] = folder
+            current_pr_posts[(year, number)].add(folder)
             current_pr_folders.add(folder)
 
     if not current_pr_posts:
         print("No new/modified posts in this PR. Success.")
         sys.exit(0)
 
-    print(f"Posts modified in this PR: {current_pr_posts}")
+    print(f"Posts modified in this PR: {dict(current_pr_posts)}")
+
+    # 1.5 Check for self-collisions within the current PR
+    self_collision = False
+    for (year, number), folders in current_pr_posts.items():
+        if len(folders) > 1:
+            print(f"Error: PR itself contains a collision in year {year} for number {number}. Folders: {', '.join(folders)}")
+            self_collision = True
+
+    if self_collision:
+        print("Self-collision found in current PR. Exiting with error.")
+        sys.exit(1)
+
 
     # 2. Check local collisions, but only fail if they involve folders modified in this PR
     local_posts = get_local_posts()
@@ -154,9 +166,10 @@ def main():
             year, number, folder = extract_post_info_from_path(f)
             if year is not None and number is not None:
                 if (year, number) in current_pr_posts:
-                    current_folder = current_pr_posts[(year, number)]
-                    if current_folder != folder:
-                        print(f"Error: Collision detected! Current PR {current_pr} uses {year}/{number} for '{current_folder}', but lower priority PR {pr} uses it for '{folder}'.")
+                    current_folders = current_pr_posts[(year, number)]
+                    if folder not in current_folders:
+                        folders_str = ", ".join(f"'{f}'" for f in current_folders)
+                        print(f"Error: Collision detected! Current PR {current_pr} uses {year}/{number} for {folders_str}, but lower priority PR {pr} uses it for '{folder}'.")
                         conflict_found = True
 
     if conflict_found:
