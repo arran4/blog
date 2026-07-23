@@ -33,7 +33,8 @@ When resolving `golangci-lint` Go version mismatches, LLM agents must follow the
     ```bash
     go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
     ```
-5.  **Iterative Resolution:** Rerun `golangci-lint` (ensuring it's the exact same version installed above) in a loop to resolve issues. Do not create a new config file. Attempt to solve all issues iteratively (a couple each loop) until done.
+    Ensure you invoke the newly installed binary by using its full path (e.g., `$(go env GOPATH)/bin/golangci-lint`) to avoid running the cached or system-provided version.
+5.  **Iterative Resolution:** Rerun the newly installed `golangci-lint` (e.g., `$(go env GOPATH)/bin/golangci-lint`) in a loop to resolve issues. Do not create a new config file. Attempt to solve all issues iteratively (a couple each loop) until done.
 6.  **Format:** Run `go fmt ./...`.
 7.  **Submit:** Submit the clean, formatted code.
 
