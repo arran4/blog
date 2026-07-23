@@ -158,6 +158,7 @@
     "gopkg",
     "goreleaser",
     "goreleaserbot",
+    "GOPATH",
     "gosimple",
     "gotmpl",
     "govet",
