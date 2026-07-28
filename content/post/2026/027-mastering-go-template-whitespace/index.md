@@ -6,7 +6,7 @@ tags: ["go", "templates", "whitespace", "yaml"]
 categories: ["Programming", "Go"]
 ---
 
-One of the most common pitfalls when working with Go's `text/template` and `html/template` packages—and a frequent stumbling block for AI agents—is understanding how whitespace manipulation works. Specifically, the `-` (minus sign) in `{{-` and `-}}` is highly meaningful. It is not just decorative syntax or a continuation of the `{{` token; it explicitly clears whitespace.
+One of the most common pitfalls when working with Go's [`text/template`](https://pkg.go.dev/text/template) and [`html/template`](https://pkg.go.dev/html/template) packages—and a frequent stumbling block for AI agents—is understanding how whitespace manipulation works. Specifically, the `-` (minus sign) in `{{-` and `-}}` is highly meaningful. It is not just decorative syntax or a continuation of the `{{` token; it explicitly clears whitespace.
 
 If you aren't careful with these markers, you can quickly ruin the formatting of output that relies on strict whitespace, such as YAML or cleanly indented HTML.
 
