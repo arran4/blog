@@ -25,9 +25,9 @@ Often, developers mistakenly use `{{-` and `-}}` symmetrically, clearing whitesp
 
 Beyond simply adding `-` to your action tags, here are several advanced techniques for precisely controlling whitespace:
 
-### 1. The Empty Comment Trick
+### 1. The Empty Comment Trick (Use Sparingly)
 
-You can use an empty comment combined with whitespace trimming to manipulate spacing without outputting any content.
+You can use an empty comment combined with whitespace trimming to manipulate spacing without outputting any content. **Note:** This should generally be considered a *last resort*, as it introduces extraneous elements into the template source code that don't relate to the actual data being rendered.
 
 *   **Clear everything:** Use `{{- /**/ -}}` to completely strip all whitespace surrounding this block.
 *   **Stop clearing:** Use `{{ /**/ }}` (without the minus signs) to act as a barrier. The template engine will evaluate it and output nothing, but any whitespace around it will be preserved because there are no `-` markers to trim it.
@@ -38,6 +38,7 @@ Sometimes you need to guarantee a specific amount of whitespace, regardless of w
 
 *   **Exact Spaces:** Use `{{- "  " -}}` to clear all surrounding dynamic whitespace and replace it with exactly two spaces. The `-` clears the existing whitespace, and the string literal `"  "` guarantees your desired spacing.
 *   **Dynamic Spacing with Printf:** For larger or dynamically sized spacing, you can use the `printf` function. For example, `{{- printf "%20s" "" -}}` will clear surrounding whitespace and insert exactly 20 spaces.
+    *   You can also pipe output directly into `printf` for padding variables: `{{- .MyValue | printf "%20s" -}}` (or equivalently `{{- printf "%20s" .MyValue -}}`).
 
 ## The Two-Way Readability Rule
 
