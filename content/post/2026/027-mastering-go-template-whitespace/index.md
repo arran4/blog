@@ -124,4 +124,44 @@ resources:
 ```
 *Why it's good:* The `{{-` on the `if` and `end` lines ensures that if a block is skipped, no empty lines are left behind. At the same time, it preserves the structural indentation and line breaks required by the output format when the condition is met. The template is also highly readable.
 
-Mastering these techniques will make your templates much more robust and ensure your configuration files remain perfectly formatted.
+## Testing Template Output Automatically
+
+Testing template generation is critical, especially when outputting strict formats. Visual inspection isn't enough; you need automated verification.
+
+### 1. Structural Parsing Verification
+
+The most robust way to ensure your template didn't produce a "symmetrical smush" or break indentation is to actually parse the resulting output. If you are generating YAML or JSON, unmarshal the bytes back into a Go struct or a generic `map[string]any` as part of your unit test.
+
+```go
+func TestYAMLTemplate(t *testing.T) {
+	// ... execute template into a bytes.Buffer ...
+
+	// Verify it actually parses as valid YAML
+	var output map[string]any
+	if err := yaml.Unmarshal(buf.Bytes(), &output); err != nil {
+		t.Fatalf("Template produced invalid YAML: %v\nOutput was:\n%s", err, buf.String())
+	}
+}
+```
+
+### 2. Byte-to-Byte Accuracy with `txtar`
+
+For ensuring the exact formatting and spacing remains identical across refactors, use byte-to-byte comparison against known-good fixtures. The `txtar` format (from `golang.org/x/tools/txtar`) is excellent for this. It allows you to package your template input data and the expected template output in a single file.
+
+When doing exact string comparisons, always normalize line endings first to avoid cross-platform test failures (e.g., Windows `\r\n` vs Linux `\n`).
+
+```go
+// Normalize newlines before comparing
+got := strings.ReplaceAll(buf.String(), "\r\n", "\n")
+expected := strings.ReplaceAll(string(archive.Files["expected.yaml"].Data), "\r\n", "\n")
+```
+
+### 3. Displaying Meaningful Diffs
+
+When a byte-to-byte test fails, printing "got != expected" is useless for debugging whitespace. You must display a diff.
+
+There are two common approaches:
+*   **External Libraries:** Using a library like `github.com/google/go-cmp/cmp` gives you powerful, structured diffing.
+*   **In-house Split diffs:** For simple text, you can split the strings by `\n` and iterate through the slices to print a side-by-side or inline diff showing exactly which lines differ. You can also explore existing diffing packages like [github.com/arran4/golang-diff](https://github.com/arran4/golang-diff) which provide various diffing algorithms and output formats (like unified diffs) to make whitespace errors obvious.
+
+Mastering these whitespace techniques and pairing them with rigorous parsing and diff-based testing will make your template engine much more robust.
