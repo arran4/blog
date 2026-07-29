@@ -1,6 +1,6 @@
 ---
-title: "Simplified Single GitHub Actions CI/CD File"
-date: 2026-07-05T13:44:48+10:00
+title: "Simplified Single GitHub Actions CI/CD File (Updated)"
+date: 2026-07-29T10:45:07Z
 draft: false
 tags: ["github-actions", "ci", "cd", "go", "node", "dart", "flutter", "qt", "c++", "docker", "goreleaser", "packaging"]
 categories: ["devops", "reference", "automation"]
@@ -1333,15 +1333,12 @@ and skip binary-specific lanes like GoReleaser `builds`, app bundle packaging, H
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          fetch-tags: true
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
-      - name: Calculate and Create Tag
-        if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') && inputs.mode != 'release-test' && inputs.mode != 'release-rc' && inputs.mode != 'release-alpha' }}
-        run: |
-          git tag ${{ needs.prepare-release-tag.outputs.release_tag }}
-          git push origin ${{ needs.prepare-release-tag.outputs.release_tag }}
+      - name: Tag commit for release (workflow_dispatch)
+        if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') }}
+        run: git tag -f ${{ needs.prepare-release-tag.outputs.release_tag }}
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
@@ -1726,6 +1723,39 @@ Integrate language publishers in the same publish stage:
 - Versioned source repos: fetch tags and bump from the maximum of source version and latest tag, not just the checked-in version text
 
 
+```yaml
+  publish-draft:
+    name: Publish draft release assets
+    needs:
+      - goreleaser
+      - source-deb
+      - source-rpm
+      - docker-release
+    if: ${{ needs.route.outputs.run_release == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Collect artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist-release
+      - name: Publish draft GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: dist-release/**
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  promote-release:
+    name: Promote draft to published
+    needs: [publish-draft]
+    if: ${{ github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-')) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Release promoted via upstream process
+        run: echo "Promotion step placeholder (gh api patch release draft=false)"
+```
+
 ---
 
 ### Optional: Prepare next development version PR after release
@@ -1735,7 +1765,7 @@ This pattern from the referenced workflow is useful for repos that keep `-SNAPSH
 ```yaml
   prepare-next-version-pr:
     name: Prepare next development iteration PR
-    needs: [goreleaser]
+    needs: [publish-draft]
     if: ${{ github.event_name == 'workflow_dispatch' && (startsWith(inputs.mode, 'release-') || inputs.mode == 'release-test') }}
     runs-on: ubuntu-latest
     steps:
@@ -1900,8 +1930,16 @@ jobs:
     needs: [route, docker-build]
     # ...
 
+  publish-draft:
+    needs: [goreleaser, source-deb, source-rpm, docker-release]
+    # ...
+
+  promote-release:
+    needs: [publish-draft]
+    # ...
+
   prepare-next-version-pr:
-    needs: [goreleaser, prepare-release-tag]
+    needs: [publish-draft, prepare-release-tag]
     # ...
 ```
 
