@@ -39,16 +39,71 @@ Sometimes you need to guarantee a specific amount of whitespace, regardless of w
 *   **Exact Spaces:** Use `{{- "  " -}}` to clear all surrounding dynamic whitespace and replace it with exactly two spaces. The `-` clears the existing whitespace, and the string literal `"  "` guarantees your desired spacing.
 *   **Dynamic Spacing with Printf:** For larger or dynamically sized spacing, you can use the `printf` function. For example, `{{- printf "%20s" "" -}}` will clear surrounding whitespace and insert exactly 20 spaces.
 
-## Best Practices Around `if` Statements
+## The Two-Way Readability Rule
+
+A golden rule of template design is that templates must be **two-way readable**. This means:
+1. The **resulting output** must be perfectly formatted for its target language (like YAML or JSON).
+2. The **template source code** itself must remain human-readable and maintainable.
+
+If you rely heavily on template functions like `| indent` or densely pack conditions onto single lines, do so intelligently. Overusing these can make the template source incredibly difficult to decipher. Strive for a balance where the template's structure mirrors the output's structure as much as possible.
+
+## Best Practices Around `if` Statements and Examples
 
 Conditionals in templates (`{{ if .Condition }}`) are notorious for introducing unwanted blank lines. This is particularly destructive when generating formats like YAML, where consistent indentation and spacing are strictly required.
 
-When using `if` statements, pay close attention to which direction you are clearing.
+When using `if` statements, pay close attention to which direction you are clearing. Let's look at some examples of what can go wrong and how to fix it.
 
-If you blindly apply `{{-` and `-}}` everywhere (e.g., `{{- if .Condition -}}`), you might unintentionally strip the required newline and indentation for the YAML keys, causing invalid syntax.
+### Example 1: The Symmetrical Smush (Bad)
 
-Instead, it is often best to leave the newline after the condition to preserve the indentation of the inner block, and use `{{-` before the `if` and `end` tags to consume the trailing newlines from the previous blocks:
+If you blindly apply `{{-` and `-}}` everywhere, you might unintentionally strip the required newline and indentation for the YAML keys, causing invalid syntax.
 
+**Template Input:**
+```yaml
+resources:
+  {{- if .Requests -}}
+  requests:
+    cpu: 100m
+  {{- end -}}
+```
+
+**Resulting Output:**
+```yaml
+resources:requests:
+    cpu: 100m
+```
+*Why it's bad:* The `{{- if .Requests -}}` stripped the newline *before* `requests:`, smushing `resources:` and `requests:` onto the same line, resulting in invalid YAML.
+
+### Example 2: The Blank Line Bleed (Bad)
+
+If you don't use the minus signs at all, skipped conditions will leave behind blank lines.
+
+**Template Input:**
+```yaml
+resources:
+  {{ if .Requests }}
+  requests:
+    cpu: 100m
+  {{ end }}
+  {{ if .Limits }}
+  limits:
+    memory: 256Mi
+  {{ end }}
+```
+
+**Resulting Output (if .Requests is false, but .Limits is true):**
+```yaml
+resources:
+
+  limits:
+    memory: 256Mi
+```
+*Why it's bad:* The skipped `requests` block leaves behind a blank line. While sometimes valid in YAML, excessive blank lines can break lists or make the file harder to read.
+
+### Example 3: The Unidirectional Clear (Good)
+
+Instead, it is often best to leave the newline after the condition to preserve the indentation of the inner block, and use `{{-` before the `if` and `end` tags to consume the trailing newlines from the previous blocks.
+
+**Template Input:**
 ```yaml
 resources:
 {{- if .Requests }}
@@ -61,6 +116,12 @@ resources:
 {{- end }}
 ```
 
-In this pattern, the `{{-` on the `if` and `end` lines ensures that if a block is skipped, no empty lines are left behind. At the same time, it preserves the structural indentation and line breaks required by the output format when the condition is met.
+**Resulting Output (if .Requests is false, but .Limits is true):**
+```yaml
+resources:
+  limits:
+    memory: 256Mi
+```
+*Why it's good:* The `{{-` on the `if` and `end` lines ensures that if a block is skipped, no empty lines are left behind. At the same time, it preserves the structural indentation and line breaks required by the output format when the condition is met. The template is also highly readable.
 
 Mastering these techniques will make your templates much more robust and ensure your configuration files remain perfectly formatted.
