@@ -1413,20 +1413,26 @@ dockers:
     goarch: [amd64, arm64]
 
 nfpms:
-  - id: linux-packages
-    package_name: app
-    vendor: Your Org
-    homepage: https://example.com
-    maintainer: You <you@example.com>
-    description: App description
-    license: MIT
+  -
+    vendor: Ubels Software Development
+    homepage: https://github.com/arran4/
+    maintainer: Arran Ubels <arran@ubels.com.au>
+    description: NA
+    license: Private
     formats:
-      - deb
-      - rpm
-      - apk
-      - archlinux
+        - apk
+        - deb
+        - rpm
+        - termux.deb
+        - archlinux
+    release: "1"
     section: default
-    priority: optional
+    priority: extra
+    contents:
+      - src: doc/g2.1
+        dst: /usr/share/man/man1/g2.1
+        file_info:
+          mode: 0644
 
 homebrew_casks:
   -
@@ -1438,6 +1444,10 @@ homebrew_casks:
       pull_request:
         enabled: true
         draft: false
+        base:
+          owner: arran4
+          name: homebrew-tap
+          branch: main
     commit_author:
       name: goreleaserbot
       email: bot@goreleaser.com
