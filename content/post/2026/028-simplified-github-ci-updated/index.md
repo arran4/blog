@@ -1434,6 +1434,24 @@ nfpms:
         file_info:
           mode: 0644
 
+brews:
+  -
+    repository:
+      owner: arran4
+      name: homebrew-tap
+      branch: "{{.ProjectName}}-{{.Version}}"
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
+      pull_request:
+        enabled: true
+        draft: false
+        base:
+          owner: arran4
+          name: homebrew-tap
+          branch: main
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+
 homebrew_casks:
   -
     repository:
