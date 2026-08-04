@@ -1533,6 +1533,26 @@ packaging/
     build-source-rpm.sh
 ```
 
+To create the `control` file for Debian packaging, you will need to define the package metadata and dependencies. A basic template for `packaging/debian/control` looks like this:
+
+```text
+Source: app
+Section: utils
+Priority: optional
+Maintainer: Your Name <you@example.com>
+Build-Depends: debhelper (>= 11)
+Standards-Version: 4.1.3
+Homepage: https://example.com
+
+Package: app
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: App description
+ Detailed description of the app goes here.
+```
+
+Ensure this is configured correctly based on your actual dependencies and package information.
+
 ### Source Debian lane
 
 ```yaml
