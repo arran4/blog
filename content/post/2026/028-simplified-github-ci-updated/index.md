@@ -539,6 +539,11 @@ This mirrors the style in your referenced workflow and can be chained into relea
 
 If the repository includes a Hugo docs/site directory (example: `site/mydocs`), add a Pages lane that builds and deploys docs on `main`/`master`, tag releases, and manual dispatch.
 
+Deployment targets to note:
+* **GitHub Pages Action**: Preferred over committing to a branch.
+* **GitHub Pages Branch**: Preferred action if using legacy methods.
+* **Cloudflare**: Preview builds need to be supported for Cloudflare deployments.
+
 Key ideas from the referenced workflow:
 
 - route-level `run_pages` output (separate from code-check/release output),
@@ -579,7 +584,7 @@ jobs:
     if: ${{ needs.route.outputs.run_pages == 'true' }}
     runs-on: ubuntu-latest
     env:
-      HUGO_VERSION: 0.123.7
+      HUGO_VERSION: ${{ inputs.hugo_version || '0.123.7' }}
     steps:
       - name: Install Hugo CLI
         run: |
