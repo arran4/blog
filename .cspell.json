@@ -364,6 +364,7 @@
     "serde_json",
     "sessionstore",
     "shellcheck",
+    "shlibs",
     "shopt",
     "simplecobra",
     "simplescreenrecorder",
