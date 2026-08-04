@@ -22,7 +22,7 @@ Before the workflow body, add a top-of-file pointer comment so agents and humans
 
 ```yaml
 # Agent rules for generation:
-# https://arran4.github.io/blog/post/2026/006-github-ci-and-deploy/
+# https://arran4.github.io/blog/post/2026/028-simplified-github-ci-updated/
 # Built using this post as a reference/guide.
 name: CI/CD
 ```
@@ -76,9 +76,9 @@ on:
       - 'v*.*.*'
       - 'v*.*.*-rc*'
       - 'v*.*.*-beta*'
-      - 'test-*'
+      - '*-test'
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review, closed]
+    types: [opened, synchronize, reopened, ready_for_review]
     branches: [main, master]
   release:
     types: [published]
@@ -642,7 +642,7 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
       - uses: actions/checkout@v5
       - uses: actions/setup-go@v6
         with:
-          go-version-file: go.mod
+          go-version-file: go.main
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
@@ -663,7 +663,7 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v6
         with:
-          go-version-file: go.mod
+          go-version-file: go.main
           cache: true
       - name: Test
         run: go test ./... -v
@@ -677,7 +677,7 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v6
         with:
-          go-version-file: go.mod
+          go-version-file: go.main
           cache: true
       - run: go vet ./...
 
@@ -690,7 +690,7 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v6
         with:
-          go-version-file: go.mod
+          go-version-file: go.main
       - name: Run go fmt
         run: go fmt ./...
       - name: Create PR if go fmt changed files
@@ -733,7 +733,7 @@ Optional cross-OS lane (only when it really matters):
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v6
         with:
-          go-version-file: go.mod
+          go-version-file: go.main
       - run: go build ./...
 ```
 
@@ -1060,7 +1060,7 @@ You wanted this wired to real formatters and branch-name guessable behavior.
       - name: Setup Go (if needed)
                 uses: actions/setup-go@v6
         with:
-          go-version-file: go.mod
+          go-version-file: go.main
 
       - name: Setup Node (if needed)
                 uses: actions/setup-node@v4
@@ -1336,7 +1336,7 @@ and skip binary-specific lanes like GoReleaser `builds`, app bundle packaging, H
           fetch-tags: true
       - uses: actions/setup-go@v6
         with:
-          go-version-file: go.mod
+          go-version-file: go.main
       - name: Calculate and Create Tag
         if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') && inputs.mode != 'release-test' && inputs.mode != 'release-rc' && inputs.mode != 'release-alpha' }}
         run: |
@@ -1824,9 +1824,9 @@ name: CI/CD
 on:
   push:
     branches: [main, master]
-    tags: ['v*', 'v*.*.*', 'v*.*.*-rc*', 'v*.*.*-beta*', 'test-*']
+    tags: ['v*', 'v*.*.*', 'v*.*.*-rc*', 'v*.*.*-beta*', '*-test']
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review, closed]
+    types: [opened, synchronize, reopened, ready_for_review]
     branches: [main, master]
   release:
     types: [published]
