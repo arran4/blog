@@ -6,7 +6,7 @@ tags: ["github-actions", "ci", "cd", "go", "node", "dart", "flutter", "qt", "c++
 categories: ["devops", "reference", "automation"]
 ---
 
-This is a practical build-up guide for creating **one large `ci.yml`** that is still readable, maintainable, and tailored to real repositories.
+This is a practical build-up guide for creating **one large `ci.yml`** that is still readable, maintainable, and tailored to real repositories. Note that if this is provided to a repo with a pipeline already in place it's generally an upgrade request. The resulting pipeline should be bespoke to each repo, but consistently in approach, logic, parts, etc.
 
 The target outcome:
 
@@ -22,7 +22,7 @@ Before the workflow body, add a top-of-file pointer comment so agents and humans
 
 ```yaml
 # Agent rules for generation:
-# https://arran4.github.io/blog/post/2026/028-simplified-github-ci-updated/
+# https://arran4.github.io/blog/post/2026/028-simplified-github-ci-updated/ (or whatever URL was provided. In this case it will be the end url for this file)
 # Built using this post as a reference/guide.
 name: CI/CD
 ```
@@ -57,8 +57,23 @@ A single file gives one policy and one dependency graph. You can still keep comp
 5. **Autofix lanes are language-aware** (go fmt/go fix, dart format, flutter format, prettier, etc).
 6. **Release lanes are split** (GoReleaser, container release, source package release).
 7. **Monthly maintenance exists by default**.
+8. **Difficulty gating based on success of others**.
 
 ---
+
+
+### Always verify GitHub Action major versions
+
+Always check externally what the latest major release of a GitHub Action is and use that. Ignore what you feel is right. You must go to the release page and check. For example:
+
+| Action | URL | Example Latest (as of writing) |
+|---|---|---|
+| checkout | https://github.com/actions/checkout/releases | v4 |
+| setup-go | https://github.com/actions/setup-go/releases | v5 |
+| setup-node | https://github.com/actions/setup-node/releases | v4 |
+| golangci-lint-action | https://github.com/golangci/golangci-lint-action/releases | v6 |
+
+Always use this logic when generating workflows.
 
 ## Step 1: Triggers and modes (copy/paste)
 
@@ -69,6 +84,7 @@ name: CI/CD
 
 on:
   push:
+    # We know the repo so the trunk branch should be filtered down / pre selected
     branches: [main, master]
     # semantic version tags + rc/beta snapshots
     tags:
@@ -76,7 +92,7 @@ on:
       - 'v*.*.*'
       - 'v*.*.*-rc*'
       - 'v*.*.*-beta*'
-      - '*-test'
+      - 'v*.*.*-test*'
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     branches: [main, master]
@@ -105,13 +121,14 @@ on:
         default: ""
         type: string
       allow_prs:
-        description: "Allow automation to open pull requests"
+        description: "Allow automation to open pull requests. Tools that fix like go fmt, go fix, etc, will use this. Also in some projects we do auto bumping of 'next version' this is for those situations too. On public projects that don't have existing failures or frequent failures, often I turn this on and off"
         required: false
         default: true
         type: boolean
   schedule:
     # preferred heavy monthly run (quota reset strategy)
-    - cron: '17 3 1 * *'
+    # Always target the 2nd of each month at 5am AEST ignore dst
+    - cron: '0 19 1 * *'
     # optional nightly lightweight checks
     - cron: '41 2 * * *'
 ```
@@ -153,7 +170,7 @@ To avoid invalid manual-dispatch state combinations, keep a **single release con
         run: |
           set -euo pipefail
           git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com" # Note: you can get this ID using the GitHub API: curl -s https://api.github.com/users/github-actions%5Bbot%5D | jq .id
           MODE="${{ inputs.mode }}"
           OVERRIDE="${{ inputs.release_version_override }}"
 
@@ -229,6 +246,29 @@ To avoid invalid manual-dispatch state combinations, keep a **single release con
 
 With this approach, `snapshot/prerelease` is inferred from the selected release mode and tag suffix, not from separate toggles. It also fixes common tagging issues by normalizing override input (`v` prefix optional), validating tag shape, hard-failing on existing tags before publish jobs run, and reminding you to fetch tags before version math. It explicitly installs `git-tag-inc` via `arran4/git-tag-inc-action@v1` (`mode: install`) and includes fallback bump paths (`npx semver`, then pure shell semver math) if the binary is not found. Do not double-install with a separate manual `go install` in the same job. Use `git-tag-inc -print-version-only <major|minor|patch> [test|rc|alpha]` positional arguments to avoid the recurring argument-format mistake. Never use `-patch`/`-major`/`-minor` as flags; those are invalid. Also configure git user/email in the job before running release tag tooling so CI tag operations do not fail on identity checks.
 
+
+### Language-specific Version Bumping
+
+We should break up version bumping into individual components based on the languages in the repo, as different tools have different bump logic (e.g. `pubspec.yaml` has a different bump logic). Here are some quick copy/pasteables for each language:
+
+**Node (package.json):**
+```bash
+npm version patch --no-git-tag-version
+```
+
+**Dart/Flutter (pubspec.yaml):**
+```bash
+PUBSPEC_VERSION=$(awk '/^version:/ {print $2}' pubspec.yaml)
+# increment logic ...
+sed -i "s/^version: .*/version: $NEW_VERSION/" pubspec.yaml
+```
+
+**CMake (CMakeLists.txt):**
+```bash
+sed -i -E "s/(project\([^ ]+ VERSION )[^ )]+/\1$NEW_VERSION/" CMakeLists.txt
+```
+
+
 If your repository keeps a version in source files as well as tags (for example `CMakeLists.txt`, `pubspec.yaml`, `package.json`, or similar), compute the next version from the **highest of source version and fetched tag version**. That avoids the recurring failure mode where CI bumps from stale source state, reuses an already-published version, and collides on tag creation.
 
 ---
@@ -245,6 +285,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
+  # Remember to only provide permissions where necessary
   contents: write
   discussions: write
   pull-requests: write
@@ -282,6 +323,12 @@ jobs:
               ;;
             pull_request)
               if [[ "${{ github.event.action }}" == "closed" ]]; then
+                # We need to reduce the number of reruns we are getting on "closed"
+                # I am not sure following closed is even necessary
+                # Skip execution if the PR was closed by being merged
+                if [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
+                  exit 0
+                fi
                 run_cleanup=true
               else
                 run_pr_meta_checks=true
@@ -343,6 +390,11 @@ If you want a known-good baseline for manual dispatch semantics, use the same th
         run: |
           set -euo pipefail
           if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.action }}" == "closed" ]]; then
+            # We need to reduce the number of reruns we are getting on "closed"
+            # I am not sure following closed is even necessary
+            if [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
+              exit 0
+            fi
             echo "run_code_checks=false" >> "$GITHUB_OUTPUT"
             echo "run_build=false" >> "$GITHUB_OUTPUT"
             echo "run_release=false" >> "$GITHUB_OUTPUT"
@@ -555,6 +607,7 @@ Key ideas from the referenced workflow:
 
 ```yaml
 permissions:
+  # Remember to only provide permissions where necessary
   contents: write
   pull-requests: write
   checks: write
@@ -705,7 +758,7 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
           set -euo pipefail
           git diff --quiet && { echo "No fmt changes"; exit 0; }
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com" # Note: you can get this ID using the GitHub API: curl -s https://api.github.com/users/github-actions%5Bbot%5D | jq .id
           BRANCH="ci/gofmt/${{ github.run_id }}"
           git checkout -b "$BRANCH"
           git add -A
@@ -1003,7 +1056,7 @@ $HIGHEST_TAG" | sort -V | tail -n 1)
 
           sed -i "s/^version: .*/version: $NEW_VERSION/" pubspec.yaml
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com" # Note: you can get this ID using the GitHub API: curl -s https://api.github.com/users/github-actions%5Bbot%5D | jq .id
           git checkout -b "release/v$NEW_VERSION"
           git add pubspec.yaml
           git commit -m "Bump version to $NEW_VERSION"
@@ -1107,7 +1160,7 @@ You wanted this wired to real formatters and branch-name guessable behavior.
           fi
 
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com" # Note: you can get this ID using the GitHub API: curl -s https://api.github.com/users/github-actions%5Bbot%5D | jq .id
 
           PARENT_PR="${{ github.event.pull_request.number || 'none' }}"
           BRANCH="ci/autofix/${{ github.run_id }}-parent-${PARENT_PR}"
@@ -1803,7 +1856,7 @@ This pattern from the referenced workflow is useful for repos that keep `-SNAPSH
 
           BRANCH="bump-version-$NEXT_VERSION"
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com" # Note: you can get this ID using the GitHub API: curl -s https://api.github.com/users/github-actions%5Bbot%5D | jq .id
           git checkout -b "$BRANCH"
 
           # Replace with repo-specific version bump command(s)
@@ -1828,8 +1881,9 @@ name: CI/CD
 
 on:
   push:
+    # We know the repo so the trunk branch should be filtered down / pre selected
     branches: [main, master]
-    tags: ['v*', 'v*.*.*', 'v*.*.*-rc*', 'v*.*.*-beta*', '*-test']
+    tags: ['v*', 'v*.*.*', 'v*.*.*-rc*', 'v*.*.*-beta*', 'v*.*.*-test*']
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     branches: [main, master]
@@ -1848,7 +1902,7 @@ on:
         type: boolean
         default: true
   schedule:
-    - cron: '17 3 1 * *'
+    - cron: '0 19 1 * *'
     - cron: '41 2 * * *'
 
 concurrency:
@@ -1856,6 +1910,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
+  # Remember to only provide permissions where necessary
   contents: write
   pull-requests: write
   checks: write
@@ -2050,7 +2105,7 @@ Optional monthly cleanup (especially useful for private repos with low storage q
 
 ### README distribution/install checklist (do not skip)
 
-When you add release lanes, update `README.md` so users know how to install from each release target. Match the README to what the repo actually ships; if there is no binary, do not add fake binary install instructions just because the template has them. At minimum, list:
+When you add release lanes, don't forget to update `README.md` so users know how to install from each release target. They should be at "next" in some cases and "current" in others such as install instructions. This may be done using pull requests if toggled. Match the README to what the repo actually ships; if there is no binary, do not add fake binary install instructions just because the template has them. At minimum, list:
 
 - **GitHub Releases** (binary/tarball download path),
 - **Homebrew** tap install command,
