@@ -10,6 +10,7 @@
     "content/**/*.md"
   ],
   "words": [
+    "AEST",
     "Acronymifier",
     "Acronymify",
     "Akonadi",
@@ -310,6 +311,7 @@
     "organisation",
     "overages",
     "overlayfs",
+    "pasteables",
     "pathlib",
     "pelletier",
     "perimeterx",
