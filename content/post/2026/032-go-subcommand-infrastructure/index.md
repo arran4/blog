@@ -14,36 +14,30 @@ In this post, we'll look at how to convert or set up an application to use [go-s
 
 When using a subcommand router, the goal is to shift from a massive `main()` function parsing flags to isolated command handlers.
 
-### 1. The Entrypoint
+One of the huge benefits is that you don't even need a `main()` function anymore. `go-subcommand` can generate the whole `/cmd` directory for you, and it can even set up your `goreleaser` file and more. This eliminates a lot of boilerplate right from the start.
 
-Your `main.go` becomes incredibly thin. Its only job is to initialize the root command parser and execute it.
+### 1. The Power of Auto-Generation
+
+By defining your command structure and letting `go-subcommand` do the heavy lifting, you get an instantly runnable application. Each subcommand becomes its own isolated domain. For example, if you are building a real-world infrastructure tool:
 
 ```go
-package main
+package mycli
 
 import (
-	"context"
-	"os"
-	"log"
+    "context"
+    "fmt"
 )
 
-func main() {
-    ctx := context.Background()
+//go:generate go run github.com/arran4/go-subcommand/cmd/go-subcommand generate
 
-    // Setup your root command router here
-    // e.g. router := subcommands.New(...)
-    // router.Register(...)
-
-    // Execute and handle errors
-    // if err := router.Execute(ctx, os.Args[1:]); err != nil {
-    //     log.Fatal(err)
-    // }
+// Create handles the "create" subcommand
+func Create(ctx context.Context, args []string) error {
+    fmt.Println("Creating infrastructure... (example: provisioning an S3 bucket)")
+    return nil
 }
 ```
 
-### 2. Isolated Commands
-
-Each subcommand becomes its own self-contained package or file. You define the command's metadata (name, description) and its execution function. This modularity means that if you're building a tool to manage infrastructure, your `create` command doesn't tangle with your `delete` command's flags.
+This modularity means that your `create` command doesn't tangle with your `delete` command's flags.
 
 By adhering to this structure, extending the app with new features is as simple as dropping in a new command registration.
 
