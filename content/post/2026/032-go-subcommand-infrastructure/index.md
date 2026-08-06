@@ -14,32 +14,52 @@ In this post, we'll look at how to convert or set up an application to use [go-s
 
 When using a subcommand router, the goal is to shift from a massive `main()` function parsing flags to isolated command handlers.
 
-One of the huge benefits is that you don't even need a `main()` function anymore. `go-subcommand` can generate the whole `/cmd` directory for you, and it can even set up your `goreleaser` file and more. This eliminates a lot of boilerplate right from the start.
+One of the huge benefits is that `go-subcommand` can generate the whole `/cmd` directory for you, and it can even set up your `goreleaser` file and more. This eliminates a lot of boilerplate right from the start.
 
-### 1. The Power of Auto-Generation
+### 1. The Migration Process
 
-By defining your command structure and letting `go-subcommand` do the heavy lifting, you get an instantly runnable application. Each subcommand becomes its own isolated domain. For example, if you are building a real-world infrastructure tool:
+The initial process of migrating to `go-subcommand` involves taking your existing bloated `main()` and moving the core logic out of `cmd/`. Typically, you move this logic into `internal/` or `pkg/` (or even just `/` for smaller applications).
+
+By doing this, your business logic becomes decoupled from the CLI flag parsing.
+
+### 2. Defining the Grammar
+
+`go-subcommand` relies on defining the structure of your commands. You can specify a reference grammar that outlines the subcommands, their aliases, descriptions, and the flags they accept.
+
+For example, a grammar might be defined to generate:
+
+```
+root
+  description "My infrastructure management tool"
+  subcommand create
+    description "Create a new resource"
+    flag string name "Name of the resource"
+  subcommand delete
+    description "Delete a resource"
+```
+
+The generator then reads this structure and automatically generates the corresponding Go code in the `cmd/` directory, wiring up the plumbing for you.
+
+### 3. Isolated Handlers
+
+With the CLI layer generated, your actual application code only needs to implement the specific handler functions, like so:
 
 ```go
-package mycli
+package internal
 
 import (
     "context"
     "fmt"
 )
 
-//go:generate go run github.com/arran4/go-subcommand/cmd/go-subcommand generate
-
-// Create handles the "create" subcommand
+// Create handles the "create" subcommand logic
 func Create(ctx context.Context, args []string) error {
-    fmt.Println("Creating infrastructure... (example: provisioning an S3 bucket)")
+    fmt.Println("Creating infrastructure...")
     return nil
 }
 ```
 
-This modularity means that your `create` command doesn't tangle with your `delete` command's flags.
-
-By adhering to this structure, extending the app with new features is as simple as dropping in a new command registration.
+This modularity means that your `create` command doesn't tangle with your `delete` command's flags, and the generated `/cmd` layer handles the parsing.
 
 ## The LLM Feedback Loop: bug.md, gap.md, and featurerequest.md
 
