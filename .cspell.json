@@ -110,6 +110,8 @@
     "afero",
     "alecthomas",
     "analyzer",
+    "analyzing",
+    "anymore",
     "archgoarm",
     "archlinux",
     "archs",
@@ -220,6 +222,7 @@
     "goreleaser",
     "goreleaserbot",
     "gosimple",
+    "gosubc",
     "gotmpl",
     "govet",
     "gowebp",
@@ -236,6 +239,7 @@
     "illumos",
     "imds",
     "ineffassign",
+    "infractl",
     "installdependencies",
     "interms",
     "invopop",
@@ -287,6 +291,7 @@
     "mlterm",
     "mohae",
     "myapp",
+    "mycli",
     "mydocs",
     "myfs",
     "mypkg",
@@ -442,6 +447,7 @@
     "yourorg",
     "yourproject",
     "yuin",
+    "zstd",
     "zutty"
   ]
 }
