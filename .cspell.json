@@ -222,6 +222,7 @@
     "goreleaser",
     "goreleaserbot",
     "gosimple",
+    "gosubc",
     "gotmpl",
     "govet",
     "gowebp",
@@ -238,6 +239,7 @@
     "illumos",
     "imds",
     "ineffassign",
+    "infractl",
     "installdependencies",
     "interms",
     "invopop",
@@ -445,6 +447,7 @@
     "yourorg",
     "yourproject",
     "yuin",
+    "zstd",
     "zutty"
   ]
 }
