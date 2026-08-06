@@ -7,15 +7,10 @@ on:
   pull_request:
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
-    permissions:
-      contents: write
-      discussions: write
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: true  # Fetch Hugo themes (true OR recursive)
           fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
@@ -29,12 +24,33 @@ jobs:
       - name: Build
         run: hugo --minify
 
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
         if: ${{ github.ref == 'refs/heads/main' }}
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
+          path: ./public
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+    permissions:
+      contents: write
+      discussions: write
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Checkout for discussions
+        uses: actions/checkout@v4
+        if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
+        with:
+          fetch-depth: 0
 
       - name: Create Discussions for New Posts
         if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
