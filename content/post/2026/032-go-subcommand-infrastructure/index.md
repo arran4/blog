@@ -135,6 +135,15 @@ func Restore(...) error {
 
 The shared `vault backup` prefix creates the nested command structure. There is no separate section where the parent-child relationship must be registered.
 
+This structure supports sub-sub commands, and beyond; there is no limit to the depth of nesting. You simply add more words to the command path:
+
+```go
+// Set is a subcommand `vault backup config set`
+func Set(...) error {
+	// ...
+}
+```
+
 The Go function signature defines the values that will be passed to the command. The documentation comment describes how CLI arguments map onto those values.
 
 ## A Practical Backup CLI Grammar
