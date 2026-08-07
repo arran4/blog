@@ -12,7 +12,7 @@ Before long, `cmd/` contains argument parsing, configuration loading, filesystem
 
 [[go-subcommand](https://github.com/arran4/go-subcommand)](https://github.com/arran4/go-subcommand) takes a different approach. The functions and their documentation comments define the command grammar, while `gosubc` generates the executable code under `cmd/`.
 
-The important distinction is that `go-subcommand` is a code generator, not a runtime CLI framework. Your application does not need to import it. The generated command implementation is self-contained and dependency-free.
+The important distinction is that `go-subcommand` is a standalone CLI tool used for code generation, not a runtime CLI framework. It is not a dependency, and your application does not need to import it. The generated command implementation is self-contained and dependency-free.
 
 This changes how I structure a Go CLI:
 
@@ -332,7 +332,15 @@ Because this information is kept beside the function, the command declaration, h
 
 ## Add the Generator
 
-Install the generator with:
+The `gosubc` tool must be run from the root of your module, in the same folder as your `go.mod` file.
+
+You can run it directly from the web without installing using:
+
+```console
+go run github.com/arran4/go-subcommand/cmd/gosubc@latest generate
+```
+
+Or install the generator with:
 
 ```console
 go install github.com/arran4/go-subcommand/cmd/gosubc@latest
