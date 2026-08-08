@@ -1879,42 +1879,6 @@ Integrate language publishers in the same publish stage:
 
 ---
 
-### Optional: Prepare next development version PR after release
-
-This pattern from the referenced workflow is useful for repos that keep `-SNAPSHOT` / development versions in source control.
-
-```yaml
-  prepare-next-version-pr:
-    name: Prepare next development iteration PR
-    needs: [publish-draft]
-    if: ${{ github.event_name == 'workflow_dispatch' && (startsWith(inputs.mode, 'release-') || inputs.mode == 'release-test') }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - name: Bump to next version and open PR
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          NEXT_VERSION="${{ needs.prepare-release-tag.outputs.next_version || '' }}"
-          [[ -z "$NEXT_VERSION" ]] && { echo "No next version calculated; skipping."; exit 0; }
-
-          BRANCH="bump-version-$NEXT_VERSION"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$BRANCH"
-
-          # Replace with repo-specific version bump command(s)
-          # mvn versions:set -DnewVersion="$NEXT_VERSION" -DgenerateBackupPoms=false
-          # sed -i -E "s/(project\([^ ]+ VERSION )[^ )]+/\1$NEXT_VERSION/" CMakeLists.txt
-
-          git add -A
-          git commit -m "Prepare next development iteration $NEXT_VERSION"
-          git push -u origin "$BRANCH"
-          gh pr create --title "Prepare next development iteration $NEXT_VERSION" --body "Automated PR for next iteration." --base main --head "$BRANCH"
-```
-
----
 
 ## Step 16: Full skeleton (compact but wired)
 
@@ -2063,9 +2027,6 @@ jobs:
     needs: [publish-draft]
     # ...
 
-  prepare-next-version-pr:
-    needs: [publish-draft, prepare-release-tag]
-    # ...
 ```
 
 ---
