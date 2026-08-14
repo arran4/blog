@@ -2,13 +2,21 @@
 title: "Testing File Systems: How I use MockFS, MapFS, and SimpleFS in Go"
 date: 2026-08-14T00:00:58Z
 draft: false
-tags: ["go", "testing", "fs", "mockfs", "mapfs", "txtar"]
+tags: ["go", "testing", "fs", "mockfs", "mapfs", "txtar", "agentic-coding"]
 categories: ["engineering", "go-patterns"]
 ---
 
 When building tools in Go that interact heavily with the file system, having a solid strategy for testing those interactions is critical. Direct coupling to `os` functions like `os.MkdirAll` or `os.WriteFile` makes testing cumbersome and slow.
 
 In this post, I want to detail how I approach this by designing minimal file system interfaces and using in-memory implementations like `MapFS` and `MockFS` for tests.
+
+## Why This Matters in the Era of Agentic Coding
+
+Before diving into the code, it's worth highlighting *why* robust, abstract testing environments are becoming even more critical today. With the rise of AI, LLMs, and agentic coding, reviewers are facing a paradigm shift. We aren't just getting *more* pull requests than ever before; we are getting *larger* ones.
+
+Almost all development is trending towards being agentic, which inherently creates a greater disconnect between the code and the developer/reviewer. Because LLMs are doing the heavy lifting, we need to push the burden of proof onto the LLMs themselves. This means enforcing stricter end-to-end testing and higher minimum PR requirements. We need more type checking, clearer input-to-output mappings, and greater test coverage baked directly into the codebase.
+
+The more comprehensive our minimum PR requirements are (like proving file system interactions work without touching the real disk), the more the submitter (whether human or agent) has to do to ensure their solution is correct *before* submitting. This effectively decreases low-quality PRs and gives the reviewer much greater certainty over the completeness of the solution.
 
 ## The Core Idea: Define Minimal Interfaces
 
