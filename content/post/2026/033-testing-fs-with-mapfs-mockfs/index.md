@@ -2,17 +2,19 @@
 title: "Testing File Systems: How I use MockFS, MapFS, and SimpleFS in Go"
 date: 2026-08-14T00:00:58Z
 draft: false
-tags: ["go", "testing", "fs", "mockfs", "mapfs"]
+tags: ["go", "testing", "fs", "mockfs", "mapfs", "txtar"]
 categories: ["engineering", "go-patterns"]
 ---
 
 When building tools in Go that interact heavily with the file system, having a solid strategy for testing those interactions is critical. Direct coupling to `os` functions like `os.MkdirAll` or `os.WriteFile` makes testing cumbersome and slow.
 
-In this post, I want to detail how I approach this by designing minimal file system interfaces and using in-memory implementations like `MapFS` and `MockFS` for tests. You can see this pattern in action in projects like [g2](https://github.com/arran4/g2/pull/435).
+In this post, I want to detail how I approach this by designing minimal file system interfaces and using in-memory implementations like `MapFS` and `MockFS` for tests.
 
 ## The Core Idea: Define Minimal Interfaces
 
-Instead of depending on the entire `fs.FS` or `os` package, I define exactly what my code needs. For example, if a function needs to create directories, check if files exist, and write data, I might define a `WritableFS` (or `SimpleFS` depending on the project):
+It is okay to use `fs.FS` as a parent interface. However, it is often too limited in its definition for tasks that require writing or manipulating files. We don't want to be typecasting for something we know is rather concrete. Because the interfaces and structs are usually defined close to the source, extreme genericness is unnecessary (especially when we aren't making a public library).
+
+Instead, I define exactly what my code needs. For example, if a function needs to create directories, check if files exist, and write data, I might define a `WritableFS` (or `SimpleFS`):
 
 ```go
 // WritableFS provides a minimal interface for file system operations needed by overlay init.
@@ -141,6 +143,10 @@ func InitOverlay(args OverlayInitArgs, ops ...any) error {
 }
 ```
 
-## Conclusion
+## Conclusion and Alternatives
 
-Using small, targeted interfaces for file system operations, backed by robust memory implementations like `MockFS` for testing, creates a clean boundary between business logic and side effects. Whether you are using `txtar` for complex test layouts (see [Txtar Patterns for Agents](/blog/post/2026/004-txtar-patterns-for-agents/)) or simple map-based filesystems for unit testing writes, abstracting the file system is a critical step towards maintaining a testable Go codebase.
+Using small, targeted interfaces for file system operations, backed by robust memory implementations like `MockFS` for testing, creates a clean boundary between business logic and side effects.
+
+It's worth mentioning that `txtar` can be a powerful substitute when there are a lot of files for the input and expected states. This is especially true if you use directory prefixes like `input/*.*` and `expected/*.*`, which allow for deep directory comparison. This approach also leaves the rest of the `/` namespace in the txtar file open for configuration, toggles, or metadata. Using two separate `.txtar` files for a single test is also perfectly acceptable, as you might reuse a common `input.txtar` file across multiple scenarios. Because `txtar` adheres to standard interfaces like `fs.FS` and `fs.ReadDirFS`, it integrates smoothly into this pattern.
+
+Whether you are using `txtar` for complex test layouts (see [Txtar Patterns for Agents](/blog/post/2026/004-txtar-patterns-for-agents/)) or simple map-based filesystems for unit testing writes, abstracting the file system is a critical step towards maintaining a testable Go codebase.
