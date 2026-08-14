@@ -13,6 +13,9 @@ A typical implementation looks like:
 ```go
 var update = flag.Bool("update", false, "update golden files")
 
+//go:embed testdata/example.golden
+var exampleGolden []byte
+
 func TestSomething(t *testing.T) {
     got := generateOutput()
 
@@ -22,12 +25,19 @@ func TestSomething(t *testing.T) {
         if err := os.WriteFile(golden, got, 0644); err != nil {
             t.Fatal(err)
         }
+        // When updating, we must read back from disk to get the new state
+        // because the embedded variable exampleGolden won't change at runtime.
+        want, err := os.ReadFile(golden)
+        if err != nil {
+            t.Fatal(err)
+        }
+        if !bytes.Equal(got, want) {
+            t.Errorf("output differs from golden file")
+        }
+        return
     }
 
-    want, err := os.ReadFile(golden)
-    if err != nil {
-        t.Fatal(err)
-    }
+    want := exampleGolden
 
     if !bytes.Equal(got, want) {
         t.Errorf("output differs from golden file")
@@ -179,3 +189,11 @@ Instead of reading and writing individual `.golden` files from disk, you can use
 For instance, if your tests use `fs.WalkDir` over a structured directory of `txtar` test cases, and inject an in-memory `MapFS` or `MockFS` for the code under test to operate on, you can capture the resulting virtual filesystem state. If `-update` is true, you can bundle that in-memory state back into the `txtar` archive format and write it back out to the real `testdata/` directory, updating the expected files inline.
 
 This aligns perfectly with agentic coding practices by ensuring complex inputs and expected outputs are clearly defined and easily regenerated, while the actual testing logic remains isolated through `fs.FS` interfaces rather than coupled to `os` functions.
+
+### The Case for `go:embed`
+
+While `os.ReadFile` works fine for simple local testing, I strongly recommend using `go:embed` to read your test fixture files during assertions whenever possible (as shown in the first example).
+
+Embedding the test data directly into the test binary substantially reduces file path resolution failures, especially when tests are run from different working directories or within CI/CD pipelines and isolated agent environments. It guarantees that the expected data is always packaged alongside the test that requires it.
+
+In practice, you use `-update` and `os.WriteFile` to write the files to disk, and your test assertions (when not updating) read the expected state from the embedded filesystem block, ensuring rock-solid read reliability.
