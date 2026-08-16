@@ -1,6 +1,6 @@
 ---
 title: "Walking Template Filesystems: walkfs, walkmultifs, and Domain-Owned Templates in Go"
-date: 2026-08-16T12:20:00+10:00
+date: 2026-08-16T12:23:18+10:00
 draft: false
 tags: ["go", "templates", "filesystem", "architecture", "embed"]
 categories: ["engineering-process", "reference"]
@@ -73,11 +73,12 @@ internal/images/
             embed.go
             image.gohtml
 
-internal/sharedweb/
-    templates/
-        embed.go
-        layout.gohtml
-        pager.gohtml
+internal/shared/
+    web/
+        templates/
+            embed.go
+            layout.gohtml
+            pager.gohtml
 ```
 
 The exact directory names are not important. The ownership rule is.
@@ -634,7 +635,7 @@ The compiler should still see only one effective `fs.FS` for the `links` namespa
 That preserves the separation:
 
 ```text
-overlay policy    -> effective fs.FS
+overlay policy     -> effective fs.FS
 composition policy -> templatefs.Source values
 ```
 
