@@ -1,12 +1,12 @@
 ---
 title: "Walking Template Filesystems: walkfs, walkmultifs, and Domain-Owned Templates in Go"
-date: 2026-08-16T11:56:00+10:00
+date: 2026-08-16T12:01:00+10:00
 draft: false
 tags: ["go", "templates", "filesystem", "architecture", "embed"]
 categories: ["engineering-process", "reference"]
 ---
 
-<!-- cspell:words AddParseTree DAG ExecuteTemplate FuncMap Funcs MapFS OpenGraph ParseFS WalkDir funcs fstest goa4web gobookmarks gohtml namespacing templatefs walkfs walkmultifs -->
+<!-- cspell:words AddParseTree DAG DirFS ExecuteTemplate FuncMap Funcs MapFS OpenGraph ParseFS ValidPath WalkDir funcs fstest goa4web gobookmarks gohtml gotemplate imagetemplates linktemplates namespacing sharedtemplates templatefs walkfs walkmultifs -->
 
 I have ended up using the same small pattern in several Go projects: take an `fs.FS`, recursively walk it, select files of interest, and compile those files into a larger object using stable names derived from their paths.
 
@@ -197,9 +197,9 @@ func Compile(funcs template.FuncMap, sources ...Source) (*template.Template, err
                 }
 
                 name := candidate.Name()
-                if !strings.HasPrefix(name, src.Namespace+"/") {
+                if !fs.ValidPath(name) || !strings.HasPrefix(name, src.Namespace+"/") {
                     return fmt.Errorf(
-                        "%s:%s defines template %q outside namespace %q",
+                        "%s:%s defines template %q outside path namespace %q",
                         src.Namespace,
                         p,
                         name,
@@ -270,6 +270,8 @@ but this is rejected:
 ```
 
 and so is a second definition of `links/card` from another file.
+
+The path validation also rejects names such as `links/../shared/pager`; the namespace rule is path-like rather than a raw string-prefix convention.
 
 The source namespace is not just decoration; it is an ownership rule.
 
