@@ -37,6 +37,9 @@ done
 ```
 
 ## Submitting changes
+
+All changes to this repository must be made on a non-default branch and submitted through a pull request. Do not commit changes directly to `main` or another default branch. Unless the user explicitly requests otherwise, create the pull request as a draft so the proposed content can be reviewed before merge.
+
 Before submitting any changes, you must run the spell checker to ensure there are no spelling errors in the documentation and content files.
 
 Run the following command:
