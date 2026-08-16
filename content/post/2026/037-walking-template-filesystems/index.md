@@ -1,18 +1,18 @@
 ---
 title: "Walking Template Filesystems: walkfs, walkmultifs, and Domain-Owned Templates in Go"
-date: 2026-08-16T12:23:18+10:00
+date: 2026-08-16T14:27:00+10:00
 draft: false
 tags: ["go", "templates", "filesystem", "architecture", "embed"]
 categories: ["engineering-process", "reference"]
 ---
 
-<!-- cspell:words AddParseTree DAG DirFS ExecuteTemplate FuncMap Funcs MapFS ParseFS ValidPath WalkDir funcs fstest gohtml gotemplate imagetemplates linktemplates namespacing sharedtemplates templatefs walkfs walkmultifs -->
+<!-- cspell:words AddParseTree AddPrefix DAG DirFS ExecuteTemplate FuncMap Funcs MapFS ParseFS ValidPath WalkDir funcs fstest gohtml gotemplate imagetemplates linktemplates namespacing sharedtemplates templatefs walkfs walkmultifs -->
 
 A useful Go pattern appears whenever files are part of application composition rather than merely data on disk: accept an `fs.FS`, recursively discover files, give them stable logical names, validate them, and assemble them into a larger runtime object.
 
 For HTML templates, I will call the single-filesystem form **walkfs** and the multi-source form **walkmultifs**.
 
-The walking code itself is small. The interesting part is getting the Go design around it right: ownership, package dependencies, template namespaces, collision handling, runtime overrides, function maps, testing, and application lifecycle.
+The walking code itself is small. The interesting part is getting the Go design around it right: ownership, package dependencies, template names, collision handling, runtime overrides, function maps, testing, and application lifecycle.
 
 This article builds that design from first principles. The goal is not the shortest possible loader, but the version of the pattern I would want copied into a new Go codebase.
 
@@ -27,7 +27,7 @@ The useful primitives already exist:
 - `html/template` provides the associated template set and contextual escaping.
 - `fstest.MapFS` makes the same code easy to test without the host filesystem.
 
-That means the first design rule is simple:
+That gives the first design rule:
 
 > Do not invent a filesystem framework when `fs.FS` is already the interface the consumer needs.
 
@@ -37,119 +37,186 @@ A template compiler can accept `fs.FS` values directly and return a concrete `*t
 
 Before writing a walker, consider `html/template.ParseFS`.
 
-For a small fixed tree with simple naming rules, it may already be the best answer. A custom walk becomes useful only when file discovery itself has policy attached to it, for example:
+For a small fixed tree with simple naming rules, it may already be the best answer. A custom walk becomes useful when discovery itself has policy attached to it, for example:
 
 - recurse to arbitrary depth,
 - preserve relative paths as logical names,
+- add a logical prefix to a source without changing its filesystem,
 - filter files,
 - attach source provenance to errors,
-- enforce namespace ownership,
+- enforce ownership of extra named templates,
 - reject collisions rather than relying on parse order,
 - compose several independently owned filesystems.
 
 The last few points are what turn a convenience helper into an architectural boundary.
 
-## Keep templates next to the code that owns them
+## The filename should normally be the template name
 
-A domain-oriented application might look roughly like this:
+The simplest convention is one file equals one template.
+
+If a source contains:
 
 ```text
-internal/links/
-    service.go
-    worker/
-        fetch.go
-    web/
-        handler.go
-        templates/
-            embed.go
-            card.gohtml
-            edit.gohtml
-
-internal/images/
-    service.go
-    web/
-        handler.go
-        templates/
-            embed.go
-            image.gohtml
-
-internal/shared/
-    web/
-        templates/
-            embed.go
-            layout.gohtml
-            pager.gohtml
+card.gohtml
+edit-form.gohtml
+pages/edit.gohtml
 ```
 
-The exact directory names are not important. The ownership rule is.
+then those file bodies should be usable directly as templates. There is no need to wrap every file in `{{ define ... }}` merely to give it a name.
 
-A template that exists because the links web adapter exists can be owned by that adapter. Shared layouts can be owned by a deliberately shared presentation package. The application does not need to put every template file back into one physical directory merely because all templates are compiled into one runtime set.
+For example, `card.gohtml` can simply contain:
 
-That is where `walkmultifs` becomes useful: **physical ownership stays local while runtime composition stays global**.
+```gotemplate
+<article class="card">
+    <a href="{{ .URL }}">{{ .Title }}</a>
+</article>
+```
 
-## The tempting implementation is not quite strong enough
+If the compiler publishes that file as `links/card.gohtml`, another template can invoke it directly:
 
-A first version of `walkfs` might look like this:
+```gotemplate
+{{ template "links/card.gohtml" .Link }}
+```
+
+The file path is already a useful, stable identity.
+
+Explicit `define` or `block` declarations remain useful when one file deliberately creates **additional** associated templates, but they should not be required for the ordinary one-file-one-template case.
+
+## Two ways to get the logical path
+
+There are two useful layouts. Both can produce the same runtime name:
+
+```text
+links/card.gohtml
+```
+
+The difference is whether `links/` exists physically or is added at composition time.
+
+### Variant 1: flat package resources with a virtual prefix
+
+Keeping a component's resource package flat is convenient:
+
+```text
+internal/links/web/templates/
+    embed.go
+    card.gohtml
+    edit-form.gohtml
+```
+
+The filesystem exposed by that package contains:
+
+```text
+card.gohtml
+edit-form.gohtml
+```
+
+At composition time, give the source a virtual prefix:
 
 ```go
-func WalkHTML(root *template.Template, namespace string, fsys fs.FS) error {
-    return fs.WalkDir(fsys, ".", func(p string, d fs.DirEntry, err error) error {
-        if err != nil {
-            return err
-        }
-        if d.IsDir() || path.Ext(p) != ".gohtml" {
-            return nil
-        }
-
-        b, err := fs.ReadFile(fsys, p)
-        if err != nil {
-            return err
-        }
-
-        name := path.Join(namespace, p)
-        if root.Lookup(name) != nil {
-            return fmt.Errorf("duplicate template %q", name)
-        }
-
-        _, err = root.New(name).Parse(string(b))
-        return err
-    })
+templatefs.Source{
+    Name:   "links templates",
+    Prefix: "links",
+    FS:     linktemplates.FS(),
 }
 ```
 
-This is useful, but it only checks the name derived from the **file path**.
-
-Go templates have another namespace inside the files themselves.
-
-A file named:
+The compiler reads:
 
 ```text
 card.gohtml
 ```
 
-can contain:
+but publishes it as:
 
-```gotemplate
-{{ define "links/card" }}
-    ...
-{{ end }}
+```text
+links/card.gohtml
 ```
 
-That explicit definition becomes another associated template. A second file can define the same name, and Go's template APIs support legitimate replacement and overlay use cases.
+This is effectively an **AddPrefix operation on the template name**, not on the filesystem itself:
 
-For independently owned application components, replacement is usually the wrong default. If two sources both claim the same logical template name, I want compilation to fail.
+```go
+logicalName := path.Join(src.Prefix, p)
+```
 
-So a stronger implementation should:
+There is no standard-library inverse of `fs.Sub` that adds a directory in front of an arbitrary filesystem. More importantly, one is not needed here. The read path and the published template name are separate concerns.
 
-1. parse each file in isolation,
-2. inspect every template created by that parse,
-3. validate ownership of every resulting name,
-4. detect duplicates with source provenance,
-5. only then add the parse trees to the final template set.
+`fs.Sub` changes how a caller addresses files in an `fs.FS`. A virtual template prefix changes only how the parsed file is named in the template set.
 
-## A stricter `templatefs` compiler
+If some unrelated consumer genuinely needs an `fs.FS` which itself appears underneath an added directory, a small filesystem wrapper may make sense. For template compilation alone, that would be extra machinery for no benefit.
 
-The public API can still stay small:
+### Variant 2: put the namespace in the actual directory tree
+
+The simpler naming implementation is to make the desired runtime name the actual filesystem path:
+
+```text
+internal/links/web/templates/
+    embed.go
+    files/
+        links/
+            card.gohtml
+            edit-form.gohtml
+```
+
+The package can expose an FS containing those paths:
+
+```go
+package templates
+
+import (
+    "embed"
+    "io/fs"
+)
+
+//go:embed files
+var embedded embed.FS
+
+func FS() fs.FS {
+    sub, err := fs.Sub(embedded, "files")
+    if err != nil {
+        panic(err)
+    }
+    return sub
+}
+```
+
+Now the walker sees:
+
+```text
+links/card.gohtml
+```
+
+and can publish `p` unchanged.
+
+An application which is happy to own one physical template tree can go further:
+
+```text
+templates/
+    shared/
+        layout.gohtml
+        pager.gohtml
+    links/
+        card.gohtml
+        edit-form.gohtml
+    images/
+        image.gohtml
+```
+
+After an `fs.Sub(embedded, "templates")`, every path is already its final logical template name. A single walk is enough and no virtual-prefix feature is required at all.
+
+This is the simplest implementation. The trade-off is physical ownership: a central tree is less attractive when templates should live beside independently owned packages. Putting the namespace directory inside each leaf resource package keeps local ownership but adds one redundant directory level.
+
+So the choice is mostly structural:
+
+```text
+flat local package + Prefix  -> less physical nesting, composition adds identity
+physical namespace directory -> source path is runtime identity, simpler compiler
+```
+
+Both are valid. The compiler can support both without changing the template API.
+
+## A compiler which supports both variants
+
+A small source description is enough:
 
 ```go
 package templatefs
@@ -164,33 +231,36 @@ import (
 )
 
 type Source struct {
-    Namespace string
-    FS        fs.FS
+    // Name is for diagnostics only.
+    Name string
+
+    // Prefix is optional. When non-empty, it is added to the filesystem
+    // path when choosing the logical template name.
+    Prefix string
+
+    FS fs.FS
 }
 
 type origin struct {
-    Namespace string
-    File      string
+    Source string
+    File   string
 }
 
 func Compile(funcs template.FuncMap, sources ...Source) (*template.Template, error) {
     out := template.New("root").Funcs(funcs)
-
     owners := map[string]origin{}
-    namespaces := map[string]struct{}{}
 
     for _, src := range sources {
-        if err := validateSource(src); err != nil {
-            return nil, err
+        if src.FS == nil {
+            return nil, fmt.Errorf("template source %q has a nil filesystem", src.Name)
         }
-        if _, exists := namespaces[src.Namespace]; exists {
-            return nil, fmt.Errorf("duplicate template namespace %q", src.Namespace)
+        if src.Prefix != "" && (src.Prefix == "." || !fs.ValidPath(src.Prefix)) {
+            return nil, fmt.Errorf("template source %q has invalid prefix %q", src.Name, src.Prefix)
         }
-        namespaces[src.Namespace] = struct{}{}
 
         err := fs.WalkDir(src.FS, ".", func(p string, d fs.DirEntry, walkErr error) error {
             if walkErr != nil {
-                return fmt.Errorf("walk %s:%s: %w", src.Namespace, p, walkErr)
+                return fmt.Errorf("walk %s:%s: %w", src.Name, p, walkErr)
             }
             if d.IsDir() || path.Ext(p) != ".gohtml" {
                 return nil
@@ -198,13 +268,17 @@ func Compile(funcs template.FuncMap, sources ...Source) (*template.Template, err
 
             b, err := fs.ReadFile(src.FS, p)
             if err != nil {
-                return fmt.Errorf("read %s:%s: %w", src.Namespace, p, err)
+                return fmt.Errorf("read %s:%s: %w", src.Name, p, err)
             }
 
-            fileName := path.Join(src.Namespace, p)
-            parsed, err := template.New(fileName).Funcs(funcs).Parse(string(b))
+            logicalName := p
+            if src.Prefix != "" {
+                logicalName = path.Join(src.Prefix, p)
+            }
+
+            parsed, err := template.New(logicalName).Funcs(funcs).Parse(string(b))
             if err != nil {
-                return fmt.Errorf("parse %s:%s: %w", src.Namespace, p, err)
+                return fmt.Errorf("parse %s:%s as %q: %w", src.Name, p, logicalName, err)
             }
 
             candidates := parsed.Templates()
@@ -212,43 +286,45 @@ func Compile(funcs template.FuncMap, sources ...Source) (*template.Template, err
                 return candidates[i].Name() < candidates[j].Name()
             })
 
+            ownerPrefix := src.Prefix
+            if ownerPrefix == "" {
+                ownerPrefix = firstSegment(logicalName)
+            }
+
             for _, candidate := range candidates {
                 if candidate.Tree == nil {
                     continue
                 }
 
                 name := candidate.Name()
-                if !fs.ValidPath(name) || !strings.HasPrefix(name, src.Namespace+"/") {
-                    return fmt.Errorf(
-                        "%s:%s defines template %q outside path namespace %q",
-                        src.Namespace,
-                        p,
-                        name,
-                        src.Namespace,
-                    )
+                if !fs.ValidPath(name) {
+                    return fmt.Errorf("%s:%s defines invalid template name %q", src.Name, p, name)
+                }
+
+                // The file-derived template name is always allowed. Extra names
+                // created by define/block must remain in the same namespace.
+                if name != logicalName {
+                    if ownerPrefix == "" || !inNamespace(name, ownerPrefix) {
+                        return fmt.Errorf(
+                            "%s:%s defines template %q outside namespace %q",
+                            src.Name, p, name, ownerPrefix,
+                        )
+                    }
                 }
 
                 if previous, exists := owners[name]; exists {
                     return fmt.Errorf(
                         "template %q defined by both %s:%s and %s:%s",
-                        name,
-                        previous.Namespace,
-                        previous.File,
-                        src.Namespace,
-                        p,
+                        name, previous.Source, previous.File, src.Name, p,
                     )
                 }
 
                 if _, err := out.AddParseTree(name, candidate.Tree); err != nil {
-                    return fmt.Errorf("add template %q from %s:%s: %w", name, src.Namespace, p, err)
+                    return fmt.Errorf("add template %q from %s:%s: %w", name, src.Name, p, err)
                 }
 
-                owners[name] = origin{
-                    Namespace: src.Namespace,
-                    File:      p,
-                }
+                owners[name] = origin{Source: src.Name, File: p}
             }
-
             return nil
         })
         if err != nil {
@@ -259,100 +335,153 @@ func Compile(funcs template.FuncMap, sources ...Source) (*template.Template, err
     return out, nil
 }
 
-func validateSource(src Source) error {
-    if src.FS == nil {
-        return fmt.Errorf("template namespace %q has a nil filesystem", src.Namespace)
+func firstSegment(name string) string {
+    if i := strings.IndexByte(name, '/'); i >= 0 {
+        return name[:i]
     }
-    if src.Namespace == "" || src.Namespace == "." || !fs.ValidPath(src.Namespace) {
-        return fmt.Errorf("invalid template namespace %q", src.Namespace)
-    }
-    return nil
+    return ""
+}
+
+func inNamespace(name, prefix string) bool {
+    return name == prefix || strings.HasPrefix(name, prefix+"/")
 }
 ```
 
 This is deliberately ordinary Go. It is mostly standard-library glue.
 
-The important property is that every logical name is checked **before** it is admitted to the final associated template set.
+The important line for the virtual-prefix variant is simply:
 
-A links source may define:
-
-```gotemplate
-{{ define "links/card" }}
-    ...
-{{ end }}
+```go
+logicalName = path.Join(src.Prefix, p)
 ```
 
-but this is rejected:
+With an empty prefix, the actual filesystem path is preserved.
 
-```gotemplate
-{{ define "card" }}
-    ...
-{{ end }}
-```
+## Using the two variants
 
-and so is a second definition of `links/card` from another file.
-
-The path validation also rejects names such as:
+A flat local source:
 
 ```text
-links/../shared/pager
+card.gohtml
+edit-form.gohtml
 ```
 
-so the ownership rule is path-like rather than a raw string-prefix convention.
-
-The namespace is not decoration. It is part of the compilation contract.
-
-## Why parse one file at a time?
-
-There are two useful identities to preserve.
-
-First, the file itself gets a stable logical name such as:
-
-```text
-links/pages/edit.gohtml
-```
-
-Second, any explicit `define` or `block` declarations created while parsing that file can be attributed to the same source file before anything is merged globally.
-
-Parsing one whole domain into a temporary shared template set would isolate domains from one another, but it could still allow later files inside that domain to replace definitions established by earlier files.
-
-Per-file parsing plus an explicit ownership map closes that hole too.
-
-It also permits precise errors such as:
-
-```text
-template "links/card" defined by both links:card.gohtml and links:partials/card.gohtml
-```
-
-That is substantially easier to diagnose than finding out later that one definition happened to win.
-
-## `walkmultifs` is composition, not a union filesystem
-
-At this point, `walkmultifs` does not require a separate filesystem implementation. It is simply the fact that the compiler accepts several sources:
+can be composed as:
 
 ```go
 tmpl, err := templatefs.Compile(funcs,
     templatefs.Source{
-        Namespace: "shared",
-        FS:        sharedtemplates.FS(),
+        Name:   "links",
+        Prefix: "links",
+        FS:     linktemplates.FS(),
     },
     templatefs.Source{
-        Namespace: "links",
-        FS:        linktemplates.FS(),
-    },
-    templatefs.Source{
-        Namespace: "images",
-        FS:        imagetemplates.FS(),
+        Name:   "images",
+        Prefix: "images",
+        FS:     imagetemplates.FS(),
     },
 )
 ```
 
-This is preferable to pretending that independent component filesystems are one filesystem.
+The resulting names include:
+
+```text
+links/card.gohtml
+links/edit-form.gohtml
+images/image.gohtml
+```
+
+A physical tree which already contains namespaces:
+
+```text
+shared/layout.gohtml
+shared/pager.gohtml
+links/card.gohtml
+links/edit-form.gohtml
+images/image.gohtml
+```
+
+needs no virtual prefix:
+
+```go
+tmpl, err := templatefs.Compile(funcs,
+    templatefs.Source{
+        Name: "application templates",
+        FS:   templatesFS,
+    },
+)
+```
+
+The resulting names are identical to the source paths.
+
+The two approaches can even be mixed. One source may use a virtual prefix while another already exposes its final paths. Collision checks operate on the resulting logical names, so the final namespace remains deterministic.
+
+## What `define` is for in this model
+
+`define` is optional, not the naming mechanism for ordinary files.
+
+Prefer:
+
+```text
+links/card.gohtml
+links/edit-form.gohtml
+```
+
+with direct file bodies, then call:
+
+```gotemplate
+{{ template "links/card.gohtml" .Link }}
+{{ template "links/edit-form.gohtml" .Form }}
+```
+
+Use `define` only when one file intentionally contributes another associated template. For example, a namespaced file might contain its main body and an additional helper:
+
+```gotemplate
+<section>...</section>
+
+{{ define "links/card/badge" }}
+    <span class="badge">{{ . }}</span>
+{{ end }}
+```
+
+The compiler can allow that extra name because it remains inside the `links` namespace.
+
+A links file defining:
+
+```gotemplate
+{{ define "shared/pager" }}...{{ end }}
+```
+
+is rejected. If the component is truly shared, its ownership should move to the shared template source instead of creating an implicit cross-component overwrite.
+
+If the application never needs multi-template files or `block`, the policy can be made even stricter: reject every parsed template name except the file-derived `logicalName`. That is a perfectly reasonable simplification.
+
+## Why parse one file at a time?
+
+Per-file parsing is useful even when `define` is uncommon.
+
+First, the file itself gets a known logical identity before it enters the global set.
+
+Second, if a file does contain `define` or `block`, every additional name can be attributed to the file that created it before anything is merged globally.
+
+Third, duplicate file-derived names are detected before one source silently replaces another.
+
+This permits errors such as:
+
+```text
+template "links/card.gohtml" defined by both links-a:card.gohtml and links-b:card.gohtml
+```
+
+rather than discovering later that one happened to win.
+
+## `walkmultifs` is composition, not a union filesystem
+
+`walkmultifs` does not require a new filesystem implementation. It is the fact that `Compile` accepts several sources and maps each source path into one logical template namespace.
 
 A union filesystem has to define semantics for:
 
 - duplicate paths,
-- directory listing merges,
+- merged directory listings,
 - source precedence,
 - a file in one source colliding with a directory in another,
 - distinguishing a miss from a source-specific error.
@@ -363,20 +492,21 @@ For independently owned sources, a collision should normally fail.
 
 For overrides, precedence should be intentional and implemented one layer earlier.
 
-That gives two separate concepts:
+That gives separate concerns:
 
 ```text
-overlay FS      = which physical file a source exposes
-source compiler = which sources contribute templates
+overlay FS       = which physical file a source exposes
+virtual Prefix   = how a source path becomes a logical template path
+source compiler  = which logical templates enter the final set
 ```
 
-Keeping those concepts separate makes both easier to reason about.
+Keeping those decisions separate makes each easier to reason about.
 
 ## Let resource packages stay leaf packages
 
-`go:embed` is package-local, which fits this structure well.
+`go:embed` is package-local, which fits component ownership well.
 
-A resource package can be almost empty:
+For the flat virtual-prefix variant, a resource package can be almost empty:
 
 ```go
 package templates
@@ -403,9 +533,7 @@ internal/links/web
 internal/links/web/templates
 ```
 
-The resource package can remain a leaf that knows only about `embed` and `io/fs`.
-
-I also would not introduce this interface merely because it is possible:
+The compiler needs an `fs.FS`, so I also would not introduce a wrapper interface merely for architecture's sake:
 
 ```go
 type TemplateSource interface {
@@ -413,7 +541,7 @@ type TemplateSource interface {
 }
 ```
 
-The compiler needs an `fs.FS`, so `fs.FS` should remain the boundary. If another required behaviour appears later, an interface can be introduced by the consumer at that point.
+`fs.FS` is already the boundary. If another required behaviour appears later, an interface can be introduced by the consumer then.
 
 ## Keep the composition root above the components
 
@@ -433,7 +561,7 @@ A useful dependency graph looks like this:
 cmd/application
     -> links/web/templates
     -> images/web/templates
-    -> shared/templates
+    -> shared/web/templates
 ```
 
 The arrows point one way.
@@ -493,29 +621,22 @@ type Renderer interface {
 
 Do not add an interface solely to make the code look like dependency injection. Passing a concrete dependency from the composition root is dependency injection too.
 
-## Prefer template association over a custom `include`
+## Prefer associated templates over a custom `include`
 
 A dependency cycle often appears when a low-level helper tries to rediscover or recompile the global template set while a template is being rendered.
 
-Before introducing a callback, renderer provider, or global template registry, ask whether Go's associated-template actions already express the requirement.
+Before introducing a callback, renderer provider, or global template registry, ask whether Go's associated-template action already expresses the requirement.
 
-For example:
-
-```gotemplate
-{{ template "shared/pager" . }}
-```
-
-and:
+With file-derived names:
 
 ```gotemplate
-{{ block "shared/content" . }}
-    ... default content ...
-{{ end }}
+{{ template "shared/pager.gohtml" .Pager }}
+{{ template "links/card.gohtml" .Link }}
 ```
 
 These operate inside the already-compiled associated template set. They do not require application code to find the compiler again.
 
-Only introduce function-like rendering when its semantics are genuinely different from `template` or `block`. If that is required, inject a narrow rendering dependency from above rather than importing the application composition package from below.
+Only introduce function-like rendering when its semantics are genuinely different. If that is required, inject a narrow rendering dependency from above rather than importing the application composition package from below.
 
 ## Template functions need the same discipline
 
@@ -557,20 +678,6 @@ There is also a lifetime issue. A compiled template set is normally application-
 
 Request-specific state is usually better passed through the execution data or view model than captured while compiling the application template set.
 
-That keeps the lifecycle simple:
-
-```text
-startup:
-    construct stable FuncMap
-    construct effective filesystems
-    compile templates
-    construct handlers
-
-request:
-    construct view data
-    ExecuteTemplate
-```
-
 ## Compile once, execute many
 
 Treat template compilation as startup work unless runtime editing is an explicit application feature.
@@ -586,208 +693,175 @@ A useful sequence is:
 
 This moves template failures from user requests to process startup and keeps application wiring easy to understand.
 
-It also avoids the anti-pattern where a template helper recompiles templates while a template is already being executed.
-
 ## Runtime overrides remain possible
 
 Local ownership and `go:embed` do not require giving up development or deployment overrides.
 
-Suppose the logical sources are:
-
-```text
-shared
-links
-images
-```
-
-A development directory can mirror that logical layout:
-
-```text
-templates/
-    shared/
-    links/
-    images/
-```
-
-If configuration replaces a complete source, composition can simply choose a different filesystem:
+For a virtual-prefix source, replace or overlay the source filesystem **before** adding its logical prefix:
 
 ```go
 linksFS := linktemplates.FS()
 if cfg.TemplateDir != "" {
     linksFS = os.DirFS(filepath.Join(cfg.TemplateDir, "links"))
 }
+
+templatefs.Source{
+    Name:   "links",
+    Prefix: "links",
+    FS:     linksFS,
+}
 ```
 
-If the requirement is **partial** override with embedded fallback, an overlay filesystem is appropriate:
+For a physical tree, an override directory can simply mirror the same paths:
 
 ```text
-runtime links FS
-       |
-       v
-embedded links FS
-       |
-       v
-one effective links source
+templates/
+    shared/
+        pager.gohtml
+    links/
+        card.gohtml
 ```
 
-The compiler should still see only one effective `fs.FS` for the `links` namespace.
+If the requirement is **partial** override with embedded fallback, an overlay filesystem is appropriate. The compiler should still see one effective `fs.FS` for that source.
 
-That preserves the separation:
-
-```text
-overlay policy     -> effective fs.FS
-composition policy -> templatefs.Source values
-```
-
-The compiler does not need to know whether a source came from `embed.FS`, `os.DirFS`, `fstest.MapFS`, an overlay, or some other implementation.
-
-## Namespaces include explicit definitions
-
-With the strict compiler, filenames and explicit definitions follow the same ownership rule.
-
-A links source might contain:
-
-```text
-card.gohtml
-pages/edit.gohtml
-```
-
-which creates file-derived names:
-
-```text
-links/card.gohtml
-links/pages/edit.gohtml
-```
-
-and the contents can define components such as:
-
-```gotemplate
-{{ define "links/card" }}...{{ end }}
-{{ define "links/edit-form" }}...{{ end }}
-```
-
-Shared pieces belong in the shared source:
-
-```gotemplate
-{{ define "shared/pager" }}...{{ end }}
-```
-
-A links file defining `shared/pager` is rejected. If the component is truly shared, its ownership should move to the shared template source instead of creating an implicit cross-component overwrite.
-
-Template names then carry useful ownership information in much the same way package paths do.
+The compiler does not need to know whether a source came from `embed.FS`, `os.DirFS`, `fstest.MapFS`, an overlay, or another implementation.
 
 ## Cross-source references are still fine
 
 Isolation during parsing does not mean isolation during execution.
 
-A shared layout can invoke a domain template by name:
+A shared layout can invoke a component template by its file-derived name:
 
 ```gotemplate
-{{ template "links/card" .Link }}
+{{ template "links/card.gohtml" .Link }}
 ```
 
-and a domain page can invoke a shared component:
+and a component page can invoke a shared file:
 
 ```gotemplate
-{{ template "shared/pager" .Pager }}
+{{ template "shared/pager.gohtml" .Pager }}
 ```
 
 The compiler merges all accepted parse trees into one associated template set before execution.
 
-The boundary controls **who may define a name**, not who may invoke it.
+The boundary controls **who contributes a name**, not who may invoke it.
 
-This preserves deliberate composition while preventing accidental ownership collisions.
+## Test both path-mapping variants
 
-## Test the policy, not the host filesystem
+`fstest.MapFS` makes both layouts easy to test.
 
-This design is easy to test with `fstest.MapFS`:
+Virtual prefix:
 
 ```go
 links := fstest.MapFS{
     "card.gohtml": {
-        Data: []byte(`{{ define "links/card" }}card{{ end }}`),
+        Data: []byte(`card`),
     },
 }
+
+tmpl, err := templatefs.Compile(nil, templatefs.Source{
+    Name:   "links",
+    Prefix: "links",
+    FS:     links,
+})
+// tmpl.Lookup("links/card.gohtml") != nil
+```
+
+Physical path:
+
+```go
+all := fstest.MapFS{
+    "links/card.gohtml": {
+        Data: []byte(`card`),
+    },
+}
+
+tmpl, err := templatefs.Compile(nil, templatefs.Source{
+    Name: "all templates",
+    FS:   all,
+})
+// tmpl.Lookup("links/card.gohtml") != nil
 ```
 
 Tests should cover at least:
 
 - recursive discovery,
-- stable file-derived names,
-- valid namespaced `define` declarations,
-- definitions outside their source namespace,
-- duplicate explicit definitions in two files,
-- duplicate source namespaces,
+- direct physical path naming,
+- virtual-prefix naming,
+- collisions after prefixing,
+- valid file-derived templates with no `define`,
+- extra `define` names inside their owning namespace if supported,
+- extra definitions outside their owning namespace,
 - parse errors with source and filename in the error,
-- invalid namespace paths,
+- invalid prefixes,
 - nil filesystems,
 - cross-source `{{ template }}` calls,
 - duplicate function-map entries if functions are composed,
 - one complete application compile using the production source list,
 - representative renders of top-level templates.
 
-Compile tests prove syntax and ownership. Render tests catch missing referenced templates and view-data contract mistakes that a filesystem walk cannot prove by itself.
-
-If runtime overlays exist, test the overlay implementation separately. Precedence is a filesystem concern; template ownership is a compilation concern.
+Compile tests prove syntax, mapping, and ownership. Render tests catch missing referenced templates and view-data contract mistakes that a filesystem walk cannot prove by itself.
 
 ## Migrating an existing application
 
-For an existing monolith, do not begin by moving files.
+For an existing application, do not begin by moving every file.
 
 A safer sequence is:
 
-1. Capture the existing template-loading and rendering behaviour in tests.
-2. Introduce the strict compiler while still pointing it at the existing central filesystem.
-3. Register all template functions before compilation.
-4. Remove reverse dependencies that rediscover or recompile templates from inside rendering helpers.
-5. Establish namespace rules and fix ambiguous `define` names.
-6. Add a full-production compile test and representative render tests.
-7. Move one small component's templates into a leaf resource package.
-8. Compose that source explicitly at the application root.
-9. Preserve override behaviour by choosing or overlaying the effective filesystem before compilation.
-10. Repeat component by component.
+1. Capture current template-loading and rendering behaviour in tests.
+2. Decide whether the desired logical paths should be represented physically or by virtual prefixes.
+3. Introduce the compiler while still pointing it at the existing resources.
+4. Make the file-derived logical path the default template identity.
+5. Remove unnecessary `define` wrappers that exist only to rename whole files.
+6. Register all template functions before compilation.
+7. Remove reverse dependencies that rediscover or recompile templates from inside rendering helpers.
+8. Add full-production compile and representative render tests.
+9. Move component resources to leaf packages if local ownership is desired.
+10. Preserve override behaviour by choosing or overlaying the effective filesystem before compilation.
 
-This order separates two changes that are easy to confuse: **how templates are compiled** and **where templates are owned**.
-
-Make compilation strict first. Move ownership second.
+This separates **where a file physically lives** from **what logical template path it publishes**.
 
 ## What to avoid
 
-Several attractive shortcuts work initially but weaken the design.
+### Requiring `define` just to name a file
+
+The file already has a path. Use that path unless there is a deliberate reason to introduce another name.
+
+### Building a prefixed filesystem when only the template name needs a prefix
+
+If the compiler can read `card.gohtml` and publish `links/card.gohtml`, a new `fs.FS` wrapper is unnecessary.
 
 ### Package self-registration through `init()`
 
-A global registry lets packages appear to register templates automatically, but it hides the application's dependency list and makes alternate assemblies and tests harder to understand.
+A global registry hides the application's dependency list and makes alternate assemblies and tests harder to understand. Explicit composition keeps imports visible.
 
-Explicit composition is only a few lines and keeps imports visible.
-
-### A central template package that imports every component
-
-That often recreates the dependency-cycle problem under a different directory name.
+### A central compiler package that imports every component
 
 The application composition layer is allowed to know every component. A low-level compiler should not.
 
 ### Last-one-wins component collisions
 
-Replacement is useful for deliberate overlays. It is a poor default for two independent owners claiming the same template name.
+Replacement is useful for deliberate overlays. It is a poor default for two independent owners claiming the same logical template name. Fail early instead.
 
-Fail early instead.
-
-### A wrapper interface around `fs.FS` for architecture's sake
+### Wrapper interfaces around `fs.FS` for architecture's sake
 
 `fs.FS` is already the consumer boundary. Keep it until another behaviour genuinely needs abstraction.
-
-### A renderer interface before there is a consumer need
-
-Returning `*template.Template` is idiomatic and useful. Let a consumer define a smaller interface only when tests, alternate rendering engines, or another real requirement justify it.
 
 ### Request-scoped template compilation
 
 If templates are application resources, compile them once. Pass request state as data and keep the compiled set immutable while serving.
 
-### Combining override and ownership semantics
+### Combining override, physical layout, and logical naming semantics
 
-An overlay answers “which file wins within this logical source?” The compiler answers “which logical source owns this template name?” Keeping these decisions separate prevents accidental precedence rules from becoming architecture.
+These are separate questions:
+
+```text
+where is the file?       -> fs.FS / overlay
+what is it called?       -> path or Prefix + path
+who contributes it?      -> Source / composition root
+```
+
+Keeping them separate is the main simplification.
 
 ## The architectural point
 
@@ -799,21 +873,26 @@ component resource packages
         v
    standard fs.FS values
         |
-        v
-strict template compiler
-        |
-        v
-one immutable associated template set
-        |
-        v
-consumers receive the finished templates
+        +---- physical path retained ---------+
+        |                                     |
+        +---- or virtual Prefix + path -------+
+                                              v
+                                  strict template compiler
+                                              |
+                                              v
+                             one associated template set
+                                              |
+                                              v
+                              consumers receive templates
 ```
 
 `walkfs` is recursive discovery over an abstract filesystem.
 
 `walkmultifs` is explicit composition of several independently owned sources.
 
-The important part is not inventing a clever multi-filesystem object. It is preserving ownership while assembling one runtime template namespace, and doing so with ordinary Go tools: `fs.FS`, `go:embed`, `html/template`, explicit imports, startup composition, and consumer-side interfaces only where they provide real value.
+A virtual prefix is just a mapping from source path to logical template path. A physical namespace directory makes that mapping the identity function.
+
+The important part is not inventing a clever multi-filesystem object. It is preserving useful ownership while assembling one runtime template namespace with ordinary Go tools: `fs.FS`, `go:embed`, `html/template`, path composition, explicit imports, and startup compilation.
 
 That is the version of the pattern I would want to copy into a new Go project.
 
