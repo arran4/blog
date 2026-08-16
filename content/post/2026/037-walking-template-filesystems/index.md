@@ -1,12 +1,12 @@
 ---
 title: "Walking Template Filesystems: walkfs, walkmultifs, and Domain-Owned Templates in Go"
-date: 2026-08-16T11:15:04+10:00
+date: 2026-08-16T11:17:03+10:00
 draft: false
 tags: ["go", "templates", "filesystem", "architecture", "embed"]
 categories: ["engineering-process", "reference"]
 ---
 
-<!-- cspell:words walkfs walkmultifs goa4web gobookmarks -->
+<!-- cspell:words walkfs walkmultifs goa4web gobookmarks gohtml OpenGraph namespacing -->
 
 I have ended up using the same small pattern in several Go projects: take an `fs.FS`, recursively walk it, select files of interest, read them, and add them to a larger object using their relative paths as stable names.
 
@@ -260,7 +260,7 @@ If templates live here:
 internal/links/handler/templates/
 ```
 
-then an embed declaration should also live in or above that directory within the same package tree, for example:
+then an embed declaration can live in that package and expose an `fs.FS`:
 
 ```go
 package templates
@@ -271,7 +271,6 @@ import (
 )
 
 //go:embed *.gohtml
-a4
 var embedded embed.FS
 
 func FS() fs.FS {
@@ -279,14 +278,7 @@ func FS() fs.FS {
 }
 ```
 
-In real code the stray `a4` above should of course not exist; the declaration is simply:
-
-```go
-//go:embed *.gohtml
-var embedded embed.FS
-```
-
-I have left the corrected form separately because the important part is the package boundary: the package that owns the resources embeds them and exposes an `fs.FS`, rather than a central templates package reaching into every domain.
+The package that owns the resources embeds them and exposes an `fs.FS`, rather than a central templates package reaching into every domain.
 
 This is already consistent with patterns inside goa4web. [`handlers/forum/static.go`](https://github.com/arran4/goa4web/blob/main/handlers/forum/static.go) embeds the forum's JavaScript and CSS next to the forum handler, while [`internal/faq_templates/embed.go`](https://github.com/arran4/goa4web/blob/main/internal/faq_templates/embed.go) owns its own embedded text resources.
 
@@ -544,7 +536,7 @@ The caller does not need to know whether the files are:
 - stored in `fstest.MapFS`,
 - overlaid for development.
 
-That follows the same principle I described in [Go FSs Everywhere: Treat Side Effects as Dependencies](../007-Go-FSs-Everywhere/): use filesystem interfaces as boundaries so the implementation can change without rewriting the consumer.
+That follows the same principle I described in [Go FSs Everywhere: Treat Side Effects as Dependencies](/blog/post/2026/007-Go-FSs-Everywhere/): use filesystem interfaces as boundaries so the implementation can change without rewriting the consumer.
 
 `walkfs` is the consumer-side half of that idea. It takes an abstract filesystem seriously instead of immediately converting the problem back into operating-system paths.
 
