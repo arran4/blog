@@ -1,12 +1,12 @@
 ---
 title: "Walking Template Filesystems: walkfs, walkmultifs, and Domain-Owned Templates in Go"
-date: 2026-08-16T11:21:00+10:00
+date: 2026-08-16T11:34:00+10:00
 draft: false
 tags: ["go", "templates", "filesystem", "architecture", "embed"]
 categories: ["engineering-process", "reference"]
 ---
 
-<!-- cspell:words Funcs funcs walkfs walkmultifs goa4web gobookmarks gohtml OpenGraph namespacing templatefs sharedtemplates linktemplates imagetemplates gotemplate -->
+<!-- cspell:words DAG Funcs funcs walkfs walkmultifs goa4web gobookmarks gohtml OpenGraph namespacing templatefs sharedtemplates linktemplates imagetemplates gotemplate -->
 
 I have ended up using the same small pattern in several Go projects: take an `fs.FS`, recursively walk it, select files of interest, read them, and add them to a larger object using their relative paths as stable names.
 
@@ -357,6 +357,113 @@ links
 
 instead of keeping those pieces distributed across unrelated global directories.
 
+## FAQ: won't this create dependency chains or import loops?
+
+It creates a dependency chain, but it does not have to create a dependency **loop**.
+
+The important distinction is that `walkmultifs` combines **values** at runtime. Each resource package exposes an `fs.FS`; the application composition layer imports those resource packages and passes the filesystem values to the generic walker. `walkmultifs` itself does not need to import the handlers, workers or domain services which happen to own those resources conceptually.
+
+Go also does not treat directory nesting as an import relationship. These are separate packages:
+
+```text
+internal/links/handler
+internal/links/handler/templates
+```
+
+The `templates` package does not implicitly import its parent `handler` package. If it contains only `go:embed` declarations and a small `FS()` accessor, it can be a leaf package which imports nothing from the links handler.
+
+A safe dependency graph therefore looks roughly like this:
+
+```text
+                    application composition
+                    /       |        |       \
+                   v        v        v        v
+             link handler  link     link    templatefs
+                          templates  worker
+                              |        |
+                              |        v
+                              |      links domain
+                              |
+                              +---- leaf resource package
+```
+
+More explicitly:
+
+```text
+internal/links
+    imports no HTTP or template packages
+
+internal/links/worker
+    -> internal/links
+
+internal/links/handler
+    -> internal/links
+    -> a small rendering interface, if one is needed
+
+internal/links/handler/templates
+    -> embed/io/fs only
+
+internal/templatefs
+    -> html/template + io/fs only
+
+application composition
+    -> internal/links/handler
+    -> internal/links/handler/templates
+    -> internal/links/worker
+    -> internal/templatefs
+```
+
+Everything points toward lower-level packages or outward from the composition root. Nothing points back to the composition root, so the graph remains a DAG.
+
+The unsafe form is when the arrows are allowed to point back upward. For example:
+
+```text
+links/handler
+    -> central templates
+    -> links/handler
+```
+
+would be a real Go import cycle. So would:
+
+```text
+common
+    -> templates
+    -> common
+```
+
+if the template compiler imported `common` to obtain template functions while `common` also imported the compiler.
+
+That second case is particularly relevant to goa4web today. `core/common.GetTemplateFuncs` currently imports `core/templates` because its `include` helper calls `templates.GetCompiledSiteTemplates(...)`. If template composition is moved upward and the new compiler then imports `core/common` for those functions, that would create exactly the sort of reverse dependency I want to avoid.
+
+The fix is dependency injection rather than another import. The `include` helper should execute against an already-compiled template set supplied to it through a small renderer/template-provider dependency. The composition layer can construct the template set and inject access to it into the HTTP side. `core/common` no longer needs to know which package assembled the templates.
+
+Conceptually:
+
+```text
+before:
+
+common -----------------> templates
+   ^                         |
+   |_________________________|   <- dangerous if templates starts needing common
+
+preferred:
+
+common -----> rendering abstraction
+                 ^
+                 |
+application composition ----+-----> templatefs
+                 |
+                 +----------> domain template FSs
+```
+
+There is a bootstrapping detail because template functions must be registered before parsing while `include` is only executed later. That is still manageable: the registered `include` function can close over an injected provider for the final compiled template set. The provider is resolved when a template is executed, not when the function map is registered.
+
+So the rule I would use is:
+
+> Domain packages may expose resources and depend inward. The application composition layer may import domains and assemble those resources. Domain code must never import the composition layer back.
+
+If following that rule becomes difficult, that is useful architectural feedback. It usually means some supposedly shared code actually contains presentation or application wiring and should be split behind a smaller interface.
+
 ## Do we actually need a merged `fs.FS`?
 
 Probably not at first.
@@ -549,9 +656,10 @@ I would not begin a domain refactor by moving every template at once. The safer 
 3. Make the existing central template loader use that helper with no behavioural change.
 4. Generalise the helper to accept several named sources: `walkmultifs`.
 5. Define an explicit naming and collision policy.
-6. Move one small domain's templates as a pilot.
-7. Preserve runtime override behaviour for that domain.
-8. Only then repeat the move for other domains.
+6. Remove reverse template access such as `core/common -> core/templates` by injecting renderer/template access where needed.
+7. Move one small domain's templates as a pilot.
+8. Preserve runtime override behaviour for that domain.
+9. Only then repeat the move for other domains.
 
 External links would be a reasonable pilot because the surrounding code is already a candidate for stronger domain separation: HTTP actions and background OpenGraph fetching should not need to be one architectural unit merely because they both operate on links.
 
@@ -603,6 +711,7 @@ That is exactly the sort of abstraction I like: small enough to understand compl
 ## References
 
 - [goa4web `core/templates/templates.go`](https://github.com/arran4/goa4web/blob/main/core/templates/templates.go)
+- [goa4web `core/common.GetTemplateFuncs`](https://github.com/arran4/goa4web/blob/main/core/common/funcs.go)
 - [goa4web template extraction/walking code](https://github.com/arran4/goa4web/blob/main/core/templates/extract.go)
 - [goa4web template loading specification](https://github.com/arran4/goa4web/blob/main/specs/templates.md)
 - [goa4web forum-local embedded assets](https://github.com/arran4/goa4web/blob/main/handlers/forum/static.go)
