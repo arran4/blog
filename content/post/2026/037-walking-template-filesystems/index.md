@@ -1,12 +1,12 @@
 ---
 title: "Walking Template Filesystems: walkfs, walkmultifs, and Domain-Owned Templates in Go"
-date: 2026-08-16T11:17:03+10:00
+date: 2026-08-16T11:21:00+10:00
 draft: false
 tags: ["go", "templates", "filesystem", "architecture", "embed"]
 categories: ["engineering-process", "reference"]
 ---
 
-<!-- cspell:words walkfs walkmultifs goa4web gobookmarks gohtml OpenGraph namespacing -->
+<!-- cspell:words Funcs funcs walkfs walkmultifs goa4web gobookmarks gohtml OpenGraph namespacing templatefs sharedtemplates linktemplates imagetemplates gotemplate -->
 
 I have ended up using the same small pattern in several Go projects: take an `fs.FS`, recursively walk it, select files of interest, read them, and add them to a larger object using their relative paths as stable names.
 
