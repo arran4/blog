@@ -124,6 +124,38 @@ So for this article:
 
 > **More than `grep` for source code: `ast-grep`** — search and rewrite syntax rather than pretending syntax is only text.
 
+## `df`
+
+`df` reports space at the filesystem level: total capacity, used space, available space, and the mount that owns it. That is a different question from `du`. `df` tells me **which filesystem is full**; `du` helps me work out **what inside it consumed the space**.
+
+The classic command remains extremely useful, especially in scripts and on minimal systems. Its human-facing output, however, can become noisy on a modern machine with many mounts, loop devices, network filesystems, containers, and other special entries.
+
+- **Lineage:** traditional Unix utility; on GNU systems it is provided by GNU Coreutils.
+- **Source:** GNU Coreutils.
+- **Distribution situation:** foundational tooling and effectively universal.
+
+### Better than `df`
+
+#### `duf`
+
+`duf` is one of the unusually clean fits for this article because upstream describes it directly as a **better `df` alternative**. It asks the same filesystem-capacity question rather than turning disk usage into a different job.
+
+Its default presentation groups devices into useful categories, adapts to terminal width and theme, highlights usage, and makes sorting and filtering straightforward. It can restrict output to particular devices, filesystems, or mount points, and it also has JSON output when a structured result is useful.
+
+The important distinction is that it still is not something I would blindly substitute for `df` in old scripts. Traditional `df` wins on portability and established output contracts; `duf` wins when a human is looking at the result.
+
+- **Project history:** the upstream repository dates to 20 September 2020.
+- **Source:** `muesli/duf` on GitHub.
+- **Distribution situation:** unusually broad for a modern replacement. Upstream documents packages for major Linux distributions, including Gentoo as `sys-fs/duf`, as well as BSD, macOS, Windows, Android/Termux, and release binaries.
+
+So for this article:
+
+> **Better than `df`: `duf`** — substantially the same filesystem-space report, but designed around a person actually trying to read it.
+
+### More than `df`
+
+I do not have a clean choice here yet, and that is worth preserving rather than manufacturing symmetry. Once I move beyond filesystem capacity, the problem branches in several directions: block-device topology, mount relationships, per-directory consumption, interactive cleanup, or a whole-system dashboard. Tools such as `lsblk`, `findmnt`, `du`/`dua`, and `btop` answer different versions of those questions rather than forming one obvious "more than `df`" successor.
+
 ## `du`
 
 `du` answers a simple but extremely useful question: how much disk space is being used by these files and directories?
@@ -171,6 +203,22 @@ That crosses the "more than" line for me because the output is no longer merely 
 So for this article:
 
 > **More than `du`: `ncdu`** — an interactive disk-usage investigation and cleanup tool, not just another way to print byte totals.
+
+#### `dua` (`dua-cli`)
+
+`dua` is another useful answer to the "more than `du`" question, but with a different balance. Its name expands to **Disk Usage Analyzer**: it can produce an aggregate command-line report, but it also has an interactive mode for exploring disk use and deleting unwanted data.
+
+The project emphasises scanning speed and parallel traversal. That makes it interesting when the filesystem tree itself is large enough that waiting for the analysis becomes part of the problem. It also deliberately reaches beyond reporting by making deletion part of the workflow.
+
+I would not collapse `ncdu` and `dua` into a single recommendation without using both for a while. `ncdu` has a long history and a very established interactive model; `dua` is a newer Rust-era design with a strong focus on scan speed and a useful non-interactive aggregate mode as well.
+
+- **Project history:** the upstream repository dates to 29 May 2019.
+- **Source:** `Byron/dua-cli` on GitHub.
+- **Distribution situation:** upstream documents release binaries, Cargo, several Linux distribution packages, Homebrew and MacPorts, and Windows package managers.
+
+So for this article:
+
+> **More than `du`: `dua`** — fast disk-usage analysis that can continue into an interactive cleanup workflow.
 
 ## `ifconfig`
 
@@ -224,7 +272,7 @@ So for this article:
 
 The useful part of this format is deciding where a tool belongs, so I do not want to add a pairing merely because a project calls itself a "modern replacement". These are the next command families I want to test and expand:
 
-- `ls`: likely `eza` in the **better than** slot; a terminal file manager such as `yazi` may belong in **more than**, but that comparison needs examples because a file manager is a much bigger conceptual jump.
+- `ls`: likely `eza` in the **better than** slot; terminal file managers such as `superfile` and `yazi` may belong in **more than**, but that comparison needs examples because a file manager is a much bigger conceptual jump. I already package `superfile` in my Gentoo overlay, which makes it an obvious one to test next.
 - `find`: `fd` is a strong **better than** candidate for interactive file-name searching. The **more than** choice needs to be more than simply "pipe it to `fzf`" unless the workflow justifies the distinction.
 - `ps`: `procs` is worth testing as **better than**; an interactive monitor may be **more than**, although that overlaps the `top` section.
 - `sed`: `sd` is an interesting **better than** candidate for common substitutions. Structural rewriting tools may be **more than** for source code.
@@ -232,7 +280,7 @@ The useful part of this format is deciding where a tool belongs, so I do not wan
 - `netstat`: `ss` is the obvious modern Linux replacement. The **more than** choice needs to add a genuinely useful workflow rather than simply show sockets differently.
 - `route`, `arp`, and `iwconfig`: these are closely related to the `ifconfig` transition and deserve their own `ip route`, `ip neigh`, and `iw` comparisons rather than being collapsed into one networking paragraph.
 
-I also want screenshots where the visual difference is the reason for recommending a tool. `top`/`htop`/`btop` and `du`/`dust`/`ncdu` are obvious candidates. For commands such as `grep` and `rg`, captured command/output pairs will probably be more useful than screenshots alone.
+I also want screenshots where the visual difference is the reason for recommending a tool. `top`/`htop`/`btop`, `df`/`duf`, and `du`/`dust`/`ncdu`/`dua` are obvious candidates. For commands such as `grep` and `rg`, captured command/output pairs will probably be more useful than screenshots alone.
 
 ## References
 
@@ -246,9 +294,13 @@ The factual details above are based primarily on upstream project documentation 
 - `ripgrep`, [upstream source](https://github.com/BurntSushi/ripgrep).
 - `ast-grep`, [upstream source](https://github.com/ast-grep/ast-grep).
 - `ast-grep`, [upstream changelog](https://github.com/ast-grep/ast-grep/blob/main/CHANGELOG.md).
+- `duf`, [upstream source and installation documentation](https://github.com/muesli/duf).
 - `dust`, [upstream source and installation documentation](https://github.com/bootandy/dust).
 - `ncdu`, [upstream 1.x release history](https://dev.yorhel.nl/ncdu/changes).
 - `ncdu`, [upstream 2.x release history](https://dev.yorhel.nl/ncdu/changes2).
+- `dua`, [upstream source and installation documentation](https://github.com/Byron/dua-cli).
+- `superfile`, [upstream source](https://github.com/yorukot/superfile).
+- `arrans_overlay`, [`superfile-bin` Gentoo packaging](https://github.com/arran4/arrans_overlay/tree/main/app-misc/superfile-bin).
 - `iproute2`, [upstream release archive at kernel.org](https://www.kernel.org/pub/linux/utils/net/iproute2/).
 - NetworkManager, [`nmcli` examples and documentation source](https://github.com/NetworkManager/NetworkManager/blob/main/man/nmcli-examples.xml).
 - NetworkManager, [upstream source](https://github.com/NetworkManager/NetworkManager).
