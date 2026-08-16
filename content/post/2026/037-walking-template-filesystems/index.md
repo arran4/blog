@@ -1,6 +1,6 @@
 ---
 title: "Walking Template Filesystems: walkfs, walkmultifs, and Domain-Owned Templates in Go"
-date: 2026-08-16T14:27:00+10:00
+date: 2026-08-16T14:32:00+10:00
 draft: false
 tags: ["go", "templates", "filesystem", "architecture", "embed"]
 categories: ["engineering-process", "reference"]
