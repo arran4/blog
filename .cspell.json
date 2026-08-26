@@ -256,6 +256,7 @@
     "imds",
     "ineffassign",
     "infractl",
+    "inspectable",
     "installdependencies",
     "interms",
     "invopop",
