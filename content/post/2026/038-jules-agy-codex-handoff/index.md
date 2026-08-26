@@ -1,5 +1,5 @@
 ---
-title: "Jules to Agy or Codex: A Practical Agent Handoff Workflow"
+title: "ChatGPT-Orchestrated Jules to Agy or Codex: A Practical Multi-Agent Development Workflow"
 date: 2026-08-26T13:04:00+10:00
 draft: false
 tags:
@@ -8,6 +8,7 @@ tags:
   - jules
   - codex
   - antigravity
+  - chatgpt
   - github
   - workflow
   - code-review
@@ -17,19 +18,71 @@ categories:
   - Automation
 ---
 
-I have increasingly ended up using coding agents as a **pipeline rather than a single worker**. A pattern that has worked particularly well is:
+I have increasingly ended up using coding agents as a **pipeline rather than a single worker**. The important part of that pipeline is not only the Jules-to-Agy-or-Codex handoff. There is another agent sitting outside the implementation session: usually **ChatGPT with GitHub integration**, or another system that can inspect the issue, pull request, commits, comments, and CI independently.
 
-1. start a task in **Google Jules**;
+In practice my workflow looks more like this:
+
+1. use ChatGPT or another integrated assistant to understand the task and turn it into a focused **Jules** prompt;
 2. let Jules do the first codebase exploration and implementation;
-3. review the resulting pull request rather than trusting the completion summary;
-4. continue with Jules while the branch remains healthy;
-5. when the session or branch becomes unreliable, hand the work to **Google Antigravity CLI (`agy`)** or **OpenAI Codex**;
-6. either rebuild from current `main`, or fork the last known-good commit into a new branch;
-7. open a replacement PR, cross-link the old and new PRs, and close the obsolete one.
+3. have the outside assistant review the resulting PR and **each meaningful follow-up commit**, checking Git rather than trusting Jules' completion prose;
+4. use that review to write the next Jules PR response, answer a question Jules asks in its web session, or decide that no further prompt is needed;
+5. keep implementation changes inside Jules while Jules still owns the branch, because direct non-Jules pushes can be unwound by a later Jules update;
+6. when the Jules phase is deliberately over, either make very small, obvious fixes directly through the integrated GitHub tooling or hand substantial remaining work to **Google Antigravity CLI (`agy`)** or **OpenAI Codex**;
+7. if handing off, either rebuild from current `main` or fork the last known-good commit into a new branch;
+8. review the Agy/Codex changes with the outside assistant as well;
+9. open or update the replacement PR, cross-link obsolete PRs where necessary, and only merge when I explicitly decide the work is ready.
 
-This is not about one agent being universally better than another. The useful part is that a second agent gets a chance to reason from a **different context boundary**. A branch that has accumulated mistaken assumptions, repeated corrective prompts, generated churn, merge conflicts, or empty commits is often easier to finish by treating the old PR as evidence rather than as the workspace that must be preserved.
+This means I am not asking one coding agent to both implement and police itself. The outside assistant acts as **reviewer, prompt writer, state tracker, and traffic controller**. Jules, Agy, and Codex are implementation engines that can be swapped when the state of the work changes.
 
-This post documents the workflow I have converged on, including what information each system actually needs in a prompt, what is usually redundant, and when a handoff is worth the disruption.
+This is not about one agent being universally better than another. The useful part is the separation of responsibilities and the ability to give a second implementation agent a **different context boundary**. A branch that has accumulated mistaken assumptions, repeated corrective prompts, generated churn, merge conflicts, or empty commits is often easier to finish by treating the old PR as evidence rather than as the workspace that must be preserved.
+
+This post documents the workflow I have converged on, including what information each system actually needs, what is usually redundant, how I review every step, when direct edits are safe, and when a handoff is worth the disruption.
+
+## The missing layer: an outside orchestrator
+
+The most important correction to a simple "Jules -> Agy/Codex" diagram is that I do not normally operate those agents in isolation.
+
+There is a separate conversation, commonly ChatGPT with access to GitHub, that remains outside the implementation agent's context. I use it to:
+
+- inspect the issue and current repository state before writing the initial task;
+- turn a rough idea into a self-contained Jules prompt;
+- review the initial PR;
+- review each subsequent commit or updated cumulative diff;
+- inspect CI failures rather than merely relaying the red check name;
+- write the next `@jules` PR comment;
+- answer questions Jules asks inside the Jules web UI;
+- distinguish a real implementation question from something Jules can discover itself;
+- keep track of requirements that must survive later corrective passes;
+- decide whether the next action should be another Jules prompt, a direct tiny patch, an Agy/Codex handoff, or no change at all;
+- review replacement PRs and follow-up commits after the Jules phase;
+- perform GitHub lifecycle work such as creating or updating PRs and cross-linking superseded work when the connected tools support it.
+
+This outside context is valuable precisely because it is **not the same context as the implementation session**. Jules can become convinced that it changed a file when the commit is empty; the reviewer can simply inspect the commit. Jules can accumulate contradictory instructions over several rounds; the reviewer can reconstruct the currently valid specification from the issue, current `main`, PR discussion, and actual diff.
+
+The orchestrator should not blindly act as a second coder during the Jules phase. Its strongest role is independent observation and concise steering.
+
+## Review every change, not only the final PR
+
+A major part of this workflow is the review cadence.
+
+I do not generally send Jules a task, disappear, and review only when it says it is finished. After the initial PR and after meaningful follow-up commits, I ask the outside assistant to inspect the actual change and answer questions such as:
+
+- Did the requested change actually appear in Git?
+- Did the new commit modify the files Jules claimed it modified?
+- Does the cumulative PR still preserve earlier correct decisions?
+- Did the fix accidentally widen scope?
+- Are generated outputs changing because the generator changed, or because a generated file was edited manually?
+- Does CI expose a deeper design issue rather than a local typo?
+- Did the latest change fix the review blocker without reintroducing an earlier one?
+- Is the next response a code change request, a question for Jules, or simply approval/no further action?
+
+This review can be extremely lightweight for a small commit. A commit hash and PR URL are often enough for an integrated reviewer to inspect the diff and say whether the previous blocker is gone.
+
+The important rule is:
+
+> **Every implementation agent is reviewed from outside its own completion narrative.**
+
+That applies after Jules too. If Agy or Codex creates a replacement PR, I still review its commits rather than treating the handoff itself as proof that the result is clean.
 
 ## The core idea: separate implementation state from problem state
 
@@ -60,6 +113,8 @@ Stay on the existing PR when:
 
 Changing agents too early throws away useful working context.
 
+While I am in this state, I also avoid casually pushing my own fixes onto the Jules-controlled branch. Those edits may be correct and still be a bad workflow choice because Jules can later update from its own view of the task and **undo or overwrite a non-Jules push**.
+
 ### 2. Trust a specific commit: fork the known-good head
 
 Use this when most of the implementation is correct, but the original Jules PR or session is no longer safe to keep using.
@@ -81,11 +136,11 @@ Use a clean rebuild when:
 
 In that case the replacement agent should inspect the old PR and its review discussion, but should treat them as a design/reference document. The new branch starts from current `main` and reproduces only the still-valid behaviour.
 
-## Why Jules works well as the first stage
+## Why Jules works well as the first implementation stage
 
 [Jules](https://jules.google/docs/) is naturally repository and pull-request oriented. A task runs in its own VM, it clones the selected repository and branch, produces a plan, implements the change, and can create a branch/PR. Jules can also respond to pull-request feedback, and in Reactive Mode it only acts when explicitly mentioned with `@jules`.
 
-That makes Jules a good first-stage agent because I usually **do not need to spend prompt space describing GitHub mechanics**. The repository and base branch are already selected in the UI.
+That makes Jules a good first-stage implementation agent because I usually **do not need to spend prompt space describing GitHub mechanics**. The repository and base branch are already selected in the UI.
 
 For an initial Jules task I normally need to describe:
 
@@ -104,11 +159,55 @@ I normally do **not** need to tell Jules:
 - how to push;
 - how to create the initial PR;
 - the repository URL when I have already selected the repository;
-- a long sequence of Git commands.
+- a long sequence of Git commands;
+- to explain ordinary repository facts it can inspect itself.
 
 Those details are usually noise in the initial task. The useful prompt is the locally actionable software task.
 
 Jules also supports repository instructions such as `AGENTS.md`, so stable repository conventions are better stored there than repeatedly copied into every task.
+
+## ChatGPT writes most of the Jules steering text
+
+During the Jules phase I commonly use ChatGPT or another outside integrated assistant to write the text I send back to Jules.
+
+There are three common forms.
+
+### 1. The initial Jules task
+
+I describe the feature, bug, issue, or goal in the outside conversation. The reviewer can inspect the repository and issue, remove assumptions that are already false, and produce a prompt that is self-contained for a fresh Jules session.
+
+This is particularly useful when Jules will have **no context from an earlier PR or chat**. The prompt should include the current problem and constraints, not references such as "do what we discussed earlier".
+
+### 2. PR review responses
+
+After Jules pushes a commit, I give the reviewer the PR or commit. It inspects the actual state and writes the next response for the PR, usually as a focused `@jules` comment.
+
+A useful response does not merely repeat a failing check. It explains:
+
+- the remaining blocker;
+- why it is a blocker;
+- what invariant must be preserved;
+- which parts of the previous implementation are already correct;
+- the focused verification expected after the fix.
+
+This lets the outside reviewer accumulate engineering knowledge while Jules remains the branch author.
+
+### 3. Questions Jules asks inside its own web session
+
+Jules sometimes stops and asks an architectural or scope question before continuing. I often copy that question into the outside conversation and ask for help answering it.
+
+The outside assistant can inspect the issue, PR, repository, current base, and previous review findings and then give me:
+
+- a short summary of why Jules is asking;
+- the current technical situation;
+- a recommended decision;
+- a ready-to-paste answer for Jules.
+
+The answer should resolve the decision Jules genuinely needs. It should **not** over-specify mechanics Jules can discover itself.
+
+For example, if Jules has correctly discovered that a requested condition already exists in generated examples but not in the source template, the useful answer is about **which file is authoritative and what regression should be added**, not a list of shell commands telling Jules how to open the files.
+
+This pattern also works after the Jules phase: I can use ChatGPT to write an Agy or Codex handoff prompt, review its result, and write follow-up instructions for that agent.
 
 ### Jules limitations I plan around
 
@@ -118,7 +217,8 @@ The repository-oriented workflow is also why I avoid treating a Jules task as an
 - plan and completion messages are useful explanations, but they are not proof that the branch contains the described changes;
 - PR feedback automation can keep acting on the original PR, which is convenient while I trust the session and a reason to fork away from it when I do not;
 - usage and concurrency limits exist and change by plan, so I do not make the workflow depend on unlimited retries;
-- a long feedback chain can accumulate stale assumptions even when each individual instruction was reasonable at the time.
+- a long feedback chain can accumulate stale assumptions even when each individual instruction was reasonable at the time;
+- a later Jules action can unwind a manual/non-Jules branch edit if Jules still considers itself authoritative for that branch.
 
 These are reasons to add verification and an escape hatch, not reasons to avoid Jules.
 
@@ -169,6 +269,55 @@ The `Preserve:` section has turned out to be particularly valuable. Corrective a
 
 For generated systems, I also explicitly distinguish **source-of-truth files** from generated output. If a generated Go file, workflow, manifest, or fixture is wrong, the prompt should normally say to fix the generator/input and regenerate rather than hand-editing generated output.
 
+## Do not mix Jules ownership with casual direct pushes
+
+This deserves its own rule because it changes how I use connected GitHub tools.
+
+While Jules is actively working a PR, I generally treat its branch as **Jules-owned**. The outside reviewer can read everything and can write PR comments, but it should be conservative about pushing code to that branch.
+
+The reason is practical rather than philosophical: Jules may later apply a plan based on its own task state and restore the version it believes should exist. A perfectly correct manual or ChatGPT-generated fix can therefore disappear in the next Jules commit.
+
+During the active Jules phase the normal loop is:
+
+```text
+Jules changes code
+        ↓
+outside assistant reviews actual commit/diff
+        ↓
+outside assistant writes the next Jules response
+        ↓
+Jules makes the next code change
+```
+
+I break that rule only deliberately.
+
+### After the Jules phase, small direct fixes are efficient
+
+Once I have decided that Jules is finished and will no longer be allowed to mutate the branch, the trade-off changes.
+
+If review finds a **small, mechanically obvious change**, it can be faster and safer for ChatGPT or another integrated GitHub tool to patch it directly rather than starting another coding-agent cycle. Examples include:
+
+- correcting a typo or documentation sentence;
+- fixing a small workflow condition whose intended form is already established;
+- restoring a known-good one-line configuration value;
+- adjusting a PR-owned test expectation when the semantics are already settled;
+- adding a missing dictionary entry or similarly bounded repository metadata;
+- making a tiny follow-up requested by CI where no architectural decision remains.
+
+The threshold is not a line count. The question is whether there is any **meaningful implementation uncertainty** left.
+
+If there is uncertainty, code generation, architecture, broad refactoring, generated-file regeneration, or substantial testing involved, I prefer Agy/Codex rather than turning the outside reviewer into an ad-hoc implementation agent.
+
+Before a direct post-Jules push, I want the branch ownership transition to be explicit:
+
+- Jules is no longer expected to modify this branch;
+- the current head has been reviewed and is the state being continued;
+- the direct change is narrow and inspectable;
+- the resulting commit is reviewed again;
+- CI is checked afterwards.
+
+This prevents the worst hybrid state: two agents both believing they own the same branch.
+
 ## When to stop the Jules loop
 
 I hand off when one or more of these starts happening repeatedly.
@@ -197,7 +346,7 @@ A clean rebuild forces the replacement agent to ask: **what remains necessary to
 
 A PR can eventually contain the right final files and still be difficult to trust because of generated churn, unrelated edits, or a long series of repair commits. If reconstructing the desired change from current `main` is cheaper than auditing the branch, reconstruction wins.
 
-## Agy and Codex as second-stage agents
+## Agy and Codex as second-stage implementation agents
 
 I use [Google Antigravity CLI](https://antigravity.google/docs/cli/overview/) (`agy`) and [OpenAI Codex](https://openai.com/codex/) for roughly the same second-stage role: give an independent agent a cleanly defined repository state and a compact record of what was learned from the first attempt.
 
@@ -256,6 +405,91 @@ The handoff must therefore explain **why the old PR is being replaced** and iden
 - tests that express the intended behaviour.
 
 The old branch is evidence, not automatically truth.
+
+## Rules for each system
+
+The workflow is easier to reason about when each system has an explicit job and explicit limits.
+
+### ChatGPT or another integrated outside assistant
+
+**Primary role:** orchestrator, independent reviewer, prompt writer, and small post-agent fixer.
+
+Rules I use:
+
+- inspect the actual issue, PR, commit, diff, and CI before giving implementation advice when those are available;
+- review each meaningful change rather than relying on an agent's completion summary;
+- keep a running distinction between what is fixed, what remains, and what must be preserved;
+- write the initial Jules prompt, follow-up PR comments, and answers to Jules' in-web questions;
+- ask the implementation agent for behaviour, not unnecessary Git command choreography;
+- during the active Jules phase, prefer **comments/prompts over direct code pushes** to the Jules-owned branch;
+- after the Jules phase, direct-edit only narrow, low-uncertainty changes; hand substantial work to Agy/Codex;
+- if a branch or PR is being replaced, make the trusted starting point and lifecycle explicit;
+- re-review direct patches and agent patches after they land;
+- do not merge merely because checks are green or because an agent says it is done; merging is a separate explicit decision.
+
+The outside assistant should be willing to say **"no further prompt is needed"** when the change is correct. Continually inventing work is as harmful as missing a defect.
+
+### Jules
+
+**Primary role:** first implementation pass and iterative implementation while its PR remains healthy.
+
+Rules I use:
+
+- give Jules the software problem, constraints, invariants, acceptance criteria, and issue-resolution requirement;
+- let Jules inspect repository mechanics it can discover itself;
+- keep follow-up requests focused on observable blockers;
+- explicitly say what previous behaviour must be preserved;
+- answer genuine scope/design questions when Jules asks them;
+- verify every claimed completion externally;
+- do not mix casual non-Jules pushes into a branch Jules is still expected to update;
+- stop the loop when commits become empty, changes oscillate, the base invalidates the implementation, or the session is otherwise no longer trustworthy.
+
+Jules is allowed to be the **author**, but not the sole reviewer of its work.
+
+### Agy
+
+**Primary role:** local second-stage implementation, especially when direct access to my checked-out environment or branch surgery is useful.
+
+Rules I use:
+
+- tell Agy exactly which Git state is trusted;
+- say whether it must start from current `main` or an exact commit;
+- explain why the previous PR/session is being replaced;
+- give preserve/drop lists rather than a full conversation transcript;
+- state branch/PR/cross-link/closure requirements when those operations are expected;
+- let it inspect the repository rather than pasting everything into the prompt;
+- use the outside reviewer again after Agy changes the branch.
+
+Agy becomes the implementation owner only after the Jules ownership boundary is clear.
+
+### Codex
+
+**Primary role:** independent second-stage implementation/reconstruction, particularly when a fresh context is more valuable than preserving the original session.
+
+Rules I use:
+
+- provide the same explicit trust boundary as for Agy;
+- prefer issue-like prompts: problem, constraints, relevant components, examples, acceptance criteria, and verification;
+- say what old implementation evidence is informative but not authoritative;
+- do not assume its environment has every local service, credential, or dependency;
+- require the expected GitHub lifecycle when the task is to replace a PR rather than merely edit files;
+- review its output independently after it lands.
+
+Codex is not a magical cleanup step. A bad handoff specification can cause a clean agent to recreate the same wrong behaviour.
+
+### GitHub/CI
+
+There is also a non-agent participant: the repository itself.
+
+I treat GitHub, tests, generators, linters, and CI as **evidence**, not just gates. A failed check can tell the reviewer what assumption is wrong. A green check does not prove that the cumulative diff has no unrelated change.
+
+The repository therefore has its own rules:
+
+- current `main` outranks stale assumptions from an old agent conversation;
+- source-of-truth files outrank generated output;
+- a commit hash or blob hash can be a stronger acceptance criterion than prose when exact identity matters;
+- the cumulative PR diff matters more than the apparent neatness of the latest commit;
+- resolving keywords and superseding links are part of the work product when issue/PR lifecycle matters.
 
 ## Two handoff templates
 
@@ -461,17 +695,19 @@ The useful handoff information here was not "copy these five files". It was the 
 
 This is an example where "start over" did **not** mean "forget everything". The replacement PR body acted as a compact inventory of what was being carried forward.
 
-### `arrans_overlay` #871 -> #874: fork a good state away from a bad session
+### `arrans_overlay` #871 -> #874: review every commit and fork away from a bad session
 
-[`arrans_overlay` #871](https://github.com/arran4/arrans_overlay/pull/871) is the clearest example of the trusted-commit pattern. Follow-up repair prompts were specific: restore a strict-aliasing patch, preserve unconditional Qt Gui dependencies, keep the version bump, and fix line-length lint without inventing a USE flag.
+[`arrans_overlay` #871](https://github.com/arran4/arrans_overlay/pull/871) is the clearest example of the trusted-commit pattern and the outside-review loop. Follow-up commits were inspected as they appeared. Repair prompts were then rewritten around the actual remaining state: restore a strict-aliasing patch, preserve unconditional Qt Gui dependencies, keep the version bump, and fix line-length lint without inventing a USE flag.
 
-Jules replied as though it had applied the fixes, but successive commits were empty while the malformed patch remained. The replacement [#874](https://github.com/arran4/arrans_overlay/pull/874) carried forward the Quickshell update to a clean replacement branch and restored the patch from a known-good blob.
+Jules replied as though it had applied the fixes, but successive commits were empty while the malformed patch remained. The outside review caught the mismatch between completion prose and Git. The replacement [#874](https://github.com/arran4/arrans_overlay/pull/874) carried forward the Quickshell update to a clean replacement branch and restored the patch from a known-good blob.
 
 When an exact artefact matters, a **hash is an excellent acceptance criterion**. "Make this patch equivalent" leaves room for accidental whitespace damage. "The resulting file must hash to `1d3e149f9856e410c191fbb69801f3bb89a9db5a`" is machine-verifiable.
 
-### `goa4web` #3076: a completion summary can be completely disconnected from the commit
+### `goa4web` #3076: the outside reviewer catches a disconnected completion summary
 
 In [`goa4web` #3076](https://github.com/arran4/goa4web/pull/3076), a large review request covered race-safe SQL append semantics, image handling, activity metadata, grants, read markers, search indexing, generated-code hygiene, and regression tests. Jules replied that these had been completed; the corresponding commit `7a17b99` was empty.
+
+That is exactly where an independent integrated reviewer is useful. The next decision should be based on the commit and PR state, not on the apparent confidence or detail of the Jules response.
 
 The practical lesson is to verify **immediately after large claimed completions**. The more comprehensive the prose summary, the more expensive it is to assume it reflects repository state without checking.
 
@@ -480,6 +716,10 @@ The practical lesson is to verify **immediately after large claimed completions*
 ### Use cumulative-diff review, not only last-commit review
 
 A corrective commit can look perfect while the PR still contains an earlier unrelated change. Always inspect the final diff against the intended base.
+
+### Make the outside review cheap enough to do repeatedly
+
+A review does not need to be a ceremonial full audit every time. For a small follow-up, I can provide the commit hash and ask whether the previous blocker was actually fixed and whether anything regressed. Keeping this loop cheap is what makes "review every change" practical.
 
 ### Record exact known-good artefacts when possible
 
@@ -502,6 +742,12 @@ This prevents a common repair pattern where an agent solves the latest review co
 ### Prefer one coherent review request over many tiny contradictory comments
 
 Once I have enough evidence to understand the real bug, a consolidated review comment is usually better than a chain of incremental guesses. If later evidence changes the diagnosis, write a new coherent specification rather than asking the agent to mentally subtract old instructions.
+
+### Answer questions; do not make the agent rediscover decisions I have already made
+
+When Jules explicitly asks for a scope or design decision, the answer should be direct. Asking it to "investigate and decide" again wastes a useful pause in the workflow. The outside reviewer can do the investigation, explain the trade-off to me, and produce a concise answer that lets Jules continue.
+
+Conversely, if Jules asks something that is plainly discoverable from the repository and does not require a product/design decision, I do not need to manufacture policy. I can tell it to follow the repository's source of truth and tests.
 
 ### Do not keep paying the same failure mode
 
@@ -528,41 +774,61 @@ The `Supersedes` relationship explains PR history; the resolving keyword still c
 
 Create the replacement PR first. Then add its link to the old PR and close the old PR. That avoids a period where the work exists only in an unreferenced branch.
 
-### Use the second agent as a reviewer before using it as an editor
+### Use the second agent as a reviewer before using it as an editor when appropriate
 
 For difficult changes, I often get a better result if the handoff first asks the new agent to inspect current `main`, the old PR, and review findings and state what is still required. Then the implementation follows that fresh model of the problem.
 
 Both Agy and Codex support planning/exploration workflows, so there is little reason to force them directly into editing when the main problem is uncertainty about the previous implementation.
 
+### Keep merge authority separate from coding authority
+
+An agent opening a PR, fixing all review comments, or making CI green does not imply permission to merge. The orchestrator can recommend that the work is ready, but the merge is a separate explicit action.
+
+This separation is particularly useful in automated workflows because it prevents "the agent finished" from silently becoming "the change shipped".
+
 ## A compact decision checklist
 
-Before I send another corrective prompt to Jules, I ask:
+After every meaningful implementation change I ask:
 
-- Is the last claimed change actually present in Git?
+- Is the change Jules/Agy/Codex claimed actually present in Git?
+- Did it fix the previous blocker?
 - Is the cumulative diff still understandable?
 - Is the old base still semantically current?
 - Are generated changes coming from the correct source files?
+- Did the change preserve earlier known-good behaviour?
+- Does the next step require implementation, or only a question/answer/review response?
 - Am I fixing a code problem, or am I now fighting the agent/session state?
 
-If the code problem is clear and the branch is healthy, continue Jules.
+If the code problem is clear and the Jules branch is healthy, continue Jules and send the next externally reviewed prompt.
 
-If the branch is good at a known commit but the session is not, fork that exact commit and continue with Agy/Codex.
+If Jules is deliberately finished and only a tiny, low-uncertainty correction remains, make the direct fix and review it.
+
+If the branch is good at a known commit but the Jules session is not, fork that exact commit and continue with Agy/Codex.
 
 If the branch or its assumptions are no longer trustworthy, start from current `main`, use the old PR as reference, and rebuild only the validated intent.
 
+After Agy/Codex or a direct patch, return to the outside-review step again. The pipeline ends because the change is reviewed and ready, not merely because the last implementation agent stopped talking.
+
 ## Final principle
 
-The most effective part of a multi-agent workflow is not "agent A writes code, agent B writes better code". It is the ability to **reset the implementation context without resetting the engineering knowledge**.
+The most effective part of this multi-agent workflow is not "agent A writes code, agent B writes better code". It is a separation of **implementation, review, and control**.
 
-Jules can cheaply establish a first implementation, reveal codebase constraints, produce tests, and expose hidden requirements during review. Agy or Codex can then take a deliberately chosen clean state and finish the task without inheriting every mistake made along the path.
+Jules can cheaply establish a first implementation, reveal codebase constraints, produce tests, and expose hidden requirements during review. ChatGPT or another integrated outside assistant can inspect what actually landed, maintain the current engineering specification, write the next question or response, and decide when the Jules phase has ended. Small, obvious changes can then be made directly once branch ownership is safe, while Agy or Codex can take over substantial remaining work from a deliberately chosen clean state.
 
-The handoff prompt should therefore be shorter than the history it replaces. It should say:
+The important handoff is therefore not only Jules -> Agy/Codex. There are several repeated transitions:
 
-- what problem remains;
-- what is known to be correct;
-- what state is trusted;
-- what must be discarded;
-- how success will be measured;
-- what the replacement PR lifecycle should be.
+```text
+human intent
+    ↓
+outside assistant: inspect + formulate
+    ↓
+implementation agent: change code
+    ↓
+outside assistant: review actual Git state
+    ↓
+question / next prompt / approval / direct tiny fix / agent handoff
+    ↓
+review again
+```
 
-Everything else is implementation detail that the next agent can rediscover from the repository.
+A good prompt should be shorter than the history it replaces. A good reviewer should know which parts of that history still matter. And no implementation agent should be required to be the final authority on whether its own work is correct.
