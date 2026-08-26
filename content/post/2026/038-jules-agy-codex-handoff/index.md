@@ -209,6 +209,29 @@ For example, if Jules has correctly discovered that a requested condition alread
 
 This pattern also works after the Jules phase: I can use ChatGPT to write an Agy or Codex handoff prompt, review its result, and write follow-up instructions for that agent.
 
+### Jules is not a general GitHub or PR administration agent
+
+A major prompt-design rule is to separate **implementation work** from **repository administration**. Jules can work on the selected repository, create its task branch/PR, and respond to implementation feedback, but I do not treat it as a general-purpose GitHub client or as the independent reviewer of the work it just produced.
+
+In this workflow, I treat the following as outside Jules' practical capabilities and do **not** spend prompt space asking Jules to do them:
+
+- independently review a landed GitHub commit or cumulative PR diff as an outside reviewer;
+- update an existing PR title, body, or summary after the PR has been created;
+- merge the PR or make the final merge decision;
+- force-push, reset, rebase, or otherwise rewrite branch history to an arbitrary trusted state;
+- perform branch surgery such as moving a branch back to an exact known-good commit;
+- create and administer a replacement-PR lifecycle: supersede the old PR, cross-link the two, preserve resolving keywords, and close the obsolete PR;
+- safely arbitrate a branch containing non-Jules pushes while Jules still has its own task/session state for that branch;
+- perform general GitHub administration such as labels, reviewer management, draft/ready state, closing/reopening, or other metadata operations unless that capability is explicitly exposed by the product.
+
+The commit-review point is particularly important. Jules can inspect files in its own task workspace, but that is **not the same thing as independently reviewing the GitHub commit that actually landed**. I want that check to happen from another context using the commit SHA, PR diff, and CI as external evidence.
+
+Similarly, "please update the PR summary" or "please merge this when done" is usually wasted or misleading Jules prompt content. Those are control-plane operations, not implementation requirements. I reserve them for ChatGPT with connected GitHub tools, Agy or Codex when they have appropriate Git/GitHub access, another similarly capable orchestration tool, or an explicit human action.
+
+For Git history manipulation, Agy/Codex or another terminal-capable agent is normally a better fit because it can be told exactly which commit is trusted and can perform the required branch/worktree operations. For PR metadata and independent review, ChatGPT with GitHub integration is usually the better fit. For merging, a capable tool may execute the operation, but **the decision to merge remains separate and explicit** in this workflow.
+
+This division also makes Jules prompts better. The Jules prompt should concentrate on behaviour, source-of-truth files, tests, invariants, and what must be preserved. GitHub administration belongs to the orchestration layer.
+
 ### Jules limitations I plan around
 
 The repository-oriented workflow is also why I avoid treating a Jules task as an indefinitely reliable workspace:
@@ -423,6 +446,8 @@ Rules I use:
 - ask the implementation agent for behaviour, not unnecessary Git command choreography;
 - during the active Jules phase, prefer **comments/prompts over direct code pushes** to the Jules-owned branch;
 - after the Jules phase, direct-edit only narrow, low-uncertainty changes; hand substantial work to Agy/Codex;
+- perform PR metadata/lifecycle operations such as updating summaries, cross-linking, closing, or opening replacement PRs when the connected tools support them;
+- reserve branch-history surgery and force-push/rewrite work for a tool that actually has the required Git capabilities rather than trying to express it as a Jules implementation prompt;
 - if a branch or PR is being replaced, make the trusted starting point and lifecycle explicit;
 - re-review direct patches and agent patches after they land;
 - do not merge merely because checks are green or because an agent says it is done; merging is a separate explicit decision.
@@ -441,10 +466,12 @@ Rules I use:
 - explicitly say what previous behaviour must be preserved;
 - answer genuine scope/design questions when Jules asks them;
 - verify every claimed completion externally;
+- do not ask Jules to update PR summaries/bodies, independently review landed commits, merge PRs, force-push/rewrite history, or administer superseding/replacement PRs;
+- route those GitHub control-plane tasks to ChatGPT, Agy, Codex, another suitably integrated tool, or an explicit human action;
 - do not mix casual non-Jules pushes into a branch Jules is still expected to update;
 - stop the loop when commits become empty, changes oscillate, the base invalidates the implementation, or the session is otherwise no longer trustworthy.
 
-Jules is allowed to be the **author**, but not the sole reviewer of its work.
+Jules is allowed to be the **author**, but not the sole reviewer, Git historian, PR administrator, or merge authority for its work.
 
 ### Agy
 
