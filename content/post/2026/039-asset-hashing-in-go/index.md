@@ -10,7 +10,7 @@ When building web applications, you often encounter a common frustration: you up
 
 Browsers cache static assets to improve load times, which is generally a good thing. But when an asset changes, the browser might still serve the stale, cached version. The solution to this problem is **cache busting**, and a robust way to implement it is through **asset hashing**.
 
-In this post, we'll explore an elegant asset hashing implementation in Go, inspired by the [`goa4web` framework](https://github.com/arran4/goa4web/blob/b09a4e2a4009aa9efd9f61ff39fc8b28ddcf297a/core/templates/templates.go#L196-L198).
+In this post, we'll explore an elegant asset hashing implementation in Go.
 
 ## What is Asset Hashing?
 
@@ -18,9 +18,9 @@ Asset hashing involves generating a unique identifier (a hash) based on the file
 
 When the file changes, its contents change, resulting in a new hash. This forces the browser to treat it as a completely new resource and download the latest version, immediately reflecting your updates. When the file hasn't changed, the hash remains the same, and the browser safely uses its cached copy.
 
-## The `goa4web` Implementation
+## The Implementation
 
-Let's look at how the `goa4web` project tackles this problem natively in Go using `html/template`.
+Let's look at how to tackle this problem natively in Go using `html/template`.
 
 First, a custom template function is registered when compiling the site templates:
 
