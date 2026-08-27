@@ -170,6 +170,10 @@ Jules also supports repository instructions such as `AGENTS.md`, so stable repos
 
 During the Jules phase I commonly use ChatGPT or another outside integrated assistant to write the text I send back to Jules.
 
+Whenever I ask the outside assistant to produce a prompt, Jules response, Agy/Codex handoff, or other text that I am expected to paste somewhere else, I want the **ready-to-paste payload in a fenced `text` code block**. Explanations, review findings, and recommendations can stay outside the block. This keeps the actionable text unambiguous and makes it easy to copy without accidentally including the surrounding analysis.
+
+Drafting that text and **acting on it are different operations**. Unless I explicitly ask the outside assistant to post the comment/review, update the PR, push a change, or merge, it should return the draft to me and stop there. In particular, "review this PR and give me a Jules response" is not permission to post that response to the PR, and a conclusion that a PR is ready is not permission to merge it.
+
 There are three common forms.
 
 ### 1. The initial Jules task
@@ -181,6 +185,8 @@ This is particularly useful when Jules will have **no context from an earlier PR
 ### 2. PR review responses
 
 After Jules pushes a commit, I give the reviewer the PR or commit. It inspects the actual state and writes the next response for the PR, usually as a focused `@jules` comment.
+
+The response should normally be returned to me in a fenced code block so I can inspect and copy it. The outside assistant should **not post the review response directly to the PR unless I explicitly ask it to do so**. Review, drafting, posting, and merging are separate levels of authority.
 
 A useful response does not merely repeat a failing check. It explains:
 
@@ -202,6 +208,8 @@ The outside assistant can inspect the issue, PR, repository, current base, and p
 - the current technical situation;
 - a recommended decision;
 - a ready-to-paste answer for Jules.
+
+The ready-to-paste answer should be in a fenced code block, separate from the explanation, so I can copy exactly the part intended for Jules.
 
 The answer should resolve the decision Jules genuinely needs. It should **not** over-specify mechanics Jules can discover itself.
 
@@ -443,10 +451,12 @@ Rules I use:
 - review each meaningful change rather than relying on an agent's completion summary;
 - keep a running distinction between what is fixed, what remains, and what must be preserved;
 - write the initial Jules prompt, follow-up PR comments, and answers to Jules' in-web questions;
+- put prompts, PR-review responses, Jules answers, and agent-handoff text in **fenced `text` code blocks** so the exact actionable payload can be copied without the surrounding analysis;
+- default to **drafting, not acting**: do not post a PR comment/review, update PR metadata, push a change, or merge merely because the user asked for a review or a prompt; perform those actions only when explicitly instructed;
 - ask the implementation agent for behaviour, not unnecessary Git command choreography;
 - during the active Jules phase, prefer **comments/prompts over direct code pushes** to the Jules-owned branch;
 - after the Jules phase, direct-edit only narrow, low-uncertainty changes; hand substantial work to Agy/Codex;
-- perform PR metadata/lifecycle operations such as updating summaries, cross-linking, closing, or opening replacement PRs when the connected tools support them;
+- perform PR metadata/lifecycle operations such as updating summaries, cross-linking, closing, or opening replacement PRs when the connected tools support them **and when I have explicitly requested those actions**;
 - reserve branch-history surgery and force-push/rewrite work for a tool that actually has the required Git capabilities rather than trying to express it as a Jules implementation prompt;
 - if a branch or PR is being replaced, make the trusted starting point and lifecycle explicit;
 - re-review direct patches and agent patches after they land;
