@@ -31,9 +31,9 @@ If you are designing a new Go application, the preferred implementation pattern 
 
 ### 1. Fingerprinted Filenames and Content Addressing
 
-In the ideal design, the fingerprint is part of the filename itself (e.g., `/assets/css/main.a1b2c3d4e5f6g7h8.css`).
+In the ideal design, the fingerprint is part of the filename itself (e.g., `/assets/css/main.a1b2c3d4e5f6a7b8.css`).
 
-Crucially, the server must enforce this mapping: `/assets/css/main.a1b2c3d4e5f6g7h8.css` must either return the exact bytes identified by that specific hash or return a `404 Not Found`. Do not allow several fingerprinted URLs to alias whatever happens to be the current mutable `main.css`. The filename convention enables this architecture, but the strict origin behavior is what actually makes the resource immutable and genuinely content-addressed.
+Crucially, the server must enforce this mapping: `/assets/css/main.a1b2c3d4e5f6a7b8.css` must either return the exact bytes identified by that specific hash or return a `404 Not Found`. Do not allow several fingerprinted URLs to alias whatever happens to be the current mutable `main.css`. The filename convention enables this architecture, but the strict origin behavior is what actually makes the resource immutable and genuinely content-addressed.
 
 ### 2. Implementation: Build-Time Generation
 
@@ -93,12 +93,13 @@ func NewRegistry(fsys fs.FS) (*Registry, error) {
 		sum := sha256.Sum256(b)
 		fullDigest := hex.EncodeToString(sum[:])
 
-		// For the URL fingerprint, we use a 64-bit prefix (16 hex chars)
-		// as a pragmatic size/collision trade-off. For absolute content
-		// identity, the full digest could be used in the URL.
-		fingerprint := fullDigest[:16]
+		// For the strongest practical collision resistance, use the full digest.
+		// Applications may deliberately truncate this (e.g., to 128 or 64 bits)
+		// if shorter URLs are worthwhile and the resulting collision probability
+		// is acceptable for their specific asset population.
+		fingerprint := fullDigest
 
-		// Insert fingerprint before extension (e.g., css/main.a1b2c3d4e5f6a7b8.css)
+		// Insert fingerprint before extension (e.g., css/main.a1b2c3d4....css)
 		ext := path.Ext(p)
 		base := strings.TrimSuffix(p, ext)
 		fingerprintedURL := fmt.Sprintf("/assets/%s.%s%s", base, fingerprint, ext)
