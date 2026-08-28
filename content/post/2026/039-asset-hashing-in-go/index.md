@@ -14,10 +14,12 @@ The solution to this problem is **asset fingerprinting** (or content hashing). T
 
 It is important to understand that hashing itself is not the optimization. The optimization is long-lived HTTP caching.
 
-Asset fingerprinting generates a unique identifier based on the file's contents and embeds it into the asset's URL. Changing the URL whenever the content changes allows the asset to be cached aggressively by browsers and CDNs for long periods. Because a new deployment will update the referencing HTML to point to the new, unique URL, it guarantees that the client always fetches the latest representation.
+Asset fingerprinting generates a unique identifier based on the file's contents and embeds it into the asset's URL. Changing the URL whenever the content changes allows the asset to be cached aggressively by browsers and CDNs for long periods.
+
+Once current HTML references changed content under a new URL, an ordinary HTTP cache cannot satisfy that request using the previous asset URL's cached representation. This prevents the common mismatch between current HTML and stale CSS/JS. (It does not, of course, eliminate unrelated deployment, service-worker, network, or application failures.)
 
 This approach offers significant benefits:
-*   **Reliable Deployments:** Users never see broken layouts or execute stale JavaScript.
+*   **Reliable Deployments:** Prevents the common mismatch between current HTML and stale CSS/JS.
 *   **Optimal Caching:** Assets can be cached almost indefinitely.
 *   **Reduced Bandwidth:** Browsers only download files that have actually changed; unchanged files retain their URL and are served from the local cache.
 *   **Safer Rollbacks:** Because multiple versions of an asset can coexist under different URLs, rolling back an HTML deployment immediately points users back to the previous, correctly cached assets.
@@ -27,48 +29,93 @@ This approach offers significant benefits:
 
 If you are designing a new Go application, the preferred implementation pattern incorporates the content fingerprint directly into the filename or path, and treats the resulting URL as an immutable resource.
 
-### 1. Fingerprinted Filenames
+### 1. Fingerprinted Filenames and Content Addressing
 
-In the ideal design, the fingerprint is part of the filename itself (e.g., `/assets/main.a1b2c3d4e5f6.css`). This creates a genuinely content-addressed resource at the origin.
+In the ideal design, the fingerprint is part of the filename itself (e.g., `/assets/css/main.a1b2c3d4e5f6.css`).
 
-### 2. Manifest and Resolver
+Crucially, the server must enforce this mapping: `/assets/css/main.a1b2c3d4e5f6.css` must either return the exact bytes identified by that specific hash or return a `404 Not Found`. Do not allow several fingerprinted URLs to alias whatever happens to be the current mutable `main.css`. The filename convention enables this architecture, but the strict origin behavior is what actually makes the resource immutable and genuinely content-addressed.
 
-To map logical asset names (`main.css`) to their fingerprinted URLs, you typically use a manifest generated during the build process, or compute it at application startup if using `go:embed`.
+### 2. Implementation: Build-Time Generation
 
-```json
-{
-  "main.css": "/assets/main.a1b2c3d4e5f6.css",
-  "app.js": "/assets/app.7f8a9b0c1d2e.js"
-}
-```
+One way to implement this is during a build step before compiling the Go binary:
+*   Walk the source asset tree.
+*   Hash each file.
+*   Emit physical `name.<hash>.ext` files into a public directory.
+*   Generate a manifest mapping logical names to fingerprinted URLs.
+*   Serve those files using a standard static file server.
 
-The Go server loads this manifest into memory as a resolver map.
+### 3. Implementation: Embedded Runtime Registry
 
-### 3. Template Abstraction
-
-Templates should not expose hashing directly. Instead, they should use a general helper like `assetURL` that consults the resolver.
+Alternatively, you can build an embedded registry at startup using `go:embed` and `fs.FS`. In this approach, you walk the assets once, preserving their complete logical paths (e.g., `css/main.css` vs `admin/main.css`), and build two maps: one for template lookups and one for serving exact bytes.
 
 ```go
-funcMap := template.FuncMap{
-    "assetURL": func(logicalName string) string {
-        if fingerprintedPath, ok := resolverMap[logicalName]; ok {
-            return fingerprintedPath
-        }
-        return "/assets/" + logicalName // Fallback
-    },
+package assets
+
+import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
+	"io/fs"
+	"net/http"
+	"path"
+	"strings"
+	"time"
+)
+
+type Registry struct {
+	logicalToURL map[string]string
+	urlToBytes   map[string][]byte
+}
+
+func NewRegistry(fsys fs.FS) (*Registry, error) {
+	reg := &Registry{
+		logicalToURL: make(map[string]string),
+		urlToBytes:   make(map[string][]byte),
+	}
+
+	err := fs.WalkDir(fsys, ".", func(p string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+
+		b, err := fs.ReadFile(fsys, p)
+		if err != nil {
+			return err
+		}
+
+		// Calculate 64-bit fingerprint (16 hex chars)
+		sum := sha256.Sum256(b)
+		fingerprint := hex.EncodeToString(sum[:16])
+
+		// Insert fingerprint before extension (e.g., css/main.a1b2c3d4e5f6.css)
+		ext := path.Ext(p)
+		base := strings.TrimSuffix(p, ext)
+		fingerprintedURL := fmt.Sprintf("/assets/%s.%s%s", base, fingerprint, ext)
+
+		reg.logicalToURL[p] = fingerprintedURL
+		reg.urlToBytes[fingerprintedURL] = b
+
+		return nil
+	})
+
+	return reg, err
+}
+
+func (r *Registry) AssetURL(logicalName string) (string, error) {
+	if url, ok := r.logicalToURL[logicalName]; ok {
+		return url, nil
+	}
+	return "", fmt.Errorf("asset not found: %s", logicalName)
+}
+
+func (r *Registry) GetBytes(url string) ([]byte, bool) {
+	b, ok := r.urlToBytes[url]
+	return b, ok
 }
 ```
 
-In your HTML:
-```html
-<link rel="stylesheet" href="{{ assetURL "main.css" }}">
-```
-
-### 4. Immutability and Retention
-
-Fingerprinted assets are treated as entirely immutable. Once an asset with a specific fingerprint is served, its contents must never change.
-
-Critically, old fingerprinted assets should remain available across and after deployments. If a user has a slightly older version of the HTML open, or if an old HTML page is cached, it will continue to request the old fingerprinted assets. If those assets are deleted immediately upon deployment, the page will break.
+Notice that `AssetURL` returns an error for unknown logical assets. Strict manifest lookup is the ideal default. It prevents hiding missing manifest entries or typos which would silently change caching semantics. Applications prioritizing availability may intentionally degrade to returning a stable unhashed URL as a fallback, but strictness is safer.
 
 ## HTTP Caching Headers
 
@@ -80,9 +127,45 @@ For fingerprinted assets, the URL guarantees the content. You should serve these
 
 ```http
 Cache-Control: public, max-age=31536000, immutable
+ETag: "a1b2c3d4e5f6..."
+Last-Modified: Wed, 21 Oct 2015 07:28:00 GMT
 ```
 
-The `immutable` directive tells the browser that the resource will never change, preventing it from even making conditional revalidation requests (like `If-None-Match`) when the user refreshes the page.
+Let's break this down:
+*   `Cache-Control` controls the freshness and storage policy.
+    *   `public` expresses shared-cache/CDN eligibility. (It is not what makes fingerprinting work and is often redundant for ordinary static public resources).
+    *   `max-age` dictates how long the response remains fresh.
+    *   `immutable` states that the representation will not change during its freshness lifetime, allowing caches to skip otherwise-unnecessary revalidation while it is fresh.
+    *   (Optionally, `s-maxage` can be used when shared/CDN caches should have a different freshness lifetime from browsers).
+*   `ETag` and `Last-Modified` are validators. Validators are not needed for reuse while a response is still fresh, but they remain useful when it becomes stale or is otherwise revalidated. Note that with `go:embed`, there may be no meaningful source modification time, so `ETag` is the natural validator. Do not invent a fake `Last-Modified` value.
+
+### Serving the Content
+
+Here is how you might implement the HTTP handler using Go's `http.ServeContent`, which natively handles conditional requests (like `If-None-Match`) and range requests:
+
+```go
+func (r *Registry) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	b, ok := r.GetBytes(req.URL.Path)
+	if !ok {
+		http.NotFound(w, req)
+		return
+	}
+
+	// Set caching headers for immutable fingerprinted asset
+	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+
+	// ETag based on the known fingerprint or full hash
+	sum := sha256.Sum256(b)
+	etag := fmt.Sprintf(`"%x"`, sum[:])
+	w.Header().Set("ETag", etag)
+
+	// Since these are embedded assets, we might not have a real ModTime.
+	// We pass time.Time{} and let ETag handle validation.
+	http.ServeContent(w, req, req.URL.Path, time.Time{}, bytes.NewReader(b))
+}
+```
+
+*Caveat:* Different wire representations (such as gzip vs. Brotli) may require representation-specific strong ETags and appropriate `Vary: Accept-Encoding` headers.
 
 ### HTML and Main Resources
 
@@ -92,8 +175,6 @@ The HTML document (or the main entry point that selects the fingerprinted URLs) 
 Cache-Control: no-cache
 ```
 
-*Note: `no-cache` does not mean "do not cache." It means "you may store this, but you must check with the server before using it."*
-
 Pair this with a validator like an `ETag` or `Last-Modified` header. If the HTML hasn't changed, the server can return a fast `304 Not Modified`, saving bandwidth.
 
 If the HTML contains personalized user data, ensure it is not stored in shared public caches (like CDNs):
@@ -102,13 +183,14 @@ If the HTML contains personalized user data, ensure it is not stored in shared p
 Cache-Control: private, no-cache
 ```
 
-Avoid using `no-store` as a general caching solution. `no-store` completely prevents storing the response, which defeats caching entirely and should be reserved for genuinely sensitive data that must never touch a disk.
+### Clarifying Directives
 
-### Go's Standard HTTP Support
+It's important to understand the distinctions between caching directives:
+*   `no-store`: Instructs HTTP caches not to store this response.
+*   `no-cache`: Storage is allowed, but reuse requires successful revalidation with the origin server.
+*   `private`: Shared caches (like CDNs) must not store or reuse the response for other users.
 
-When serving assets, leverage Go's standard library. `http.ServeContent` is excellent for this. It automatically handles range requests, conditional requests (`If-None-Match`, `If-Modified-Since`), and will correctly generate a `304 Not Modified` if you provide a real modification time or set an `ETag` on the response writer beforehand.
-
-Also, consider the `Vary` header. A content digest alone cannot always be blindly used as a strong `ETag` if the wire representation changes based on request headers (e.g., serving Brotli vs. Gzip). In such cases, `Vary: Accept-Encoding` is necessary.
+`no-store` can be appropriate for some sensitive responses or intentionally uncached development assets. It should not be the default merely because content needs to remain current. Also, note that setting `no-store` does not retroactively delete an already-stored response.
 
 ## The Degradation Ladder
 
@@ -118,11 +200,11 @@ While fingerprinted filenames are the ideal architecture, there are practical fa
 
 A common and pragmatic fallback is to append the content digest as a query parameter: `/assets/main.css?v=a1b2c3d4e5f6`.
 
-This is easier to implement without a build-time asset pipeline. The Go server can read the file (or embedded `FS`), compute a digest (like SHA-256), and append it to the URL dynamically.
+This is easier to implement without a build-time asset pipeline. The Go server can read the file, compute a digest, and append it to the URL dynamically.
 
-**Limitation:** Be explicit about the limitation here. If the server routing simply ignores the `v` parameter and serves the file at `/assets/main.css`, then both `?v=old` and `?v=new` return the *current* bytes on disk. The URL is not genuinely content-addressed at the origin. It effectively busts the browser cache, but it lacks the strict safety of immutable filenames during rolling deployments.
+**Limitation:** If the server routing simply ignores the `v` parameter and serves whatever file is currently at `/assets/main.css`, then both `?v=old` and `?v=new` return the *current* bytes on disk. The URL is not genuinely content-addressed at the origin. It effectively busts the browser cache, but it lacks the strict safety of immutable filenames during rolling deployments.
 
-When constructing these URLs, do not use simple string concatenation like `webPath + "?v=" + hash`. Use `net/url` to safely manipulate the URL and its query parameters.
+When constructing these URLs dynamically, use `net/url` to safely manipulate the URL and its query parameters rather than simple string concatenation.
 
 ### 2. Deployment ID (Simpler Fallback)
 
@@ -144,8 +226,6 @@ When computing fingerprints in Go, a stable, low-collision content digest is req
 
 Taking the first 16 hexadecimal characters of a SHA-256 digest provides a 64-bit fingerprint. For ordinary asset sets, this offers reasonable collision resistance and is plenty for cache busting. A longer prefix or the full digest can easily be used if stronger collision resistance is desired. (Note: Valid hexadecimal characters are only `0-9` and `a-f`).
 
-In a production setting, hashes should ideally be precomputed at build time and stored in a manifest, or computed once at application startup if using `go:embed`. Runtime calculation should only serve as a fallback or development-mode convenience to avoid wasting CPU cycles.
-
 ## Operational Deployment Considerations
 
 To implement this safely in production, consider the order of deployment operations:
@@ -155,4 +235,4 @@ To implement this safely in production, consider the order of deployment operati
 3.  **Retain Old Assets:** Keep the old assets available for an appropriate period (e.g., days or weeks).
 4.  **Garbage Collection:** Later, run a process to clean up orphaned assets that are no longer referenced by any active HTML versions.
 
-By following this architecture, you ensure that caching is maximized, bandwidth is minimized, and your users never experience a broken deployment due to a missing or stale asset.
+The reason for this order is strict: A fingerprinted URL must remain bound to the same bytes for as long as that URL can still be requested by old cached pages or in-flight users. By following this architecture, you ensure that caching is maximized and bandwidth is minimized while preserving absolute correctness across deployments.
