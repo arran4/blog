@@ -232,6 +232,7 @@
     "godebug",
     "goexif",
     "gofmt",
+    "gohtml",
     "gohugoio",
     "goland",
     "golangci",
