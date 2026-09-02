@@ -2161,3 +2161,31 @@ If the previous release was successful and you are actually trying to push new c
 git tag v0.0.3
 git push origin v0.0.3
 ```
+
+## Troubleshooting: GoReleaser template function `lower` not defined
+
+When configuring GoReleaser to publish Docker images to registries like GitHub Container Registry (`ghcr.io`), you often want to dynamically inject the repository name using the `GITHUB_REPOSITORY` environment variable.
+
+However, Docker registries enforce lowercase names for images. A common mistake is attempting to use the `lower` function in the GoReleaser template to achieve this:
+
+```yaml
+dockers:
+  - image_templates:
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY | lower }}:latest" # WRONG!
+```
+
+This will result in an error during the release process:
+
+```
+docker build failed: failed to execute image template 'ghcr.io/{{ .Env.GITHUB_REPOSITORY | lower }}:latest': template: failed to apply "ghcr.io/{{ .Env.GITHUB_REPOSITORY | lower }}:latest": function "lower" not defined
+```
+
+GoReleaser uses the `text/template` engine but provides its own set of custom template functions. For lowercase conversion, GoReleaser provides `tolower`, not `lower`.
+
+The correct configuration is:
+
+```yaml
+dockers:
+  - image_templates:
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY | tolower }}:latest" # CORRECT!
+```
