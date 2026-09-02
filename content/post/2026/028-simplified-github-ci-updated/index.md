@@ -1326,7 +1326,6 @@ Copy/paste pattern:
             type=ref,event=tag
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest,enable=${{ !contains(github.ref_name, 'rc') && !contains(github.ref_name, 'alpha') && !contains(github.ref_name, 'beta') && !contains(github.ref_name, 'test') }}
       - uses: docker/build-push-action@v7
         with:
           context: .
@@ -1383,8 +1382,8 @@ and skip binary-specific lanes like GoReleaser `builds`, app bundle packaging, H
   goreleaser:
     name: GoReleaser
     # In practice, include all quality gates here (for example: go-test, go-vet, go-lint, format).
-    needs: [route, go-test]
-    if: ${{ (github.event_name == 'push') && startsWith(github.ref, 'refs/tags/v') }}
+    needs: [route, go-test, prepare-release-tag]
+    if: ${{ (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) || (github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-')) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -1399,11 +1398,11 @@ and skip binary-specific lanes like GoReleaser `builds`, app bundle packaging, H
         with:
           distribution: goreleaser
           version: '~> v2'
-          args: release --clean
+          args: release --clean ${{ (github.event_name == 'workflow_dispatch' && inputs.mode == 'release-test') && '--snapshot' || '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }} # inject secrets.TAP_GITHUB_TOKEN
-          GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
+          GORELEASER_CURRENT_TAG: ${{ github.event_name == 'workflow_dispatch' && needs.prepare-release-tag.outputs.release_tag || github.ref_name }}
 ```
 
 For release robustness, use an `if:` guard like this when aggregating many `needs`:
@@ -1432,9 +1431,6 @@ If your repo does **not** emit a binary, do not cargo-cult this whole file. In t
 
 ```yaml
 project_name: your-project
-
-before:
-  hooks:
 
 release:
   prerelease: auto
