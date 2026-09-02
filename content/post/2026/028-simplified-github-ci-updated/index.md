@@ -355,7 +355,7 @@ jobs:
               ;;
             schedule)
               run_code_checks=true
-              if [[ "${{ github.event.schedule }}" == "17 3 1 * *" ]]; then
+              if [[ "${{ github.event.schedule }}" == "0 19 1 * *" ]]; then
                 is_monthly=true
               fi
               if [[ "${{ github.event.schedule }}" == "41 2 * * *" ]]; then
@@ -1384,8 +1384,8 @@ and skip binary-specific lanes like GoReleaser `builds`, app bundle packaging, H
   goreleaser:
     name: GoReleaser
     # In practice, include all quality gates here (for example: go-test, go-vet, go-lint, format).
-    needs: [route, go-test, prepare-release-tag]
-    if: ${{ (((github.event_name == 'push') && startsWith(github.ref, 'refs/tags/v')) || (github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-'))) }}
+    needs: [route, go-test]
+    if: ${{ (github.event_name == 'push') && startsWith(github.ref, 'refs/tags/v') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -1395,28 +1395,21 @@ and skip binary-specific lanes like GoReleaser `builds`, app bundle packaging, H
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.main
-      - name: Calculate and Create Tag
-        if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') && inputs.mode != 'release-test' && inputs.mode != 'release-rc' && inputs.mode != 'release-alpha' }}
-        run: |
-          git tag ${{ needs.prepare-release-tag.outputs.release_tag }}
-          git push origin ${{ needs.prepare-release-tag.outputs.release_tag }}
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v7
         with:
           distribution: goreleaser
           version: '~> v2'
-          args: >-
-            release --clean
-            ${{ (github.event_name == 'workflow_dispatch' && (inputs.mode == 'release-test' || inputs.mode == 'release-rc' || inputs.mode == 'release-alpha')) && '--snapshot' || '' }}
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }} # inject secrets.TAP_GITHUB_TOKEN
-          GORELEASER_CURRENT_TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
+          GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
 ```
 
 For release robustness, use an `if:` guard like this when aggregating many `needs`:
 
-Important GoReleaser v2 note: avoid `--tag` in action args (it can fail with "unknown flag: --tag"). Instead set `GORELEASER_CURRENT_TAG` in `env` when you need to force the tag value from a prepared job output. For workflow-dispatch releases, also create the local tag on the checked-out commit before running GoReleaser.
+Important GoReleaser v2 note: avoid `--tag` in action args (it can fail with "unknown flag: --tag"). Instead set `GORELEASER_CURRENT_TAG` in `env` when you need to force the tag value.
 
 Do/Don’t quick check:
 
@@ -1466,7 +1459,7 @@ dockers_v2:
       - "ghcr.io/{{ .Env.GITHUB_REPOSITORY | tolower }}"
     tags:
       - "{{ .Tag }}"
-      - latest
+      - '{{ if eq .Prerelease "" }}latest{{ end }}'
     dockerfile: Dockerfile.goreleaser
     platforms:
       - linux/amd64
@@ -1805,7 +1798,7 @@ Copy/paste CI step style:
           set -euo pipefail
           prerelease=""
           case "${{ inputs.mode }}" in
-            release-test|release-rc|release-alpha) prerelease="--prerelease" ;;
+            release-rc|release-alpha) prerelease="--prerelease" ;;
           esac
 
           discussion_arg="--discussion-category Announcements"
@@ -1959,7 +1952,7 @@ jobs:
     # ...
 
   goreleaser:
-    needs: [route, go-test, prepare-release-tag]
+    needs: [route, go-test]
     # ...
 
   source-deb:

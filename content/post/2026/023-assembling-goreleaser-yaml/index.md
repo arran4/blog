@@ -129,14 +129,14 @@ dockers_v2:
       - "ghcr.io/{{ .Env.GITHUB_REPOSITORY | tolower }}"
     tags:
       - "{{ .Tag }}"
-      - latest
-    build_args:
-      - "--pull"
+      - '{{ if eq .Prerelease "" }}latest{{ end }}'
+    flags:
+      - "--pull=true"
     annotations:
-      - "org.opencontainers.image.created={{.Date}}"
-      - "org.opencontainers.image.title={{.ProjectName}}"
-      - "org.opencontainers.image.revision={{.FullCommit}}"
-      - "org.opencontainers.image.version={{.Version}}"
+      "org.opencontainers.image.created": "{{.Date}}"
+      "org.opencontainers.image.title": "{{.ProjectName}}"
+      "org.opencontainers.image.revision": "{{.FullCommit}}"
+      "org.opencontainers.image.version": "{{.Version}}"
 ```
 
 
