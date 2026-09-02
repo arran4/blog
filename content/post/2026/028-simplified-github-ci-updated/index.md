@@ -1399,7 +1399,7 @@ and skip binary-specific lanes like GoReleaser `builds`, app bundle packaging, H
 ```yaml
   publish-release-tag:
     name: Publish Release Tag
-    needs: [route, go-test, prepare-release-tag]
+    needs: [route, prepare-release-tag]
     if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') && inputs.mode != 'release-test' }}
     runs-on: ubuntu-latest
     permissions:
@@ -1978,7 +1978,7 @@ jobs:
 
   publish-release-tag:
     name: Publish Release Tag
-    needs: [route, go-test, prepare-release-tag]
+    needs: [route, prepare-release-tag]
     if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') && inputs.mode != 'release-test' }}
     runs-on: ubuntu-latest
     permissions:
@@ -2000,11 +2000,11 @@ jobs:
     # ...
 
   source-deb:
-    needs: [route]
+    needs: [route, prepare-release-tag, publish-release-tag]
     # ...
 
   source-rpm:
-    needs: [route]
+    needs: [route, prepare-release-tag, publish-release-tag]
     # ...
 
   docker-release:
@@ -2228,5 +2228,6 @@ dockers_v2:
   - images:
       - "ghcr.io/{{ .Env.GITHUB_REPOSITORY | tolower }}"
     tags:
-      - latest
+      - "{{ .Tag }}"
+      - "{{ if not .Prerelease }}latest{{ end }}"
 ```
