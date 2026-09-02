@@ -1638,9 +1638,19 @@ For Flutter/Qt desktop apps, keep a manual lane. If Flutter build artifacts were
 
 Use multiple deploy stages (package -> publish -> promote).
 
-### Manual release creation pattern (non-GoReleaser)
+### Manual release creation pattern (gh-release script style)
 
-If your repository **does not** use GoReleaser (or another publisher) as the primary owner of GitHub releases, you can use this generic manual step to create a release from a branch/tag. Do not use this if GoReleaser is already handling releases, to avoid duplicate tag/release conflicts.
+When you manually create releases, the `arran4/dotfiles` `executable_gh-release.sh` flow is a strong pattern, and it closes a common guide gap: generated release notes + discussion creation should be first-class:
+
+- verify default GitHub repo context exists,
+- compute version with `git-tag-inc` (`-print-version-only`),
+- create and push tags with retry,
+- create GitHub release with `--generate-notes`,
+- use a default discussion category of `Announcements` (safe for default discussion setups), with graceful fallback when permissions/discussions prevent linking,
+- mark prerelease automatically for `test|alpha|beta|rc` increments.
+- fetch tags and compare the highest tag version against the source-controlled version before bumping, so release automation never bumps from stale in-repo version text.
+
+You can keep this as a local operator script **and** wire equivalent logic in CI manual-dispatch mode.
 
 Copy/paste CI step style:
 

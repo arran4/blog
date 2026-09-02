@@ -1419,12 +1419,13 @@ and skip binary-specific lanes like GoReleaser `builds`, app bundle packaging, H
   goreleaser:
     name: GoReleaser
     # In practice, include all quality gates here (for example: go-test, go-vet, go-lint, format).
-    needs: [route, go-test, prepare-release-tag]
+    needs: [route, go-test, prepare-release-tag, publish-release-tag]
     if: |
       always() &&
       needs.route.result == 'success' &&
       needs.go-test.result == 'success' &&
       (needs.prepare-release-tag.result == 'success' || needs.prepare-release-tag.result == 'skipped') &&
+      (needs.publish-release-tag.result == 'success' || needs.publish-release-tag.result == 'skipped') &&
       ((github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) || (github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-')))
     runs-on: ubuntu-latest
     steps:
@@ -1790,11 +1791,12 @@ Copy/paste CI step style:
 ```yaml
   publish-release:
     name: Publish Release
-    needs: [route, prepare-release-tag]
+    needs: [route, prepare-release-tag, publish-release-tag]
     if: |
       always() &&
       needs.route.result == 'success' &&
       (needs.prepare-release-tag.result == 'success' || needs.prepare-release-tag.result == 'skipped') &&
+      (needs.publish-release-tag.result == 'success' || needs.publish-release-tag.result == 'skipped') &&
       needs.route.outputs.run_release == 'true' &&
       inputs.mode != 'release-test'
     runs-on: ubuntu-latest
@@ -1994,7 +1996,7 @@ jobs:
           git push origin "$TAG"
 
   goreleaser:
-    needs: [route, go-test]
+    needs: [route, go-test, prepare-release-tag, publish-release-tag]
     # ...
 
   source-deb:
@@ -2006,7 +2008,7 @@ jobs:
     # ...
 
   docker-release:
-    needs: [route, docker-build]
+    needs: [route, docker-build, prepare-release-tag, publish-release-tag]
     # ...
 
 ```
