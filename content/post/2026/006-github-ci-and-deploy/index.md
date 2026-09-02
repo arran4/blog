@@ -1784,6 +1784,14 @@ Copy/paste CI step style:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Create and Push Tag for Manual Release
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        env:
+          TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+          git tag "$TAG"
+          git push origin "$TAG"
       - name: Create release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
