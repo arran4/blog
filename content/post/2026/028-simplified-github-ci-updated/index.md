@@ -1241,7 +1241,7 @@ If repo has Go + Dockerfile or standalone Docker service, build and (optionally)
   docker-release:
     name: Docker release
     needs: [route, docker-build]
-    if: ${{ needs.route.outputs.run_release == 'true' }}
+    if: ${{ (github.event_name == 'push') && startsWith(github.ref, 'refs/tags/v') && needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -1306,7 +1306,7 @@ Copy/paste pattern:
   docker-release:
     name: Docker release
     needs: [route]
-    if: ${{ needs.route.outputs.run_release == 'true' }}
+    if: ${{ (github.event_name == 'push') && startsWith(github.ref, 'refs/tags/v') && needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -1326,8 +1326,7 @@ Copy/paste pattern:
             type=ref,event=tag
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=${{ inputs.release_version_override }},enable=${{ inputs.release_version_override != '' }}
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest,enable=${{ !contains(github.ref_name, 'rc') && !contains(github.ref_name, 'alpha') && !contains(github.ref_name, 'beta') && !contains(github.ref_name, 'test') }}
       - uses: docker/build-push-action@v7
         with:
           context: .
@@ -1436,7 +1435,9 @@ project_name: your-project
 
 before:
   hooks:
-    - go mod tidy
+
+release:
+  prerelease: auto
 
 builds:
   - id: app

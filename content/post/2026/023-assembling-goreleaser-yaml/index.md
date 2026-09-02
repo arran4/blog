@@ -162,7 +162,7 @@ There is a long list of targets and features I want to integrate in the future t
 *   **NPM:** I could do `npm` packages, but token expiration would require frequent updates.
 *   **Security:** `signs`, `docker_signs`, and `sboms`. If they are not set up, they should be.
 *   **Announcements:** Integrate announcements properly.
-*   **Upgrades:** Upgrade to `docker2`.
+Note: The `dockers_v2` syntax is GoReleaser's current v2 standard and is intended to become `dockers` in GoReleaser v3.
 *   **Release Notes:** I like the default Git release notes, but combining them with custom changelogs is something I would like to start doing.
 *   **Gentoo/ebuilds:** I am also doing ebuilds/Gentoo, which should be used as a sample for when it's working and accepted.
 
