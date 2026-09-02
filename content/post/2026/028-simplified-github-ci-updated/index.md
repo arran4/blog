@@ -156,7 +156,7 @@ To avoid invalid manual-dispatch state combinations, keep a **single release con
       release_tag: ${{ steps.tag.outputs.release_tag }}
       next_version: ${{ steps.tag.outputs.next_version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Setup git-tag-inc
@@ -540,7 +540,7 @@ mkdir -p %{buildroot}/usr/bin
     if: ${{ needs.route.outputs.run_cleanup != 'true' && (needs.route.outputs.is_nightly == 'true' || needs.route.outputs.is_monthly == 'true') }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@v2
@@ -573,7 +573,7 @@ If a repo has `pom.xml`, add this lane. It is useful for polyglot repos where Ja
     if: ${{ needs.route.outputs.run_code_checks == 'true' && hashFiles('pom.xml') != '' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-java@v4
         with:
           java-version: '11'
@@ -645,7 +645,7 @@ jobs:
           sudo dpkg -i ${{ runner.temp }}/hugo.deb
       - name: Install Dart Sass
         run: sudo snap install dart-sass
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
       - id: pages
@@ -697,8 +697,8 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
     if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.main
       - name: golangci-lint
@@ -718,8 +718,8 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
         # Add windows-latest/macos-latest only for true platform-specific behavior.
         os: [ubuntu-latest]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.main
           cache: true
@@ -732,8 +732,8 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
     if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.main
           cache: true
@@ -745,8 +745,8 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' && inputs.allow_prs == true }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.main
       - name: Run go fmt
@@ -788,8 +788,8 @@ Optional cross-OS lane (only when it really matters):
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.main
       - run: go build ./...
@@ -806,7 +806,7 @@ Optional cross-OS lane (only when it really matters):
     if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -863,7 +863,7 @@ jobs:
   version-and-release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: actions/setup-node@v4
@@ -909,7 +909,7 @@ You asked to include Dart libs and Flutter libs specifically, with analysis.
     if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dart-lang/setup-dart@v1
       - run: dart --version
       - run: dart pub get
@@ -923,7 +923,7 @@ You asked to include Dart libs and Flutter libs specifically, with analysis.
     if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -939,7 +939,7 @@ You asked to include Dart libs and Flutter libs specifically, with analysis.
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -976,7 +976,7 @@ You asked to include Dart libs and Flutter libs specifically, with analysis.
     if: ${{ (needs.route.outputs.run_release == 'true' || needs.route.outputs.is_monthly == 'true' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'build')) }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -1024,7 +1024,7 @@ Copy/paste release prep snippet:
     if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: dart-lang/setup-dart@v1
@@ -1078,7 +1078,7 @@ Include both Qt/CMake and Makefile detection paths.
     if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: sudo apt-get update
       - run: sudo apt-get install -y cmake ninja-build build-essential qt6-base-dev qt6-tools-dev clang-format cppcheck
       - name: Lint style and static checks
@@ -1095,7 +1095,7 @@ Include both Qt/CMake and Makefile detection paths.
     if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: make -j"$(nproc)" all
       - run: make test || true
 ```
@@ -1113,10 +1113,10 @@ You wanted this wired to real formatters and branch-name guessable behavior.
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' && inputs.allow_prs == true }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Go (if needed)
-                uses: actions/setup-go@v6
+                uses: actions/setup-go@v7
         with:
           go-version-file: go.main
 
@@ -1187,7 +1187,7 @@ You wanted this wired to real formatters and branch-name guessable behavior.
     if: ${{ needs.route.outputs.run_cleanup == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PARENT_PR: ${{ github.event.pull_request.number }}
@@ -1209,7 +1209,7 @@ If a job runs commands like `git push`, `git push origin --delete`, `git commit`
 
 ```yaml
 steps:
-  - uses: actions/checkout@v4
+  - uses: actions/checkout@v7
   - run: git push origin --delete "$BRANCH"
 ```
 
@@ -1228,10 +1228,10 @@ If repo has Go + Dockerfile or standalone Docker service, build and (optionally)
     if: ${{ needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/build-push-action@v6
+      - uses: actions/checkout@v7
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/build-push-action@v7
         with:
           context: .
           file: ${{ hashFiles('Dockerfile.goreleaser') != '' && 'Dockerfile.goreleaser' || 'Dockerfile' }}
@@ -1247,15 +1247,15 @@ If repo has Go + Dockerfile or standalone Docker service, build and (optionally)
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+      - uses: actions/checkout@v7
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           context: .
           push: true
@@ -1284,7 +1284,7 @@ Copy/paste pattern:
     if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install shellcheck and zsh
         run: sudo apt-get update && sudo apt-get install -y shellcheck zsh
       - name: ShellCheck scripts
@@ -1309,17 +1309,17 @@ Copy/paste pattern:
     if: ${{ needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+      - uses: actions/checkout@v7
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Docker metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ github.repository_owner }}/dev-dotfiles-debian
           tags: |
@@ -1328,7 +1328,7 @@ Copy/paste pattern:
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=${{ inputs.release_version_override }},enable=${{ inputs.release_version_override != '' }}
             type=raw,value=latest,enable={{is_default_branch}}
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           context: .
           build-contexts: dotfiles=.
@@ -1342,7 +1342,7 @@ Copy/paste pattern:
     if: ${{ needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build dotfiles archive
         run: |
           yes "" | sh -c "$(curl -fsLS get.chezmoi.io)" -- init --no-tty --debug --source=$PWD --apply
@@ -1388,11 +1388,11 @@ and skip binary-specific lanes like GoReleaser `builds`, app bundle packaging, H
     if: ${{ (((github.event_name == 'push') && startsWith(github.ref, 'refs/tags/v')) || (github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-'))) }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           fetch-tags: true
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.main
       - name: Calculate and Create Tag
@@ -1401,7 +1401,7 @@ and skip binary-specific lanes like GoReleaser `builds`, app bundle packaging, H
           git tag ${{ needs.prepare-release-tag.outputs.release_tag }}
           git push origin ${{ needs.prepare-release-tag.outputs.release_tag }}
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v6
+        uses: goreleaser/goreleaser-action@v7
         with:
           distribution: goreleaser
           version: '~> v2'
@@ -1461,10 +1461,10 @@ archives:
 checksum:
   name_template: checksums.txt
 
-dockers:
+dockers_v2:
   - image_templates:
-      - ghcr.io/OWNER/REPO:{{ .Tag }}
-      - ghcr.io/OWNER/REPO:latest
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY | tolower }}:{{ .Tag }}"
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY | tolower }}:latest"
     dockerfile: Dockerfile.goreleaser
     use: buildx
     goos: linux
@@ -1620,7 +1620,7 @@ Ensure this is configured correctly based on your actual dependencies and packag
     if: ${{ needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: sudo apt-get update
       - run: sudo apt-get install -y devscripts debhelper build-essential fakeroot
       - name: Build source Debian package
@@ -1675,7 +1675,7 @@ mv /tmp/${APP_NAME}_${VERSION}-1* "$OUTDIR/" || true
     if: ${{ needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: sudo apt-get update
       - run: sudo apt-get install -y rpm
       - name: Build source RPM
@@ -1728,7 +1728,7 @@ For Flutter/Qt desktop apps, keep a manual lane. If Flutter build artifacts were
     if: ${{ needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: sudo apt-get update
       - run: sudo apt-get install -y flatpak flatpak-builder
       - name: Build Flatpak
@@ -1773,7 +1773,7 @@ Copy/paste CI step style:
       contents: write
       discussions: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Sync version source with highest existing tag first
@@ -2062,7 +2062,7 @@ Optional monthly cleanup (especially useful for private repos with low storage q
 5. Validate `lint-fix` creates/labels branches correctly.
 6. Validate `pull_request.closed` cleanup against test PRs.
 7. Validate monthly schedule and release lanes.
-8. Validate that every `git`-mutating job starts with `actions/checkout@v4`.
+8. Validate that every `git`-mutating job starts with `actions/checkout@v7`.
 
 ### README distribution/install checklist (do not skip)
 
@@ -2087,8 +2087,8 @@ brew tap OWNER/homebrew-tap
 brew install app
 
 ### Docker
-docker pull ghcr.io/OWNER/REPO:latest
-docker run --rm ghcr.io/OWNER/REPO:latest --help
+docker pull ghcr.io/YOUR_OWNER_LOWERCASE/YOUR_REPO_LOWERCASE:latest
+docker run --rm ghcr.io/YOUR_OWNER_LOWERCASE/YOUR_REPO_LOWERCASE:latest --help
 
 ### Go install
 go install github.com/OWNER/REPO/cmd/app@latest
@@ -2169,7 +2169,7 @@ When configuring GoReleaser to publish Docker images to registries like GitHub C
 However, Docker registries enforce lowercase names for images. A common mistake is attempting to use the `lower` function in the GoReleaser template to achieve this:
 
 ```yaml
-dockers:
+dockers: # Legacy format shown only to reproduce the error
   - image_templates:
       - "ghcr.io/{{ .Env.GITHUB_REPOSITORY | lower }}:latest" # WRONG!
 ```
@@ -2185,7 +2185,7 @@ GoReleaser uses the `text/template` engine but provides its own set of custom te
 The correct configuration is:
 
 ```yaml
-dockers:
+dockers_v2:
   - image_templates:
       - "ghcr.io/{{ .Env.GITHUB_REPOSITORY | tolower }}:latest" # CORRECT!
 ```

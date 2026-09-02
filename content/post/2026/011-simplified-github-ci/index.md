@@ -1400,10 +1400,10 @@ archives:
 checksum:
   name_template: checksums.txt
 
-dockers:
+dockers_v2:
   - image_templates:
-      - ghcr.io/OWNER/REPO:{{ .Tag }}
-      - ghcr.io/OWNER/REPO:latest
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY | tolower }}:{{ .Tag }}"
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY | tolower }}:latest"
     dockerfile: Dockerfile.goreleaser
     use: buildx
     goos: linux
@@ -1758,40 +1758,6 @@ Integrate language publishers in the same publish stage:
 
 ---
 
-### Optional: Prepare next development version PR after release
-
-This pattern from the referenced workflow is useful for repos that keep `-SNAPSHOT` / development versions in source control.
-
-```yaml
-  prepare-next-version-pr:
-    name: Prepare next development iteration PR
-    needs: [publish-draft]
-    if: ${{ github.event_name == 'workflow_dispatch' && (startsWith(inputs.mode, 'release-') || inputs.mode == 'release-test') }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Bump to next version and open PR
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          NEXT_VERSION="${{ needs.prepare-release-tag.outputs.next_version || '' }}"
-          [[ -z "$NEXT_VERSION" ]] && { echo "No next version calculated; skipping."; exit 0; }
-
-          BRANCH="bump-version-$NEXT_VERSION"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$BRANCH"
-
-          # Replace with repo-specific version bump command(s)
-          # mvn versions:set -DnewVersion="$NEXT_VERSION" -DgenerateBackupPoms=false
-          # sed -i -E "s/(project\([^ ]+ VERSION )[^ )]+/\1$NEXT_VERSION/" CMakeLists.txt
-
-          git add -A
-          git commit -m "Prepare next development iteration $NEXT_VERSION"
-          git push -u origin "$BRANCH"
-          gh pr create --title "Prepare next development iteration $NEXT_VERSION" --body "Automated PR for next iteration." --base main --head "$BRANCH"
-```
 
 ---
 
@@ -1938,58 +1904,7 @@ jobs:
     needs: [publish-draft]
     # ...
 
-  prepare-next-version-pr:
-    needs: [publish-draft, prepare-release-tag]
-    # ...
-```
 
----
-
-## What to decide at install time vs runtime
-
-**Install/template time (prefer this):**
-
-- expected project stacks,
-- release channels,
-- package targets,
-- which jobs are required.
-
-**Runtime (safety):**
-
-- file presence detection,
-- public/private profile,
-- event-mode routing,
-- monthly/nightly schedule behavior.
-
-This gives sane defaults while still protecting mixed repos.
-
----
-
-## Public vs private behavior recommendations
-
-| Area | Public | Private |
-|---|---|---|
-| OS matrix | Linux default (add macOS/Windows only when required) | Linux default |
-| Parallelism | wide job fan-out | narrower job fan-out, parallel inside step |
-| Security | broader PR scans | monthly/full-mode deep scans |
-| Artifact retention | longer | shorter |
-| Validation strictness | maximum | practical baseline + release hardening |
-
-Visibility should be auto-detected (`github.event.repository.private`) and not manually toggled.
-
-### Storage guardrail: artifact expiry policy (important)
-
-To prevent GitHub Actions storage overages, set `retention-days` on **every** `actions/upload-artifact` step.
-
-Required policy for this template:
-
-- set **`retention-days: 1`** on every `actions/upload-artifact` step.
-- publish/promote jobs should consume artifacts immediately in the same workflow run.
-
-Copy/paste baseline:
-
-```yaml
-- uses: actions/upload-artifact@v4
   with:
     name: ci-temp-output
     path: dist/**
@@ -2056,8 +1971,8 @@ brew tap OWNER/homebrew-tap
 brew install app
 
 ### Docker
-docker pull ghcr.io/OWNER/REPO:latest
-docker run --rm ghcr.io/OWNER/REPO:latest --help
+docker pull ghcr.io/YOUR_OWNER_LOWERCASE/YOUR_REPO_LOWERCASE:latest
+docker run --rm ghcr.io/YOUR_OWNER_LOWERCASE/YOUR_REPO_LOWERCASE:latest --help
 
 ### Go install
 go install github.com/OWNER/REPO/cmd/app@latest

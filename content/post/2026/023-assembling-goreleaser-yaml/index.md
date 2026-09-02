@@ -124,10 +124,10 @@ Docker is a tough one, but I generally try to always get a Docker image publishe
 *   **SQL and CGO:** Due to SQL components or CGO requirements, we might have to restrict the Docker distributions.
 
 ```yaml
-dockers:
+dockers_v2:
   - image_templates:
-      - "ghcr.io/arran4/myproject:{{ .Tag }}"
-      - "ghcr.io/arran4/myproject:latest"
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY | tolower }}:{{ .Tag }}"
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY | tolower }}:latest"
     build_flag_templates:
       - "--pull"
       - "--label=org.opencontainers.image.created={{.Date}}"
