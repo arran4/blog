@@ -1060,8 +1060,8 @@ $HIGHEST_TAG" | sort -V | tail -n 1)
           git checkout -b "release/v$NEW_VERSION"
           git add pubspec.yaml
           git commit -m "Bump version to $NEW_VERSION"
-          git tag -f "v$NEW_VERSION"
-          git push -f origin "v$NEW_VERSION"
+          git tag "v$NEW_VERSION"
+          git push origin "v$NEW_VERSION"
           git push origin "release/v$NEW_VERSION"
 ```
 
@@ -1306,7 +1306,7 @@ Copy/paste pattern:
   docker-release:
     name: Docker release
     needs: [route]
-    if: ${{ (github.event_name == 'push') && startsWith(github.ref, 'refs/tags/v') && needs.route.outputs.run_release == 'true' }}
+    if: ${{ needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -1383,7 +1383,12 @@ and skip binary-specific lanes like GoReleaser `builds`, app bundle packaging, H
     name: GoReleaser
     # In practice, include all quality gates here (for example: go-test, go-vet, go-lint, format).
     needs: [route, go-test, prepare-release-tag]
-    if: ${{ (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) || (github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-')) }}
+    if: |
+      always() &&
+      needs.route.result == 'success' &&
+      needs.go-test.result == 'success' &&
+      (needs.prepare-release-tag.result == 'success' || needs.prepare-release-tag.result == 'skipped') &&
+      ((github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) || (github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-')))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -1739,27 +1744,22 @@ For Flutter/Qt desktop apps, keep a manual lane. If Flutter build artifacts were
 
 Use multiple deploy stages (package -> publish -> promote).
 
-### Manual release creation pattern (gh-release script style)
+### Manual release creation pattern (non-GoReleaser)
 
-When you manually create releases, the `arran4/dotfiles` `executable_gh-release.sh` flow is a strong pattern, and it closes a common guide gap: generated release notes + discussion creation should be first-class:
-
-- verify default GitHub repo context exists,
-- compute version with `git-tag-inc` (`-print-version-only`),
-- create and push tags with retry,
-- create GitHub release with `--generate-notes`,
-- use a default discussion category of `Announcements` (safe for default discussion setups), with graceful fallback when permissions/discussions prevent linking,
-- mark prerelease automatically for `test|alpha|beta|rc` increments.
-- fetch tags and compare the highest tag version against the source-controlled version before bumping, so release automation never bumps from stale in-repo version text.
-
-You can keep this as a local operator script **and** wire equivalent logic in CI manual-dispatch mode.
+If your repository **does not** use GoReleaser (or another publisher) as the primary owner of GitHub releases, you can use this generic manual step to create a release from a branch/tag. Do not use this if GoReleaser is already handling releases, to avoid duplicate tag/release conflicts.
 
 Copy/paste CI step style:
 
 ```yaml
-  manual-gh-release:
-    name: Manual release creation
-    needs: [prepare-release-tag]
-    if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') }}
+  publish-release:
+    name: Publish Release
+    needs: [route, prepare-release-tag]
+    if: |
+      always() &&
+      needs.route.result == 'success' &&
+      (needs.prepare-release-tag.result == 'success' || needs.prepare-release-tag.result == 'skipped') &&
+      needs.route.outputs.run_release == 'true' &&
+      inputs.mode != 'release-test'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -1768,29 +1768,10 @@ Copy/paste CI step style:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - name: Sync version source with highest existing tag first
-        run: |
-          set -euo pipefail
-          git fetch --tags --force
-          # For repos with a source-controlled version, bump it to the release version
-          # and commit it before tagging (so the tag includes the bump).
-          # Example for CMake:
-          # RELEASE_VERSION="${{ needs.prepare-release-tag.outputs.release_tag }}"
-          # RELEASE_VERSION="${RELEASE_VERSION#v}"
-          # sed -i -E "s/(project\([^ ]+ VERSION )[^ )]+/\1$RELEASE_VERSION/" CMakeLists.txt
-          # git add CMakeLists.txt
-          # git commit -m "chore: bump release version to $RELEASE_VERSION"
-      - name: Push prepared tag (retry)
-        env:
-          TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
-        run: |
-          set -euo pipefail
-          git tag -f "$TAG"
-          git push -f origin "$TAG" || { sleep 2; git push -f origin "$TAG"; }
-      - name: Create release with generated notes + discussion
+      - name: Create release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
+          TAG: ${{ github.event_name == 'workflow_dispatch' && needs.prepare-release-tag.outputs.release_tag || github.ref_name }}
         run: |
           set -euo pipefail
           prerelease=""
@@ -1803,7 +1784,7 @@ Copy/paste CI step style:
           # Permissions/discussions can block discussion linking in some repos.
           # Fall back to plain release creation if category linking fails.
           if [[ -n "$prerelease" ]]; then
-            gh release create "$TAG" --generate-notes $prerelease || true
+            gh release create "$TAG" --generate-notes $prerelease
           else
             gh release create "$TAG" --generate-notes $discussion_arg || \
               gh release create "$TAG" --generate-notes
