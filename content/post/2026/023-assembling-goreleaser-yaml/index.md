@@ -125,15 +125,18 @@ Docker is a tough one, but I generally try to always get a Docker image publishe
 
 ```yaml
 dockers_v2:
-  - image_templates:
-      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY | tolower }}:{{ .Tag }}"
-      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY | tolower }}:latest"
-    build_flag_templates:
+  - images:
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY | tolower }}"
+    tags:
+      - "{{ .Tag }}"
+      - latest
+    build_args:
       - "--pull"
-      - "--label=org.opencontainers.image.created={{.Date}}"
-      - "--label=org.opencontainers.image.title={{.ProjectName}}"
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.version={{.Version}}"
+    annotations:
+      - "org.opencontainers.image.created={{.Date}}"
+      - "org.opencontainers.image.title={{.ProjectName}}"
+      - "org.opencontainers.image.revision={{.FullCommit}}"
+      - "org.opencontainers.image.version={{.Version}}"
 ```
 
 

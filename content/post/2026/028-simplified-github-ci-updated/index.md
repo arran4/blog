@@ -68,10 +68,10 @@ Always check externally what the latest major release of a GitHub Action is and 
 
 | Action | URL | Example Latest (as of writing) |
 |---|---|---|
-| checkout | https://github.com/actions/checkout/releases | v4 |
-| setup-go | https://github.com/actions/setup-go/releases | v5 |
-| setup-node | https://github.com/actions/setup-node/releases | v4 |
-| golangci-lint-action | https://github.com/golangci/golangci-lint-action/releases | v6 |
+| checkout | https://github.com/actions/checkout/releases | v7 |
+| setup-go | https://github.com/actions/setup-go/releases | v7 |
+| setup-node | https://github.com/actions/setup-node/releases | v7 |
+| golangci-lint-action | https://github.com/golangci/golangci-lint-action/releases | v9 |
 
 Always use this logic when generating workflows.
 
@@ -807,7 +807,7 @@ Optional cross-OS lane (only when it really matters):
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: 'npm'
@@ -866,7 +866,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '18'
 
@@ -1121,7 +1121,7 @@ You wanted this wired to real formatters and branch-name guessable behavior.
           go-version-file: go.main
 
       - name: Setup Node (if needed)
-                uses: actions/setup-node@v4
+                uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: npm
@@ -1462,13 +1462,15 @@ checksum:
   name_template: checksums.txt
 
 dockers_v2:
-  - image_templates:
-      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY | tolower }}:{{ .Tag }}"
-      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY | tolower }}:latest"
+  - images:
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY | tolower }}"
+    tags:
+      - "{{ .Tag }}"
+      - latest
     dockerfile: Dockerfile.goreleaser
-    use: buildx
-    goos: linux
-    goarch: [amd64, arm64]
+    platforms:
+      - linux/amd64
+      - linux/arm64
 
 nfpms:
   -
@@ -2186,6 +2188,8 @@ The correct configuration is:
 
 ```yaml
 dockers_v2:
-  - image_templates:
-      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY | tolower }}:latest" # CORRECT!
+  - images:
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY | tolower }}"
+    tags:
+      - latest
 ```
