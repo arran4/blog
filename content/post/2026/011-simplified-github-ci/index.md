@@ -1002,8 +1002,8 @@ $HIGHEST_TAG" | sort -V | tail -n 1)
           git checkout -b "release/v$NEW_VERSION"
           git add pubspec.yaml
           git commit -m "Bump version to $NEW_VERSION"
-          git tag "v$NEW_VERSION"
-          git push origin "v$NEW_VERSION"
+          git tag -f "v$NEW_VERSION"
+          git push -f origin "v$NEW_VERSION"
           git push origin "release/v$NEW_VERSION"
 ```
 
@@ -1338,7 +1338,7 @@ and skip binary-specific lanes like GoReleaser `builds`, app bundle packaging, H
           go-version-file: go.mod
       - name: Tag commit for release (workflow_dispatch)
         if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') }}
-        run: git tag ${{ needs.prepare-release-tag.outputs.release_tag }}
+        run: git tag -f ${{ needs.prepare-release-tag.outputs.release_tag }}
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
@@ -1645,16 +1645,10 @@ If your repository **does not** use GoReleaser (or another publisher) as the pri
 Copy/paste CI step style:
 
 ```yaml
-  publish-release:
-    name: Publish Release
-    needs: [route, build-linux, prepare-release-tag]
-    if: |
-      always() &&
-      needs.route.result == 'success' &&
-      needs.build-linux.result == 'success' &&
-      (needs.prepare-release-tag.result == 'success' || needs.prepare-release-tag.result == 'skipped') &&
-      needs.route.outputs.run_release == 'true' &&
-      inputs.mode != 'release-test'
+  manual-gh-release:
+    name: Manual release creation
+    needs: [prepare-release-tag]
+    if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -1663,23 +1657,34 @@ Copy/paste CI step style:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Create and Push Tag for Manual Release
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+      - name: Sync version source with highest existing tag first
+        run: |
+          set -euo pipefail
+          git fetch --tags --force
+          # For repos with a source-controlled version, bump it to the release version
+          # and commit it before tagging (so the tag includes the bump).
+          # Example for CMake:
+          # RELEASE_VERSION="${{ needs.prepare-release-tag.outputs.release_tag }}"
+          # RELEASE_VERSION="${RELEASE_VERSION#v}"
+          # sed -i -E "s/(project\([^ ]+ VERSION )[^ )]+/\1$RELEASE_VERSION/" CMakeLists.txt
+          # git add CMakeLists.txt
+          # git commit -m "chore: bump release version to $RELEASE_VERSION"
+      - name: Push prepared tag (retry)
         env:
           TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
         run: |
           set -euo pipefail
-          git tag "$TAG"
-          git push origin "$TAG"
-      - name: Create release
+          git tag -f "$TAG"
+          git push -f origin "$TAG" || { sleep 2; git push -f origin "$TAG"; }
+      - name: Create release with generated notes + discussion
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.event_name == 'workflow_dispatch' && needs.prepare-release-tag.outputs.release_tag || github.ref_name }}
+          TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
         run: |
           set -euo pipefail
           prerelease=""
           case "${{ inputs.mode }}" in
-            release-rc|release-alpha) prerelease="--prerelease" ;;
+            release-test|release-rc|release-alpha) prerelease="--prerelease" ;;
           esac
 
           discussion_arg="--discussion-category Announcements"
@@ -1687,7 +1692,7 @@ Copy/paste CI step style:
           # Permissions/discussions can block discussion linking in some repos.
           # Fall back to plain release creation if category linking fails.
           if [[ -n "$prerelease" ]]; then
-            gh release create "$TAG" --generate-notes $prerelease
+            gh release create "$TAG" --generate-notes $prerelease || true
           else
             gh release create "$TAG" --generate-notes $discussion_arg || \
               gh release create "$TAG" --generate-notes

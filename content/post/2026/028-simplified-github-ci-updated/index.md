@@ -341,7 +341,8 @@ jobs:
               fi
               ;;
             release)
-              run_release=true
+              # Do not set run_release=true here. Genuine tag push or manual workflow_dispatch release-* owns publication.
+              # Use a separate run_republish flag if you intend to use GitHub UI release events as a recovery mechanism.
               ;;
             workflow_dispatch)
               run_code_checks=true
@@ -1308,8 +1309,15 @@ Copy/paste pattern:
 
   docker-release:
     name: Docker release
-    needs: [route]
-    if: ${{ needs.route.outputs.run_release == 'true' }}
+    needs: [route, docker-build, prepare-release-tag, publish-release-tag]
+    if: |
+      always() &&
+      needs.route.result == 'success' &&
+      (needs.docker-build.result == 'success' || needs.docker-build.result == 'skipped') &&
+      (needs.prepare-release-tag.result == 'success' || needs.prepare-release-tag.result == 'skipped') &&
+      (needs.publish-release-tag.result == 'success' || needs.publish-release-tag.result == 'skipped') &&
+      needs.route.outputs.run_release == 'true' &&
+      inputs.mode != 'release-test'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -1320,15 +1328,22 @@ Copy/paste pattern:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Determine Docker Tag
+        id: docker-tag
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "TAG=${{ needs.prepare-release-tag.outputs.release_tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "TAG=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          fi
       - name: Docker metadata
         id: meta
         uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ github.repository_owner }}/dev-dotfiles-debian
           tags: |
-            type=ref,event=tag
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=${{ steps.docker-tag.outputs.TAG }}
+            type=raw,value=latest,enable=${{ !contains(steps.docker-tag.outputs.TAG, 'rc') && !contains(steps.docker-tag.outputs.TAG, 'alpha') && !contains(steps.docker-tag.outputs.TAG, 'beta') && !contains(steps.docker-tag.outputs.TAG, 'test') }}
       - uses: docker/build-push-action@v7
         with:
           context: .
@@ -1382,6 +1397,25 @@ Important scope rule: **only add binary build/release lanes when the project act
 and skip binary-specific lanes like GoReleaser `builds`, app bundle packaging, Homebrew formulas for non-binaries, or Docker image publishing unless the repository genuinely ships those deliverables.
 
 ```yaml
+  publish-release-tag:
+    name: Publish Release Tag
+    needs: [route, go-test, prepare-release-tag]
+    if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') && inputs.mode != 'release-test' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Create and push release tag
+        env:
+          TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+          git tag "$TAG"
+          git push origin "$TAG"
+
   goreleaser:
     name: GoReleaser
     # In practice, include all quality gates here (for example: go-test, go-vet, go-lint, format).
@@ -1939,6 +1973,25 @@ jobs:
   cleanup-autofix-prs:
     needs: [route]
     # ...
+
+  publish-release-tag:
+    name: Publish Release Tag
+    needs: [route, go-test, prepare-release-tag]
+    if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') && inputs.mode != 'release-test' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Create and push release tag
+        env:
+          TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+          git tag "$TAG"
+          git push origin "$TAG"
 
   goreleaser:
     needs: [route, go-test]
