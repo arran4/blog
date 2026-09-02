@@ -1397,9 +1397,17 @@ Important scope rule: **only add binary build/release lanes when the project act
 and skip binary-specific lanes like GoReleaser `builds`, app bundle packaging, Homebrew formulas for non-binaries, or Docker image publishing unless the repository genuinely ships those deliverables.
 
 ```yaml
+  release-ready:
+    name: Release Quality Gates Passed
+    needs: [route, go-test, golangci, java-build-test, node-lint-test, dart-analyze-test, cpp-qt-build-test] # Add your repo's specific gates here
+    if: always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "All release quality gates passed."
+
   publish-release-tag:
     name: Publish Release Tag
-    needs: [route, prepare-release-tag]
+    needs: [route, prepare-release-tag, release-ready]
     if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') && inputs.mode != 'release-test' }}
     runs-on: ubuntu-latest
     permissions:
@@ -1651,14 +1659,16 @@ Ensure this is configured correctly based on your actual dependencies and packag
 ```yaml
   source-deb:
     name: Build source .dsc/.orig.tar.*
-    needs: [route]
-    if: ${{ needs.route.outputs.run_release == 'true' }}
+    needs: [route, prepare-release-tag, publish-release-tag]
+    if: ${{ needs.route.outputs.run_release == 'true' && inputs.mode != 'release-test' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - run: sudo apt-get update
       - run: sudo apt-get install -y devscripts debhelper build-essential fakeroot
       - name: Build source Debian package
+        env:
+          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && needs.prepare-release-tag.outputs.release_tag || github.ref_name }}
         run: |
           chmod +x packaging/scripts/build-source-deb.sh
           packaging/scripts/build-source-deb.sh
@@ -1680,7 +1690,7 @@ Example `packaging/scripts/build-source-deb.sh`:
 set -euo pipefail
 
 APP_NAME="app"
-VERSION="${GITHUB_REF_NAME#v}"
+VERSION="${RELEASE_TAG#v}"
 WORKDIR="/tmp/${APP_NAME}-${VERSION}"
 OUTDIR="$PWD/dist/deb-source"
 
@@ -1706,8 +1716,8 @@ mv /tmp/${APP_NAME}_${VERSION}-1* "$OUTDIR/" || true
 ```yaml
   source-rpm:
     name: Build source .src.rpm
-    needs: [route]
-    if: ${{ needs.route.outputs.run_release == 'true' }}
+    needs: [route, prepare-release-tag, publish-release-tag]
+    if: ${{ needs.route.outputs.run_release == 'true' && inputs.mode != 'release-test' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -1807,14 +1817,7 @@ Copy/paste CI step style:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - name: Create and Push Tag for Manual Release
-        if: ${{ github.event_name == 'workflow_dispatch' }}
-        env:
-          TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
-        run: |
-          set -euo pipefail
-          git tag "$TAG"
-          git push origin "$TAG"
+
       - name: Create release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -1976,9 +1979,17 @@ jobs:
     needs: [route]
     # ...
 
+  release-ready:
+    name: Release Quality Gates Passed
+    needs: [route, go-test, golangci, java-build-test, node-lint-test, dart-analyze-test, cpp-qt-build-test] # Add your repo's specific gates here
+    if: always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "All release quality gates passed."
+
   publish-release-tag:
     name: Publish Release Tag
-    needs: [route, prepare-release-tag]
+    needs: [route, prepare-release-tag, release-ready]
     if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') && inputs.mode != 'release-test' }}
     runs-on: ubuntu-latest
     permissions:
@@ -2009,6 +2020,10 @@ jobs:
 
   docker-release:
     needs: [route, docker-build, prepare-release-tag, publish-release-tag]
+    # ...
+
+  generic-release:
+    needs: [route, prepare-release-tag, publish-release-tag]
     # ...
 
 ```
