@@ -321,7 +321,11 @@ jobs:
             push)
               run_code_checks=true
               if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-                run_release=true
+                if [[ "${{ github.ref }}" == *"-test"* ]]; then
+                  run_release=false
+                else
+                  run_release=true
+                fi
               fi
               ;;
             pull_request)
@@ -347,7 +351,11 @@ jobs:
             workflow_dispatch)
               run_code_checks=true
               if [[ "${{ inputs.mode }}" == release-* ]]; then
-                run_release=true
+                if [[ "${{ inputs.mode }}" == "release-test" ]]; then
+                  run_release=false
+                else
+                  run_release=true
+                fi
               fi
               if [[ "${{ inputs.mode }}" == "monthly-maintenance" ]]; then
                 is_monthly=true
@@ -413,8 +421,18 @@ If you want a known-good baseline for manual dispatch semantics, use the same th
             echo "run_build=false" >> "$GITHUB_OUTPUT"
           fi
 
-          if [[ "${{ github.ref }}" == refs/tags/v* || ("${{ github.event_name }}" == "workflow_dispatch" && startsWith("${{ inputs.mode }}", "release-")) ]]; then
-            echo "run_release=true" >> "$GITHUB_OUTPUT"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && startsWith("${{ inputs.mode }}", "release-") ]]; then
+            if [[ "${{ inputs.mode }}" == "release-test" ]]; then
+              echo "run_release=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "run_release=true" >> "$GITHUB_OUTPUT"
+            fi
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            if [[ "${{ github.ref }}" == *"-test"* ]]; then
+              echo "run_release=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "run_release=true" >> "$GITHUB_OUTPUT"
+            fi
           else
             echo "run_release=false" >> "$GITHUB_OUTPUT"
           fi
@@ -1434,7 +1452,7 @@ and skip binary-specific lanes like GoReleaser `builds`, app bundle packaging, H
       needs.go-test.result == 'success' &&
       (needs.prepare-release-tag.result == 'success' || needs.prepare-release-tag.result == 'skipped') &&
       (needs.publish-release-tag.result == 'success' || needs.publish-release-tag.result == 'skipped') &&
-      ((github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) || (github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-')))
+      (needs.route.outputs.run_release == 'true' || inputs.mode == 'release-test')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -1660,7 +1678,13 @@ Ensure this is configured correctly based on your actual dependencies and packag
   source-deb:
     name: Build source .dsc/.orig.tar.*
     needs: [route, prepare-release-tag, publish-release-tag]
-    if: ${{ needs.route.outputs.run_release == 'true' && inputs.mode != 'release-test' }}
+    if: |
+      always() &&
+      needs.route.result == 'success' &&
+      (needs.prepare-release-tag.result == 'success' || needs.prepare-release-tag.result == 'skipped') &&
+      (needs.publish-release-tag.result == 'success' || needs.publish-release-tag.result == 'skipped') &&
+      needs.route.outputs.run_release == 'true' &&
+      inputs.mode != 'release-test'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -1717,7 +1741,13 @@ mv /tmp/${APP_NAME}_${VERSION}-1* "$OUTDIR/" || true
   source-rpm:
     name: Build source .src.rpm
     needs: [route, prepare-release-tag, publish-release-tag]
-    if: ${{ needs.route.outputs.run_release == 'true' && inputs.mode != 'release-test' }}
+    if: |
+      always() &&
+      needs.route.result == 'success' &&
+      (needs.prepare-release-tag.result == 'success' || needs.prepare-release-tag.result == 'skipped') &&
+      (needs.publish-release-tag.result == 'success' || needs.publish-release-tag.result == 'skipped') &&
+      needs.route.outputs.run_release == 'true' &&
+      inputs.mode != 'release-test'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
