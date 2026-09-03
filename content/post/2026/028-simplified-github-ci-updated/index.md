@@ -1241,6 +1241,10 @@ Treat this as a hard rule in generated workflows. The same issue repeatedly appe
 
 ## Step 11: Docker as a release publish step
 
+> **Rule of Thumb for Container Ownership:** Choose exactly one production publisher for a given container image: either Docker Actions (`docker/build-push-action`) or GoReleaser `dockers_v2`. Do not enable both for the same image/tag set.
+>
+> A Docker Actions validation build with `push: false` may coexist with GoReleaser-owned publication. If `dockers_v2` owns GHCR publication, ensure the workflow has the required registry/package authentication/login setup as applicable.
+
 If repo has Go + Dockerfile or standalone Docker service, build and (optionally) push.
 
 ```yaml
@@ -1790,7 +1794,7 @@ Example `packaging/scripts/build-source-rpm.sh`:
 set -euo pipefail
 
 APP_NAME="app"
-VERSION="${GITHUB_REF_NAME#v}"
+VERSION="${RELEASE_TAG#v}"
 TOPDIR="$PWD/.rpmbuild"
 OUTDIR="$PWD/dist/rpm-source"
 
