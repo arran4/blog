@@ -1247,7 +1247,7 @@ If repo has Go + Dockerfile or standalone Docker service, build and (optionally)
   docker-build:
     name: Docker build
     needs: [route]
-    if: ${{ needs.route.outputs.run_release == 'true' }}
+    if: ${{ needs.route.outputs.run_release == 'true' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'release-test') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -1771,6 +1771,8 @@ mv /tmp/${APP_NAME}_${VERSION}-1* "$OUTDIR/" || true
       - run: sudo apt-get update
       - run: sudo apt-get install -y rpm
       - name: Build source RPM
+        env:
+          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && needs.prepare-release-tag.outputs.release_tag || github.ref_name }}
         run: |
           chmod +x packaging/scripts/build-source-rpm.sh
           packaging/scripts/build-source-rpm.sh
