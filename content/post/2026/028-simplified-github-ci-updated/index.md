@@ -1262,14 +1262,31 @@ If repo has Go + Dockerfile or standalone Docker service, build and (optionally)
 
   docker-release:
     name: Docker release
-    needs: [route, docker-build]
-    if: ${{ (github.event_name == 'push') && startsWith(github.ref, 'refs/tags/v') && needs.route.outputs.run_release == 'true' }}
+    needs: [route, docker-build, prepare-release-tag, publish-release-tag]
+    if: |
+      always() &&
+      needs.route.result == 'success' &&
+      needs.docker-build.result == 'success' &&
+      (needs.prepare-release-tag.result == 'success' || needs.prepare-release-tag.result == 'skipped') &&
+      (needs.publish-release-tag.result == 'success' || needs.publish-release-tag.result == 'skipped') &&
+      needs.route.outputs.run_release == 'true' &&
+      inputs.mode != 'release-test'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     steps:
       - uses: actions/checkout@v7
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=semver,pattern={{version}},value=${{ github.event_name == 'workflow_dispatch' && needs.prepare-release-tag.outputs.release_tag || github.ref_name }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ github.event_name == 'workflow_dispatch' && needs.prepare-release-tag.outputs.release_tag || github.ref_name }}
+          flavor: |
+            latest=${{ !contains(github.event_name == 'workflow_dispatch' && needs.prepare-release-tag.outputs.release_tag || github.ref_name, '-') }}
       - uses: docker/setup-qemu-action@v4
       - uses: docker/setup-buildx-action@v4
       - uses: docker/login-action@v4
@@ -1277,13 +1294,13 @@ If repo has Go + Dockerfile or standalone Docker service, build and (optionally)
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v7
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
-          tags: |
-            ghcr.io/${{ github.repository }}:${{ github.ref_name }}
-            ghcr.io/${{ github.repository }}:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
 ```
 
