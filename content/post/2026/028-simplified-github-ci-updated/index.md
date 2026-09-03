@@ -68,10 +68,10 @@ Always check externally what the latest major release of a GitHub Action is and 
 
 | Action | URL | Example Latest (as of writing) |
 |---|---|---|
-| checkout | https://github.com/actions/checkout/releases | v4 |
-| setup-go | https://github.com/actions/setup-go/releases | v5 |
-| setup-node | https://github.com/actions/setup-node/releases | v4 |
-| golangci-lint-action | https://github.com/golangci/golangci-lint-action/releases | v6 |
+| checkout | https://github.com/actions/checkout/releases | v7 |
+| setup-go | https://github.com/actions/setup-go/releases | v7 |
+| setup-node | https://github.com/actions/setup-node/releases | v7 |
+| golangci-lint-action | https://github.com/golangci/golangci-lint-action/releases | v9 |
 
 Always use this logic when generating workflows.
 
@@ -156,7 +156,7 @@ To avoid invalid manual-dispatch state combinations, keep a **single release con
       release_tag: ${{ steps.tag.outputs.release_tag }}
       next_version: ${{ steps.tag.outputs.next_version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Setup git-tag-inc
@@ -320,6 +320,13 @@ jobs:
           case "${{ github.event_name }}" in
             push)
               run_code_checks=true
+              if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+                if [[ "${{ github.ref }}" == *"-test"* ]]; then
+                  run_release=false
+                else
+                  run_release=true
+                fi
+              fi
               ;;
             pull_request)
               if [[ "${{ github.event.action }}" == "closed" ]]; then
@@ -338,12 +345,17 @@ jobs:
               fi
               ;;
             release)
-              run_release=true
+              # Do not set run_release=true here. Genuine tag push or manual workflow_dispatch release-* owns publication.
+              # Use a separate run_republish flag if you intend to use GitHub UI release events as a recovery mechanism.
               ;;
             workflow_dispatch)
               run_code_checks=true
               if [[ "${{ inputs.mode }}" == release-* ]]; then
-                run_release=true
+                if [[ "${{ inputs.mode }}" == "release-test" ]]; then
+                  run_release=false
+                else
+                  run_release=true
+                fi
               fi
               if [[ "${{ inputs.mode }}" == "monthly-maintenance" ]]; then
                 is_monthly=true
@@ -355,7 +367,7 @@ jobs:
               ;;
             schedule)
               run_code_checks=true
-              if [[ "${{ github.event.schedule }}" == "17 3 1 * *" ]]; then
+              if [[ "${{ github.event.schedule }}" == "0 19 1 * *" ]]; then
                 is_monthly=true
               fi
               if [[ "${{ github.event.schedule }}" == "41 2 * * *" ]]; then
@@ -409,8 +421,18 @@ If you want a known-good baseline for manual dispatch semantics, use the same th
             echo "run_build=false" >> "$GITHUB_OUTPUT"
           fi
 
-          if [[ "${{ github.ref }}" == refs/tags/v* || ("${{ github.event_name }}" == "workflow_dispatch" && startsWith("${{ inputs.mode }}", "release-")) ]]; then
-            echo "run_release=true" >> "$GITHUB_OUTPUT"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && startsWith("${{ inputs.mode }}", "release-") ]]; then
+            if [[ "${{ inputs.mode }}" == "release-test" ]]; then
+              echo "run_release=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "run_release=true" >> "$GITHUB_OUTPUT"
+            fi
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            if [[ "${{ github.ref }}" == *"-test"* ]]; then
+              echo "run_release=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "run_release=true" >> "$GITHUB_OUTPUT"
+            fi
           else
             echo "run_release=false" >> "$GITHUB_OUTPUT"
           fi
@@ -540,7 +562,7 @@ mkdir -p %{buildroot}/usr/bin
     if: ${{ needs.route.outputs.run_cleanup != 'true' && (needs.route.outputs.is_nightly == 'true' || needs.route.outputs.is_monthly == 'true') }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@v2
@@ -573,7 +595,7 @@ If a repo has `pom.xml`, add this lane. It is useful for polyglot repos where Ja
     if: ${{ needs.route.outputs.run_code_checks == 'true' && hashFiles('pom.xml') != '' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-java@v4
         with:
           java-version: '11'
@@ -645,7 +667,7 @@ jobs:
           sudo dpkg -i ${{ runner.temp }}/hugo.deb
       - name: Install Dart Sass
         run: sudo snap install dart-sass
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
       - id: pages
@@ -697,8 +719,8 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
     if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.main
       - name: golangci-lint
@@ -718,8 +740,8 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
         # Add windows-latest/macos-latest only for true platform-specific behavior.
         os: [ubuntu-latest]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.main
           cache: true
@@ -732,8 +754,8 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
     if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.main
           cache: true
@@ -745,8 +767,8 @@ Use `setup-go` built-in caching instead of manual `actions/cache`.
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' && inputs.allow_prs == true }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.main
       - name: Run go fmt
@@ -788,8 +810,8 @@ Optional cross-OS lane (only when it really matters):
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.main
       - run: go build ./...
@@ -806,8 +828,8 @@ Optional cross-OS lane (only when it really matters):
     if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: 'npm'
@@ -863,10 +885,10 @@ jobs:
   version-and-release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '18'
 
@@ -909,7 +931,7 @@ You asked to include Dart libs and Flutter libs specifically, with analysis.
     if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dart-lang/setup-dart@v1
       - run: dart --version
       - run: dart pub get
@@ -923,7 +945,7 @@ You asked to include Dart libs and Flutter libs specifically, with analysis.
     if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -939,7 +961,7 @@ You asked to include Dart libs and Flutter libs specifically, with analysis.
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -976,7 +998,7 @@ You asked to include Dart libs and Flutter libs specifically, with analysis.
     if: ${{ (needs.route.outputs.run_release == 'true' || needs.route.outputs.is_monthly == 'true' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'build')) }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -1024,7 +1046,7 @@ Copy/paste release prep snippet:
     if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: dart-lang/setup-dart@v1
@@ -1060,8 +1082,8 @@ $HIGHEST_TAG" | sort -V | tail -n 1)
           git checkout -b "release/v$NEW_VERSION"
           git add pubspec.yaml
           git commit -m "Bump version to $NEW_VERSION"
-          git tag -f "v$NEW_VERSION"
-          git push -f origin "v$NEW_VERSION"
+          git tag "v$NEW_VERSION"
+          git push origin "v$NEW_VERSION"
           git push origin "release/v$NEW_VERSION"
 ```
 
@@ -1078,7 +1100,7 @@ Include both Qt/CMake and Makefile detection paths.
     if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: sudo apt-get update
       - run: sudo apt-get install -y cmake ninja-build build-essential qt6-base-dev qt6-tools-dev clang-format cppcheck
       - name: Lint style and static checks
@@ -1095,7 +1117,7 @@ Include both Qt/CMake and Makefile detection paths.
     if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: make -j"$(nproc)" all
       - run: make test || true
 ```
@@ -1113,15 +1135,15 @@ You wanted this wired to real formatters and branch-name guessable behavior.
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' && inputs.allow_prs == true }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Go (if needed)
-                uses: actions/setup-go@v6
+                uses: actions/setup-go@v7
         with:
           go-version-file: go.main
 
       - name: Setup Node (if needed)
-                uses: actions/setup-node@v4
+                uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: npm
@@ -1187,7 +1209,7 @@ You wanted this wired to real formatters and branch-name guessable behavior.
     if: ${{ needs.route.outputs.run_cleanup == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PARENT_PR: ${{ github.event.pull_request.number }}
@@ -1209,7 +1231,7 @@ If a job runs commands like `git push`, `git push origin --delete`, `git commit`
 
 ```yaml
 steps:
-  - uses: actions/checkout@v4
+  - uses: actions/checkout@v7
   - run: git push origin --delete "$BRANCH"
 ```
 
@@ -1219,19 +1241,23 @@ Treat this as a hard rule in generated workflows. The same issue repeatedly appe
 
 ## Step 11: Docker as a release publish step
 
+> **Rule of Thumb for Container Ownership:** Choose exactly one production publisher for a given container image: either Docker Actions (`docker/build-push-action`) or GoReleaser `dockers_v2`. Do not enable both for the same image/tag set.
+>
+> A Docker Actions validation build with `push: false` may coexist with GoReleaser-owned publication. If `dockers_v2` owns GHCR publication, ensure the workflow has the required registry/package authentication/login setup as applicable.
+
 If repo has Go + Dockerfile or standalone Docker service, build and (optionally) push.
 
 ```yaml
   docker-build:
     name: Docker build
     needs: [route]
-    if: ${{ needs.route.outputs.run_release == 'true' }}
+    if: ${{ needs.route.outputs.run_release == 'true' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'release-test') }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/build-push-action@v6
+      - uses: actions/checkout@v7
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/build-push-action@v7
         with:
           context: .
           file: ${{ hashFiles('Dockerfile.goreleaser') != '' && 'Dockerfile.goreleaser' || 'Dockerfile' }}
@@ -1240,28 +1266,45 @@ If repo has Go + Dockerfile or standalone Docker service, build and (optionally)
 
   docker-release:
     name: Docker release
-    needs: [route, docker-build]
-    if: ${{ needs.route.outputs.run_release == 'true' }}
+    needs: [route, docker-build, prepare-release-tag, publish-release-tag]
+    if: |
+      always() &&
+      needs.route.result == 'success' &&
+      needs.docker-build.result == 'success' &&
+      (needs.prepare-release-tag.result == 'success' || needs.prepare-release-tag.result == 'skipped') &&
+      (needs.publish-release-tag.result == 'success' || needs.publish-release-tag.result == 'skipped') &&
+      needs.route.outputs.run_release == 'true' &&
+      inputs.mode != 'release-test'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+      - uses: actions/checkout@v7
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=semver,pattern={{version}},value=${{ github.event_name == 'workflow_dispatch' && needs.prepare-release-tag.outputs.release_tag || github.ref_name }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ github.event_name == 'workflow_dispatch' && needs.prepare-release-tag.outputs.release_tag || github.ref_name }}
+          flavor: |
+            latest=${{ !contains(github.event_name == 'workflow_dispatch' && needs.prepare-release-tag.outputs.release_tag || github.ref_name, '-') }}
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v6
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
-          tags: |
-            ghcr.io/${{ github.repository }}:${{ github.ref_name }}
-            ghcr.io/${{ github.repository }}:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
 ```
 
@@ -1284,7 +1327,7 @@ Copy/paste pattern:
     if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install shellcheck and zsh
         run: sudo apt-get update && sudo apt-get install -y shellcheck zsh
       - name: ShellCheck scripts
@@ -1305,30 +1348,42 @@ Copy/paste pattern:
 
   docker-release:
     name: Docker release
-    needs: [route]
-    if: ${{ needs.route.outputs.run_release == 'true' }}
+    needs: [route, docker-build, prepare-release-tag, publish-release-tag]
+    if: |
+      always() &&
+      needs.route.result == 'success' &&
+      (needs.docker-build.result == 'success' || needs.docker-build.result == 'skipped') &&
+      (needs.prepare-release-tag.result == 'success' || needs.prepare-release-tag.result == 'skipped') &&
+      (needs.publish-release-tag.result == 'success' || needs.publish-release-tag.result == 'skipped') &&
+      needs.route.outputs.run_release == 'true' &&
+      inputs.mode != 'release-test'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+      - uses: actions/checkout@v7
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Determine Docker Tag
+        id: docker-tag
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "TAG=${{ needs.prepare-release-tag.outputs.release_tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "TAG=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          fi
       - name: Docker metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ github.repository_owner }}/dev-dotfiles-debian
           tags: |
-            type=ref,event=tag
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=${{ inputs.release_version_override }},enable=${{ inputs.release_version_override != '' }}
-            type=raw,value=latest,enable={{is_default_branch}}
-      - uses: docker/build-push-action@v6
+            type=raw,value=${{ steps.docker-tag.outputs.TAG }}
+            type=raw,value=latest,enable=${{ !contains(steps.docker-tag.outputs.TAG, 'rc') && !contains(steps.docker-tag.outputs.TAG, 'alpha') && !contains(steps.docker-tag.outputs.TAG, 'beta') && !contains(steps.docker-tag.outputs.TAG, 'test') }}
+      - uses: docker/build-push-action@v7
         with:
           context: .
           build-contexts: dotfiles=.
@@ -1342,7 +1397,7 @@ Copy/paste pattern:
     if: ${{ needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build dotfiles archive
         run: |
           yes "" | sh -c "$(curl -fsLS get.chezmoi.io)" -- init --no-tty --debug --source=$PWD --apply
@@ -1381,42 +1436,68 @@ Important scope rule: **only add binary build/release lanes when the project act
 and skip binary-specific lanes like GoReleaser `builds`, app bundle packaging, Homebrew formulas for non-binaries, or Docker image publishing unless the repository genuinely ships those deliverables.
 
 ```yaml
+  release-ready:
+    name: Release Quality Gates Passed
+    needs: [route, go-test, golangci, java-build-test, node-lint-test, dart-analyze-test, cpp-qt-build-test] # Add your repo's specific gates here
+    if: always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "All release quality gates passed."
+
+  publish-release-tag:
+    name: Publish Release Tag
+    needs: [route, prepare-release-tag, release-ready]
+    if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') && inputs.mode != 'release-test' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Create and push release tag
+        env:
+          TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+          git tag "$TAG"
+          git push origin "$TAG"
+
   goreleaser:
     name: GoReleaser
     # In practice, include all quality gates here (for example: go-test, go-vet, go-lint, format).
-    needs: [route, go-test, prepare-release-tag]
-    if: ${{ (((github.event_name == 'push') && startsWith(github.ref, 'refs/tags/v')) || (github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-'))) }}
+    needs: [route, go-test, prepare-release-tag, publish-release-tag]
+    if: |
+      always() &&
+      needs.route.result == 'success' &&
+      needs.go-test.result == 'success' &&
+      (needs.prepare-release-tag.result == 'success' || needs.prepare-release-tag.result == 'skipped') &&
+      (needs.publish-release-tag.result == 'success' || needs.publish-release-tag.result == 'skipped') &&
+      (needs.route.outputs.run_release == 'true' || inputs.mode == 'release-test')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           fetch-tags: true
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.main
-      - name: Calculate and Create Tag
-        if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') && inputs.mode != 'release-test' && inputs.mode != 'release-rc' && inputs.mode != 'release-alpha' }}
-        run: |
-          git tag ${{ needs.prepare-release-tag.outputs.release_tag }}
-          git push origin ${{ needs.prepare-release-tag.outputs.release_tag }}
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v6
+        uses: goreleaser/goreleaser-action@v7
         with:
           distribution: goreleaser
           version: '~> v2'
-          args: >-
-            release --clean
-            ${{ (github.event_name == 'workflow_dispatch' && (inputs.mode == 'release-test' || inputs.mode == 'release-rc' || inputs.mode == 'release-alpha')) && '--snapshot' || '' }}
+          args: release --clean ${{ (github.event_name == 'workflow_dispatch' && inputs.mode == 'release-test') && '--snapshot' || '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }} # inject secrets.TAP_GITHUB_TOKEN
-          GORELEASER_CURRENT_TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
+          GORELEASER_CURRENT_TAG: ${{ github.event_name == 'workflow_dispatch' && needs.prepare-release-tag.outputs.release_tag || github.ref_name }}
 ```
 
 For release robustness, use an `if:` guard like this when aggregating many `needs`:
 
-Important GoReleaser v2 note: avoid `--tag` in action args (it can fail with "unknown flag: --tag"). Instead set `GORELEASER_CURRENT_TAG` in `env` when you need to force the tag value from a prepared job output. For workflow-dispatch releases, also create the local tag on the checked-out commit before running GoReleaser.
+Important GoReleaser v2 note: avoid `--tag` in action args (it can fail with "unknown flag: --tag"). Instead set `GORELEASER_CURRENT_TAG` in `env` when you need to force the tag value.
 
 Do/Don’t quick check:
 
@@ -1441,9 +1522,8 @@ If your repo does **not** emit a binary, do not cargo-cult this whole file. In t
 ```yaml
 project_name: your-project
 
-before:
-  hooks:
-    - go mod tidy
+release:
+  prerelease: auto
 
 builds:
   - id: app
@@ -1461,14 +1541,16 @@ archives:
 checksum:
   name_template: checksums.txt
 
-dockers:
-  - image_templates:
-      - ghcr.io/OWNER/REPO:{{ .Tag }}
-      - ghcr.io/OWNER/REPO:latest
+dockers_v2:
+  - images:
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY | tolower }}"
+    tags:
+      - "{{ .Tag }}"
+      - '{{ if eq .Prerelease "" }}latest{{ end }}'
     dockerfile: Dockerfile.goreleaser
-    use: buildx
-    goos: linux
-    goarch: [amd64, arm64]
+    platforms:
+      - linux/amd64
+      - linux/arm64
 
 nfpms:
   -
@@ -1616,14 +1698,22 @@ Ensure this is configured correctly based on your actual dependencies and packag
 ```yaml
   source-deb:
     name: Build source .dsc/.orig.tar.*
-    needs: [route]
-    if: ${{ needs.route.outputs.run_release == 'true' }}
+    needs: [route, prepare-release-tag, publish-release-tag]
+    if: |
+      always() &&
+      needs.route.result == 'success' &&
+      (needs.prepare-release-tag.result == 'success' || needs.prepare-release-tag.result == 'skipped') &&
+      (needs.publish-release-tag.result == 'success' || needs.publish-release-tag.result == 'skipped') &&
+      needs.route.outputs.run_release == 'true' &&
+      inputs.mode != 'release-test'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: sudo apt-get update
       - run: sudo apt-get install -y devscripts debhelper build-essential fakeroot
       - name: Build source Debian package
+        env:
+          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && needs.prepare-release-tag.outputs.release_tag || github.ref_name }}
         run: |
           chmod +x packaging/scripts/build-source-deb.sh
           packaging/scripts/build-source-deb.sh
@@ -1645,7 +1735,7 @@ Example `packaging/scripts/build-source-deb.sh`:
 set -euo pipefail
 
 APP_NAME="app"
-VERSION="${GITHUB_REF_NAME#v}"
+VERSION="${RELEASE_TAG#v}"
 WORKDIR="/tmp/${APP_NAME}-${VERSION}"
 OUTDIR="$PWD/dist/deb-source"
 
@@ -1671,14 +1761,22 @@ mv /tmp/${APP_NAME}_${VERSION}-1* "$OUTDIR/" || true
 ```yaml
   source-rpm:
     name: Build source .src.rpm
-    needs: [route]
-    if: ${{ needs.route.outputs.run_release == 'true' }}
+    needs: [route, prepare-release-tag, publish-release-tag]
+    if: |
+      always() &&
+      needs.route.result == 'success' &&
+      (needs.prepare-release-tag.result == 'success' || needs.prepare-release-tag.result == 'skipped') &&
+      (needs.publish-release-tag.result == 'success' || needs.publish-release-tag.result == 'skipped') &&
+      needs.route.outputs.run_release == 'true' &&
+      inputs.mode != 'release-test'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: sudo apt-get update
       - run: sudo apt-get install -y rpm
       - name: Build source RPM
+        env:
+          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && needs.prepare-release-tag.outputs.release_tag || github.ref_name }}
         run: |
           chmod +x packaging/scripts/build-source-rpm.sh
           packaging/scripts/build-source-rpm.sh
@@ -1696,7 +1794,7 @@ Example `packaging/scripts/build-source-rpm.sh`:
 set -euo pipefail
 
 APP_NAME="app"
-VERSION="${GITHUB_REF_NAME#v}"
+VERSION="${RELEASE_TAG#v}"
 TOPDIR="$PWD/.rpmbuild"
 OUTDIR="$PWD/dist/rpm-source"
 
@@ -1728,7 +1826,7 @@ For Flutter/Qt desktop apps, keep a manual lane. If Flutter build artifacts were
     if: ${{ needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: sudo apt-get update
       - run: sudo apt-get install -y flatpak flatpak-builder
       - name: Build Flatpak
@@ -1747,63 +1845,41 @@ For Flutter/Qt desktop apps, keep a manual lane. If Flutter build artifacts were
 
 Use multiple deploy stages (package -> publish -> promote).
 
-### Manual release creation pattern (gh-release script style)
+### Manual release creation pattern (non-GoReleaser)
 
-When you manually create releases, the `arran4/dotfiles` `executable_gh-release.sh` flow is a strong pattern, and it closes a common guide gap: generated release notes + discussion creation should be first-class:
-
-- verify default GitHub repo context exists,
-- compute version with `git-tag-inc` (`-print-version-only`),
-- create and push tags with retry,
-- create GitHub release with `--generate-notes`,
-- use a default discussion category of `Announcements` (safe for default discussion setups), with graceful fallback when permissions/discussions prevent linking,
-- mark prerelease automatically for `test|alpha|beta|rc` increments.
-- fetch tags and compare the highest tag version against the source-controlled version before bumping, so release automation never bumps from stale in-repo version text.
-
-You can keep this as a local operator script **and** wire equivalent logic in CI manual-dispatch mode.
+If your repository **does not** use GoReleaser (or another publisher) as the primary owner of GitHub releases, you can use this generic manual step to create a release from a branch/tag. Do not use this if GoReleaser is already handling releases, to avoid duplicate tag/release conflicts.
 
 Copy/paste CI step style:
 
 ```yaml
-  manual-gh-release:
-    name: Manual release creation
-    needs: [prepare-release-tag]
-    if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') }}
+  publish-release:
+    name: Publish Release
+    needs: [route, prepare-release-tag, publish-release-tag]
+    if: |
+      always() &&
+      needs.route.result == 'success' &&
+      (needs.prepare-release-tag.result == 'success' || needs.prepare-release-tag.result == 'skipped') &&
+      (needs.publish-release-tag.result == 'success' || needs.publish-release-tag.result == 'skipped') &&
+      needs.route.outputs.run_release == 'true' &&
+      inputs.mode != 'release-test'
     runs-on: ubuntu-latest
     permissions:
       contents: write
       discussions: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - name: Sync version source with highest existing tag first
-        run: |
-          set -euo pipefail
-          git fetch --tags --force
-          # For repos with a source-controlled version, bump it to the release version
-          # and commit it before tagging (so the tag includes the bump).
-          # Example for CMake:
-          # RELEASE_VERSION="${{ needs.prepare-release-tag.outputs.release_tag }}"
-          # RELEASE_VERSION="${RELEASE_VERSION#v}"
-          # sed -i -E "s/(project\([^ ]+ VERSION )[^ )]+/\1$RELEASE_VERSION/" CMakeLists.txt
-          # git add CMakeLists.txt
-          # git commit -m "chore: bump release version to $RELEASE_VERSION"
-      - name: Push prepared tag (retry)
-        env:
-          TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
-        run: |
-          set -euo pipefail
-          git tag -f "$TAG"
-          git push -f origin "$TAG" || { sleep 2; git push -f origin "$TAG"; }
-      - name: Create release with generated notes + discussion
+
+      - name: Create release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
+          TAG: ${{ github.event_name == 'workflow_dispatch' && needs.prepare-release-tag.outputs.release_tag || github.ref_name }}
         run: |
           set -euo pipefail
           prerelease=""
           case "${{ inputs.mode }}" in
-            release-test|release-rc|release-alpha) prerelease="--prerelease" ;;
+            release-rc|release-alpha) prerelease="--prerelease" ;;
           esac
 
           discussion_arg="--discussion-category Announcements"
@@ -1811,7 +1887,7 @@ Copy/paste CI step style:
           # Permissions/discussions can block discussion linking in some repos.
           # Fall back to plain release creation if category linking fails.
           if [[ -n "$prerelease" ]]; then
-            gh release create "$TAG" --generate-notes $prerelease || true
+            gh release create "$TAG" --generate-notes $prerelease
           else
             gh release create "$TAG" --generate-notes $discussion_arg || \
               gh release create "$TAG" --generate-notes
@@ -1956,20 +2032,51 @@ jobs:
     needs: [route]
     # ...
 
+  release-ready:
+    name: Release Quality Gates Passed
+    needs: [route, go-test, golangci, java-build-test, node-lint-test, dart-analyze-test, cpp-qt-build-test] # Add your repo's specific gates here
+    if: always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "All release quality gates passed."
+
+  publish-release-tag:
+    name: Publish Release Tag
+    needs: [route, prepare-release-tag, release-ready]
+    if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') && inputs.mode != 'release-test' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Create and push release tag
+        env:
+          TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+          git tag "$TAG"
+          git push origin "$TAG"
+
   goreleaser:
-    needs: [route, go-test, prepare-release-tag]
+    needs: [route, go-test, prepare-release-tag, publish-release-tag]
     # ...
 
   source-deb:
-    needs: [route]
+    needs: [route, prepare-release-tag, publish-release-tag]
     # ...
 
   source-rpm:
-    needs: [route]
+    needs: [route, prepare-release-tag, publish-release-tag]
     # ...
 
   docker-release:
-    needs: [route, docker-build]
+    needs: [route, docker-build, prepare-release-tag, publish-release-tag]
+    # ...
+
+  generic-release:
+    needs: [route, prepare-release-tag, publish-release-tag]
     # ...
 
 ```
@@ -2062,7 +2169,7 @@ Optional monthly cleanup (especially useful for private repos with low storage q
 5. Validate `lint-fix` creates/labels branches correctly.
 6. Validate `pull_request.closed` cleanup against test PRs.
 7. Validate monthly schedule and release lanes.
-8. Validate that every `git`-mutating job starts with `actions/checkout@v4`.
+8. Validate that every `git`-mutating job starts with `actions/checkout@v7`.
 
 ### README distribution/install checklist (do not skip)
 
@@ -2087,8 +2194,8 @@ brew tap OWNER/homebrew-tap
 brew install app
 
 ### Docker
-docker pull ghcr.io/OWNER/REPO:latest
-docker run --rm ghcr.io/OWNER/REPO:latest --help
+docker pull ghcr.io/YOUR_OWNER_LOWERCASE/YOUR_REPO_LOWERCASE:latest
+docker run --rm ghcr.io/YOUR_OWNER_LOWERCASE/YOUR_REPO_LOWERCASE:latest --help
 
 ### Go install
 go install github.com/OWNER/REPO/cmd/app@latest
@@ -2160,4 +2267,35 @@ If the previous release was successful and you are actually trying to push new c
 ```bash
 git tag v0.0.3
 git push origin v0.0.3
+```
+
+## Troubleshooting: GoReleaser template function `lower` not defined
+
+When configuring GoReleaser to publish Docker images to registries like GitHub Container Registry (`ghcr.io`), you often want to dynamically inject the repository name using the `GITHUB_REPOSITORY` environment variable.
+
+However, Docker registries enforce lowercase names for images. A common mistake is attempting to use the `lower` function in the GoReleaser template to achieve this:
+
+```yaml
+dockers: # Legacy format shown only to reproduce the error
+  - image_templates:
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY | lower }}:latest" # WRONG!
+```
+
+This will result in an error during the release process:
+
+```
+docker build failed: failed to execute image template 'ghcr.io/{{ .Env.GITHUB_REPOSITORY | lower }}:latest': template: failed to apply "ghcr.io/{{ .Env.GITHUB_REPOSITORY | lower }}:latest": function "lower" not defined
+```
+
+GoReleaser uses the `text/template` engine but provides its own set of custom template functions. For lowercase conversion, GoReleaser provides `tolower`, not `lower`.
+
+The correct configuration is:
+
+```yaml
+dockers_v2:
+  - images:
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY | tolower }}"
+    tags:
+      - "{{ .Tag }}"
+      - "{{ if not .Prerelease }}latest{{ end }}"
 ```
