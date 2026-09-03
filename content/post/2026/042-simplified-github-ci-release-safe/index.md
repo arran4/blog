@@ -2,39 +2,87 @@
 title: "Simplified Single GitHub Actions CI/CD File (Release-Safe Update)"
 date: 2026-09-03T21:20:00+10:00
 draft: false
-tags: ["github-actions", "ci", "cd", "go", "node", "dart", "flutter", "qt", "c++", "docker", "goreleaser", "packaging", "release"]
+tags: ["github-actions", "ci", "cd", "go", "node", "dart", "flutter", "qt", "c++", "docker", "goreleaser", "packaging", "release", "agents"]
 categories: ["devops", "reference", "automation"]
 ---
 
-This is the current general-purpose version of my **single GitHub Actions CI/CD workflow** guidance. It supersedes `028-simplified-github-ci-updated` as the default document to give an agent when creating or upgrading a repository CI workflow.
+This is the current general-purpose version of my **single GitHub Actions CI/CD workflow** guidance. It supersedes `028-simplified-github-ci-updated` as the default document to give a coding agent when creating or upgrading repository CI.
 
 For the focused explanation of duplicate draft releases, migration checks, and the single-release-owner rule, also see:
 
 - `041-release-safe-single-owner-github-ci`
 
-The resulting workflow should remain bespoke to the repository. This document describes the structure, routing, safety rules, and preferred implementation patterns; it is not an instruction to add irrelevant language or packaging lanes to every project.
+The resulting workflow must remain bespoke to the repository. This document describes structure, routing, safety rules, and preferred implementation patterns; it is not an instruction to add irrelevant language or packaging lanes.
 
-The target outcome is one understandable `ci.yml` which can handle:
-
-- push validation,
-- pull-request validation,
-- semantic-version tags,
-- explicit manual build/release modes,
-- scheduled maintenance,
-- autofix PRs where appropriate,
-- language-specific lint/test/build lanes,
-- release artifacts,
-- GoReleaser where appropriate,
-- Docker/container publication where appropriate,
-- source package generation where appropriate,
-- post-release notification work,
-- and cleanup lifecycle.
-
-Most importantly, this revision fixes an unsafe release architecture used by older versions of this guide:
+Most importantly:
 
 > **For one tag, exactly one job or tool owns creation/publication of the GitHub Release.**
 
 A workflow must not create the same release independently from manual dispatch, tag push, `release: published`, GoReleaser, and `softprops/action-gh-release`.
+
+---
+
+## Agent execution assumptions: local repository first
+
+These instructions are deliberately suitable for agents such as Jules that can work effectively on repository files but may have **no GitHub API/UI access and only limited git awareness**.
+
+When following this document, the agent should assume it can usually:
+
+- read and edit files in the checked-out working tree,
+- search repository-local files,
+- run repository-local commands and tests,
+- inspect workflow YAML and release configuration,
+- reason about GitHub Actions event flow from the YAML itself.
+
+The agent must **not** assume it can:
+
+- inspect the GitHub Releases page,
+- query GitHub Actions runs or logs,
+- inspect PRs/issues/comments through GitHub,
+- create or update a GitHub PR/issue/release/comment,
+- discover repository settings or secrets,
+- reliably inspect remote branches/tags/history,
+- fetch arbitrary remote information,
+- verify the current latest GitHub Action major from the network.
+
+Do not block the repository-file fix on those capabilities.
+
+### Source-of-truth order for a limited agent
+
+Use this order:
+
+1. the user's concrete task/prompt,
+2. `AGENTS.md` and other repository-local instructions,
+3. the files currently present in the working tree,
+4. repository-local tests/configuration/documentation,
+5. this guide,
+6. remote facts explicitly supplied in the task.
+
+If a fact requires GitHub-side inspection and is not supplied, **do not guess it**. Make the local workflow structurally correct and report the remote check as a human follow-up.
+
+Examples of human follow-ups include:
+
+- whether historical `untagged-*` drafts should be deleted,
+- whether a repository secret exists,
+- whether a particular GitHub discussion category is enabled,
+- whether a workflow has recently succeeded on GitHub,
+- whether a newer Action major exists than the one already used/specified.
+
+### Important distinction: generated CI may use git/GitHub even when the agent cannot
+
+The agent's limited git/GitHub awareness does **not** mean the generated GitHub Actions workflow cannot use normal git commands or GitHub Actions features at runtime.
+
+For example, it is valid for the generated workflow to contain:
+
+```bash
+git fetch --tags --force
+git tag "$TAG"
+git push origin "$TAG"
+```
+
+The agent only needs to write and statically reason about this workflow. It does not need to perform the release/tag operation itself while implementing the repository change.
+
+Likewise, the workflow may use `GITHUB_TOKEN`, Actions events, artifact actions, GoReleaser, or `softprops/action-gh-release`; those are runtime facilities of GitHub Actions, not capabilities required from the coding agent.
 
 ---
 
@@ -51,7 +99,7 @@ Generated workflows should identify the guidance used to create them:
 name: CI/CD
 ```
 
-When upgrading an existing repository, inspect the existing workflow and preserve useful repository-specific behaviour. Do not blindly replace a mature workflow with a generic example.
+When upgrading an existing repository, inspect the existing **local workflow files** and preserve useful repository-specific behaviour. Do not blindly replace a mature workflow with a generic example.
 
 ---
 
@@ -62,25 +110,73 @@ When upgrading an existing repository, inspect the existing workflow and preserv
 3. **Manual release dispatch creates/pushes a tag; the tag-push run owns publication.**
 4. **`release: published` is downstream.** It must not route back into the primary publisher.
 5. **If GoReleaser publishes the GitHub Release, GoReleaser is the sole release owner.**
-6. **Do not create a parallel `draft: true` release merely to collect artifacts.** Artifact jobs can use Actions artifacts until the release owner publishes them.
-7. **If human-reviewed drafts are intentionally required, promote the exact same release ID.** Never create a second release for the tag.
+6. **Do not create a parallel `draft: true` release merely to collect artifacts.** Actions artifacts can stage files until the release owner publishes them.
+7. **If human-reviewed drafts are intentionally required, promote the exact same release.** Never create a second release for the tag.
 8. **Do not hide release-creation conflicts with `|| true`.** A duplicate creation attempt is a real pipeline error.
-9. **Project-type decisions are mostly install/template-time.** Runtime discovery is a safety net, not an excuse to make every job dynamically generic.
-10. **Repository visibility is auto-detected** using `github.event.repository.private` where cost policy differs.
-11. **Public repositories normally run broader checks.** Private repositories may use a conservative profile.
-12. **Keep PR-visible tests on PR events.** Do not deduplicate so aggressively that reviewers lose useful checks.
-13. **Autofix lanes are language-aware.** They should make deterministic mechanical changes and create focused PRs.
-14. **Release artifacts come only from tested build paths where practical.**
-15. **Do not invent binary release lanes for libraries/config-only repositories.**
-16. **Scheduled maintenance should not accidentally publish a release.**
-17. **Use explicit permissions and reduce them per job where practical.**
-18. **Verify current GitHub Action major versions externally before generation.** Examples in this article can age.
-19. **Preserve intentional prerelease semantics** (`rc`, `alpha`, `beta`, `test`, etc.).
-20. **Keep unrelated release systems from racing.** Multiple workflow files count as multiple possible owners too.
+9. **Repository-local evidence decides project type.** Do not invent language/build/package lanes.
+10. **Repository visibility can be detected at workflow runtime** using `github.event.repository.private` where cost policy differs.
+11. **Keep PR-visible tests on PR events.** Do not deduplicate so aggressively that reviewers lose useful checks.
+12. **Autofix lanes are language-aware and deterministic.**
+13. **Release artifacts should come from tested build paths where practical.**
+14. **Do not invent binary releases for libraries/config-only repositories.**
+15. **Scheduled maintenance must not accidentally publish a release.**
+16. **Use explicit permissions and reduce them per job where practical.**
+17. **Preserve existing Action versions unless the task supplies/authorizes a version update.** Do not require a limited agent to browse GitHub for latest majors.
+18. **Preserve intentional prerelease semantics** (`rc`, `alpha`, `beta`, `test`, etc.).
+19. **Audit every local workflow file.** Multiple workflow files count as multiple possible release owners.
+20. **Do not make GitHub-side observation a prerequisite to fixing an obvious local event-graph bug.**
 
 ---
 
-## Step 1: triggers and manual modes
+## Step 1: inspect the repository locally
+
+Before editing CI, search the checked-out repository. At minimum inspect:
+
+```text
+AGENTS.md
+.github/workflows/*.yml
+.github/workflows/*.yaml
+.goreleaser.yml
+.goreleaser.yaml
+goreleaser.yml
+goreleaser.yaml
+package.json
+pubspec.yaml
+go.mod
+CMakeLists.txt
+Makefile
+Dockerfile
+```
+
+Use repository-local search for release creators and routing terms:
+
+```text
+softprops/action-gh-release
+gh release create
+goreleaser/goreleaser-action
+release:
+types: [published]
+publish-draft
+promote-release
+run_release
+draft: true
+workflow_dispatch
+refs/tags
+```
+
+From those files, build a simple event graph:
+
+- which event computes a version,
+- which event creates/pushes a tag,
+- which jobs build release artifacts,
+- which job/tool creates the GitHub Release,
+- which jobs only consume an already-published release.
+
+This local graph is sufficient to identify the duplicate-owner class of bug. Do not require access to the GitHub Releases page to prove that two local publisher paths can race.
+
+---
+
+## Step 2: triggers and manual modes
 
 A useful baseline is:
 
@@ -125,24 +221,22 @@ on:
         default: ""
         type: string
       allow_prs:
-        description: "Allow automation to open pull requests"
+        description: "Allow CI automation to open pull requests"
         required: false
         default: true
         type: boolean
   schedule:
-    # Preferred heavy monthly run: the 2nd at about 5am AEST, deliberately ignoring DST.
     - cron: '0 19 1 * *'
-    # Optional lightweight/nightly maintenance.
     - cron: '41 2 * * *'
 ```
 
-The `release: published` trigger remains useful, but **not as a release publisher**. It is for downstream work such as site refreshes, notifications, reports, package-index refreshes, or other consumers of an already-published release.
+The `release: published` trigger can remain, but **not as a release publisher**. It is for downstream work such as site refreshes, notifications, reports, or metadata refreshes.
 
 ---
 
-## Step 2: concurrency and permissions
+## Step 3: concurrency and permissions
 
-Use concurrency to collapse redundant churn, but do not use it as the only event-routing mechanism:
+Use concurrency to collapse redundant churn, but not as the only routing mechanism:
 
 ```yaml
 concurrency:
@@ -154,14 +248,14 @@ permissions:
   pull-requests: read
 ```
 
-Grant write permissions only on jobs that need them. For example:
+Grant write permissions only to jobs that need them. For example:
 
 ```yaml
 permissions:
   contents: write
 ```
 
-for a tag-pushing or release-publishing job, and:
+for a tag-pushing/release-publishing job, or:
 
 ```yaml
 permissions:
@@ -169,11 +263,13 @@ permissions:
   pull-requests: write
 ```
 
-for an autofix PR job.
+for CI automation that itself opens an autofix PR.
+
+The coding agent does not need GitHub write access merely to author these permissions in YAML.
 
 ---
 
-## Step 3: event router
+## Step 4: event router
 
 Use one router as the policy authority:
 
@@ -235,7 +331,7 @@ jobs:
                   ;;
                 release-*)
                   # Manual release dispatch prepares/pushes a tag only.
-                  # It MUST NOT set run_release=true in this run.
+                  # It MUST NOT publish the GitHub Release in this run.
                   run_code_checks=true
                   ;;
                 monthly-maintenance)
@@ -246,8 +342,7 @@ jobs:
               ;;
 
             release)
-              # The release already exists and is published.
-              # Never route this event back into release creation.
+              # This release already exists and is published.
               run_post_release=true
               ;;
 
@@ -270,13 +365,13 @@ jobs:
           echo "is_nightly=$is_nightly" >> "$GITHUB_OUTPUT"
 ```
 
-This is the important behaviour change from older versions of the guide: **manual `release-*` dispatch does not publish a release in that same run**.
+The critical behaviour is: **manual `release-*` dispatch does not publish a GitHub Release in that same workflow run**.
 
 ---
 
-## Step 4: prepare the next release tag
+## Step 5: prepare the next release tag
 
-The manual release path calculates one validated tag.
+The manual release path calculates one validated tag. Reuse existing repository-local version policy where possible.
 
 ```yaml
   prepare-release-tag:
@@ -286,7 +381,6 @@ The manual release path calculates one validated tag.
     runs-on: ubuntu-latest
     outputs:
       release_tag: ${{ steps.tag.outputs.release_tag }}
-      next_version: ${{ steps.tag.outputs.next_version }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -302,12 +396,10 @@ The manual release path calculates one validated tag.
 
           MODE="${{ inputs.mode }}"
           OVERRIDE="${{ inputs.release_version_override }}"
-
           git fetch --tags --force
 
           if [[ -n "$OVERRIDE" ]]; then
-            OVERRIDE="${OVERRIDE#v}"
-            next_tag="v$OVERRIDE"
+            next_tag="v${OVERRIDE#v}"
           else
             case "$MODE" in
               release-major) level="major"; suffix="" ;;
@@ -318,7 +410,6 @@ The manual release path calculates one validated tag.
               release-alpha) level="patch"; suffix="alpha" ;;
               *) echo "Unsupported release mode: $MODE" >&2; exit 1 ;;
             esac
-
             args=(-print-version-only "$level")
             [[ -n "$suffix" ]] && args+=("$suffix")
             next_tag=$(git-tag-inc "${args[@]}")
@@ -335,20 +426,15 @@ The manual release path calculates one validated tag.
           fi
 
           echo "release_tag=$next_tag" >> "$GITHUB_OUTPUT"
-
-          clean_tag="${next_tag#v}"
-          clean_tag="${clean_tag%%-*}"
-          IFS='.' read -r maj min pat <<< "$clean_tag"
-          echo "next_version=${maj:-0}.${min:-0}.$(( ${pat:-0} + 1 ))-SNAPSHOT" >> "$GITHUB_OUTPUT"
 ```
 
-If the repository stores a source version (`CMakeLists.txt`, `package.json`, `pubspec.yaml`, etc.), do not blindly bump from stale source text. Determine the correct version policy for the project and avoid reusing an already-published tag.
+The coding agent does not need to run `git fetch` itself during implementation. This is runtime logic for the resulting GitHub Actions job.
+
+If the repository stores a source version (`CMakeLists.txt`, `package.json`, `pubspec.yaml`, etc.), inspect that local file and preserve the project's established relationship between source version and tags.
 
 ---
 
-## Step 5: manual release dispatch pushes the tag only
-
-This job is deliberately small:
+## Step 6: manual release dispatch pushes the tag only
 
 ```yaml
   manual-release-tag:
@@ -377,15 +463,15 @@ This job is deliberately small:
           git push origin "$TAG"
 ```
 
-**Do not call `gh release create` here.** The tag push starts a fresh workflow run. That fresh tag-push run is the publisher.
+**Do not call `gh release create` here.** The tag push starts a fresh workflow run. That tag-push run is the publisher.
 
-Do not use `|| true` around the tag push or release creation to mask collisions.
+Do not use `|| true` to mask tag/release collisions.
 
 ---
 
-## Step 6: capability discovery
+## Step 7: capability discovery from local files
 
-Discovery should reflect the actual repository and normally remain lightweight:
+Discovery should reflect the actual repository:
 
 ```yaml
   discover:
@@ -393,13 +479,10 @@ Discovery should reflect the actual repository and normally remain lightweight:
     needs: [route]
     runs-on: ubuntu-latest
     outputs:
-      profile: ${{ steps.profile.outputs.profile }}
       has_go: ${{ steps.detect.outputs.has_go }}
       has_node: ${{ steps.detect.outputs.has_node }}
       has_dart: ${{ steps.detect.outputs.has_dart }}
-      has_flutter: ${{ steps.detect.outputs.has_flutter }}
       has_qt_cpp: ${{ steps.detect.outputs.has_qt_cpp }}
-      has_make_c: ${{ steps.detect.outputs.has_make_c }}
       has_docker: ${{ steps.detect.outputs.has_docker }}
       has_goreleaser: ${{ steps.detect.outputs.has_goreleaser }}
     steps:
@@ -407,44 +490,29 @@ Discovery should reflect the actual repository and normally remain lightweight:
       - id: detect
         shell: bash
         run: |
-          set -euo pipefail
           [[ -f go.mod ]] && echo "has_go=true" || echo "has_go=false"
           [[ -f package.json ]] && echo "has_node=true" || echo "has_node=false"
           [[ -f pubspec.yaml ]] && echo "has_dart=true" || echo "has_dart=false"
-          if [[ -f pubspec.yaml ]] && grep -q '^  flutter:' pubspec.yaml; then
-            echo "has_flutter=true"
-          else
-            echo "has_flutter=false"
-          fi
           if [[ -f CMakeLists.txt ]] && grep -qiE 'Qt|KF[56]|ECM' CMakeLists.txt; then
             echo "has_qt_cpp=true"
           else
             echo "has_qt_cpp=false"
           fi
-          [[ -f Makefile || -f makefile ]] && echo "has_make_c=true" || echo "has_make_c=false"
-          [[ -f Dockerfile || -f docker-compose.yml || -f compose.yml ]] && echo "has_docker=true" || echo "has_docker=false"
+          [[ -f Dockerfile ]] && echo "has_docker=true" || echo "has_docker=false"
           if [[ -f .goreleaser.yml || -f .goreleaser.yaml || -f goreleaser.yml || -f goreleaser.yaml ]]; then
             echo "has_goreleaser=true"
           else
             echo "has_goreleaser=false"
           fi
-      - id: profile
-        shell: bash
-        run: |
-          if [[ "${{ github.event.repository.private }}" == "true" ]]; then
-            echo "profile=private" >> "$GITHUB_OUTPUT"
-          else
-            echo "profile=public" >> "$GITHUB_OUTPUT"
-          fi
 ```
 
-If the repository type is already obvious, hard-coded comments/outputs are often clearer than elaborate runtime discovery.
+If the repository type is obvious, install-time hard-coding can be clearer than elaborate runtime detection.
 
 ---
 
-## Step 7: language checks
+## Step 8: language checks
 
-Each language lane should be explicit enough to understand and debug.
+Use only the lanes justified by repository-local files.
 
 ### Go
 
@@ -463,7 +531,7 @@ Each language lane should be explicit enough to understand and debug.
       - run: go vet ./...
 ```
 
-Add repository-specific generated-code checks, staticcheck, golangci-lint, integration tests, race tests, or matrices when useful. Avoid multiplying expensive jobs without a reason.
+Add repository-specific generators/static checks only when the local project already establishes them or the task explicitly asks for them.
 
 ### Node
 
@@ -485,11 +553,13 @@ Add repository-specific generated-code checks, staticcheck, golangci-lint, integ
 
 ### Dart / Flutter
 
-Use the project-appropriate setup action and run formatting analysis/tests. Do not add Flutter when the repository is plain Dart.
+Inspect `pubspec.yaml` and existing scripts/workflows. Do not add Flutter setup merely because Dart is present.
 
 ### Qt/C++ / CMake
 
-Use an environment with the project's actual Qt/KDE dependencies. Typical work includes:
+Use the dependencies and build commands already evidenced by `CMakeLists.txt`, README/development docs, package manifests, Dockerfiles, or existing workflow jobs.
+
+Typical shape:
 
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
@@ -497,17 +567,15 @@ cmake --build build -j"$(nproc)"
 ctest --test-dir build --output-on-failure
 ```
 
-Where useful, add `clang-format --dry-run --Werror`, `clang-tidy`, or `cppcheck`, but tune them to the repository rather than generating a noisy theoretical configuration.
-
 ### Make/C
 
-Use the project's existing build/test interface. Prefer `make`, `make test`, project scripts, or established targets instead of inventing a second build system.
+Prefer existing `make`, `make test`, or project scripts instead of inventing a second build system.
 
 ---
 
-## Step 8: autofix lane
+## Step 9: autofix lane
 
-Autofix is for deterministic mechanical fixes. It should be explicit manual/scheduled automation, not surprise commits from ordinary PR validation.
+Autofix is deterministic mechanical maintenance, not ordinary PR validation.
 
 Typical condition:
 
@@ -515,23 +583,23 @@ Typical condition:
 if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' && inputs.allow_prs == true }}
 ```
 
+The **workflow**, not the coding agent, may use GitHub permissions/actions/`gh` to open an autofix PR at runtime. Jules does not need direct GitHub access to author that behaviour.
+
 Possible fixes include:
 
-- `gofmt` / safe Go fixes,
+- `gofmt`,
 - Prettier,
 - Dart/Flutter formatting,
 - clang-format,
-- generated-file refreshes with deterministic tooling.
+- deterministic generated-file refreshes.
 
-Open a focused PR only when the working tree actually changed. Use a stable branch naming convention and avoid duplicate autofix PRs.
+Only create a CI-generated PR when the working tree actually changes.
 
 ---
 
-## Step 9: build artifacts
+## Step 10: build artifacts
 
-Build jobs should be separate from GitHub Release creation. This lets validation/release policy stay clear and prevents builders from becoming accidental competing publishers.
-
-A build lane can upload short-lived Actions artifacts:
+Build jobs are separate from GitHub Release creation:
 
 ```yaml
   build-release-artifacts:
@@ -548,21 +616,21 @@ A build lane can upload short-lived Actions artifacts:
           retention-days: 1
 ```
 
-These Actions artifacts are staging inputs. They are not a reason to create an independent draft GitHub Release.
+Actions artifacts are staging inputs. They are not a reason to pre-create an independent draft GitHub Release.
 
 ---
 
-## Step 10: release ownership decision
+## Step 11: choose one release owner from local configuration
 
-Before writing publisher jobs, choose one of these paths:
+Choose exactly one:
 
 ### A. GoReleaser project
 
-GoReleaser owns the GitHub Release.
+If a local GoReleaser config and existing workflow show GoReleaser publishing releases, GoReleaser owns the GitHub Release.
 
 ### B. Non-GoReleaser binary/artifact project
 
-One tag-push `github-release` job owns the GitHub Release.
+One semantic tag-push `github-release` job owns the GitHub Release.
 
 ### C. Library/config/non-binary project
 
@@ -570,15 +638,13 @@ The tag-push owner may create a notes-only GitHub Release if releases are desire
 
 ### D. Intentional human-reviewed draft process
 
-One job creates the draft and records the release ID. Promotion modifies that same release. This is an explicit exception, not the default architecture.
+Only preserve this if the repository-local workflow clearly implements/needs it. One job creates the draft; promotion modifies that same release. Do not infer a draft-review requirement merely because an old generated workflow happens to contain `draft: true`.
 
 Never combine A and B for the same tag.
 
 ---
 
-## Step 11A: GoReleaser as sole release owner
-
-Run GoReleaser only in the semantic tag-push release lane:
+## Step 12A: GoReleaser as sole release owner
 
 ```yaml
   goreleaser:
@@ -601,17 +667,15 @@ Run GoReleaser only in the semantic tag-push release lane:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-If GoReleaser needs Homebrew, package registries, signing credentials, or another repository token, inject those secrets into this owner job/config as appropriate.
+Preserve any repository-local signing/package/tap environment required by the existing GoReleaser config.
 
 **Do not add another `softprops/action-gh-release` publisher after GoReleaser.**
 
-**Do not add a manual `gh release create` job before GoReleaser.**
+**Do not add a manual `gh release create` publisher before GoReleaser.**
 
 ---
 
-## Step 11B: non-GoReleaser GitHub Release owner
-
-One job collects tested artifacts and publishes the release:
+## Step 12B: non-GoReleaser GitHub Release owner
 
 ```yaml
   github-release:
@@ -637,15 +701,15 @@ One job collects tested artifacts and publishes the release:
           files: dist-release/**
 ```
 
-For a notes-only project, omit `files:` and the artifact dependency.
+For a notes-only project, omit the files/artifact dependency.
 
-The key is not which GitHub release action is used; the key is that **there is one publisher**.
+The key is one publisher, not the particular release action chosen.
 
 ---
 
-## Step 12: what NOT to generate
+## Step 13: remove the known duplicate-draft architecture
 
-Older versions of this guidance could produce something like:
+Do not leave this shape in a generated/upgraded workflow:
 
 ```yaml
 manual-gh-release:
@@ -660,33 +724,31 @@ promote-release:
   run: echo "Promotion step placeholder (gh api patch release draft=false)"
 ```
 
-Do not generate that architecture.
+Also do not route `release: published` back into the same primary release lane.
 
-It can leave orphaned `untagged-*` drafts when one path creates a draft and another path publishes the canonical release.
+Do not 'fix' the problem by merely changing `draft: true` to `draft: false`. First choose the one owner and remove competing creator paths.
 
-Do not repair it by simply changing `draft: true` to `draft: false`; first determine who should own the release and remove the competing publisher paths.
+A limited agent can make this determination from the workflow YAML alone.
 
 ---
 
-## Step 13: intentional draft releases
+## Step 14: intentional draft releases
 
-A draft process is valid when review before publication is genuinely required. In that case:
+A draft process is valid only when the repository actually requires review before publication. Then:
 
 1. one job creates the draft,
-2. record/resolve its release ID,
-3. upload all assets to that exact release,
-4. promotion patches that same release to `draft=false`,
-5. no other job creates a GitHub Release for the tag.
+2. the workflow resolves/records that release,
+3. assets go to that exact release,
+4. promotion modifies the same release to `draft=false`,
+5. no other job creates a release for the tag.
 
 A placeholder `echo` is not promotion.
 
-If the repository does not need human-reviewed drafts, prefer direct publication from the tag-push owner.
+If the local repository does not evidence an intentional reviewed-draft process, prefer direct tag-push publication.
 
 ---
 
-## Step 14: `release: published` downstream jobs
-
-Post-publication work can use the release event safely:
+## Step 15: `release: published` is downstream
 
 ```yaml
   post-release:
@@ -698,153 +760,137 @@ Post-publication work can use the release event safely:
       - run: echo "Consume the already-published release here"
 ```
 
-Examples:
+Examples include release-page refreshes, notifications, metadata/index refreshes, or documentation deployment.
 
-- refresh release pages,
-- send notifications,
-- update metadata/indexes,
-- trigger documentation deployment,
-- publish a monthly/reporting entry.
-
-It must not call `gh release create`, GoReleaser release publication, or a GitHub Release creation API for the same version.
+It must not call `gh release create`, GoReleaser release publication, or another release-creation API for the same version.
 
 ---
 
-## Step 15: Docker/container release
+## Step 16: containers and source packages
 
-Container publication is separate from GitHub Release ownership. It may consume the same semantic tag without creating another GitHub Release.
+Container registry publication and source-package generation may consume the same semantic tag, but they do not need to create another GitHub Release.
 
-A typical tag-push container lane can:
+Treat them as either:
 
-- authenticate to GHCR/another registry,
-- build multi-platform images when useful,
-- tag the image with the semantic version,
-- optionally add `latest` for stable non-prerelease tags.
+- release-adjacent publishers to their own registry, or
+- artifact producers feeding the one GitHub Release owner.
 
-Keep registry publication idempotent and clearly separate from `gh release create`.
-
----
-
-## Step 16: source Debian/RPM packages
-
-If the repository genuinely produces source packages, create them as artifact-producing lanes and feed their outputs into the one release owner when GitHub Release attachment is desired.
-
-Do not let a source-package job create another GitHub Release independently.
-
-Package publishing to a distro/package registry is its own distribution action; GitHub Release creation remains single-owner.
+Preserve project-local packaging behaviour. Do not add source Debian/RPM/container lanes merely because this guide mentions them.
 
 ---
 
 ## Step 17: prerelease semantics
 
-Derive prerelease state from the selected manual mode/tag suffix, not from unrelated toggles.
+Preserve the project's existing tag convention. Common examples:
 
-Examples:
+- `v1.2.3` -> stable,
+- `v1.2.3-rc.1` -> prerelease,
+- `v1.2.3-alpha.1` -> prerelease,
+- `v1.2.3-beta.1` -> prerelease,
+- `v1.2.3-test.1` -> project-specific test/prerelease behaviour.
 
-- `v1.2.3` → stable,
-- `v1.2.3-rc.1` → prerelease,
-- `v1.2.3-alpha.1` → prerelease,
-- `v1.2.3-beta.1` → prerelease,
-- `v1.2.3-test.1` → prerelease or non-public test lane according to project policy.
-
-If a project deliberately treats `test` tags as artifact-only and not GitHub Releases, encode that in the router/owner condition rather than creating then abandoning drafts.
+If `test` tags are intentionally artifact-only, encode that in routing rather than creating abandoned drafts.
 
 ---
 
-## Step 18: cleanup lifecycle
+## Step 18: cleanup and scheduled maintenance
 
-PR cleanup should be narrowly scoped. For example, if an autofix branch was created for a PR that is later closed without merge, a cleanup job may close/delete the derived autofix branch.
+PR-close cleanup should be narrow. Do not rerun expensive build/release work on `pull_request: closed` merely because the workflow was triggered.
 
-Do not run expensive test/release work on a `pull_request: closed` event just because the workflow was triggered.
+Scheduled runs may perform repository-local checks such as:
 
----
-
-## Step 19: monthly/nightly maintenance
-
-Scheduled runs may perform:
-
-- dependency freshness checks,
 - generated-file consistency,
-- lint/fmt drift checks,
-- security scans,
-- repository reports,
-- optional autofix PRs.
+- lint/fmt drift,
+- security tooling already present in the repository,
+- reports,
+- optional autofix automation.
 
-They should never accidentally set `run_release=true`.
-
----
-
-## Step 20: release safety audit when upgrading an existing repo
-
-Before changing an existing workflow, search **all workflow files and release configuration**, not only `ci.yml`, for:
-
-```text
-softprops/action-gh-release
-gh release create
-goreleaser/goreleaser-action
-/release
-release:
-types: [published]
-publish-draft
-promote-release
-run_release=true
-draft: true
-```
-
-Then answer these questions:
-
-1. What creates the tag?
-2. What creates the GitHub Release?
-3. What uploads release assets?
-4. Can manual dispatch and tag push both publish?
-5. Can `release: published` trigger publication again?
-6. Does GoReleaser already own publication?
-7. Is another workflow file also publishing the same tags?
-8. Does any `|| true` hide a creation conflict?
-9. Are historical `untagged-*` drafts evidence of an older duplicate path?
-
-Choose one owner and make every other lane either a producer of inputs or a downstream consumer.
+Schedules must never accidentally set the primary release path.
 
 ---
 
-## Step 21: repository-specific version bumping
+## Step 19: local release-safety audit when upgrading
 
-Only add version-file mutation if the repository actually keeps a version in source control.
+Answer these questions **from repository files**:
 
-Examples include:
+1. Which workflow event can request/compute a version?
+2. Which workflow job creates or pushes the tag?
+3. Which jobs build release artifacts?
+4. Which exact job/tool creates the GitHub Release?
+5. Can manual dispatch and tag push both create a release?
+6. Can `release: published` re-enter release creation?
+7. Does GoReleaser already publish the release?
+8. Does another local workflow also publish semantic tags?
+9. Does any `|| true` hide release/tag creation conflicts?
+10. Is `publish-draft` paired with real promotion, or only a placeholder/second creator?
 
-- Node `package.json`,
-- Dart/Flutter `pubspec.yaml`,
-- CMake project version,
-- Java/Gradle/Maven version,
-- custom source constants.
+Choose one release owner and make every other path an input producer or downstream consumer.
 
-When source state and tags can drift, compute the intended version carefully and refuse to reuse an existing tag. A release pipeline should fail safely rather than silently create a second representation of the same version.
+Historical `untagged-*` drafts are useful corroborating evidence **when a human or GitHub-capable reviewer supplies them**, but Jules does not need access to them to repair a locally obvious competing-publisher graph.
 
 ---
 
-## Step 22: validation
+## Step 20: Action versions for a network-limited agent
 
-Before opening/merging a CI change:
+Do not instruct Jules to browse GitHub to discover latest Action majors.
 
-- parse/validate the YAML,
-- run `actionlint` where available,
+Use this policy:
+
+1. If the task explicitly supplies desired Action versions, use them.
+2. Otherwise preserve existing repository Action majors when they are compatible with the change.
+3. For a newly introduced action, use the version specified by this guide/task or match the established repository convention.
+4. Do not perform unrelated Action-major churn as part of a release-ownership fix.
+5. If latest-major verification is important, list it as a **human/GitHub-capable review item** rather than guessing.
+
+This keeps a focused CI repair from being blocked by unavailable network/GitHub access.
+
+---
+
+## Step 21: local validation
+
+A coding agent should validate everything it can locally:
+
+- parse/check YAML with an available parser,
+- run `actionlint` if it is already available or straightforward in the provided environment,
 - inspect every `needs` dependency and referenced output,
-- ensure job conditions are valid for every triggering event,
-- ensure manual inputs are not referenced unsafely on unrelated events,
-- ensure `release: published` cannot reach the publisher,
+- ensure job conditions are meaningful for all triggering events,
+- ensure manual inputs are not unsafely referenced on unrelated events,
+- ensure `release: published` cannot reach the release creator,
 - ensure only one GitHub Release creator exists for a semantic tag,
 - ensure GoReleaser and `softprops/action-gh-release` are not both owners,
-- ensure build artifacts required by the publisher exist on the tag-push run,
-- and preserve the repository's existing useful CI semantics.
+- ensure required artifact jobs are reachable on the tag-push run,
+- run relevant repository-local tests/static checks.
 
-If CI is unavailable because of account/billing/quota failures, still perform static validation and document what could not be exercised.
+Do **not** require the agent to inspect GitHub CI status after implementation.
+
+If a validator/tool is unavailable locally, say so in the handoff rather than installing arbitrary tooling or pretending it passed.
+
+---
+
+## Step 22: handoff from Jules / a limited agent
+
+The implementation handoff should be concise and repository-local. Report:
+
+- files changed,
+- old release-owner graph,
+- new release-owner graph,
+- local checks/tests run and their results,
+- any checks not possible in the provided environment,
+- any **human/GitHub-side follow-ups** that remain.
+
+Examples of valid human follow-ups:
+
+- inspect/remove obsolete historical draft releases,
+- verify a required repository secret exists,
+- observe the next release run on GitHub,
+- verify latest Action majors if desired,
+- create/update PR metadata or issue-closing text if the agent platform does not expose it.
+
+Do not ask Jules to perform those GitHub-side operations if its environment cannot.
 
 ---
 
 ## Recommended release event flow
-
-The preferred default flow is:
 
 ```text
 manual workflow_dispatch release-patch
@@ -853,7 +899,7 @@ manual workflow_dispatch release-patch
 compute/validate vX.Y.Z
         |
         v
-push vX.Y.Z tag
+workflow pushes vX.Y.Z tag
         |
         +------------------------------+
         | fresh tag-push workflow run  |
@@ -878,24 +924,22 @@ push vX.Y.Z tag
     downstream consumers only
 ```
 
-This separation makes the event graph easier to reason about and prevents the duplicate/orphaned draft releases seen when manual creation, draft creation, and release-event publication are combined.
+The coding agent can prove this structure from YAML without seeing a live GitHub run.
 
 ---
 
 ## Migration from `006`, `011`, and `028`
 
-When a repository says it was generated from one of the older CI articles, do not merely update the pointer comment. Audit the existing workflow and migrate its release graph.
+When a local workflow says it was generated from an older CI article, do not merely update the pointer comment. Migrate the release graph:
 
-In particular:
-
-- replace manual `gh release create` with manual tag push when the tag-push workflow is the publisher,
-- remove independent `publish-draft` release creators when another publisher exists,
+- replace competing manual `gh release create` publication with tag-push ownership,
+- remove independent `publish-draft` creators when another publisher exists,
 - remove placeholder `promote-release` jobs,
-- stop routing `release: published` into primary `run_release`,
-- make GoReleaser sole owner where it already publishes GitHub Releases,
-- keep artifact-build jobs but feed their results to the owner,
+- stop routing `release: published` into primary release creation,
+- make GoReleaser sole owner where the local config shows it publishes GitHub Releases,
+- keep tested artifact-build jobs as inputs,
 - preserve intentional prerelease modes,
-- and leave historical release cleanup as an explicit separate administrative action.
+- leave historical GitHub Release cleanup to a separate human/GitHub-capable administrative step.
 
 Use `041-release-safe-single-owner-github-ci` for the focused rationale and migration checklist.
 
@@ -903,13 +947,15 @@ Use `041-release-safe-single-owner-github-ci` for the focused rationale and migr
 
 ## Final agent rule
 
-When an agent is asked to create or upgrade a repository workflow from this article:
+When Jules or another limited coding agent is asked to create/upgrade a workflow from this article:
 
-- inspect the repository first,
+- read repository-local instructions first,
+- inspect repository files rather than GitHub UI/state,
 - preserve project-specific behaviour,
-- use current Action majors after external verification,
-- keep checks visible on PRs,
-- keep release/build lanes appropriate to the project,
-- and **prove from the event graph that one semantic tag can produce at most one GitHub Release owner path**.
+- do not browse for Action versions unless the environment explicitly provides that capability,
+- do not require the agent to create/manage a PR or issue,
+- perform local validation,
+- clearly identify remote follow-ups instead of guessing,
+- and **prove from the local event graph that one semantic tag can reach at most one GitHub Release owner path**.
 
-That last condition is part of correctness, not an optional cleanup.
+That last condition is part of correctness.
