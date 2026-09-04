@@ -278,13 +278,13 @@ This is the important behaviour change from older versions of the guide: **manua
 
 ## Step 4: prepare the next release tag
 
-The manual release path calculates one validated tag.
+The unified release path requires one validated tag.
 
 ```yaml
   prepare-release-tag:
     name: Prepare release tag
     needs: [route]
-    if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') }}
+    if: ${{ needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     outputs:
       release_tag: ${{ steps.tag.outputs.release_tag }}
@@ -294,6 +294,7 @@ The manual release path calculates one validated tag.
         with:
           fetch-depth: 0
       - name: Setup git-tag-inc
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         uses: arran4/git-tag-inc-action@v1
         with:
           mode: install
@@ -302,38 +303,31 @@ The manual release path calculates one validated tag.
         run: |
           set -euo pipefail
 
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "release_tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+            echo "next_version=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           MODE="${{ inputs.mode }}"
           OVERRIDE="${{ inputs.release_version_override }}"
 
           git fetch --tags --force
 
           if [[ -n "$OVERRIDE" ]]; then
-            OVERRIDE="${OVERRIDE#v}"
-            next_tag="v$OVERRIDE"
+            next_tag="$OVERRIDE"
           else
-            case "$MODE" in
-              release-major) level="major"; suffix="" ;;
-              release-minor) level="minor"; suffix="" ;;
-              release-patch) level="patch"; suffix="" ;;
-              release-test)  level="patch"; suffix="test" ;;
-              release-rc)    level="patch"; suffix="rc" ;;
-              release-alpha) level="patch"; suffix="alpha" ;;
-              *) echo "Unsupported release mode: $MODE" >&2; exit 1 ;;
-            esac
-
-            args=(-print-version-only "$level")
-            [[ -n "$suffix" ]] && args+=("$suffix")
-            next_tag=$(git-tag-inc "${args[@]}")
+            next_tag=$(git-tag-inc "${MODE#release-}")
           fi
 
-          [[ "$next_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?$ ]] || {
-            echo "Invalid tag: $next_tag" >&2
-            exit 1
-          }
-
           if git rev-parse "$next_tag" >/dev/null 2>&1; then
-            echo "Tag already exists: $next_tag" >&2
-            exit 1
+            REMOTE_TAG_SHA=$(git ls-remote --tags origin "refs/tags/$next_tag" | awk '{print $1}')
+            if [[ "$REMOTE_TAG_SHA" == "${GITHUB_SHA}" ]]; then
+              echo "Tag $next_tag exists and points to GITHUB_SHA. Safe to retry."
+            else
+              echo "Tag already exists and points to $REMOTE_TAG_SHA (expected ${GITHUB_SHA}): $next_tag" >&2
+              exit 1
+            fi
           fi
 
           echo "release_tag=$next_tag" >> "$GITHUB_OUTPUT"
@@ -343,8 +337,6 @@ The manual release path calculates one validated tag.
           IFS='.' read -r maj min pat <<< "$clean_tag"
           echo "next_version=${maj:-0}.${min:-0}.$(( ${pat:-0} + 1 ))-SNAPSHOT" >> "$GITHUB_OUTPUT"
 ```
-
-If the repository stores a source version (`CMakeLists.txt`, `package.json`, `pubspec.yaml`, etc.), do not blindly bump from stale source text. Determine the correct version policy for the project and avoid reusing an already-published tag.
 
 ---
 
@@ -356,8 +348,9 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
   release-context:
     name: Release Context & Gate
     # Wait for explicit validation gates before allowing ANY release to proceed.
-    # Replace these with your actual test/build jobs.
-    needs: [route, prepare-release-tag, go-checks, build-release-artifacts]
+    # Replace these with your actual test/build jobs (or an explicit release-validation job)
+    # ensuring they run for both push and workflow_dispatch events.
+    needs: [route, prepare-release-tag, build-release-artifacts]
     if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     permissions:
@@ -638,7 +631,7 @@ Run GoReleaser as the sole publisher in the unified release lane:
       - uses: actions/setup-go@v7
         with:
           go-version: stable
-      - uses: goreleaser/goreleaser-action@v6
+      - uses: goreleaser/goreleaser-action@v7
         with:
           distribution: goreleaser
           version: latest
@@ -753,6 +746,10 @@ Examples:
 - update metadata/indexes,
 - trigger documentation deployment,
 - publish a monthly/reporting entry.
+
+**Note on same-run releases:** If you use the preferred default where `GITHUB_TOKEN` manual tags publish the release in the same run, those events generally will not emit a new `release: published` workflow. Chain the required downstream work immediately after the publisher jobs in that *same* run. Reserve the `release: published` event-driven workflow strictly for externally created releases or explicit PAT-driven architectures.
+
+**Note on same-run releases:** If you use the preferred default where `GITHUB_TOKEN` manual tags publish the release in the same run, those events generally will not emit a new `release: published` workflow. Chain the required downstream work immediately after the publisher jobs in that *same* run. Reserve the `release: published` event-driven workflow strictly for externally created releases or explicit PAT-driven architectures.
 
 It must not call `gh release create`, GoReleaser release publication, or a GitHub Release creation API for the same version.
 

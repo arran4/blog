@@ -227,7 +227,7 @@ Run it as the one release lane, providing the explicit tag to GoReleaser via `GO
         with:
           fetch-depth: 0
           fetch-tags: true
-      - uses: goreleaser/goreleaser-action@v6
+      - uses: goreleaser/goreleaser-action@v7
         with:
           distribution: goreleaser
           version: latest
