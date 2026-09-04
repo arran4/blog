@@ -49,13 +49,9 @@ That event is emitted *after* a release has been published. Treat it as a downst
 
 Also do not hide duplicate-release failures with `|| true`. A failed `gh release create` may be the signal that another job already created a draft or published release.
 
-## Canonical model: manual dispatch pushes the tag and publishes the release
+## Canonical model: manual dispatch creates the tag; tag push owns the release
 
-The preferred default model creates the tag and publishes the GitHub Release in the same workflow run. This avoids relying on a tag push to trigger a new workflow, which fails when the push is authenticated with the default `GITHUB_TOKEN` due to GitHub's event recursion prevention.
-
-Events caused by `GITHUB_TOKEN` do not create new workflow runs (except for specific events like `workflow_dispatch`). Therefore, a workflow that checks out code, computes a tag, pushes it with `git push origin "$TAG"`, and expects `on: push: tags` to start another workflow will fail silently.
-
-### The preferred manual release pattern
+This is the preferred default because it gives one durable event that owns publication: the semantic tag push.
 
 ### Router
 
@@ -87,8 +83,8 @@ jobs:
               ;;
             workflow_dispatch)
               run_code_checks=true
-              # A manual release mode pushes the tag and publishes the release in the same run.
-              # It sets run_release=true to publish immediately.
+              # A manual release mode prepares/pushes a tag only.
+              # The resulting tag-push workflow is the release owner.
               ;;
             release)
               # Downstream notification only. Never create the same release again here.
@@ -107,8 +103,8 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
   release-context:
     name: Release Context & Gate
     # Wait for explicit validation gates before allowing ANY release to proceed.
-    # Replace these with your actual test/build jobs (e.g., test, build-artifacts)
-    needs: [route, prepare-release-tag, test, build-release-artifacts]
+    # Only list jobs here that are REQUIRED and GUARANTEED to run for this repository.
+    needs: [route, prepare-release-tag, build-release-artifacts]
     if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     permissions:
@@ -126,16 +122,13 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
         run: |
           set -euo pipefail
 
-          # Compute the tag: use the prepared tag if manual, otherwise the pushed ref
-          TAG="${{ needs.prepare-release-tag.outputs.release_tag || github.ref_name }}"
+          TAG="${{ needs.prepare-release-tag.outputs.release_tag }}"
           echo "release_tag=$TAG" >> "$GITHUB_OUTPUT"
 
-          # If this is an external tag push, we do not need to push it again
           if [[ "${{ github.event_name }}" == "push" ]]; then
             exit 0
           fi
 
-          # For manual runs: push the tag explicitly pointing to the validated commit
           git fetch --tags --force
           REMOTE_TAG_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
 
@@ -151,7 +144,6 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
 
           git tag "$TAG" "${GITHUB_SHA}"
 
-          # Retry/recovery: verify remote if push fails
           git push origin "$TAG" || (
             VERIFY_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
             if [[ "$VERIFY_SHA" == "${GITHUB_SHA}" ]]; then
@@ -165,14 +157,7 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
 
 Do NOT expect the manual tag push to start another workflow when using `GITHUB_TOKEN`. This job acts as the unified bridge to the same-run publisher.
 
-### Alternative: strict tag-push-owner model
 
-If the design specifically requires the pushed tag to start a new workflow and that new tag-push run to be the sole publisher, the tag MUST be pushed using a GitHub App installation token or PAT rather than `GITHUB_TOKEN`.
-
-- Use an explicit secret such as `TAG_PUSH_TOKEN`.
-- Fail clearly when it is absent.
-- Never silently fall back to `GITHUB_TOKEN`, because that produces a tag without the required follow-up workflow.
-- Explain this is an operational prerequisite that must be configured for each repository unless the credential is otherwise centrally supplied.
 
 ## Non-GoReleaser projects
 
@@ -227,6 +212,9 @@ Run it as the one release lane, providing the explicit tag to GoReleaser via `GO
         with:
           fetch-depth: 0
           fetch-tags: true
+      - uses: actions/setup-go@v7
+        with:
+          go-version: stable
       - uses: goreleaser/goreleaser-action@v7
         with:
           distribution: goreleaser
@@ -292,6 +280,20 @@ These searches are useful across a set of repositories:
 ```
 
 A repository is not automatically broken merely because it contains one of those strings. The dangerous condition is multiple release owners reaching the same tag/version.
+
+### Migration/audit guidance for dangerous tag-push assumptions
+
+Audit repositories for these two dangerous patterns:
+
+1. **Assuming default `GITHUB_TOKEN` tag pushes start another workflow:**
+   - `actions/checkout` using default credentials
+   - followed by `git push origin "$TAG"`
+   - combined with the expectation that `on: push: tags` starts the release run.
+   *Fix:* Update these repositories to publish the release directly within the manual workflow run.
+
+2. **Using a PAT/App token solely to force the second run without validation:**
+   - Repositories that added a `TAG_PUSH_TOKEN` to bypass the `GITHUB_TOKEN` limitation but fail to validate it.
+   *Fix:* If you genuinely require the strict tag-push-owner model, state that the credential must have **Contents write permission**. A non-empty secret check (`if: env.TAG_PUSH_TOKEN != ''`) does not prove the token is usable or has the correct permissions. Prefer the same-run manual publication model to remove this credential requirement entirely.
 
 ### Migration/audit guidance for dangerous tag-push assumptions
 

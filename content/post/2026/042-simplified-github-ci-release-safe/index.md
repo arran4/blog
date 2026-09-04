@@ -236,9 +236,9 @@ jobs:
                 release-*)
                   # A manual release mode pushes the tag and publishes the release in the same run.
                   # It sets run_release=true to publish immediately.
-                  run_code_checks=true
                   run_build=true
                   run_release=true
+                  run_code_checks=true
                   ;;
                 monthly-maintenance)
                   run_code_checks=true
@@ -315,17 +315,37 @@ The unified release path requires one validated tag.
           git fetch --tags --force
 
           if [[ -n "$OVERRIDE" ]]; then
-            next_tag="$OVERRIDE"
+            OVERRIDE="${OVERRIDE#v}"
+            next_tag="v$OVERRIDE"
           else
-            next_tag=$(git-tag-inc "${MODE#release-}")
+            case "$MODE" in
+              release-major) level="major"; suffix="" ;;
+              release-minor) level="minor"; suffix="" ;;
+              release-patch) level="patch"; suffix="" ;;
+              release-rc) level="patch"; suffix="rc" ;;
+              release-alpha) level="patch"; suffix="alpha" ;;
+              release-test) level="patch"; suffix="test" ;;
+              *) echo "Unsupported release mode: $MODE" >&2; exit 1 ;;
+            esac
+
+            args=(-print-version-only "$level")
+            [[ -n "$suffix" ]] && args+=("$suffix")
+            next_tag=$(git-tag-inc "${args[@]}")
           fi
 
+          [[ "$next_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?$ ]] || {
+            echo "Invalid tag: $next_tag" >&2
+            exit 1
+          }
+
           if git rev-parse "$next_tag" >/dev/null 2>&1; then
+            # Safe recovery semantics: verify existing tag against remote
             REMOTE_TAG_SHA=$(git ls-remote --tags origin "refs/tags/$next_tag" | awk '{print $1}')
             if [[ "$REMOTE_TAG_SHA" == "${GITHUB_SHA}" ]]; then
               echo "Tag $next_tag exists and points to GITHUB_SHA. Safe to retry."
             else
               echo "Tag already exists and points to $REMOTE_TAG_SHA (expected ${GITHUB_SHA}): $next_tag" >&2
+              echo "To retry a failed publication for this exact version, ensure release_version_override is used and GITHUB_SHA matches." >&2
               exit 1
             fi
           fi
@@ -342,15 +362,15 @@ The unified release path requires one validated tag.
 
 ## Step 5: Release Context & Validation Gate
 
-Keep the manual and external-tag paths mutually exclusive so they cannot create competing releases. We introduce a common `release-context` job that runs for *both* `push` tags and `workflow_dispatch` manual releases *after* all validation gates (e.g. `go-checks`, `build-release-artifacts`) successfully pass. It normalizes the tag, safely pushes it if it was a manual request, and exports the tag for downstream publishers.
+Keep the manual and external-tag paths mutually exclusive so they cannot create competing releases. We introduce a common `release-context` job that runs for BOTH `push` tags and `workflow_dispatch` manual releases *after* all validation gates successfully pass. It normalizes the tag, safely pushes it if it was a manual request, and exports the tag for downstream publishers.
 
 ```yaml
   release-context:
     name: Release Context & Gate
     # Wait for explicit validation gates before allowing ANY release to proceed.
-    # Replace these with your actual test/build jobs (or an explicit release-validation job)
-    # ensuring they run for both push and workflow_dispatch events.
-    needs: [route, prepare-release-tag, build-release-artifacts]
+    # Only list jobs here that are REQUIRED and GUARANTEED to run for this repository,
+    # otherwise this job will be skipped when its dependencies are skipped.
+    needs: [route, prepare-release-tag, go-checks, build-release-artifacts]
     if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     permissions:
@@ -368,16 +388,13 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
         run: |
           set -euo pipefail
 
-          # Compute the tag: use the prepared tag if manual, otherwise the pushed ref
-          TAG="${{ needs.prepare-release-tag.outputs.release_tag || github.ref_name }}"
+          TAG="${{ needs.prepare-release-tag.outputs.release_tag }}"
           echo "release_tag=$TAG" >> "$GITHUB_OUTPUT"
 
-          # If this is an external tag push, we do not need to push it again
           if [[ "${{ github.event_name }}" == "push" ]]; then
             exit 0
           fi
 
-          # For manual runs: push the tag explicitly pointing to the validated commit
           git fetch --tags --force
           REMOTE_TAG_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
 
@@ -393,7 +410,6 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
 
           git tag "$TAG" "${GITHUB_SHA}"
 
-          # Retry/recovery: verify remote if push fails
           git push origin "$TAG" || (
             VERIFY_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
             if [[ "$VERIFY_SHA" == "${GITHUB_SHA}" ]]; then
@@ -618,7 +634,7 @@ Run GoReleaser as the sole publisher in the unified release lane:
 ```yaml
   goreleaser:
     name: Run GoReleaser
-    needs: [route, discover, release-context]
+    needs: [route, discover, go-checks, release-context]
     if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' && needs.discover.outputs.has_goreleaser == 'true' }}
     runs-on: ubuntu-latest
     permissions:
@@ -631,7 +647,7 @@ Run GoReleaser as the sole publisher in the unified release lane:
       - uses: actions/setup-go@v7
         with:
           go-version: stable
-      - uses: goreleaser/goreleaser-action@v7
+      - uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
           version: latest
@@ -656,7 +672,7 @@ One job collects tested artifacts and publishes the release:
 ```yaml
   github-release:
     name: Publish GitHub release
-    needs: [route, discover, release-context, build-release-artifacts]
+    needs: [route, discover, build-release-artifacts, release-context]
     if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' && needs.discover.outputs.has_goreleaser != 'true' }}
     runs-on: ubuntu-latest
     permissions:
@@ -746,8 +762,6 @@ Examples:
 - update metadata/indexes,
 - trigger documentation deployment,
 - publish a monthly/reporting entry.
-
-**Note on same-run releases:** If you use the preferred default where `GITHUB_TOKEN` manual tags publish the release in the same run, those events generally will not emit a new `release: published` workflow. Chain the required downstream work immediately after the publisher jobs in that *same* run. Reserve the `release: published` event-driven workflow strictly for externally created releases or explicit PAT-driven architectures.
 
 **Note on same-run releases:** If you use the preferred default where `GITHUB_TOKEN` manual tags publish the release in the same run, those events generally will not emit a new `release: published` workflow. Chain the required downstream work immediately after the publisher jobs in that *same* run. Reserve the `release: published` event-driven workflow strictly for externally created releases or explicit PAT-driven architectures.
 
