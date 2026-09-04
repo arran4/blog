@@ -276,7 +276,11 @@ jobs:
 
 ## Step 4: prepare the next release tag
 
-The manual release path calculates one validated tag.
+The unified release path requires one validated tag.
+
+**Explicit Recovery Semantics:** Once a manual release run has successfully pushed its intended tag, **do not recover a later publication failure by simply rerunning the auto-incrementing release mode**. Because `git-tag-inc` reads existing remote tags, an ordinary auto-increment rerun will usually see the failed tag and silently advance to the *next* semantic version instead of retrying the release.
+
+Recovery must explicitly select the already-created intended tag using `release_version_override=<exact failed tag>` (accepting either `X.Y.Z` or `vX.Y.Z`, normalizing it internally). The workflow must then verify that the remote tag resolves to the exact validated `${GITHUB_SHA}` before continuing publication. If it points anywhere else, it fails. Never silently select or create a newer version as recovery. The existing-tag check in the shell script below acts as the secure verification mechanism for this explicit override recovery path.
 
 ```yaml
   prepare-release-tag:
