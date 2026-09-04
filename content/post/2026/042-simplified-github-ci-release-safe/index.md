@@ -59,7 +59,7 @@ When upgrading an existing repository, inspect the existing workflow and preserv
 
 1. **Route events explicitly.** Jobs should not infer release intent independently.
 2. **One GitHub Release owner per tag.** This is the release-safety invariant.
-3. **Manual release dispatch publishes the release in its own run, or uses a specific PAT/App to trigger a downstream tag-push run.**
+3. **Manual release dispatch publishes the release in its own run, or uses a specific PAT/App to trigger a downstream release run.**
 4. **`release: published` is downstream.** It must not route back into the primary publisher.
 5. **If GoReleaser publishes the GitHub Release, GoReleaser is the sole release owner.**
 6. **Do not create a parallel `draft: true` release merely to collect artifacts.** Artifact jobs can use Actions artifacts until the release owner publishes them.
@@ -161,7 +161,7 @@ permissions:
   contents: write
 ```
 
-for a tag-pushing or release-publishing job, and:
+for a release-publishing job, and:
 
 ```yaml
 permissions:
@@ -348,53 +348,75 @@ If the repository stores a source version (`CMakeLists.txt`, `package.json`, `pu
 
 ---
 
-## Step 5: manual release dispatch pushes the tag
+## Step 5: Release Context & Validation Gate
 
-Keep the manual and external-tag paths mutually exclusive so they cannot create competing releases. A manual release workflow must run its normal validation first, compute the release tag, and push the tag using the normal `GITHUB_TOKEN`. It does not publish the release directly in this job; it prepares the repository state so the downstream jobs in the *same* run can take over.
+Keep the manual and external-tag paths mutually exclusive so they cannot create competing releases. We introduce a common `release-context` job that runs for *both* `push` tags and `workflow_dispatch` manual releases *after* all validation gates (e.g. `go-checks`, `build-release-artifacts`) successfully pass. It normalizes the tag, safely pushes it if it was a manual request, and exports the tag for downstream publishers.
 
 ```yaml
-  push-release-tag:
-    name: Push release tag
-    needs: [prepare-release-tag, lint, test, build-release-artifacts]
-    if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') }}
+  release-context:
+    name: Release Context & Gate
+    # Wait for explicit validation gates before allowing ANY release to proceed.
+    # Replace these with your actual test/build jobs.
+    needs: [route, prepare-release-tag, go-checks, build-release-artifacts]
+    if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      release_tag: ${{ steps.export.outputs.release_tag }}
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - name: Push prepared tag
-        env:
-          TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
+
+      - name: Normalize and push tag
+        id: export
         shell: bash
         run: |
           set -euo pipefail
-          git fetch --tags --force
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Tag already exists: $TAG" >&2
-            exit 1
+
+          # Compute the tag: use the prepared tag if manual, otherwise the pushed ref
+          TAG="${{ needs.prepare-release-tag.outputs.release_tag || github.ref_name }}"
+          echo "release_tag=$TAG" >> "$GITHUB_OUTPUT"
+
+          # If this is an external tag push, we do not need to push it again
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            exit 0
           fi
 
-          # Tag the exact validated commit
+          # For manual runs: push the tag explicitly pointing to the validated commit
+          git fetch --tags --force
+          REMOTE_TAG_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
+
+          if [[ -n "$REMOTE_TAG_SHA" ]]; then
+            if [[ "$REMOTE_TAG_SHA" == "${GITHUB_SHA}" ]]; then
+              echo "Tag $TAG already exists on remote and points to the correct SHA. Continuing safely."
+              exit 0
+            else
+              echo "Tag $TAG already exists on remote but points to a different commit ($REMOTE_TAG_SHA). Failing." >&2
+              exit 1
+            fi
+          fi
+
           git tag "$TAG" "${GITHUB_SHA}"
 
-          # Retry/recovery: if the push fails but the tag exists and points to GITHUB_SHA, continue safely
+          # Retry/recovery: verify remote if push fails
           git push origin "$TAG" || (
-            if [ "$(git rev-list -n 1 "$TAG")" == "${GITHUB_SHA}" ]; then
-              echo "Tag already pushed safely."
+            VERIFY_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
+            if [[ "$VERIFY_SHA" == "${GITHUB_SHA}" ]]; then
+              echo "Tag successfully verified on remote after push error."
             else
-              echo "Tag pushed to a different commit. Failing." >&2
+              echo "Tag push failed and remote verification failed." >&2
               exit 1
             fi
           )
 ```
 
-Do NOT expect the tag push to start another workflow.
+Do NOT expect the manual tag push to start another workflow when using `GITHUB_TOKEN`. This job acts as the unified bridge to the same-run publisher.
 
 ### Alternative: strict tag-push-owner model
 
-If the design specifically requires the pushed tag to start a new workflow and that new tag-push run to be the sole publisher, the tag MUST be pushed using a GitHub App installation token or PAT rather than `GITHUB_TOKEN`.
+If the design specifically requires the pushed tag to start a new workflow and that new release run to be the sole publisher, the tag MUST be pushed using a GitHub App installation token or PAT rather than `GITHUB_TOKEN`.
 
 - Use an explicit secret such as `TAG_PUSH_TOKEN`.
 - Fail clearly when it is absent.
@@ -582,11 +604,11 @@ GoReleaser owns the GitHub Release.
 
 ### B. Non-GoReleaser binary/artifact project
 
-One tag-push `github-release` job owns the GitHub Release.
+One `github-release` job owns the GitHub Release.
 
 ### C. Library/config/non-binary project
 
-The tag-push owner may create a notes-only GitHub Release if releases are desired. Do not invent binary artifacts.
+The release owner may create a notes-only GitHub Release if releases are desired. Do not invent binary artifacts.
 
 ### D. Intentional human-reviewed draft process
 
@@ -598,12 +620,12 @@ Never combine A and B for the same tag.
 
 ## Step 11A: GoReleaser as sole release owner
 
-Run GoReleaser only in the semantic tag-push release lane:
+Run GoReleaser as the sole publisher in the unified release lane:
 
 ```yaml
   goreleaser:
     name: Run GoReleaser
-    needs: [route, discover, go-checks, push-release-tag]
+    needs: [route, discover, release-context]
     if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' && needs.discover.outputs.has_goreleaser == 'true' }}
     runs-on: ubuntu-latest
     permissions:
@@ -613,7 +635,7 @@ Run GoReleaser only in the semantic tag-push release lane:
         with:
           fetch-depth: 0
           fetch-tags: true
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version: stable
       - uses: goreleaser/goreleaser-action@v6
@@ -623,7 +645,7 @@ Run GoReleaser only in the semantic tag-push release lane:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GORELEASER_CURRENT_TAG: ${{ needs.prepare-release-tag.outputs.release_tag || github.ref_name }}
+          GORELEASER_CURRENT_TAG: ${{ needs.release-context.outputs.release_tag }}
 ```
 
 If GoReleaser needs Homebrew, package registries, signing credentials, or another repository token, inject those secrets into this owner job/config as appropriate.
@@ -641,8 +663,7 @@ One job collects tested artifacts and publishes the release:
 ```yaml
   github-release:
     name: Publish GitHub release
-    # Wait for the manual tag push if in manual mode, otherwise just wait for artifacts
-    needs: [route, discover, build-release-artifacts, push-release-tag]
+    needs: [route, discover, release-context, build-release-artifacts]
     if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' && needs.discover.outputs.has_goreleaser != 'true' }}
     runs-on: ubuntu-latest
     permissions:
@@ -659,8 +680,8 @@ One job collects tested artifacts and publishes the release:
         with:
           draft: false
           generate_release_notes: true
-          tag_name: ${{ needs.prepare-release-tag.outputs.release_tag || github.ref_name }}
-          prerelease: ${{ contains(needs.prepare-release-tag.outputs.release_tag || github.ref_name, '-rc') || contains(needs.prepare-release-tag.outputs.release_tag || github.ref_name, '-alpha') || contains(needs.prepare-release-tag.outputs.release_tag || github.ref_name, '-beta') || contains(needs.prepare-release-tag.outputs.release_tag || github.ref_name, '-test') }}
+          tag_name: ${{ needs.release-context.outputs.release_tag }}
+          prerelease: ${{ contains(needs.release-context.outputs.release_tag, '-rc') || contains(needs.release-context.outputs.release_tag, '-alpha') || contains(needs.release-context.outputs.release_tag, '-beta') || contains(needs.release-context.outputs.release_tag, '-test') }}
           files: dist-release/**
 ```
 
@@ -707,7 +728,7 @@ A draft process is valid when review before publication is genuinely required. I
 
 A placeholder `echo` is not promotion.
 
-If the repository does not need human-reviewed drafts, prefer direct publication from the tag-push owner.
+If the repository does not need human-reviewed drafts, prefer direct publication from the release owner.
 
 ---
 
@@ -741,7 +762,7 @@ It must not call `gh release create`, GoReleaser release publication, or a GitHu
 
 Container publication is separate from GitHub Release ownership. It may consume the same semantic tag without creating another GitHub Release.
 
-A typical tag-push container lane can:
+A typical container release lane can:
 
 - authenticate to GHCR/another registry,
 - build multi-platform images when useful,
@@ -862,7 +883,7 @@ Before opening/merging a CI change:
 - ensure `release: published` cannot reach the publisher,
 - ensure only one GitHub Release creator exists for a semantic tag,
 - ensure GoReleaser and `softprops/action-gh-release` are not both owners,
-- ensure build artifacts required by the publisher exist on the tag-push run,
+- ensure build artifacts required by the publisher exist on the release run,
 - and preserve the repository's existing useful CI semantics.
 
 If CI is unavailable because of account/billing/quota failures, still perform static validation and document what could not be exercised.
@@ -880,11 +901,10 @@ manual workflow_dispatch release-patch
 compute/validate vX.Y.Z
         |
         v
-lint/test/build artifacts
+lint/test/build artifacts (release gates)
         |
         v
-push vX.Y.Z tag with GITHUB_TOKEN
-   (push-release-tag job)
+  release-context checks/pushes tag
         |
         v
    ONE release owner only
@@ -896,9 +916,9 @@ GoReleaser      github-release job
         v
 GitHub Release published
         |
-        v
-  release: published event
-    (downstream consumers only)
+        +-- (Downstream jobs in SAME run)
+
+(Optional external path: App/PAT triggered release: published event)
 ```
 
 The old "tag-owner" architecture where manual dispatch pushes a tag to start a release run is not intrinsically wrong; however, it has an external credential prerequisite (e.g. `TAG_PUSH_TOKEN`). Using `GITHUB_TOKEN` to push a tag prevents the `on: push: tags` workflow from triggering. By completing the release publication within the manual workflow run, we avoid the need for external secrets while remaining release-safe.
