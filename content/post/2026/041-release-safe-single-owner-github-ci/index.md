@@ -1,6 +1,6 @@
 ---
 title: "Release-Safe Single-Owner GitHub CI/CD"
-date: 2026-09-04T08:39:00+00:00
+date: 2026-09-03T21:05:00+10:00
 draft: false
 tags: ["github-actions", "ci", "cd", "release", "automation", "goreleaser"]
 categories: ["devops", "reference", "automation"]
@@ -50,10 +50,9 @@ That event is emitted *after* a release has been published. Treat it as a downst
 Also do not hide duplicate-release failures with `|| true`. A failed `gh release create` may be the signal that another job already created a draft or published release.
 
 
-
 ### The manual credential recursion trap
 
-Use the `arran4/kgithub-notify` failure from Actions run 33820455345, job 100861817524, as a motivating example. The workflow had a non-empty `OVERLAY_GITHUB_TOKEN`, checkout succeeded, but `git push` failed with HTTP 403 because the token lacked the correct permissions. Do not blindly attempt to push tags and assume success without verifying permissions.
+For example, consider a failure like the one in Actions run 33820455345 (job 100861817524). A configured PAT was present and checkout succeeded, but the later `git push` failed with HTTP 403 because the credential lacked usable repository write permission. Do not blindly attempt to push tags and assume success without verifying permissions.
 
 ## Canonical model: manual dispatch pushes the tag and publishes the release
 
@@ -234,10 +233,7 @@ If a project intentionally requires human-reviewed drafts, the same single-owner
 
 If GoReleaser publishes the GitHub Release, **GoReleaser is the release owner**.
 
-
-### Ensuring correct tag context in the manual same-run publisher
-
-Ensure the manual same-run publisher has the correct tag context. If GoReleaser requires `GORELEASER_CURRENT_TAG` or a local tag, show the correct pattern. Since `github.ref` might be a branch rather than a tag during a manual `workflow_dispatch` run, you must explicitly pass the computed tag to your publisher. For example:
+Ensure the manual same-run publisher has the correct tag context. Because `github.ref` might be a branch rather than a tag during a manual `workflow_dispatch` run, you must explicitly pass the computed tag to your publisher. For example, if GoReleaser requires `GORELEASER_CURRENT_TAG` or a local tag, configure it correctly:
 
 
 ```yaml
@@ -280,17 +276,13 @@ Those jobs should consume the published release. They should not create it again
 
 ## Idempotent recovery is different from a second owner
 
-
-## Address retry/recovery semantics
-
-If publication fails after a tag has been pushed, a rerun should not blindly attempt to recreate the same tag and fail. Document an appropriate state-aware approach:
+If publication fails after a tag has been pushed, a rerun should not blindly attempt to recreate the same tag and fail. A safe, state-aware approach must:
 - verify whether the expected tag already exists and points at the expected commit;
 - reuse it for recovery when safe;
 - fail clearly if it points elsewhere;
 - never silently move an existing release tag.
 
 A manually-invoked recovery job may inspect an existing release and upload missing assets, but it should require an explicit version/tag and verify state first. For example:
-
 
 ```bash
 set -euo pipefail
@@ -316,9 +308,9 @@ When updating repositories generated from the older articles:
 8. Keep build/test/artifact jobs separate from the one release publication owner.
 9. Preserve release mode semantics:
    - normal major/minor/patch releases publish normally;
-   - RC/alpha/beta prereleases publish as prereleases where appropriate;
+   - RC/alpha/beta pre-releases publish as pre-releases where appropriate;
    - test/snapshot modes must not accidentally create normal published releases;
-   - explain that GoReleaser `--snapshot` does not publish a normal GitHub Release.
+   - note that GoReleaser `--snapshot` does not publish a normal GitHub Release.
 10. Check the Releases page for old `untagged-*` drafts. Fixing the workflow prevents new duplicates; historical drafts should be reviewed and deleted separately if they are obsolete.
 
 ## Audit searches

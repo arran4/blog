@@ -1,6 +1,6 @@
 ---
 title: "Simplified Single GitHub Actions CI/CD File (Release-Safe Update)"
-date: 2026-09-04T08:40:18+00:00
+date: 2026-09-03T21:20:00+10:00
 draft: false
 tags: ["github-actions", "ci", "cd", "go", "node", "dart", "flutter", "qt", "c++", "docker", "goreleaser", "packaging", "release"]
 categories: ["devops", "reference", "automation"]
@@ -278,11 +278,9 @@ jobs:
 
 The unified release path requires one validated tag.
 
-
-**Address retry/recovery semantics:** If publication fails after a tag has been pushed, a rerun should not blindly attempt to recreate the same tag and fail. Document an appropriate state-aware approach. Verify whether the expected tag already exists and points at the expected commit. Reuse it for recovery when safe. Fail clearly if it points elsewhere. Never silently move an existing release tag.
+**Idempotent recovery semantics:** If publication fails after a tag has been pushed, a rerun should not blindly attempt to recreate the same tag and fail. Use a state-aware approach: verify whether the expected tag already exists and points at the expected commit, reuse it for recovery when safe, and fail clearly if it points elsewhere. Never silently move an existing release tag.
 
 Once a manual release run has successfully pushed its intended tag, **do not recover a later publication failure by simply rerunning the auto-incrementing release mode**. Because `git-tag-inc` reads existing remote tags, an ordinary auto-increment rerun will usually see the failed tag and silently advance to the *next* semantic version instead of retrying the release.
-
 
 Recovery must explicitly select the already-created intended tag using `release_version_override=<exact failed tag>` (accepting either `X.Y.Z` or `vX.Y.Z`, normalizing it internally). The workflow must then verify that the remote tag resolves to the exact validated `${GITHUB_SHA}` before continuing publication. If it points anywhere else, it fails. Never silently select or create a newer version as recovery. The existing-tag check in the shell script below acts as the secure verification mechanism for this explicit override recovery path.
 
@@ -640,11 +638,9 @@ These Actions artifacts are staging inputs. They are not a reason to create an i
 
 Before writing publisher jobs, choose one of these paths:
 
-
 ### A. GoReleaser project (sole release owner)
 
-Ensure the manual same-run publisher has the correct tag context. If GoReleaser requires `GORELEASER_CURRENT_TAG` or a local tag, show the correct pattern. GoReleaser owns the GitHub Release.
-
+Ensure the manual same-run publisher has the correct tag context. For example, if GoReleaser requires `GORELEASER_CURRENT_TAG` or a local tag, configure it with the correct pattern. GoReleaser owns the GitHub Release.
 
 ### B. Non-GoReleaser binary/artifact project
 
@@ -839,7 +835,7 @@ Examples:
 - `v1.2.3-rc.1` → prerelease,
 - `v1.2.3-alpha.1` → prerelease,
 - `v1.2.3-beta.1` → prerelease,
-- `v1.2.3-test.1` → prerelease or non-public test lane according to project policy.
+- `v1.2.3-test.1` → pre-release or non-public test lane according to project policy.
 - Note: GoReleaser `--snapshot` does not publish a normal GitHub Release, so do not use it to publish normal artifacts.
 
 If a project deliberately treats `test` tags as artifact-only and not GitHub Releases, encode that in the router/owner condition rather than creating then abandoning drafts.
