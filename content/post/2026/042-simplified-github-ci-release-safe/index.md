@@ -59,7 +59,7 @@ When upgrading an existing repository, inspect the existing workflow and preserv
 
 1. **Route events explicitly.** Jobs should not infer release intent independently.
 2. **One GitHub Release owner per tag.** This is the release-safety invariant.
-3. **Manual release dispatch publishes the release in its own run, or uses a specific PAT/App to trigger a downstream release run.**
+3. **Manual release dispatch explicitly dispatches the publisher workflow using `GITHUB_TOKEN`, or uses a specific PAT/App to trigger a downstream release run.**
 4. **`release: published` is downstream.** It must not route back into the primary publisher.
 5. **If GoReleaser publishes the GitHub Release, GoReleaser is the sole release owner.**
 6. **Do not create a parallel `draft: true` release merely to collect artifacts.** Artifact jobs can use Actions artifacts until the release owner publishes them.
@@ -234,8 +234,7 @@ jobs:
                   run_build=true
                   ;;
                 release-*)
-                  # A manual release mode pushes the tag and publishes the release in the same run.
-                  # It sets run_release=true to publish immediately.
+                  # A manual release mode explicitly dispatches the publisher.
                   run_code_checks=true
                   run_build=true
                   run_release=true
@@ -406,6 +405,7 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
     outputs:
       release_tag: ${{ steps.export.outputs.release_tag }}
     steps:
@@ -450,9 +450,14 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
               exit 1
             fi
           )
+
+          # Explicitly dispatch the publisher workflow at the new tag ref
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            gh workflow run "${{ github.workflow }}" --ref "$TAG"
+          fi
 ```
 
-Do NOT expect the manual tag push to start another workflow when using `GITHUB_TOKEN`. This job acts as the unified bridge to the same-run publisher.
+Do NOT expect the manual tag push to start another workflow when using `GITHUB_TOKEN` because ordinary events are suppressed. Instead, this job explicitly dispatches the workflow at the tag, relying on the `workflow_dispatch` exception to the recursion rule. The publisher mode verifies it is running at an eligible tag and cannot recursively create/push another tag or dispatch itself again.
 
 ### Alternative: strict tag-push-owner model
 
