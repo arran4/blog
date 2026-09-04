@@ -272,13 +272,15 @@ jobs:
           echo "is_nightly=$is_nightly" >> "$GITHUB_OUTPUT"
 ```
 
-This is the important behaviour change from older versions of the guide: **manual `release-*` dispatch does not publish a release in that same run**.
+
 
 ---
 
 ## Step 4: prepare the next release tag
 
 The unified release path requires one validated tag.
+
+**Recovery semantics:** After a tag is created and pushed, if the subsequent publication fails (e.g. network error), a normal auto-incrementing re-run must not be used as it will silently advance to a completely new version. Recovery must explicitly reuse the exact same tag by providing it via `release_version_override`. The workflow will verify the remote tag correctly points to the validated commit and safely resume publication.
 
 ```yaml
   prepare-release-tag:
@@ -368,9 +370,9 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
   release-context:
     name: Release Context & Gate
     # Wait for explicit validation gates before allowing ANY release to proceed.
-    # Only list jobs here that are REQUIRED and GUARANTEED to run for this repository,
-    # otherwise this job will be skipped when its dependencies are skipped.
-    needs: [route, prepare-release-tag, go-checks, build-release-artifacts]
+    # Only list jobs here that are REQUIRED and GUARANTEED to run for this repository
+    # (or define a unified validation-gate job) so this doesn't skip.
+    needs: [route, prepare-release-tag, build-release-artifacts]
     if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     permissions:
