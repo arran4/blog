@@ -278,7 +278,9 @@ jobs:
 
 The unified release path requires one validated tag.
 
-**Explicit Recovery Semantics:** Once a manual release run has successfully pushed its intended tag, **do not recover a later publication failure by simply rerunning the auto-incrementing release mode**. Because `git-tag-inc` reads existing remote tags, an ordinary auto-increment rerun will usually see the failed tag and silently advance to the *next* semantic version instead of retrying the release.
+**Idempotent recovery semantics:** If publication fails after a tag has been pushed, a rerun should not blindly attempt to recreate the same tag and fail. Use a state-aware approach: verify whether the expected tag already exists and points at the expected commit, reuse it for recovery when safe, and fail clearly if it points elsewhere. Never silently move an existing release tag.
+
+Once a manual release run has successfully pushed its intended tag, **do not recover a later publication failure by simply rerunning the auto-incrementing release mode**. Because `git-tag-inc` reads existing remote tags, an ordinary auto-increment rerun will usually see the failed tag and silently advance to the *next* semantic version instead of retrying the release.
 
 Recovery must explicitly select the already-created intended tag using `release_version_override=<exact failed tag>` (accepting either `X.Y.Z` or `vX.Y.Z`, normalizing it internally). The workflow must then verify that the remote tag resolves to the exact validated `${GITHUB_SHA}` before continuing publication. If it points anywhere else, it fails. Never silently select or create a newer version as recovery. The existing-tag check in the shell script below acts as the secure verification mechanism for this explicit override recovery path.
 
@@ -366,7 +368,10 @@ If the repository stores a source version (`CMakeLists.txt`, `package.json`, `pu
 
 ## Step 5: release validation gate
 
-To ensure a release is only created if the required validation passes, introduce a strict aggregation gate. The generated `release-validation` job must directly `need` every applicable required validation lane. Explicitly require `success` for each lane that discovery says applies. Do not use a broad `always()` that might mask unverified failures.
+To ensure a release is only created if the required validation passes, introduce a strict aggregation gate. The generated `release-validation` job must directly `need` every applicable required validation lane. Explicitly require `success` for each lane that discovery says applies. Do not treat a skipped prerequisite as equivalent to success merely because a downstream job uses `always()`. Release conditions must explicitly distinguish:
+- success,
+- legitimately skipped event-specific dependencies,
+- skipped because an upstream dependency failed.
 
 *(This is an illustrative partial example. You must require **every actual required validation job** for your repository.)*
 
@@ -377,7 +382,7 @@ To ensure a release is only created if the required validation passes, introduce
     # (e.g., dart-checks, cpp-checks, make-checks)
     needs: [route, discover, go-checks, node-checks]
     if: |
-      always() &&
+      !failure() && !cancelled() &&
       needs.route.result == 'success' &&
       needs.discover.result == 'success' &&
       (needs.discover.outputs.has_go != 'true' || needs.go-checks.result == 'success') &&
@@ -633,9 +638,9 @@ These Actions artifacts are staging inputs. They are not a reason to create an i
 
 Before writing publisher jobs, choose one of these paths:
 
-### A. GoReleaser project
+### A. GoReleaser project (sole release owner)
 
-GoReleaser owns the GitHub Release.
+Ensure the manual same-run publisher has the correct tag context. For example, if GoReleaser requires `GORELEASER_CURRENT_TAG` or a local tag, configure it with the correct pattern. GoReleaser owns the GitHub Release.
 
 ### B. Non-GoReleaser binary/artifact project
 
@@ -830,7 +835,8 @@ Examples:
 - `v1.2.3-rc.1` → prerelease,
 - `v1.2.3-alpha.1` → prerelease,
 - `v1.2.3-beta.1` → prerelease,
-- `v1.2.3-test.1` → prerelease or non-public test lane according to project policy.
+- `v1.2.3-test.1` → pre-release or non-public test lane according to project policy.
+- Note: GoReleaser `--snapshot` does not publish a normal GitHub Release, so do not use it to publish normal artifacts.
 
 If a project deliberately treats `test` tags as artifact-only and not GitHub Releases, encode that in the router/owner condition rather than creating then abandoning drafts.
 
@@ -932,20 +938,23 @@ If CI is unavailable because of account/billing/quota failures, still perform st
 The preferred default flow is:
 
 ```text
-manual workflow_dispatch release-patch
+manual workflow_dispatch
         |
-        v
-compute/validate vX.Y.Z
+        +-- run all required release gates
+        +-- calculate the exact release tag
+        +-- tag the exact validated commit
+        +-- push the tag using GITHUB_TOKEN
+        |      `-- no second workflow is expected
+        `-- continue into the sole release publisher in THIS workflow run
+
+external/user-created semantic tag
         |
-        v
-lint/test/build artifacts (release gates)
-        |
-        v
-  release-context checks/pushes tag
-        |
-        v
+        `-- enter the same sole release-publisher logic from the tag-push event
+```
+
+In either path:
+```text
    ONE release owner only
-  (in the SAME manual run)
       /             \
 GoReleaser      github-release job
    (one or the other, never both)
@@ -954,11 +963,9 @@ GoReleaser      github-release job
 GitHub Release published
         |
         +-- (Downstream jobs in SAME run)
-
-(Optional external path: App/PAT triggered release: published event)
 ```
 
-The old "tag-owner" architecture where manual dispatch pushes a tag to start a release run is not intrinsically wrong; however, it has an external credential prerequisite (e.g. `TAG_PUSH_TOKEN`). Using `GITHUB_TOKEN` to push a tag prevents the `on: push: tags` workflow from triggering. By completing the release publication within the manual workflow run, we avoid the need for external secrets while remaining release-safe.
+The old "tag-owner" architecture where manual dispatch pushes a tag to start a release run is not intrinsically wrong; however, it has an external credential prerequisite (e.g. `TAG_PUSH_TOKEN`). Using `GITHUB_TOKEN` to push a tag prevents the `on: push: tags` workflow from triggering. This recursion suppression is intentional duplicate prevention. By completing the release publication within the manual workflow run, we avoid the need for external secrets while remaining release-safe. Do not require a PAT/GitHub App token in the canonical same-run design solely to trigger another workflow.
 
 This separation makes the event graph easier to reason about and prevents the duplicate/orphaned draft releases seen when manual creation, draft creation, and release-event publication are combined.
 

@@ -49,9 +49,34 @@ That event is emitted *after* a release has been published. Treat it as a downst
 
 Also do not hide duplicate-release failures with `|| true`. A failed `gh release create` may be the signal that another job already created a draft or published release.
 
+
+### The manual credential recursion trap
+
+For example, consider a failure like the one in Actions run 33820455345 (job 100861817524). A configured PAT was present and checkout succeeded, but the later `git push` failed with HTTP 403 because the credential lacked usable repository write permission. Do not blindly attempt to push tags and assume success without verifying permissions.
+
 ## Canonical model: manual dispatch pushes the tag and publishes the release
 
-The preferred default model creates the tag and publishes the GitHub Release in the same workflow run. This avoids relying on a tag push to trigger a new workflow, which fails when the push is authenticated with the default `GITHUB_TOKEN` due to GitHub's event recursion prevention.
+The preferred default model creates the tag and publishes the GitHub Release in the same workflow run. This treats GitHub's `GITHUB_TOKEN` event recursion suppression as intentional duplicate prevention in the manual path: a manual run publishes the release exactly once, and its tag push does not spawn a second release workflow.
+
+### Manual release
+
+```
+workflow_dispatch
+-> release gates succeed
+-> calculate/tag exact validated commit
+-> push tag with GITHUB_TOKEN
+-> same workflow publishes exactly once
+```
+
+### Independent tag push
+
+```
+human/external vX.Y.Z push
+-> normal tag-triggered workflow
+-> required gates
+-> same publisher publishes exactly once
+```
+
 
 ### Router
 
@@ -208,7 +233,8 @@ If a project intentionally requires human-reviewed drafts, the same single-owner
 
 If GoReleaser publishes the GitHub Release, **GoReleaser is the release owner**.
 
-Run it as the one release lane, providing the explicit tag to GoReleaser via `GORELEASER_CURRENT_TAG` so it works even when `github.ref` is a branch (during manual mode):
+Ensure the manual same-run publisher has the correct tag context. Because `github.ref` might be a branch rather than a tag during a manual `workflow_dispatch` run, you must explicitly pass the computed tag to your publisher. For example, if GoReleaser requires `GORELEASER_CURRENT_TAG` or a local tag, configure it correctly:
+
 
 ```yaml
   goreleaser:
@@ -250,6 +276,12 @@ Those jobs should consume the published release. They should not create it again
 
 ## Idempotent recovery is different from a second owner
 
+If publication fails after a tag has been pushed, a rerun should not blindly attempt to recreate the same tag and fail. A safe, state-aware approach must:
+- verify whether the expected tag already exists and points at the expected commit;
+- reuse it for recovery when safe;
+- fail clearly if it points elsewhere;
+- never silently move an existing release tag.
+
 A manually-invoked recovery job may inspect an existing release and upload missing assets, but it should require an explicit version/tag and verify state first. For example:
 
 ```bash
@@ -274,7 +306,11 @@ When updating repositories generated from the older articles:
 6. Do not set `run_release=true` for `release: published` in the primary publisher router.
 7. Remove `|| true` around release creation. Duplicate creation is an error that should be visible.
 8. Keep build/test/artifact jobs separate from the one release publication owner.
-9. Preserve prerelease semantics (`rc`, `alpha`, `beta`, `test`) in the owner job.
+9. Preserve release mode semantics:
+   - normal major/minor/patch releases publish normally;
+   - RC/alpha/beta pre-releases publish as pre-releases where appropriate;
+   - test/snapshot modes must not accidentally create normal published releases;
+   - note that GoReleaser `--snapshot` does not publish a normal GitHub Release.
 10. Check the Releases page for old `untagged-*` drafts. Fixing the workflow prevents new duplicates; historical drafts should be reviewed and deleted separately if they are obsolete.
 
 ## Audit searches
@@ -303,7 +339,7 @@ Audit repositories for these two dangerous patterns:
 
 2. **Using a PAT/App token solely to force the second run without validation:**
    - Repositories that added a `TAG_PUSH_TOKEN` to bypass the `GITHUB_TOKEN` limitation but fail to validate it.
-   *Fix:* If you genuinely require the strict tag-push-owner model, state that the credential must have **Contents write permission**. A non-empty secret check (`if: env.TAG_PUSH_TOKEN != ''`) does not prove the token is usable or has the correct permissions. Prefer the same-run manual publication model to remove this credential requirement entirely.
+   *Fix:* If you genuinely require the strict tag-push-owner model (where a pushed tag must start a separate workflow), the credential must have **Contents write permission** for tag pushes. A non-empty secret check (`if: env.TAG_PUSH_TOKEN != ''`) does not prove the token is usable or has the correct permissions. GitHub App credentials are preferable to a broad long-lived PAT where practical. Prefer the same-run manual publication model to remove this credential requirement entirely. Do not require a PAT solely to force recursive workflow execution.
 
 ## Agent rule
 
