@@ -241,7 +241,7 @@ If a project intentionally requires human-reviewed drafts, the same single-owner
 
 If GoReleaser publishes the GitHub Release, **GoReleaser is the release owner**.
 
-Ensure the manual same-run publisher has the correct tag context. Because `github.ref` might be a branch rather than a tag during a manual `workflow_dispatch` run, you must explicitly pass the computed tag to your publisher. For example, if GoReleaser requires `GORELEASER_CURRENT_TAG` or a local tag, configure it correctly:
+Ensure the explicitly dispatched publisher has the correct tag context. Because `github.ref` might be a branch rather than a tag during a manual `workflow_dispatch` run, you must explicitly pass the computed tag to your publisher. For example, if GoReleaser requires `GORELEASER_CURRENT_TAG` or a local tag, configure it correctly:
 
 
 ```yaml
@@ -307,7 +307,7 @@ That is recovery against the canonical release, not a second publication path.
 When updating repositories generated from the older articles:
 
 1. Identify every place that can create a GitHub Release: `gh release create`, `softprops/action-gh-release`, GoReleaser, language-specific publishers, and API calls to `/releases`.
-2. Choose exactly one owner for the tag. Prefer the unified same-run manual and external-tag release-context lane.
+2. Choose exactly one owner for the tag. Prefer the explicit-dispatch manual publication model and unified external-tag lane.
 3. For manual `release-*` dispatch, compute the tag, push it with `GITHUB_TOKEN`, and explicitly dispatch the publisher workflow at that tag ref (or explicitly document a trigger-capable GitHub App/PAT if you specifically want the raw tag push event itself to trigger).
 4. Remove `publish-draft` jobs that independently create a draft when another release creator exists.
 5. Remove placeholder `promote-release` jobs. If drafts are genuinely required, promote the exact existing release by ID.

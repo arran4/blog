@@ -298,7 +298,7 @@ Recovery must explicitly select the already-created intended tag using `release_
         with:
           fetch-depth: 0
       - name: Setup git-tag-inc
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode != 'publish-tag' }}
         uses: arran4/git-tag-inc-action@v1
         with:
           mode: install
@@ -978,7 +978,7 @@ GitHub Release published
         +-- (Downstream jobs in SAME run)
 ```
 
-The old "tag-owner" architecture where manual dispatch pushes a tag to start a release run is not intrinsically wrong; however, it has an external credential prerequisite (e.g. `TAG_PUSH_TOKEN`). Using `GITHUB_TOKEN` to push a tag prevents the `on: push: tags` workflow from triggering. This recursion suppression is intentional duplicate prevention. By completing the release publication within the manual workflow run, we avoid the need for external secrets while remaining release-safe. Do not require a PAT/GitHub App token in the canonical same-run design solely to trigger another workflow.
+The old "tag-owner" architecture where manual dispatch pushes a tag to implicitly start a release run is not intrinsically wrong; however, it has an external credential prerequisite (e.g. `TAG_PUSH_TOKEN`) because `GITHUB_TOKEN` tag pushes do not trigger recursive workflows. Using `GITHUB_TOKEN` to push a tag and then explicitly dispatching the workflow via `workflow_dispatch` completely avoids this PAT prerequisite. Do not require a PAT/GitHub App token in the canonical explicit-dispatch design solely to trigger another workflow.
 
 This separation makes the event graph easier to reason about and prevents the duplicate/orphaned draft releases seen when manual creation, draft creation, and release-event publication are combined.
 
