@@ -119,6 +119,7 @@ on:
           - release-rc
           - release-alpha
           - monthly-maintenance
+          - publish-tag
       release_version_override:
         description: "Optional explicit release version, for example 2.4.0 or 2.4.0-rc.2"
         required: false
@@ -315,6 +316,13 @@ Recovery must explicitly select the already-created intended tag using `release_
           MODE="${{ inputs.mode }}"
           OVERRIDE="${{ inputs.release_version_override }}"
 
+          if [[ "$MODE" == "publish-tag" ]]; then
+            # The publisher run doesn't compute new tags
+            echo "release_tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+            echo "next_version=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           git fetch --tags --force
 
           if [[ -n "$OVERRIDE" ]]; then
@@ -416,6 +424,8 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
       - name: Normalize and push tag
         id: export
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
 
@@ -798,8 +808,6 @@ Examples:
 - update metadata/indexes,
 - trigger documentation deployment,
 - publish a monthly/reporting entry.
-
-**Note on same-run releases:** If you use the preferred default where `GITHUB_TOKEN` manual tags publish the release in the same run, those events generally will not emit a new `release: published` workflow. Chain the required downstream work immediately after the publisher jobs in that *same* run. Reserve the `release: published` event-driven workflow strictly for externally created releases or explicit PAT-driven architectures.
 
 It must not call `gh release create`, GoReleaser release publication, or a GitHub Release creation API for the same version.
 

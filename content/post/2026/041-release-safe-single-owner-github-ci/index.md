@@ -139,7 +139,7 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
   release-context:
     name: Release Context & Gate
     needs: [route, prepare-release-tag, release-validation, build-release-artifacts]
-    if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' && startsWith(github.ref, 'refs/tags/') }}
+    if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -154,6 +154,8 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
       - name: Normalize and push tag
         id: export
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
 
