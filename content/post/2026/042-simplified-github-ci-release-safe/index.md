@@ -348,14 +348,14 @@ If the repository stores a source version (`CMakeLists.txt`, `package.json`, `pu
 
 ---
 
-## Step 5: manual release dispatch pushes the tag and publishes the release
+## Step 5: manual release dispatch pushes the tag
 
-Keep the manual and external-tag paths mutually exclusive so they cannot create competing releases. A manual release workflow must run its normal validation first, compute the release tag, push the tag using the normal `GITHUB_TOKEN`, and continue to publish the release in that exact same run. Ensure release publication waits until the tag has actually been pushed. Ensure the release job uses the computed release tag rather than `github.ref_name`, since a `workflow_dispatch` run may still have a branch ref.
+Keep the manual and external-tag paths mutually exclusive so they cannot create competing releases. A manual release workflow must run its normal validation first, compute the release tag, and push the tag using the normal `GITHUB_TOKEN`. It does not publish the release directly in this job; it prepares the repository state so the downstream jobs in the *same* run can take over.
 
 ```yaml
-  manual-release:
-    name: Publish manual release
-    needs: [prepare-release-tag, build-release-artifacts]
+  push-release-tag:
+    name: Push release tag
+    needs: [prepare-release-tag, lint, test, build-release-artifacts]
     if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') }}
     runs-on: ubuntu-latest
     permissions:
@@ -375,20 +375,22 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
             echo "Tag already exists: $TAG" >&2
             exit 1
           fi
-          git tag "$TAG"
-          git push origin "$TAG"
 
-      - name: Create published GitHub release and upload assets
-        uses: softprops/action-gh-release@v2
-        with:
-          draft: false
-          tag_name: ${{ needs.prepare-release-tag.outputs.release_tag }}
-          prerelease: ${{ contains(needs.prepare-release-tag.outputs.release_tag, '-rc') || contains(needs.prepare-release-tag.outputs.release_tag, '-alpha') || contains(needs.prepare-release-tag.outputs.release_tag, '-beta') || contains(needs.prepare-release-tag.outputs.release_tag, '-test') }}
-          generate_release_notes: true
-          files: dist-release/**
+          # Tag the exact validated commit
+          git tag "$TAG" "${GITHUB_SHA}"
+
+          # Retry/recovery: if the push fails but the tag exists and points to GITHUB_SHA, continue safely
+          git push origin "$TAG" || (
+            if [ "$(git rev-list -n 1 "$TAG")" == "${GITHUB_SHA}" ]; then
+              echo "Tag already pushed safely."
+            else
+              echo "Tag pushed to a different commit. Failing." >&2
+              exit 1
+            fi
+          )
 ```
 
-Do NOT expect the tag push to start another workflow. Do NOT use `github.ref_name` in the release publisher if it might evaluate to `main` instead of the newly pushed tag.
+Do NOT expect the tag push to start another workflow.
 
 ### Alternative: strict tag-push-owner model
 
@@ -600,9 +602,9 @@ Run GoReleaser only in the semantic tag-push release lane:
 
 ```yaml
   goreleaser:
-    name: GoReleaser
-    needs: [route, discover, go-checks]
-    if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' && needs.discover.outputs.has_goreleaser == 'true' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
+    name: Run GoReleaser
+    needs: [route, discover, go-checks, push-release-tag]
+    if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' && needs.discover.outputs.has_goreleaser == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -610,6 +612,10 @@ Run GoReleaser only in the semantic tag-push release lane:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          fetch-tags: true
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
       - uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
@@ -617,6 +623,7 @@ Run GoReleaser only in the semantic tag-push release lane:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GORELEASER_CURRENT_TAG: ${{ needs.prepare-release-tag.outputs.release_tag || github.ref_name }}
 ```
 
 If GoReleaser needs Homebrew, package registries, signing credentials, or another repository token, inject those secrets into this owner job/config as appropriate.
@@ -634,8 +641,9 @@ One job collects tested artifacts and publishes the release:
 ```yaml
   github-release:
     name: Publish GitHub release
-    needs: [route, discover, build-release-artifacts]
-    if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' && needs.discover.outputs.has_goreleaser != 'true' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
+    # Wait for the manual tag push if in manual mode, otherwise just wait for artifacts
+    needs: [route, discover, build-release-artifacts, push-release-tag]
+    if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' && needs.discover.outputs.has_goreleaser != 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -651,7 +659,8 @@ One job collects tested artifacts and publishes the release:
         with:
           draft: false
           generate_release_notes: true
-          prerelease: ${{ contains(github.ref_name, '-rc') || contains(github.ref_name, '-alpha') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-test') }}
+          tag_name: ${{ needs.prepare-release-tag.outputs.release_tag || github.ref_name }}
+          prerelease: ${{ contains(needs.prepare-release-tag.outputs.release_tag || github.ref_name, '-rc') || contains(needs.prepare-release-tag.outputs.release_tag || github.ref_name, '-alpha') || contains(needs.prepare-release-tag.outputs.release_tag || github.ref_name, '-beta') || contains(needs.prepare-release-tag.outputs.release_tag || github.ref_name, '-test') }}
           files: dist-release/**
 ```
 
@@ -875,6 +884,7 @@ lint/test/build artifacts
         |
         v
 push vX.Y.Z tag with GITHUB_TOKEN
+   (push-release-tag job)
         |
         v
    ONE release owner only

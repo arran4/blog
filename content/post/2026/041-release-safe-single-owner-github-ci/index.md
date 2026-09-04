@@ -87,8 +87,8 @@ jobs:
               ;;
             workflow_dispatch)
               run_code_checks=true
-              # A manual release mode prepares/pushes a tag only.
-              # The resulting tag-push workflow is the release owner.
+              # A manual release mode pushes the tag and publishes the release in the same run.
+              # It sets run_release=true to publish immediately.
               ;;
             release)
               # Downstream notification only. Never create the same release again here.
@@ -106,7 +106,7 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
 ```yaml
   manual-release:
     name: Publish manual release
-    needs: [prepare-release-tag, build-release-artifacts]
+    needs: [prepare-release-tag, test, build-release-artifacts]
     if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') }}
     runs-on: ubuntu-latest
     permissions:
@@ -128,6 +128,13 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
           fi
           git tag "$TAG"
           git push origin "$TAG"
+      - name: Collect release artifacts
+        uses: actions/download-artifact@v5
+        with:
+          path: dist-release
+          pattern: '*-release'
+          merge-multiple: true
+
       - name: Create published GitHub release and upload assets
         uses: softprops/action-gh-release@v2
         with:
@@ -151,13 +158,14 @@ If the design specifically requires the pushed tag to start a new workflow and t
 
 ## Non-GoReleaser projects
 
-After tested artifacts fan in, have exactly one tag-push job create the published release and attach the files.
+After tested artifacts fan in, the one release owner job creates the published release and attaches the files. We run it for both external tag pushes and manual mode (where it depends on the tag being pushed).
 
 ```yaml
   github-release:
     name: Publish GitHub release
-    needs: [route, build-release-artifacts]
-    if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
+    # Wait for the manual tag push if in manual mode, otherwise just wait for artifacts
+    needs: [route, build-release-artifacts, push-release-tag]
+    if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -174,7 +182,8 @@ After tested artifacts fan in, have exactly one tag-push job create the publishe
         uses: softprops/action-gh-release@v2
         with:
           draft: false
-          prerelease: ${{ contains(github.ref_name, '-rc') || contains(github.ref_name, '-alpha') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-test') }}
+          tag_name: ${{ needs.prepare-release-tag.outputs.release_tag || github.ref_name }}
+          prerelease: ${{ contains(needs.prepare-release-tag.outputs.release_tag || github.ref_name, '-rc') || contains(needs.prepare-release-tag.outputs.release_tag || github.ref_name, '-alpha') || contains(needs.prepare-release-tag.outputs.release_tag || github.ref_name, '-beta') || contains(needs.prepare-release-tag.outputs.release_tag || github.ref_name, '-test') }}
           generate_release_notes: true
           files: dist-release/**
 ```
@@ -187,12 +196,12 @@ If a project intentionally requires human-reviewed drafts, the same single-owner
 
 If GoReleaser publishes the GitHub Release, **GoReleaser is the release owner**.
 
-Run it from the tag-push release lane only:
+Run it as the one release lane, providing the explicit tag to GoReleaser via `GORELEASER_CURRENT_TAG` so it works even when `github.ref` is a branch (during manual mode):
 
 ```yaml
   goreleaser:
-    needs: [route, test]
-    if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
+    needs: [route, test, push-release-tag]
+    if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -200,6 +209,7 @@ Run it from the tag-push release lane only:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          fetch-tags: true
       - uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
@@ -207,6 +217,7 @@ Run it from the tag-push release lane only:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GORELEASER_CURRENT_TAG: ${{ needs.prepare-release-tag.outputs.release_tag || github.ref_name }}
 ```
 
 Do not add `softprops/action-gh-release`, `gh release create`, or a second release-producing `release: published` lane around it.
@@ -241,7 +252,7 @@ That is recovery against the canonical release, not a second publication path.
 When updating repositories generated from the older articles:
 
 1. Identify every place that can create a GitHub Release: `gh release create`, `softprops/action-gh-release`, GoReleaser, language-specific publishers, and API calls to `/releases`.
-2. Choose exactly one owner for the tag. Prefer the tag-push lane.
+2. Choose exactly one owner for the tag. Prefer the same-run manual/push lane.
 3. For manual `release-*` dispatch, compute the tag, push it, and publish the release in the same run (or require a `TAG_PUSH_TOKEN`).
 4. Remove `publish-draft` jobs that independently create a draft when another release creator exists.
 5. Remove placeholder `promote-release` jobs. If drafts are genuinely required, promote the exact existing release by ID.
@@ -265,14 +276,19 @@ These searches are useful across a set of repositories:
 
 A repository is not automatically broken merely because it contains one of those strings. The dangerous condition is multiple release owners reaching the same tag/version.
 
-### Migration/audit guidance for the dangerous tag-push assumption
+### Migration/audit guidance for dangerous tag-push assumptions
 
-Audit repositories for this dangerous pattern:
-- `actions/checkout` using default credentials
-- followed by `git push origin "$TAG"`
-- combined with the expectation that `on: push: tags` starts another run.
+Audit repositories for these two dangerous patterns:
 
-This pattern silently creates tags without triggering the expected release publication workflow. Update these repositories to either publish the release within the manual workflow run or enforce the use of a `TAG_PUSH_TOKEN` to successfully trigger the downstream tag-push workflow.
+1. **Assuming default `GITHUB_TOKEN` tag pushes start another workflow:**
+   - `actions/checkout` using default credentials
+   - followed by `git push origin "$TAG"`
+   - combined with the expectation that `on: push: tags` starts the release run.
+   *Fix:* Update these repositories to publish the release directly within the manual workflow run.
+
+2. **Using a PAT/App token solely to force the second run without validation:**
+   - Repositories that added a `TAG_PUSH_TOKEN` to bypass the `GITHUB_TOKEN` limitation but fail to validate it.
+   *Fix:* If you genuinely require the strict tag-push-owner model, state that the credential must have **Contents write permission**. A non-empty secret check (`if: env.TAG_PUSH_TOKEN != ''`) does not prove the token is usable or has the correct permissions. Prefer the same-run manual publication model to remove this credential requirement entirely.
 
 ## Agent rule
 
