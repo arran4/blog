@@ -362,12 +362,15 @@ If the repository stores a source version (`CMakeLists.txt`, `package.json`, `pu
 
 ## Step 5: release validation gate
 
-To ensure a release is only created if the required validation passes, introduce a strict aggregation gate. The generated `release-validation` job must directly `need` every applicable required validation lane. Explicitly require `success` for each lane that discovery says applies. Do not use a broad `always()` that might mask uninspected failures.
+To ensure a release is only created if the required validation passes, introduce a strict aggregation gate. The generated `release-validation` job must directly `need` every applicable required validation lane. Explicitly require `success` for each lane that discovery says applies. Do not use a broad `always()` that might mask unverified failures.
+
+*(This is an illustrative partial example. You must require **every actual required validation job** for your repository.)*
 
 ```yaml
   release-validation:
     name: Release Validation Gate
-    # Depend on all language checks discovered dynamically
+    # MUST depend on all language checks discovered dynamically for your repository!
+    # (e.g., dart-checks, cpp-checks, make-checks)
     needs: [route, discover, go-checks, node-checks]
     if: |
       always() &&
@@ -512,7 +515,7 @@ If the repository type is already obvious, hard-coded comments/outputs are often
 
 ---
 
-## Step 7: language checks
+## Step 8: language checks
 
 Each language lane should be explicit enough to understand and debug.
 
@@ -575,7 +578,7 @@ Use the project's existing build/test interface. Prefer `make`, `make test`, pro
 
 ---
 
-## Step 8: autofix lane
+## Step 9: autofix lane
 
 Autofix is for deterministic mechanical fixes. It should be explicit manual/scheduled automation, not surprise commits from ordinary PR validation.
 
@@ -597,7 +600,7 @@ Open a focused PR only when the working tree actually changed. Use a stable bran
 
 ---
 
-## Step 9: build artifacts
+## Step 10: build artifacts
 
 Build jobs should be separate from GitHub Release creation. This lets validation/release policy stay clear and prevents builders from becoming accidental competing publishers.
 
@@ -622,7 +625,7 @@ These Actions artifacts are staging inputs. They are not a reason to create an i
 
 ---
 
-## Step 10: release ownership decision
+## Step 11: release ownership decision
 
 Before writing publisher jobs, choose one of these paths:
 

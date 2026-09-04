@@ -100,11 +100,13 @@ jobs:
 
 Keep the manual and external-tag paths mutually exclusive so they cannot create competing releases. We introduce a common `release-context` job that runs for BOTH `push` tags and `workflow_dispatch` manual releases *after* all validation gates successfully pass. It normalizes the tag, safely pushes it if it was a manual request, and exports the tag for downstream publishers.
 
+*(This snippet is schematic. In a complete workflow, this gate must explicitly depend on every repository-appropriate validation job—see `042` for the full dynamic gate pattern.)*
+
 ```yaml
   release-validation:
     name: Release Validation Gate
-    needs: [route, prepare-release-tag]
-    # In a real workflow, depend on all actual test jobs and require success if applicable.
+    needs: [route, prepare-release-tag, test] # <-- depend on all actual required tests
+    if: ${{ !failure() && !cancelled() && needs.test.result == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - run: echo "Validation complete"
