@@ -1,0 +1,4 @@
+1. Update `.cspell.json` to include the missing words: `kgithub`, `prereleases`.
+2. As per memory: `jq '.words += ["new_word"] | .words |= sort | .words |= unique' .cspell.json > tmp.json && mv tmp.json .cspell.json`. I'll do this for `kgithub` and `prereleases`.
+3. Check `cspell` locally again.
+4. Run pre-commit and submit.
