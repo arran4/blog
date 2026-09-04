@@ -296,6 +296,20 @@ Audit repositories for these two dangerous patterns:
    - Repositories that added a `TAG_PUSH_TOKEN` to bypass the `GITHUB_TOKEN` limitation but fail to validate it.
    *Fix:* If you genuinely require the strict tag-push-owner model, state that the credential must have **Contents write permission**. A non-empty secret check (`if: env.TAG_PUSH_TOKEN != ''`) does not prove the token is usable or has the correct permissions. Prefer the same-run manual publication model to remove this credential requirement entirely.
 
+### Migration/audit guidance for dangerous tag-push assumptions
+
+Audit repositories for these two dangerous patterns:
+
+1. **Assuming default `GITHUB_TOKEN` tag pushes start another workflow:**
+   - `actions/checkout` using default credentials
+   - followed by `git push origin "$TAG"`
+   - combined with the expectation that `on: push: tags` starts the release run.
+   *Fix:* Update these repositories to publish the release directly within the manual workflow run.
+
+2. **Using a PAT/App token solely to force the second run without validation:**
+   - Repositories that added a `TAG_PUSH_TOKEN` to bypass the `GITHUB_TOKEN` limitation but fail to validate it.
+   *Fix:* If you genuinely require the strict tag-push-owner model, state that the credential must have **Contents write permission**. A non-empty secret check (`if: env.TAG_PUSH_TOKEN != ''`) does not prove the token is usable or has the correct permissions. Prefer the same-run manual publication model to remove this credential requirement entirely.
+
 ## Agent rule
 
 When generating or upgrading an entire CI workflow, use the current general guide and keep this article as the focused release-safety reference:

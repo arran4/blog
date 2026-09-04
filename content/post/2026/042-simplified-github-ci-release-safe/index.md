@@ -272,15 +272,13 @@ jobs:
           echo "is_nightly=$is_nightly" >> "$GITHUB_OUTPUT"
 ```
 
-
+This is the important behaviour change from older versions of the guide: **manual `release-*` dispatch does not publish a release in that same run**.
 
 ---
 
 ## Step 4: prepare the next release tag
 
-The unified release path requires one validated tag.
-
-**Recovery semantics:** After a tag is created and pushed, if the subsequent publication fails (e.g. network error), a normal auto-incrementing re-run must not be used as it will silently advance to a completely new version. Recovery must explicitly reuse the exact same tag by providing it via `release_version_override`. The workflow will verify the remote tag correctly points to the validated commit and safely resume publication.
+The manual release path calculates one validated tag.
 
 ```yaml
   prepare-release-tag:
@@ -324,9 +322,9 @@ The unified release path requires one validated tag.
               release-major) level="major"; suffix="" ;;
               release-minor) level="minor"; suffix="" ;;
               release-patch) level="patch"; suffix="" ;;
-              release-rc) level="patch"; suffix="rc" ;;
+              release-test)  level="patch"; suffix="test" ;;
+              release-rc)    level="patch"; suffix="rc" ;;
               release-alpha) level="patch"; suffix="alpha" ;;
-              release-test) level="patch"; suffix="test" ;;
               *) echo "Unsupported release mode: $MODE" >&2; exit 1 ;;
             esac
 
@@ -341,7 +339,6 @@ The unified release path requires one validated tag.
           }
 
           if git rev-parse "$next_tag" >/dev/null 2>&1; then
-            # Safe recovery semantics: verify existing tag against remote
             REMOTE_TAG_SHA=$(git ls-remote --tags origin "refs/tags/$next_tag" | awk '{print $1}')
             if [[ "$REMOTE_TAG_SHA" == "${GITHUB_SHA}" ]]; then
               echo "Tag $next_tag exists and points to GITHUB_SHA. Safe to retry."
@@ -360,19 +357,31 @@ The unified release path requires one validated tag.
           echo "next_version=${maj:-0}.${min:-0}.$(( ${pat:-0} + 1 ))-SNAPSHOT" >> "$GITHUB_OUTPUT"
 ```
 
+If the repository stores a source version (`CMakeLists.txt`, `package.json`, `pubspec.yaml`, etc.), do not blindly bump from stale source text. Determine the correct version policy for the project and avoid reusing an already-published tag.
+
 ---
 
-## Step 5: Release Context & Validation Gate
+## Step 5: release validation and context gate
 
-Keep the manual and external-tag paths mutually exclusive so they cannot create competing releases. We introduce a common `release-context` job that runs for BOTH `push` tags and `workflow_dispatch` manual releases *after* all validation gates successfully pass. It normalizes the tag, safely pushes it if it was a manual request, and exports the tag for downstream publishers.
+The canonical architecture requires a strict validation gate that succeeds only if all applicable repository tests pass, and a unified context job that normalizes the tag.
 
 ```yaml
+  release-validation:
+    name: Release Validation Gate
+    # Depend on all language checks discovered dynamically
+    needs: [route, discover, go-checks]
+    if: |
+      always() &&
+      needs.route.result == 'success' &&
+      needs.discover.result == 'success' &&
+      (needs.discover.outputs.has_go != 'true' || needs.go-checks.result == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "All required language checks passed."
+
   release-context:
-    name: Release Context & Gate
-    # Wait for explicit validation gates before allowing ANY release to proceed.
-    # Only list jobs here that are REQUIRED and GUARANTEED to run for this repository
-    # (or define a unified validation-gate job) so this doesn't skip.
-    needs: [route, prepare-release-tag, build-release-artifacts]
+    name: Release Context
+    needs: [route, prepare-release-tag, release-validation, build-release-artifacts]
     if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     permissions:
@@ -390,7 +399,7 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
         run: |
           set -euo pipefail
 
-          TAG="${{ needs.prepare-release-tag.outputs.release_tag }}"
+          TAG="${{ needs.prepare-release-tag.outputs.release_tag || github.ref_name }}"
           echo "release_tag=$TAG" >> "$GITHUB_OUTPUT"
 
           if [[ "${{ github.event_name }}" == "push" ]]; then
@@ -406,6 +415,7 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
               exit 0
             else
               echo "Tag $TAG already exists on remote but points to a different commit ($REMOTE_TAG_SHA). Failing." >&2
+              echo "To retry a failed publication for this exact version, ensure release_version_override is used and GITHUB_SHA matches." >&2
               exit 1
             fi
           fi
@@ -423,16 +433,7 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
           )
 ```
 
-Do NOT expect the manual tag push to start another workflow when using `GITHUB_TOKEN`. This job acts as the unified bridge to the same-run publisher.
-
-### Alternative: strict tag-push-owner model
-
-If the design specifically requires the pushed tag to start a new workflow and that new release run to be the sole publisher, the tag MUST be pushed using a GitHub App installation token or PAT rather than `GITHUB_TOKEN`.
-
-- Use an explicit secret such as `TAG_PUSH_TOKEN`.
-- Fail clearly when it is absent.
-- Never silently fall back to `GITHUB_TOKEN`, because that produces a tag without the required follow-up workflow.
-- Explain this is an operational prerequisite that must be configured for each repository unless the credential is otherwise centrally supplied.
+Keep the manual and external-tag paths mutually exclusive. This `release-context` runs for *both* `push` tags and `workflow_dispatch` manual releases *after* the `release-validation` gate successfully passes. Do NOT expect the manual tag push to start another workflow when using `GITHUB_TOKEN`.
 
 ---
 
@@ -636,7 +637,7 @@ Run GoReleaser as the sole publisher in the unified release lane:
 ```yaml
   goreleaser:
     name: Run GoReleaser
-    needs: [route, discover, go-checks, release-context]
+    needs: [route, discover, release-context]
     if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' && needs.discover.outputs.has_goreleaser == 'true' }}
     runs-on: ubuntu-latest
     permissions:
@@ -649,7 +650,7 @@ Run GoReleaser as the sole publisher in the unified release lane:
       - uses: actions/setup-go@v7
         with:
           go-version: stable
-      - uses: goreleaser/goreleaser-action@v6
+      - uses: goreleaser/goreleaser-action@v7
         with:
           distribution: goreleaser
           version: latest
@@ -674,7 +675,7 @@ One job collects tested artifacts and publishes the release:
 ```yaml
   github-release:
     name: Publish GitHub release
-    needs: [route, discover, build-release-artifacts, release-context]
+    needs: [route, discover, release-context, build-release-artifacts]
     if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' && needs.discover.outputs.has_goreleaser != 'true' }}
     runs-on: ubuntu-latest
     permissions:
