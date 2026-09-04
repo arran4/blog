@@ -240,6 +240,16 @@ jobs:
                   run_build=true
                   run_release=true
                   ;;
+                publish-tag)
+                  # Internal publisher dispatch mode
+                  if [[ "${{ github.ref_type }}" != "tag" || ! "${{ github.ref }}" =~ ^refs/tags/v.* ]]; then
+                    echo "publish-tag mode requires an eligible tag context (e.g. refs/tags/v*)" >&2
+                    exit 1
+                  fi
+                  run_code_checks=true
+                  run_build=true
+                  run_release=true
+                  ;;
                 monthly-maintenance)
                   run_code_checks=true
                   is_monthly=true
