@@ -436,34 +436,41 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
             exit 0
           fi
 
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.mode }}" == "publish-tag" ]]; then
+            if [[ "${{ github.ref_type }}" != "tag" ]]; then
+              echo "Error: publish-tag mode invoked on a non-tag ref." >&2
+              exit 1
+            fi
+            echo "Running in internal publisher mode; tag is immutable context."
+            exit 0
+          fi
+
           git fetch --tags --force
           REMOTE_TAG_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
 
           if [[ -n "$REMOTE_TAG_SHA" ]]; then
             if [[ "$REMOTE_TAG_SHA" == "${GITHUB_SHA}" ]]; then
               echo "Tag $TAG already exists on remote and points to the correct SHA. Continuing safely."
-              exit 0
             else
               echo "Tag $TAG already exists on remote but points to a different commit ($REMOTE_TAG_SHA). Failing." >&2
               exit 1
             fi
+          else
+            git tag "$TAG" "${GITHUB_SHA}"
+            git push origin "$TAG" || (
+              VERIFY_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
+              if [[ "$VERIFY_SHA" == "${GITHUB_SHA}" ]]; then
+                echo "Tag successfully verified on remote after push error."
+              else
+                echo "Tag push failed and remote verification failed." >&2
+                exit 1
+              fi
+            )
           fi
-
-          git tag "$TAG" "${GITHUB_SHA}"
-
-          git push origin "$TAG" || (
-            VERIFY_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
-            if [[ "$VERIFY_SHA" == "${GITHUB_SHA}" ]]; then
-              echo "Tag successfully verified on remote after push error."
-            else
-              echo "Tag push failed and remote verification failed." >&2
-              exit 1
-            fi
-          )
 
           # Explicitly dispatch the publisher workflow at the new tag ref
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            gh workflow run "${{ github.workflow }}" --ref "$TAG"
+            gh workflow run "ci.yml" --ref "$TAG" -f mode="publish-tag"
           fi
 ```
 
