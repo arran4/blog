@@ -236,9 +236,9 @@ jobs:
                 release-*)
                   # A manual release mode pushes the tag and publishes the release in the same run.
                   # It sets run_release=true to publish immediately.
+                  run_code_checks=true
                   run_build=true
                   run_release=true
-                  run_code_checks=true
                   ;;
                 monthly-maintenance)
                   run_code_checks=true
@@ -271,8 +271,6 @@ jobs:
           echo "is_monthly=$is_monthly" >> "$GITHUB_OUTPUT"
           echo "is_nightly=$is_nightly" >> "$GITHUB_OUTPUT"
 ```
-
-This is the important behaviour change from older versions of the guide: **manual `release-*` dispatch does not publish a release in that same run**.
 
 ---
 
@@ -339,6 +337,7 @@ The manual release path calculates one validated tag.
           }
 
           if git rev-parse "$next_tag" >/dev/null 2>&1; then
+            # Safe recovery semantics: verify existing tag against remote
             REMOTE_TAG_SHA=$(git ls-remote --tags origin "refs/tags/$next_tag" | awk '{print $1}')
             if [[ "$REMOTE_TAG_SHA" == "${GITHUB_SHA}" ]]; then
               echo "Tag $next_tag exists and points to GITHUB_SHA. Safe to retry."
@@ -361,24 +360,33 @@ If the repository stores a source version (`CMakeLists.txt`, `package.json`, `pu
 
 ---
 
-## Step 5: release validation and context gate
+## Step 5: release validation gate
 
-The canonical architecture requires a strict validation gate that succeeds only if all applicable repository tests pass, and a unified context job that normalizes the tag.
+To ensure a release is only created if the required validation passes, introduce a strict aggregation gate. The generated `release-validation` job must directly `need` every applicable required validation lane. Explicitly require `success` for each lane that discovery says applies. Do not use a broad `always()` that might mask uninspected failures.
 
 ```yaml
   release-validation:
     name: Release Validation Gate
     # Depend on all language checks discovered dynamically
-    needs: [route, discover, go-checks]
+    needs: [route, discover, go-checks, node-checks]
     if: |
       always() &&
       needs.route.result == 'success' &&
       needs.discover.result == 'success' &&
-      (needs.discover.outputs.has_go != 'true' || needs.go-checks.result == 'success')
+      (needs.discover.outputs.has_go != 'true' || needs.go-checks.result == 'success') &&
+      (needs.discover.outputs.has_node != 'true' || needs.node-checks.result == 'success')
     runs-on: ubuntu-latest
     steps:
       - run: echo "All required language checks passed."
+```
 
+---
+
+## Step 6: unified release context & gate
+
+Keep the manual and external-tag paths mutually exclusive so they cannot create competing releases. We introduce a common `release-context` job that runs for BOTH `push` tags and `workflow_dispatch` manual releases *after* all validation gates successfully pass. It normalizes the tag, safely pushes it if it was a manual request, and exports the tag for downstream publishers.
+
+```yaml
   release-context:
     name: Release Context
     needs: [route, prepare-release-tag, release-validation, build-release-artifacts]
@@ -399,7 +407,7 @@ The canonical architecture requires a strict validation gate that succeeds only 
         run: |
           set -euo pipefail
 
-          TAG="${{ needs.prepare-release-tag.outputs.release_tag || github.ref_name }}"
+          TAG="${{ needs.prepare-release-tag.outputs.release_tag }}"
           echo "release_tag=$TAG" >> "$GITHUB_OUTPUT"
 
           if [[ "${{ github.event_name }}" == "push" ]]; then
@@ -415,7 +423,6 @@ The canonical architecture requires a strict validation gate that succeeds only 
               exit 0
             else
               echo "Tag $TAG already exists on remote but points to a different commit ($REMOTE_TAG_SHA). Failing." >&2
-              echo "To retry a failed publication for this exact version, ensure release_version_override is used and GITHUB_SHA matches." >&2
               exit 1
             fi
           fi
@@ -433,11 +440,20 @@ The canonical architecture requires a strict validation gate that succeeds only 
           )
 ```
 
-Keep the manual and external-tag paths mutually exclusive. This `release-context` runs for *both* `push` tags and `workflow_dispatch` manual releases *after* the `release-validation` gate successfully passes. Do NOT expect the manual tag push to start another workflow when using `GITHUB_TOKEN`.
+Do NOT expect the manual tag push to start another workflow when using `GITHUB_TOKEN`. This job acts as the unified bridge to the same-run publisher.
+
+### Alternative: strict tag-push-owner model
+
+If the design specifically requires the pushed tag to start a new workflow and that new release run to be the sole publisher, the tag MUST be pushed using a GitHub App installation token or PAT rather than `GITHUB_TOKEN`.
+
+- Use an explicit secret such as `TAG_PUSH_TOKEN`.
+- Fail clearly when it is absent.
+- Never silently fall back to `GITHUB_TOKEN`, because that produces a tag without the required follow-up workflow.
+- Explain this is an operational prerequisite that must be configured for each repository unless the credential is otherwise centrally supplied.
 
 ---
 
-## Step 6: capability discovery
+## Step 7: capability discovery
 
 Discovery should reflect the actual repository and normally remain lightweight:
 

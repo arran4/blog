@@ -101,11 +101,17 @@ jobs:
 Keep the manual and external-tag paths mutually exclusive so they cannot create competing releases. We introduce a common `release-context` job that runs for BOTH `push` tags and `workflow_dispatch` manual releases *after* all validation gates successfully pass. It normalizes the tag, safely pushes it if it was a manual request, and exports the tag for downstream publishers.
 
 ```yaml
+  release-validation:
+    name: Release Validation Gate
+    needs: [route, prepare-release-tag]
+    # In a real workflow, depend on all actual test jobs and require success if applicable.
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Validation complete"
+
   release-context:
     name: Release Context & Gate
-    # Wait for explicit validation gates before allowing ANY release to proceed.
-    # Only list jobs here that are REQUIRED and GUARANTEED to run for this repository.
-    needs: [route, prepare-release-tag, build-release-artifacts]
+    needs: [route, prepare-release-tag, release-validation, build-release-artifacts]
     if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     permissions:
@@ -123,7 +129,7 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
         run: |
           set -euo pipefail
 
-          TAG="${{ needs.prepare-release-tag.outputs.release_tag }}"
+          TAG="${{ needs.prepare-release-tag.outputs.release_tag || github.ref_name }}"
           echo "release_tag=$TAG" >> "$GITHUB_OUTPUT"
 
           if [[ "${{ github.event_name }}" == "push" ]]; then
@@ -139,6 +145,7 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
               exit 0
             else
               echo "Tag $TAG already exists on remote but points to a different commit ($REMOTE_TAG_SHA). Failing." >&2
+              echo "To retry a failed publication for this exact version, ensure release_version_override is used and GITHUB_SHA matches." >&2
               exit 1
             fi
           fi
@@ -281,20 +288,6 @@ These searches are useful across a set of repositories:
 ```
 
 A repository is not automatically broken merely because it contains one of those strings. The dangerous condition is multiple release owners reaching the same tag/version.
-
-### Migration/audit guidance for dangerous tag-push assumptions
-
-Audit repositories for these two dangerous patterns:
-
-1. **Assuming default `GITHUB_TOKEN` tag pushes start another workflow:**
-   - `actions/checkout` using default credentials
-   - followed by `git push origin "$TAG"`
-   - combined with the expectation that `on: push: tags` starts the release run.
-   *Fix:* Update these repositories to publish the release directly within the manual workflow run.
-
-2. **Using a PAT/App token solely to force the second run without validation:**
-   - Repositories that added a `TAG_PUSH_TOKEN` to bypass the `GITHUB_TOKEN` limitation but fail to validate it.
-   *Fix:* If you genuinely require the strict tag-push-owner model, state that the credential must have **Contents write permission**. A non-empty secret check (`if: env.TAG_PUSH_TOKEN != ''`) does not prove the token is usable or has the correct permissions. Prefer the same-run manual publication model to remove this credential requirement entirely.
 
 ### Migration/audit guidance for dangerous tag-push assumptions
 
