@@ -59,7 +59,7 @@ When upgrading an existing repository, inspect the existing workflow and preserv
 
 1. **Route events explicitly.** Jobs should not infer release intent independently.
 2. **One GitHub Release owner per tag.** This is the release-safety invariant.
-3. **Manual release dispatch publishes the release in its own run, or uses a specific PAT/App to trigger a downstream release run.**
+3. **Manual release dispatch explicitly dispatches the publisher workflow using `GITHUB_TOKEN`, or uses a specific PAT/App to trigger a downstream release run.**
 4. **`release: published` is downstream.** It must not route back into the primary publisher.
 5. **If GoReleaser publishes the GitHub Release, GoReleaser is the sole release owner.**
 6. **Do not create a parallel `draft: true` release merely to collect artifacts.** Artifact jobs can use Actions artifacts until the release owner publishes them.
@@ -119,6 +119,7 @@ on:
           - release-rc
           - release-alpha
           - monthly-maintenance
+          - publish-tag
       release_version_override:
         description: "Optional explicit release version, for example 2.4.0 or 2.4.0-rc.2"
         required: false
@@ -234,8 +235,17 @@ jobs:
                   run_build=true
                   ;;
                 release-*)
-                  # A manual release mode pushes the tag and publishes the release in the same run.
-                  # It sets run_release=true to publish immediately.
+                  # A manual release mode explicitly dispatches the publisher.
+                  run_code_checks=true
+                  run_build=true
+                  run_release=true
+                  ;;
+                publish-tag)
+                  # Internal publisher dispatch mode
+                  if [[ "${{ github.ref_type }}" != "tag" || ! "${{ github.ref }}" =~ ^refs/tags/v.* ]]; then
+                    echo "publish-tag mode requires an eligible tag context (e.g. refs/tags/v*)" >&2
+                    exit 1
+                  fi
                   run_code_checks=true
                   run_build=true
                   run_release=true
@@ -298,7 +308,7 @@ Recovery must explicitly select the already-created intended tag using `release_
         with:
           fetch-depth: 0
       - name: Setup git-tag-inc
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode != 'publish-tag' }}
         uses: arran4/git-tag-inc-action@v1
         with:
           mode: install
@@ -315,6 +325,13 @@ Recovery must explicitly select the already-created intended tag using `release_
 
           MODE="${{ inputs.mode }}"
           OVERRIDE="${{ inputs.release_version_override }}"
+
+          if [[ "$MODE" == "publish-tag" ]]; then
+            # The publisher run doesn't compute new tags
+            echo "release_tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+            echo "next_version=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
 
           git fetch --tags --force
 
@@ -406,6 +423,7 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
     outputs:
       release_tag: ${{ steps.export.outputs.release_tag }}
     steps:
@@ -416,6 +434,8 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
       - name: Normalize and push tag
         id: export
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
 
@@ -426,33 +446,45 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
             exit 0
           fi
 
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.mode }}" == "publish-tag" ]]; then
+            if [[ "${{ github.ref_type }}" != "tag" ]]; then
+              echo "Error: publish-tag mode invoked on a non-tag ref." >&2
+              exit 1
+            fi
+            echo "Running in internal publisher mode; tag is immutable context."
+            exit 0
+          fi
+
           git fetch --tags --force
           REMOTE_TAG_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
 
           if [[ -n "$REMOTE_TAG_SHA" ]]; then
             if [[ "$REMOTE_TAG_SHA" == "${GITHUB_SHA}" ]]; then
               echo "Tag $TAG already exists on remote and points to the correct SHA. Continuing safely."
-              exit 0
             else
               echo "Tag $TAG already exists on remote but points to a different commit ($REMOTE_TAG_SHA). Failing." >&2
               exit 1
             fi
+          else
+            git tag "$TAG" "${GITHUB_SHA}"
+            git push origin "$TAG" || (
+              VERIFY_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
+              if [[ "$VERIFY_SHA" == "${GITHUB_SHA}" ]]; then
+                echo "Tag successfully verified on remote after push error."
+              else
+                echo "Tag push failed and remote verification failed." >&2
+                exit 1
+              fi
+            )
           fi
 
-          git tag "$TAG" "${GITHUB_SHA}"
-
-          git push origin "$TAG" || (
-            VERIFY_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
-            if [[ "$VERIFY_SHA" == "${GITHUB_SHA}" ]]; then
-              echo "Tag successfully verified on remote after push error."
-            else
-              echo "Tag push failed and remote verification failed." >&2
-              exit 1
-            fi
-          )
+          # Explicitly dispatch the publisher workflow at the new tag ref
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            gh workflow run "ci.yml" --ref "$TAG" -f mode="publish-tag"
+          fi
 ```
 
-Do NOT expect the manual tag push to start another workflow when using `GITHUB_TOKEN`. This job acts as the unified bridge to the same-run publisher.
+Do NOT expect the manual tag push to start another workflow when using `GITHUB_TOKEN` because ordinary events are suppressed. Instead, this job explicitly dispatches the workflow at the tag, relying on the `workflow_dispatch` exception to the recursion rule. The publisher mode verifies it is running at an eligible tag and cannot recursively create/push another tag or dispatch itself again.
 
 ### Alternative: strict tag-push-owner model
 
@@ -794,8 +826,6 @@ Examples:
 - trigger documentation deployment,
 - publish a monthly/reporting entry.
 
-**Note on same-run releases:** If you use the preferred default where `GITHUB_TOKEN` manual tags publish the release in the same run, those events generally will not emit a new `release: published` workflow. Chain the required downstream work immediately after the publisher jobs in that *same* run. Reserve the `release: published` event-driven workflow strictly for externally created releases or explicit PAT-driven architectures.
-
 It must not call `gh release create`, GoReleaser release publication, or a GitHub Release creation API for the same version.
 
 ---
@@ -965,7 +995,7 @@ GitHub Release published
         +-- (Downstream jobs in SAME run)
 ```
 
-The old "tag-owner" architecture where manual dispatch pushes a tag to start a release run is not intrinsically wrong; however, it has an external credential prerequisite (e.g. `TAG_PUSH_TOKEN`). Using `GITHUB_TOKEN` to push a tag prevents the `on: push: tags` workflow from triggering. This recursion suppression is intentional duplicate prevention. By completing the release publication within the manual workflow run, we avoid the need for external secrets while remaining release-safe. Do not require a PAT/GitHub App token in the canonical same-run design solely to trigger another workflow.
+The old "tag-owner" architecture where manual dispatch pushes a tag to implicitly start a release run is not intrinsically wrong; however, it has an external credential prerequisite (e.g. `TAG_PUSH_TOKEN`) because `GITHUB_TOKEN` tag pushes do not trigger recursive workflows. Using `GITHUB_TOKEN` to push a tag and then explicitly dispatching the workflow via `workflow_dispatch` completely avoids this PAT prerequisite. Do not require a PAT/GitHub App token in the canonical explicit-dispatch design solely to trigger another workflow.
 
 This separation makes the event graph easier to reason about and prevents the duplicate/orphaned draft releases seen when manual creation, draft creation, and release-event publication are combined.
 
