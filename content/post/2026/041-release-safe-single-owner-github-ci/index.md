@@ -91,16 +91,19 @@ jobs:
     steps:
       - id: route
         shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF: ${{ github.ref }}
         run: |
           set -euo pipefail
 
           run_code_checks=false
           run_release=false
 
-          case "${{ github.event_name }}" in
+          case "$EVENT_NAME" in
             push)
               run_code_checks=true
-              if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+              if [[ "$REF" == refs/tags/v* ]]; then
                 run_release=true
               fi
               ;;
@@ -156,18 +159,25 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          REF_NAME: ${{ github.ref_name }}
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_MODE: ${{ inputs.mode }}
+          REF_TYPE: ${{ github.ref_type }}
         run: |
           set -euo pipefail
 
-          TAG="${{ needs.prepare-release-tag.outputs.release_tag || github.ref_name }}"
+          TAG="${{ needs.prepare-release-tag.outputs.release_tag }}"
+          if [[ -z "$TAG" ]]; then
+            TAG="$REF_NAME"
+          fi
           echo "release_tag=$TAG" >> "$GITHUB_OUTPUT"
 
-          if [[ "${{ github.event_name }}" == "push" ]]; then
+          if [[ "$EVENT_NAME" == "push" ]]; then
             exit 0
           fi
 
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.mode }}" == "publish-tag" ]]; then
-            if [[ "${{ github.ref_type }}" != "tag" ]]; then
+          if [[ "$EVENT_NAME" == "workflow_dispatch" && "$INPUT_MODE" == "publish-tag" ]]; then
+            if [[ "$REF_TYPE" != "tag" ]]; then
               echo "Error: publish-tag mode invoked on a non-tag ref." >&2
               exit 1
             fi
@@ -200,7 +210,7 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
           fi
 
           # Explicitly dispatch the publisher workflow at the new tag ref
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
             gh workflow run "ci.yml" --ref "$TAG" -f mode="publish-tag"
           fi
 ```
@@ -313,20 +323,21 @@ That is recovery against the canonical release, not a second publication path.
 
 When updating repositories generated from the older articles:
 
-1. Identify every place that can create a GitHub Release: `gh release create`, `softprops/action-gh-release`, GoReleaser, language-specific publishers, and API calls to `/releases`.
-2. Choose exactly one owner for the tag. Prefer the explicit-dispatch manual publication model and unified external-tag lane.
-3. For manual `release-*` dispatch, compute the tag, push it with `GITHUB_TOKEN`, and explicitly dispatch the publisher workflow at that tag ref (or explicitly document a trigger-capable GitHub App/PAT if you specifically want the raw tag push event itself to trigger).
-4. Remove `publish-draft` jobs that independently create a draft when another release creator exists.
-5. Remove placeholder `promote-release` jobs. If drafts are genuinely required, promote the exact existing release by ID.
-6. Do not set `run_release=true` for `release: published` in the primary publisher router.
-7. Remove `|| true` around release creation. Duplicate creation is an error that should be visible.
-8. Keep build/test/artifact jobs separate from the one release publication owner.
-9. Preserve release mode semantics:
+1. **Audit workflow topology**: enumerate `.github/workflows/*` and determine the smallest coherent set (see the centralized-workflow policy in `042`).
+2. Identify every place that can create a GitHub Release: `gh release create`, `softprops/action-gh-release`, GoReleaser, language-specific publishers, and API calls to `/releases`.
+3. Choose exactly one owner for the tag. Prefer the explicit-dispatch manual publication model and unified external-tag lane.
+4. For manual `release-*` dispatch, compute the tag, push it with `GITHUB_TOKEN`, and explicitly dispatch the publisher workflow at that tag ref (or explicitly document a trigger-capable GitHub App/PAT if you specifically want the raw tag push event itself to trigger).
+5. Remove `publish-draft` jobs that independently create a draft when another release creator exists.
+6. Remove placeholder `promote-release` jobs. If drafts are genuinely required, promote the exact existing release by ID.
+7. Do not set `run_release=true` for `release: published` in the primary publisher router.
+8. Remove `|| true` around release creation. Duplicate creation is an error that should be visible.
+9. Keep build/test/artifact jobs logically separate from the one release publication owner. They should remain distinct jobs with their own permissions and responsibilities, but they should normally live in the same central workflow file to enable a clear, auditable `needs:` dependency graph.
+10. Preserve release mode semantics:
    - normal major/minor/patch releases publish normally;
    - RC/alpha/beta pre-releases publish as pre-releases where appropriate;
    - test/snapshot modes must not accidentally create normal published releases;
    - note that GoReleaser `--snapshot` does not publish a normal GitHub Release.
-10. Check the Releases page for old `untagged-*` drafts. Fixing the workflow prevents new duplicates; historical drafts should be reviewed and deleted separately if they are obsolete.
+11. Check the Releases page for old `untagged-*` drafts. Fixing the workflow prevents new duplicates; historical drafts should be reviewed and deleted separately if they are obsolete.
 
 ## Audit searches
 

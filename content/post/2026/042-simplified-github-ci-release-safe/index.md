@@ -59,24 +59,31 @@ When upgrading an existing repository, inspect the existing workflow and preserv
 
 1. **Route events explicitly.** Jobs should not infer release intent independently.
 2. **One GitHub Release owner per tag.** This is the release-safety invariant.
-3. **Manual release dispatch explicitly dispatches the publisher workflow using `GITHUB_TOKEN`, or uses a specific PAT/App to trigger a downstream release run.**
-4. **`release: published` is downstream.** It must not route back into the primary publisher.
-5. **If GoReleaser publishes the GitHub Release, GoReleaser is the sole release owner.**
-6. **Do not create a parallel `draft: true` release merely to collect artifacts.** Artifact jobs can use Actions artifacts until the release owner publishes them.
-7. **If human-reviewed drafts are intentionally required, promote the exact same release ID.** Never create a second release for the tag.
-8. **Do not hide release-creation conflicts with `|| true`.** A duplicate creation attempt is a real pipeline error.
-9. **Project-type decisions are mostly install/template-time.** Runtime discovery is a safety net, not an excuse to make every job dynamically generic.
-10. **Repository visibility is auto-detected** using `github.event.repository.private` where cost policy differs.
-11. **Public repositories normally run broader checks.** Private repositories may use a conservative profile.
-12. **Keep PR-visible tests on PR events.** Do not deduplicate so aggressively that reviewers lose useful checks.
-13. **Autofix lanes are language-aware.** They should make deterministic mechanical changes and create focused PRs.
-14. **Release artifacts come only from tested build paths where practical.**
-15. **Do not invent binary release lanes for libraries/config-only repositories.**
-16. **Scheduled maintenance should not accidentally publish a release.**
-17. **Use explicit permissions and reduce them per job where practical.**
-18. **Verify current GitHub Action major versions externally before generation.** Examples in this article can age.
-19. **Preserve intentional prerelease semantics** (`rc`, `alpha`, `beta`, `test`, etc.).
-20. **Keep unrelated release systems from racing.** Multiple workflow files count as multiple possible owners too.
+3. **The default target is one centralized `.github/workflows/ci.yaml` or `ci.yml`** containing the repository's coherent CI/CD dependency graph.
+4. **The desired topology is the fewest workflow files technically necessary**, not merely preservation of historical workflow boundaries. Existing boundaries do not justify retention.
+5. **Consolidate safely.** If test, lint, build, tag validation, release gating, publication, and maintenance can safely coexist in one workflow, they should be consolidated.
+6. **Multiple workflows require a concrete boundary.** Valid exceptions include a genuinely independent reusable `workflow_call`, a materially different trust boundary, a platform/event limitation, or genuinely independent scheduled/administrative automation. If multiple workflows remain, the agent should explain why.
+7. **Superseded workflow files must be deleted.** Do not leave disabled legacy workflows, duplicate test/lint workflows, release wrappers, compatibility shells, or dead YAML files preserving the old structure.
+8. **Prefer one native GitHub Actions dependency graph.** Where release publication depends on validation, use jobs in the same workflow and native `needs:` edges rather than disconnected cross-workflow assumptions.
+9. **Event routing in a single workflow must be deliberate.** Share one workflow without granting release privileges to ordinary CI, running release jobs on branch/PR events, making valid publication impossible due to skipped `needs:`, or treating skipped/failed prerequisites as successful validation.
+10. **Manual release dispatch explicitly dispatches the publisher workflow using `GITHUB_TOKEN`, or uses a specific PAT/App to trigger a downstream release run.**
+11. **`release: published` is downstream.** It must not route back into the primary publisher.
+12. **If GoReleaser publishes the GitHub Release, GoReleaser is the sole release owner.**
+13. **Do not create a parallel `draft: true` release merely to collect artifacts.** Artifact jobs can use Actions artifacts until the release owner publishes them.
+14. **If human-reviewed drafts are intentionally required, promote the exact same release ID.** Never create a second release for the tag.
+15. **Do not hide release-creation conflicts with `|| true`.** A duplicate creation attempt is a real pipeline error.
+16. **Project-type decisions are mostly install/template-time.** Runtime discovery is a safety net, not an excuse to make every job dynamically generic. Do not encourage blindly generic workflows: the **jobs remain repository-specific**, while their orchestration should be centralized when practical.
+17. **Repository visibility is auto-detected** using `github.event.repository.private` where cost policy differs.
+18. **Public repositories normally run broader checks.** Private repositories may use a conservative profile.
+19. **Keep PR-visible tests on PR events.** Do not deduplicate so aggressively that reviewers lose useful checks.
+20. **Autofix lanes are language-aware.** They should make deterministic mechanical changes and create focused PRs.
+21. **Release artifacts come only from tested build paths where practical.**
+22. **Do not invent binary release lanes for libraries/config-only repositories.**
+23. **Scheduled maintenance should not accidentally publish a release.**
+24. **Use explicit permissions and reduce them per job where practical.**
+25. **Verify current GitHub Action major versions externally before generation.** Examples in this article can age.
+26. **Preserve intentional prerelease semantics** (`rc`, `alpha`, `beta`, `test`, etc.).
+27. **Keep unrelated release systems from racing.** Multiple workflow files count as multiple possible owners too.
 
 ---
 
@@ -194,6 +201,9 @@ jobs:
     steps:
       - id: route
         shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF: ${{ github.ref }}
         run: |
           set -euo pipefail
 
@@ -205,10 +215,10 @@ jobs:
           is_monthly=false
           is_nightly=false
 
-          case "${{ github.event_name }}" in
+          case "$EVENT_NAME" in
             push)
               run_code_checks=true
-              if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+              if [[ "$REF" == refs/tags/v* ]]; then
                 run_build=true
                 run_release=true
               fi
@@ -314,12 +324,16 @@ Recovery must explicitly select the already-created intended tag using `release_
           mode: install
       - id: tag
         shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_RELEASE_VERSION_OVERRIDE: ${{ inputs.release_version_override }}
         run: |
           set -euo pipefail
 
-          if [[ "${{ github.event_name }}" == "push" ]]; then
-            echo "release_tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
-            echo "next_version=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          if [[ "$EVENT_NAME" == "push" ]]; then
+            echo "release_tag=$REF_NAME" >> "$GITHUB_OUTPUT"
+            echo "next_version=$REF_NAME" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -328,8 +342,8 @@ Recovery must explicitly select the already-created intended tag using `release_
 
           if [[ "$MODE" == "publish-tag" ]]; then
             # The publisher run doesn't compute new tags
-            echo "release_tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
-            echo "next_version=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+            echo "release_tag=$REF_NAME" >> "$GITHUB_OUTPUT"
+            echo "next_version=$REF_NAME" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -436,18 +450,21 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_MODE: ${{ inputs.mode }}
+          REF_TYPE: ${{ github.ref_type }}
         run: |
           set -euo pipefail
 
           TAG="${{ needs.prepare-release-tag.outputs.release_tag }}"
           echo "release_tag=$TAG" >> "$GITHUB_OUTPUT"
 
-          if [[ "${{ github.event_name }}" == "push" ]]; then
+          if [[ "$EVENT_NAME" == "push" ]]; then
             exit 0
           fi
 
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.mode }}" == "publish-tag" ]]; then
-            if [[ "${{ github.ref_type }}" != "tag" ]]; then
+          if [[ "$EVENT_NAME" == "workflow_dispatch" && "$INPUT_MODE" == "publish-tag" ]]; then
+            if [[ "$REF_TYPE" != "tag" ]]; then
               echo "Error: publish-tag mode invoked on a non-tag ref." >&2
               exit 1
             fi
@@ -479,7 +496,7 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
           fi
 
           # Explicitly dispatch the publisher workflow at the new tag ref
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
             gh workflow run "ci.yml" --ref "$TAG" -f mode="publish-tag"
           fi
 ```
@@ -544,8 +561,10 @@ Discovery should reflect the actual repository and normally remain lightweight:
           fi
       - id: profile
         shell: bash
+        env:
+          IS_PRIVATE: ${{ github.event.repository.private }}
         run: |
-          if [[ "${{ github.event.repository.private }}" == "true" ]]; then
+          if [[ "$IS_PRIVATE" == "true" ]]; then
             echo "profile=private" >> "$GITHUB_OUTPUT"
           else
             echo "profile=public" >> "$GITHUB_OUTPUT"
@@ -895,9 +914,18 @@ They should never accidentally set `run_release=true`.
 
 ---
 
-## Step 20: release safety audit when upgrading an existing repo
+## Step 20: release safety and topology audit when upgrading an existing repo
 
-Before changing an existing workflow, search **all workflow files and release configuration**, not only `ci.yml`, for:
+Before changing an existing workflow, an agent or maintainer must explicitly audit the topology and release paths:
+
+1. **Enumerate all workflow files** (`.github/workflows/*`).
+2. **Identify duplicate/overlapping responsibilities** across those files.
+3. **Determine the smallest coherent workflow set.**
+4. **Consolidate where practical** into one central `ci.yaml`. Making fragmented workflows individually safe is not sufficient when their responsibilities can reasonably be represented in one coherent CI workflow.
+5. **Delete superseded files.** Do not leave dead YAML files.
+6. **Explain every workflow that remains separate.**
+
+Search **all workflow files and release configuration** for release collisions:
 
 ```text
 softprops/action-gh-release
@@ -1003,7 +1031,25 @@ This separation makes the event graph easier to reason about and prevents the du
 
 ## Migration from `006`, `011`, and `028`
 
-When a repository says it was generated from one of the older CI articles, do not merely update the pointer comment. Audit the existing workflow and migrate its release graph.
+When a repository says it was generated from one of the older CI articles, do not merely update the pointer comment. Audit the existing workflow and migrate its release graph and file topology.
+
+Example topology migration:
+
+Before:
+```text
+.github/workflows/
+  tests.yaml
+  golint.yaml
+  releaser.yml
+```
+
+After:
+```text
+.github/workflows/
+  ci.yaml
+```
+
+with `ci.yaml` containing PR/branch checks, tag validation, release validation, and the single privileged publisher with explicit event conditions and `needs:` relationships.
 
 In particular:
 
@@ -1022,10 +1068,16 @@ Use `041-release-safe-single-owner-github-ci` for the focused rationale and migr
 
 ## Final agent rule
 
-When an agent is asked to create or upgrade a repository workflow from this article:
+When an agent is asked to create or upgrade a repository workflow from this article, it should understand:
+> "Audit the whole workflow directory, preserve repository-specific behavior, and converge on the smallest coherent workflow topology—normally one central `ci.yaml`."
 
+It cannot reasonably complete a CI modernization task by saying:
+> "The existing workflow files are now individually safe, therefore no consolidation is required."
+
+The required steps are:
 - inspect the repository first,
 - preserve project-specific behaviour,
+- converge on the fewest workflow files technically necessary,
 - use current Action majors after external verification,
 - keep checks visible on PRs,
 - keep release/build lanes appropriate to the project,
