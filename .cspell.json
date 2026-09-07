@@ -239,6 +239,7 @@
     "golangci",
     "goldmark",
     "golibsass",
+    "golint",
     "goos",
     "gopkg",
     "goreleaser",
@@ -379,6 +380,7 @@
     "pubspec",
     "purell",
     "quicktest",
+    "redispatch",
     "redownloading",
     "reflog",
     "refpath",
@@ -497,6 +499,7 @@
     "yourorg",
     "yourproject",
     "yuin",
+    "zizmor",
     "zstd",
     "zutty"
   ]
