@@ -338,7 +338,7 @@ Recovery must explicitly select the already-created intended tag using `release_
           fi
 
           MODE="${{ inputs.mode }}"
-          OVERRIDE="${{ inputs.release_version_override }}"
+          OVERRIDE="$INPUT_RELEASE_VERSION_OVERRIDE"
 
           if [[ "$MODE" == "publish-tag" ]]; then
             # The publisher run doesn't compute new tags
@@ -453,10 +453,11 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
           EVENT_NAME: ${{ github.event_name }}
           INPUT_MODE: ${{ inputs.mode }}
           REF_TYPE: ${{ github.ref_type }}
+          NEEDS_RELEASE_TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
         run: |
           set -euo pipefail
 
-          TAG="${{ needs.prepare-release-tag.outputs.release_tag }}"
+          TAG="$NEEDS_RELEASE_TAG"
           echo "release_tag=$TAG" >> "$GITHUB_OUTPUT"
 
           if [[ "$EVENT_NAME" == "push" ]]; then
@@ -976,8 +977,8 @@ When source state and tags can drift, compute the intended version carefully and
 
 Before opening/merging a CI change:
 
-- parse/validate the YAML,
-- run `actionlint` where available,
+- explicitly require workflow-aware validation with `actionlint` (and `zizmor` when appropriate/available),
+- run the repository's normal test/lint/build validation,
 - inspect every `needs` dependency and referenced output,
 - ensure job conditions are valid for every triggering event,
 - ensure manual inputs are not referenced unsafely on unrelated events,
@@ -996,19 +997,21 @@ If CI is unavailable because of account/billing/quota failures, still perform st
 The preferred default flow is:
 
 ```text
-manual workflow_dispatch
+manual workflow_dispatch (release-major/minor/patch)
         |
         +-- run all required release gates
         +-- calculate the exact release tag
         +-- tag the exact validated commit
         +-- push the tag using GITHUB_TOKEN
-        |      `-- no second workflow is expected
-        `-- continue into the sole release publisher in THIS workflow run
+        |      `-- no second workflow is implicitly expected
+        `-- explicitly dispatch `gh workflow run ci.yml --ref "$TAG" -f mode=publish-tag`
 
-external/user-created semantic tag
+external/user-created semantic tag or mode=publish-tag dispatch anchored at refs/tags/v...
         |
-        `-- enter the same sole release-publisher logic from the tag-push event
+        `-- normal release gates
+        `-- exactly one publisher
 ```
+Explicitly note that `publish-tag` cannot tag or redispatch itself.
 
 In either path:
 ```text
@@ -1053,7 +1056,7 @@ with `ci.yaml` containing PR/branch checks, tag validation, release validation, 
 
 In particular:
 
-- replace manual `gh release create` with manual tag push + in-run publication, or ensure `TAG_PUSH_TOKEN` is used,
+- replace manual `gh release create` with manual tag push + explicit redispatch to a unified external-tag lane, or ensure `TAG_PUSH_TOKEN` is used,
 - remove independent `publish-draft` release creators when another publisher exists,
 - remove placeholder `promote-release` jobs,
 - stop routing `release: published` into primary `run_release`,

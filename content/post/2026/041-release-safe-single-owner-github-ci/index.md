@@ -163,10 +163,11 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
           EVENT_NAME: ${{ github.event_name }}
           INPUT_MODE: ${{ inputs.mode }}
           REF_TYPE: ${{ github.ref_type }}
+          NEEDS_RELEASE_TAG: ${{ needs.prepare-release-tag.outputs.release_tag }}
         run: |
           set -euo pipefail
 
-          TAG="${{ needs.prepare-release-tag.outputs.release_tag }}"
+          TAG="$NEEDS_RELEASE_TAG"
           if [[ -z "$TAG" ]]; then
             TAG="$REF_NAME"
           fi

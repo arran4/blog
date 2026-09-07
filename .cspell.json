@@ -380,6 +380,7 @@
     "pubspec",
     "purell",
     "quicktest",
+    "redispatch",
     "redownloading",
     "reflog",
     "refpath",
@@ -498,6 +499,7 @@
     "yourorg",
     "yourproject",
     "yuin",
+    "zizmor",
     "zstd",
     "zutty"
   ]
