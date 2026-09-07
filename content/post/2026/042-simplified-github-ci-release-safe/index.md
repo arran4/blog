@@ -208,6 +208,7 @@ jobs:
           PR_MERGED: ${{ github.event.pull_request.merged }}
           INPUT_MODE: ${{ inputs.mode }}
           EVENT_SCHEDULE: ${{ github.event.schedule }}
+          REF_TYPE: ${{ github.ref_type }}
         run: |
           set -euo pipefail
 
@@ -229,8 +230,8 @@ jobs:
               ;;
 
             pull_request)
-              if [[ "${{ github.event.action }}" == "closed" ]]; then
-                if [[ "${{ github.event.pull_request.merged }}" != "true" ]]; then
+              if [[ "$EVENT_ACTION" == "closed" ]]; then
+                if [[ "$PR_MERGED" != "true" ]]; then
                   run_cleanup=true
                 fi
               else
@@ -239,7 +240,7 @@ jobs:
               ;;
 
             workflow_dispatch)
-              case "${{ inputs.mode }}" in
+              case "$INPUT_MODE" in
                 lint-fix)
                   run_code_checks=true
                   is_nightly=true
@@ -256,7 +257,7 @@ jobs:
                   ;;
                 publish-tag)
                   # Internal publisher dispatch mode
-                  if [[ "${{ github.ref_type }}" != "tag" || ! "${{ github.ref }}" =~ ^refs/tags/v.* ]]; then
+                  if [[ "$REF_TYPE" != "tag" || ! "$REF" =~ ^refs/tags/v.* ]]; then
                     echo "publish-tag mode requires an eligible tag context (e.g. refs/tags/v*)" >&2
                     exit 1
                   fi
@@ -279,7 +280,7 @@ jobs:
 
             schedule)
               run_code_checks=true
-              if [[ "${{ github.event.schedule }}" == "0 19 1 * *" ]]; then
+              if [[ "$EVENT_SCHEDULE" == "0 19 1 * *" ]]; then
                 is_monthly=true
               else
                 is_nightly=true
@@ -332,6 +333,7 @@ Recovery must explicitly select the already-created intended tag using `release_
           EVENT_NAME: ${{ github.event_name }}
           REF_NAME: ${{ github.ref_name }}
           INPUT_RELEASE_VERSION_OVERRIDE: ${{ inputs.release_version_override }}
+          INPUT_MODE: ${{ inputs.mode }}
         run: |
           set -euo pipefail
 
@@ -722,7 +724,7 @@ Run GoReleaser as the sole publisher in the unified release lane:
   goreleaser:
     name: Run GoReleaser
     needs: [route, discover, release-context]
-    if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' && needs.discover.outputs.has_goreleaser == 'true' }}
+    if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' && needs.discover.outputs.has_goreleaser == 'true' && startsWith(github.ref, 'refs/tags/') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -760,7 +762,7 @@ One job collects tested artifacts and publishes the release:
   github-release:
     name: Publish GitHub release
     needs: [route, discover, release-context, build-release-artifacts]
-    if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' && needs.discover.outputs.has_goreleaser != 'true' }}
+    if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' && needs.discover.outputs.has_goreleaser != 'true' && startsWith(github.ref, 'refs/tags/') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
