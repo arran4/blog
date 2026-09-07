@@ -724,7 +724,7 @@ Run GoReleaser as the sole publisher in the unified release lane:
   goreleaser:
     name: Run GoReleaser
     needs: [route, discover, release-context]
-    if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' && needs.discover.outputs.has_goreleaser == 'true' && startsWith(github.ref, 'refs/tags/') }}
+    if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' && needs.discover.outputs.has_goreleaser == 'true' && startsWith(github.ref, 'refs/tags/v') && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'publish-tag')) }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -762,7 +762,7 @@ One job collects tested artifacts and publishes the release:
   github-release:
     name: Publish GitHub release
     needs: [route, discover, release-context, build-release-artifacts]
-    if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' && needs.discover.outputs.has_goreleaser != 'true' && startsWith(github.ref, 'refs/tags/') }}
+    if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' && needs.discover.outputs.has_goreleaser != 'true' && startsWith(github.ref, 'refs/tags/v') && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'publish-tag')) }}
     runs-on: ubuntu-latest
     permissions:
       contents: write

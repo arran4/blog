@@ -228,7 +228,7 @@ After tested artifacts fan in, the one release owner job creates the published r
   github-release:
     name: Publish GitHub release
     needs: [route, build-release-artifacts, release-context]
-    if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' && startsWith(github.ref, 'refs/tags/') }}
+    if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' && startsWith(github.ref, 'refs/tags/v') && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'publish-tag')) }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -265,7 +265,7 @@ Ensure the explicitly dispatched publisher has the correct tag context. Because 
 ```yaml
   goreleaser:
     needs: [route, release-context]
-    if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' && startsWith(github.ref, 'refs/tags/') }}
+    if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' && startsWith(github.ref, 'refs/tags/v') && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'publish-tag')) }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
