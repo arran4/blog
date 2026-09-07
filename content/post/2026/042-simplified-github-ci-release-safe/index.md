@@ -204,6 +204,10 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
           REF: ${{ github.ref }}
+          EVENT_ACTION: ${{ github.event.action }}
+          PR_MERGED: ${{ github.event.pull_request.merged }}
+          INPUT_MODE: ${{ inputs.mode }}
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
         run: |
           set -euo pipefail
 
@@ -337,7 +341,7 @@ Recovery must explicitly select the already-created intended tag using `release_
             exit 0
           fi
 
-          MODE="${{ inputs.mode }}"
+          MODE="$INPUT_MODE"
           OVERRIDE="$INPUT_RELEASE_VERSION_OVERRIDE"
 
           if [[ "$MODE" == "publish-tag" ]]; then
