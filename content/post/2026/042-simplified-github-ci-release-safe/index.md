@@ -487,7 +487,11 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
               # 2. inspect remote refs/tags/$TAG
               if git ls-remote --tags origin "refs/tags/$TAG" | grep -q "$TAG"; then
                 # 3. verify an existing tag points at the expected commit
-                REMOTE_SHA=$(git rev-list -n 1 "refs/tags/$TAG" || git rev-parse "refs/tags/$TAG")
+                # Use ^{} to peel the tag if it's annotated
+                REMOTE_SHA=$(git ls-remote --tags origin "refs/tags/$TAG^{}" | awk '{print $1}')
+                if [[ -z "$REMOTE_SHA" ]]; then
+                  REMOTE_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
+                fi
                 LOCAL_SHA=$(git rev-parse HEAD)
                 if [[ "$REMOTE_SHA" != "$LOCAL_SHA" ]]; then
                   echo "Error: Tag $TAG already exists and points to $REMOTE_SHA, not current commit $LOCAL_SHA." >&2
@@ -495,13 +499,18 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
                 fi
                 echo "Tag $TAG exists and points to current commit."
               else
-                # 4. otherwise create/push the tag
+                # 4. otherwise create/push the tag explicitly anchored to the validated commit
+                git tag "$TAG" "${GITHUB_SHA}"
                 git push origin "refs/tags/$TAG"
               fi
 
-              # 5. verify remote state
-              if ! git ls-remote --tags origin "refs/tags/$TAG" | grep -q "$TAG"; then
-                echo "Error: Tag push failed and remote verification failed." >&2
+              # 5. verify remote state points to expected commit
+              VERIFY_SHA=$(git ls-remote --tags origin "refs/tags/$TAG^{}" | awk '{print $1}')
+              if [[ -z "$VERIFY_SHA" ]]; then
+                VERIFY_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
+              fi
+              if [[ "$VERIFY_SHA" != "${GITHUB_SHA}" ]]; then
+                echo "Error: Tag push failed or remote verification failed (expected ${GITHUB_SHA}, got ${VERIFY_SHA})." >&2
                 exit 1
               fi
               echo "Tag successfully verified on remote."

@@ -187,7 +187,12 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
           fi
 
           git fetch --tags --force
-          REMOTE_TAG_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
+
+          # Check for existing tag, handling annotated tags with ^{}
+          REMOTE_TAG_SHA=$(git ls-remote --tags origin "refs/tags/$TAG^{}" | awk '{print $1}')
+          if [[ -z "$REMOTE_TAG_SHA" ]]; then
+            REMOTE_TAG_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
+          fi
 
           if [[ -n "$REMOTE_TAG_SHA" ]]; then
             if [[ "$REMOTE_TAG_SHA" == "${GITHUB_SHA}" ]]; then
@@ -198,16 +203,19 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
               exit 1
             fi
           else
+            # Explicitly anchor the new tag to the validated commit before pushing
             git tag "$TAG" "${GITHUB_SHA}"
-            git push origin "$TAG" || (
-              VERIFY_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
-              if [[ "$VERIFY_SHA" == "${GITHUB_SHA}" ]]; then
-                echo "Tag successfully verified on remote after push error."
-              else
-                echo "Tag push failed and remote verification failed." >&2
-                exit 1
-              fi
-            )
+            git push origin "refs/tags/$TAG"
+          fi
+
+          # Final verification to ensure the remote tag matches our expected commit
+          VERIFY_SHA=$(git ls-remote --tags origin "refs/tags/$TAG^{}" | awk '{print $1}')
+          if [[ -z "$VERIFY_SHA" ]]; then
+            VERIFY_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
+          fi
+          if [[ "$VERIFY_SHA" != "${GITHUB_SHA}" ]]; then
+            echo "Tag push failed or remote verification failed (expected ${GITHUB_SHA}, got ${VERIFY_SHA})." >&2
+            exit 1
           fi
 
           # Explicitly dispatch the publisher workflow at the new tag ref
