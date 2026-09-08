@@ -187,7 +187,12 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
           fi
 
           git fetch --tags --force
-          REMOTE_TAG_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
+
+          # Check for existing tag, handling annotated tags with ^{}
+          REMOTE_TAG_SHA=$(git ls-remote --tags origin "refs/tags/$TAG^{}" | awk '{print $1}')
+          if [[ -z "$REMOTE_TAG_SHA" ]]; then
+            REMOTE_TAG_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
+          fi
 
           if [[ -n "$REMOTE_TAG_SHA" ]]; then
             if [[ "$REMOTE_TAG_SHA" == "${GITHUB_SHA}" ]]; then
@@ -198,16 +203,19 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
               exit 1
             fi
           else
+            # Explicitly anchor the new tag to the validated commit before pushing
             git tag "$TAG" "${GITHUB_SHA}"
-            git push origin "$TAG" || (
-              VERIFY_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
-              if [[ "$VERIFY_SHA" == "${GITHUB_SHA}" ]]; then
-                echo "Tag successfully verified on remote after push error."
-              else
-                echo "Tag push failed and remote verification failed." >&2
-                exit 1
-              fi
-            )
+            git push origin "refs/tags/$TAG"
+          fi
+
+          # Final verification to ensure the remote tag matches our expected commit
+          VERIFY_SHA=$(git ls-remote --tags origin "refs/tags/$TAG^{}" | awk '{print $1}')
+          if [[ -z "$VERIFY_SHA" ]]; then
+            VERIFY_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
+          fi
+          if [[ "$VERIFY_SHA" != "${GITHUB_SHA}" ]]; then
+            echo "Tag push failed or remote verification failed (expected ${GITHUB_SHA}, got ${VERIFY_SHA})." >&2
+            exit 1
           fi
 
           # Explicitly dispatch the publisher workflow at the new tag ref
@@ -216,7 +224,7 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
           fi
 ```
 
-Do NOT expect the manual tag push to start another workflow when using `GITHUB_TOKEN` because ordinary events are suppressed. Instead, this job explicitly dispatches the workflow at the tag, relying on the `workflow_dispatch` exception to the recursion rule. The publisher mode verifies it is running at an eligible tag and cannot recursively create/push another tag or dispatch itself again.
+Do NOT expect the manual tag push to start another workflow when using `GITHUB_TOKEN` because ordinary events generated using `GITHUB_TOKEN` are suppressed to prevent recursive workflow loops. A workflow run pushing a tag using the normal `GITHUB_TOKEN` must NOT be assumed to recursively trigger an `on: push: tags:` event. Instead, the preferred secret-free architecture explicitly dispatches the workflow at the new tag, relying on `workflow_dispatch` and `repository_dispatch` which are the relevant recursion exceptions. Do not teach readers to introduce a PAT merely to make the tag push recursively trigger another workflow unless they intentionally choose and document that alternate architecture. The publisher mode verifies it is running at an eligible tag and cannot recursively create/push another tag or dispatch itself again.
 
 
 
@@ -269,6 +277,7 @@ Ensure the explicitly dispatched publisher has the correct tag context. Because 
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      # packages: write # (Uncomment if GoReleaser publishes to GHCR/GitHub Packages)
     steps:
       - uses: actions/checkout@v7
         with:
@@ -332,7 +341,13 @@ When updating repositories generated from the older articles:
 6. Remove placeholder `promote-release` jobs. If drafts are genuinely required, promote the exact existing release by ID.
 7. Do not set `run_release=true` for `release: published` in the primary publisher router.
 8. Remove `|| true` around release creation. Duplicate creation is an error that should be visible.
-9. Keep build/test/artifact jobs logically separate from the one release publication owner. They should remain distinct jobs with their own permissions and responsibilities, but they should normally live in the same central workflow file to enable a clear, auditable `needs:` dependency graph.
+9. Keep build/test/artifact responsibilities logically separate from the one release publication owner. This means:
+
+- logically separate jobs;
+- separate permissions;
+- separate responsibilities;
+
+not necessarily separate workflow files. Where practical, these jobs belong in the same central workflow specifically so their release dependency relationship can use native `needs:` edges. See [042 Simplified GitHub CI](../042-simplified-github-ci-release-safe/) for the central workflow topology.
 10. Preserve release mode semantics:
    - normal major/minor/patch releases publish normally;
    - RC/alpha/beta pre-releases publish as pre-releases where appropriate;

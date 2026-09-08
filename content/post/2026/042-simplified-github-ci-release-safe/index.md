@@ -479,30 +479,45 @@ Keep the manual and external-tag paths mutually exclusive so they cannot create 
             exit 0
           fi
 
-          git fetch --tags --force
-          REMOTE_TAG_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            (
+              # 1. git fetch --tags --force
+              git fetch --tags --force origin
 
-          if [[ -n "$REMOTE_TAG_SHA" ]]; then
-            if [[ "$REMOTE_TAG_SHA" == "${GITHUB_SHA}" ]]; then
-              echo "Tag $TAG already exists on remote and points to the correct SHA. Continuing safely."
-            else
-              echo "Tag $TAG already exists on remote but points to a different commit ($REMOTE_TAG_SHA). Failing." >&2
-              exit 1
-            fi
-          else
-            git tag "$TAG" "${GITHUB_SHA}"
-            git push origin "$TAG" || (
-              VERIFY_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
-              if [[ "$VERIFY_SHA" == "${GITHUB_SHA}" ]]; then
-                echo "Tag successfully verified on remote after push error."
+              # 2. inspect remote refs/tags/$TAG
+              if git ls-remote --tags origin "refs/tags/$TAG" | grep -q "$TAG"; then
+                # 3. verify an existing tag points at the expected commit
+                # Use ^{} to peel the tag if it's annotated
+                REMOTE_SHA=$(git ls-remote --tags origin "refs/tags/$TAG^{}" | awk '{print $1}')
+                if [[ -z "$REMOTE_SHA" ]]; then
+                  REMOTE_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
+                fi
+                LOCAL_SHA=$(git rev-parse HEAD)
+                if [[ "$REMOTE_SHA" != "$LOCAL_SHA" ]]; then
+                  echo "Error: Tag $TAG already exists and points to $REMOTE_SHA, not current commit $LOCAL_SHA." >&2
+                  exit 1
+                fi
+                echo "Tag $TAG exists and points to current commit."
               else
-                echo "Tag push failed and remote verification failed." >&2
+                # 4. otherwise create/push the tag explicitly anchored to the validated commit
+                git tag "$TAG" "${GITHUB_SHA}"
+                git push origin "refs/tags/$TAG"
+              fi
+
+              # 5. verify remote state points to expected commit
+              VERIFY_SHA=$(git ls-remote --tags origin "refs/tags/$TAG^{}" | awk '{print $1}')
+              if [[ -z "$VERIFY_SHA" ]]; then
+                VERIFY_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}')
+              fi
+              if [[ "$VERIFY_SHA" != "${GITHUB_SHA}" ]]; then
+                echo "Error: Tag push failed or remote verification failed (expected ${GITHUB_SHA}, got ${VERIFY_SHA})." >&2
                 exit 1
               fi
+              echo "Tag successfully verified on remote."
             )
           fi
 
-          # Explicitly dispatch the publisher workflow at the new tag ref
+          # 6. explicitly dispatch the SAME central ci.yaml at that tag
           if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
             gh workflow run "ci.yml" --ref "$TAG" -f mode="publish-tag"
           fi
@@ -728,6 +743,7 @@ Run GoReleaser as the sole publisher in the unified release lane:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      # packages: write # (Uncomment if GoReleaser publishes to GHCR/GitHub Packages)
     steps:
       - uses: actions/checkout@v7
         with:
@@ -932,6 +948,31 @@ Before changing an existing workflow, an agent or maintainer must explicitly aud
 5. **Delete superseded files.** Do not leave dead YAML files.
 6. **Explain every workflow that remains separate.**
 
+Add a concise failure example:
+
+```text
+BAD migration result:
+.github/workflows/ci.yaml
+but ci.yaml only has:
+  push
+  pull_request
+  external tag release
+and the previous/manual target architecture included workflow_dispatch.
+This is centralized, but functionally incomplete.
+```
+
+Then the good result:
+
+```text
+.github/workflows/ci.yaml
+contains:
+  push/PR validation
+  external tag path
+  manual release-* preparation
+  explicit publish-tag redispatch
+  one gated publisher
+```
+
 Search **all workflow files and release configuration** for release collisions:
 
 ```text
@@ -997,6 +1038,23 @@ Before opening/merging a CI change:
 If CI is unavailable because of account/billing/quota failures, still perform static validation and document what could not be exercised.
 
 ---
+
+## Explicit publisher-mode invariant
+
+Document and demonstrate that `publish-tag`:
+
+```text
+publish-tag:
+  MUST be invoked at a tag ref
+  MUST NOT calculate a new tag
+  MUST NOT create a tag
+  MUST NOT push a tag
+  MUST NOT redispatch the workflow
+  MAY run required validation
+  MAY proceed to the sole publisher after validation
+```
+
+If someone manually selects `publish-tag` while the workflow ref is a branch, the run must fail clearly. A successful no-op is not acceptable.
 
 ## Recommended release event flow
 
@@ -1093,3 +1151,8 @@ The required steps are:
 - and **prove from the event graph that one semantic tag can produce at most one GitHub Release owner path**.
 
 That last condition is part of correctness, not an optional cleanup.
+
+The agent must also answer:
+> "Did the intended manual release dispatcher survive the migration?"
+
+If not, the task is incomplete.
