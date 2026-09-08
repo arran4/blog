@@ -235,8 +235,9 @@ Example Autofix lane:
   autofix:
     name: Autofix Formatting
     needs: [route]
-    # Only run on pull requests to fix PRs specifically, rather than blind pushes
-    if: ${{ github.event_name == 'pull_request' }}
+    # Only run on pull requests explicitly from the same repository to avoid fork push failures.
+    # Fork PRs should run validation only rather than attempt pushback.
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -250,7 +251,7 @@ Example Autofix lane:
           go-version-file: go.mod
       - run: go fmt ./...
       - name: Commit fixes
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "style: auto-format code"
 ```
@@ -266,17 +267,21 @@ Example Debian/RPM packaging lane:
       - name: Build Source Debian Package
         run: |
           # Use proper debian source packaging
+          sudo apt-get install -y dpkg-dev
           dpkg-source -b .
           mkdir -p dist
-          mv ../*.dsc ../*.tar.* dist/ || true
+          mv ../*.dsc ../*.tar.* dist/
       - name: Build Source RPM Package
         run: |
           # Use proper rpm source packaging
-          rpmbuild -bs --define "_sourcedir $PWD" --define "_srcrpmdir $PWD/dist" package.spec || true
-      - uses: actions/upload-artifact@v4
+          sudo apt-get install -y rpm
+          mkdir -p dist
+          rpmbuild -bs --define "_sourcedir $PWD" --define "_srcrpmdir $PWD/dist" package.spec
+      - uses: actions/upload-artifact@v7
         with:
           name: packages
           path: dist/*
+          if-no-files-found: error
           retention-days: 1
 ```
 
@@ -291,7 +296,7 @@ Example non-GoReleaser single owner publication:
       contents: write
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: packages
           path: release-artifacts
@@ -334,7 +339,7 @@ Autofix should:
 
 ## 13. Build/artifact architecture
 
-Build artifacts should use `actions/upload-artifact@v4`.
+Build artifacts should use `actions/upload-artifact@v7`.
 **Crucial constraint:** Always set `retention-days: 1` on every `actions/upload-artifact` step to prevent storage overages. Publish/promote jobs should consume artifacts immediately in the same workflow run.
 
 ## 14. Release-version planning
@@ -403,7 +408,7 @@ Native packages (Debian, RPM, etc.) are generated as artifacts and gathered by t
 Example artifact consumption:
 ```yaml
       - name: Collect artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: dist-release
 ```
