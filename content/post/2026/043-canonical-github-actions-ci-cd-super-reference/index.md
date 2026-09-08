@@ -90,7 +90,7 @@ on:
       mode:
         type: choice
         default: lint-fix
-        options: [lint-fix, build, release-major, release-minor, release-patch, release-test, release-rc, release-alpha, monthly-maintenance]
+        options: [lint-fix, build, release-major, release-minor, release-patch, release-test, release-rc, release-alpha, monthly-maintenance, publish-tag]
       release_version_override:
         type: string
         default: ''
@@ -227,7 +227,7 @@ Example Security/Gitleaks lane:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
+      - uses: gitleaks/gitleaks-action@v3
 ```
 
 Example Autofix lane:
@@ -300,7 +300,7 @@ Example non-GoReleaser single owner publication:
         with:
           name: packages
           path: release-artifacts
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           files: release-artifacts/**
 ```
