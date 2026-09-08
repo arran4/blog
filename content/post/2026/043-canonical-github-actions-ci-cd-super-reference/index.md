@@ -263,11 +263,20 @@ Example Debian/RPM packaging lane:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: echo "Run specific dpkg-buildpackage or rpmbuild logic here"
+      - name: Build Debian Package
+        run: |
+          # Use your real repository packaging tool, e.g.:
+          # dpkg-buildpackage -us -uc -b
+          mkdir -p dist
+          touch dist/example.deb
+      - name: Build RPM Package
+        run: |
+          # rpmbuild -ba package.spec
+          touch dist/example.rpm
       - uses: actions/upload-artifact@v4
         with:
           name: packages
-          path: dist/*.deb
+          path: dist/*.*
           retention-days: 1
 ```
 
@@ -296,13 +305,18 @@ Example scheduled maintenance cleanup:
   maintenance:
     name: Monthly Cleanup
     needs: [route]
-    if: ${{ steps.route.outputs.is_maintenance == 'true' }}
+    if: ${{ needs.route.outputs.is_maintenance == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
       actions: write
     steps:
-      - run: echo "Run gh api deletions for old workflow runs here"
+      - name: Cleanup old workflow runs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # E.g., delete runs older than 30 days
+          gh api repos/${{ github.repository }}/actions/runs --paginate -q '.workflow_runs[] | select(.created_at < (now - 2592000 | todate)) | .id' | xargs -I{} gh api -X DELETE repos/${{ github.repository }}/actions/runs/{} || true
 ```
 
 
@@ -360,13 +374,26 @@ If not using GoReleaser, one generic publisher job uses `softprops/action-gh-rel
 
 Docker build lanes should integrate securely, utilizing `.Env.GITHUB_REPOSITORY | tolower` in GoReleaser templates if dynamically injecting tags.
 
+If building containers outside of GoReleaser, use the standard `docker/build-push-action`.
+
 ```yaml
-dockers_v2:
-  - images:
-      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY | tolower }}"
-    tags:
-      - "{{ .Tag }}"
-      - "{{ if not .Prerelease }}latest{{ end }}"
+  docker-build:
+    name: Docker Build
+    needs: [route]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build and push (internal cache, no release)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          load: true
+          tags: test-image:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 ```
 
 ## 20. Package/source-package publication
@@ -513,20 +540,23 @@ jobs:
       is_maintenance: ${{ steps.route.outputs.is_maintenance }}
     steps:
       - id: route
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_MODE: ${{ github.event.inputs.mode }}
         run: |
           set -euo pipefail
           is_pull_request=false
           is_manual=false
           is_release=false
           is_maintenance=false
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
             is_pull_request=true
-          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          elif [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
             is_manual=true
-            if [[ "${{ github.event.inputs.mode }}" == "publish-tag" ]]; then
+            if [[ "$INPUT_MODE" == "publish-tag" ]]; then
                 is_release=true
             fi
-          elif [[ "${{ github.event_name }}" == "schedule" ]]; then
+          elif [[ "$EVENT_NAME" == "schedule" ]]; then
             is_maintenance=true
           fi
           echo "is_pull_request=$is_pull_request" >> "$GITHUB_OUTPUT"
@@ -540,7 +570,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: echo "Run tests, lint, etc."
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go test ./...
 
   release-ready:
     name: Release Quality Gates Passed
@@ -566,16 +599,19 @@ jobs:
         with:
           go-version: '1.22'
       - name: Verify Exact Origin/Main
+        env:
+          GITHUB_REF_NAME: ${{ github.ref }}
+          GITHUB_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          if [[ "${{ github.ref }}" != "refs/heads/main" ]]; then
-            echo "Error: Manual release preparation must run on refs/heads/main"
+          if [[ "$GITHUB_REF_NAME" != "refs/heads/main" ]]; then
+            echo "Error: Manual release preparation must run on refs/heads/main, got $GITHUB_REF_NAME"
             sh -c "exit 1"
           fi
           git fetch origin main
           MAIN_SHA=$(git rev-parse origin/main)
-          if [[ "$MAIN_SHA" != "${{ github.sha }}" ]]; then
-            echo "Error: Requested release against ${{ github.sha }} but origin/main is at $MAIN_SHA"
+          if [[ "$MAIN_SHA" != "$GITHUB_SHA" ]]; then
+            echo "Error: Requested release against $GITHUB_SHA but origin/main is at $MAIN_SHA"
             sh -c "exit 1"
           fi
       - name: Calculate or recover version
@@ -587,9 +623,23 @@ jobs:
           export PATH="$(go env GOPATH)/bin:$PATH"
           if [[ -n "$RELEASE_VERSION_OVERRIDE" ]]; then
              echo "Recovering version $RELEASE_VERSION_OVERRIDE"
-             TAG_SHA=$(git rev-list -n 1 "$RELEASE_VERSION_OVERRIDE^{}" || true)
-             if [[ "$TAG_SHA" != "${{ github.sha }}" ]]; then
-                echo "Recovery failed: Tag $RELEASE_VERSION_OVERRIDE exists but not at ${{ github.sha }}"
+             # Validate shape and ensure it's a remote tag, then dereference
+             if ! [[ "$RELEASE_VERSION_OVERRIDE" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+                echo "Error: Override $RELEASE_VERSION_OVERRIDE is not a valid release tag shape."
+                sh -c "exit 1"
+             fi
+             TAG_SHA=$(git ls-remote --tags origin "refs/tags/$RELEASE_VERSION_OVERRIDE" | grep -v '{}$' | awk '{print $1}')
+             if [[ -z "$TAG_SHA" ]]; then
+                echo "Recovery failed: Tag $RELEASE_VERSION_OVERRIDE does not exist on origin."
+                sh -c "exit 1"
+             fi
+             # Dereference if it's an annotated tag by checking for the peeled ^{} ref
+             PEELED_SHA=$(git ls-remote --tags origin "refs/tags/$RELEASE_VERSION_OVERRIDE^{}" | awk '{print $1}')
+             if [[ -n "$PEELED_SHA" ]]; then
+                 TAG_SHA="$PEELED_SHA"
+             fi
+             if [[ "$TAG_SHA" != "$GITHUB_SHA" ]]; then
+                echo "Recovery failed: Tag $RELEASE_VERSION_OVERRIDE points to $TAG_SHA, not $GITHUB_SHA"
                 sh -c "exit 1"
              fi
              TAG="$RELEASE_VERSION_OVERRIDE"
@@ -598,13 +648,13 @@ jobs:
              echo "Installing pinned git-tag-inc..."
              go install github.com/arran4/git-tag-inc/cmd/git-tag-inc@90266586fefee6ffcb9fb02b00543b5959cd6c13
              # Usage composing primitives. See semver_calc wrapper from mvcommon#20 for real world policy mapping
-             TAG="$(git-tag-inc --print-version-only --skip-forwards ${RELEASE_MODE#release-})"
+             TAG="$(git-tag-inc --print-version-only --skip-forwards "${RELEASE_MODE#release-}")"
              # Create and push the tag since it was calculated and verified
              git tag "$TAG"
              git push origin "$TAG" || {
                 # Race safe remote verification
                 REMOTE_SHA=$(git ls-remote --tags origin "$TAG" | awk '{print $1}')
-                if [[ "$REMOTE_SHA" != "${{ github.sha }}" ]]; then
+                if [[ "$REMOTE_SHA" != "$GITHUB_SHA" ]]; then
                    echo "Race condition: tag pushed remotely with different SHA"
                    sh -c "exit 1"
                 fi
@@ -627,8 +677,15 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
       - name: Run GoReleaser (Sole Release Owner)
-        run: echo "goreleaser release --clean"
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
 ```
 
 ## 30. Generation acceptance checklist
