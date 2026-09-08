@@ -150,8 +150,8 @@ Example Go lane:
     needs: [route]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
@@ -165,8 +165,8 @@ Example Node lane:
     needs: [route]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: '20'
           cache: 'npm'
@@ -182,7 +182,7 @@ Example Dart lane:
     needs: [route]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - run: dart analyze --fatal-infos
@@ -196,7 +196,7 @@ Example C/CMake lane:
     needs: [route]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: cmake -B build -S .
       - run: cmake --build build
       - run: ctest --test-dir build --output-on-failure
@@ -209,9 +209,9 @@ Example Qt/C++ lane:
     needs: [route]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install Qt
-        uses: jurplel/install-qt-action@v3
+        uses: jurplel/install-qt-action@v4
       - run: qmake
       - run: make
       - run: make check
@@ -224,7 +224,7 @@ Example Security/Gitleaks lane:
     needs: [route]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@v2
@@ -242,10 +242,10 @@ Example Autofix lane:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.head_ref }}
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - run: go fmt ./...
@@ -262,21 +262,21 @@ Example Debian/RPM packaging lane:
     needs: [route, validation]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Build Debian Package
+      - uses: actions/checkout@v7
+      - name: Build Source Debian Package
         run: |
-          # Use your real repository packaging tool, e.g.:
-          # dpkg-buildpackage -us -uc -b
+          # Use proper debian source packaging
+          dpkg-source -b .
           mkdir -p dist
-          touch dist/example.deb
-      - name: Build RPM Package
+          mv ../*.dsc ../*.tar.* dist/ || true
+      - name: Build Source RPM Package
         run: |
-          # rpmbuild -ba package.spec
-          touch dist/example.rpm
+          # Use proper rpm source packaging
+          rpmbuild -bs --define "_sourcedir $PWD" --define "_srcrpmdir $PWD/dist" package.spec || true
       - uses: actions/upload-artifact@v4
         with:
           name: packages
-          path: dist/*.*
+          path: dist/*
           retention-days: 1
 ```
 
@@ -290,7 +290,7 @@ Example non-GoReleaser single owner publication:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/download-artifact@v4
         with:
           name: packages
@@ -382,11 +382,11 @@ If building containers outside of GoReleaser, use the standard `docker/build-pus
     needs: [route]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
       - name: Build and push (internal cache, no release)
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: false
@@ -569,8 +569,8 @@ jobs:
     needs: [route]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - run: go test ./...
@@ -592,12 +592,13 @@ jobs:
       contents: write
       actions: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
-          go-version: '1.22'
+          go-version-file: go.mod
+          # If no go.mod exists, specify a current major version instead
       - name: Verify Exact Origin/Main
         env:
           GITHUB_REF_NAME: ${{ github.ref }}
@@ -676,12 +677,12 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - name: Run GoReleaser (Sole Release Owner)
-        uses: goreleaser/goreleaser-action@v5
+        uses: goreleaser/goreleaser-action@v7
         with:
           distribution: goreleaser
           version: latest
