@@ -655,6 +655,15 @@ jobs:
              go install github.com/arran4/git-tag-inc/cmd/git-tag-inc@90266586fefee6ffcb9fb02b00543b5959cd6c13
              # Usage composing primitives. See semver_calc wrapper from mvcommon#20 for real world policy mapping
              TAG="$(git-tag-inc --print-version-only --skip-forwards "${RELEASE_MODE#release-}")"
+
+             # Final race guard: verify origin/main is STILL exactly GITHUB_SHA right before tagging
+             git fetch origin main
+             CURRENT_MAIN_SHA=$(git rev-parse origin/main)
+             if [[ "$CURRENT_MAIN_SHA" != "$GITHUB_SHA" ]]; then
+                echo "Race condition: origin/main advanced to $CURRENT_MAIN_SHA before tagging"
+                sh -c "exit 1"
+             fi
+
              # Create and push the tag since it was calculated and verified
              git tag "$TAG"
              git push origin "$TAG" || {
