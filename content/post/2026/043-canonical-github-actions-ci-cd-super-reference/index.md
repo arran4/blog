@@ -104,7 +104,7 @@ on:
 
 ## 6. Routing
 
-A routing job should parse events to determine if the run should execute monthly jobs, manual releases, regular CI tests, autofixes, or deployment behaviors.
+A routing job should parse events to determine if the run should execute monthly jobs, manual releases, regular CI tests, auto-fixes, or deployment behaviors.
 
 ## 7. Concurrency
 
