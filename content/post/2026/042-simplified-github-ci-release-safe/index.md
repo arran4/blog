@@ -743,7 +743,7 @@ Run GoReleaser as the sole publisher in the unified release lane:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      packages: write
+      # packages: write # (Uncomment if GoReleaser publishes to GHCR/GitHub Packages)
     steps:
       - uses: actions/checkout@v7
         with:

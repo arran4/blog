@@ -277,7 +277,7 @@ Ensure the explicitly dispatched publisher has the correct tag context. Because 
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      packages: write
+      # packages: write # (Uncomment if GoReleaser publishes to GHCR/GitHub Packages)
     steps:
       - uses: actions/checkout@v7
         with:
