@@ -6,6 +6,9 @@ tags: ["github-actions", "ci", "cd", "go", "node", "dart", "flutter", "qt", "c++
 categories: ["devops", "reference", "automation"]
 ---
 
+> **Note:** This article has been superseded. Use [/blog/post/2026/043-canonical-github-actions-ci-cd-super-reference/](/blog/post/2026/043-canonical-github-actions-ci-cd-super-reference/) to create or update this repository's CI.
+
+
 This is a practical build-up guide for creating **one large `ci.yml`** that is still readable, maintainable, and tailored to real repositories. Note that if this is provided to a repo with a pipeline already in place it's generally an upgrade request. The resulting pipeline should be bespoke to each repo, but consistently in approach, logic, parts, etc.
 
 The target outcome:
