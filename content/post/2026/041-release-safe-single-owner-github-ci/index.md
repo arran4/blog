@@ -6,6 +6,12 @@ tags: ["github-actions", "ci", "cd", "release", "automation", "goreleaser"]
 categories: ["devops", "reference", "automation"]
 ---
 
+
+> **⚠️ IMPORTANT: THIS ARTICLE IS SUPERSEDED FOR CI GENERATION**
+>
+> This article is no longer the generation specification. Use the new canonical reference at [/blog/post/2026/043-canonical-github-actions-ci-cd-super-reference/](/blog/post/2026/043-canonical-github-actions-ci-cd-super-reference/) to create or update this repository's CI.
+
+
 This is the focused release-safety companion to the current general CI guidance in `042-simplified-github-ci-release-safe`. Use `042` as the canonical document when creating or upgrading an entire CI workflow, and use this article for the detailed single-release-owner rationale and migration checks. These rules supersede the older `006-github-ci-and-deploy`, `011-simplified-github-ci`, and `028-simplified-github-ci-updated` draft-promotion examples where they conflict.
 
 The important rule is simple:

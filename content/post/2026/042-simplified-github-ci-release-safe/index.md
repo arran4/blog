@@ -6,6 +6,12 @@ tags: ["github-actions", "ci", "cd", "go", "node", "dart", "flutter", "qt", "c++
 categories: ["devops", "reference", "automation"]
 ---
 
+
+> **⚠️ IMPORTANT: THIS ARTICLE IS SUPERSEDED FOR CI GENERATION**
+>
+> This article is no longer the generation specification. Use the new canonical reference at [/blog/post/2026/043-canonical-github-actions-ci-cd-super-reference/](/blog/post/2026/043-canonical-github-actions-ci-cd-super-reference/) to create or update this repository's CI.
+
+
 This is the current general-purpose version of my **single GitHub Actions CI/CD workflow** guidance. It supersedes `028-simplified-github-ci-updated` as the default document to give an agent when creating or upgrading a repository CI workflow.
 
 For the focused explanation of duplicate draft releases, migration checks, and the single-release-owner rule, also see:
