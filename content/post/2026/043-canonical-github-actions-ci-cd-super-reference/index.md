@@ -110,9 +110,11 @@ A routing job should parse events to determine if the run should execute monthly
 
 Concurrency prevents duplicate manual releases from racing and cleans up outdated PR tests.
 ```yaml
+# Concurrency prevents duplicate manual releases from racing and cleans up outdated PR tests.
+# Crucially, release preparation should NOT cancel in progress to avoid aborting a cut tag.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ !startsWith(github.event.inputs.mode, 'release-') }}
 ```
 
 ## 8. Permissions/security boundaries
@@ -200,6 +202,110 @@ Example C/CMake lane:
       - run: ctest --test-dir build --output-on-failure
 ```
 
+Example Qt/C++ lane:
+```yaml
+  qt-build-test:
+    name: Qt C++ Build & Test
+    needs: [route]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+      - run: qmake
+      - run: make
+      - run: make check
+```
+
+Example Security/Gitleaks lane:
+```yaml
+  gitleaks:
+    name: Gitleaks
+    needs: [route]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+```
+
+Example Autofix lane:
+```yaml
+  autofix:
+    name: Autofix Formatting
+    needs: [route]
+    # Only run on pull requests to fix PRs specifically, rather than blind pushes
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go fmt ./...
+      - name: Commit fixes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "style: auto-format code"
+```
+
+Example Debian/RPM packaging lane:
+```yaml
+  packaging:
+    name: Linux Packages
+    needs: [route, validation]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "Run specific dpkg-buildpackage or rpmbuild logic here"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: dist/*.deb
+          retention-days: 1
+```
+
+Example non-GoReleaser single owner publication:
+```yaml
+  publish-generic:
+    name: Publish Generic Release
+    needs: [route, packaging]
+    if: ${{ github.ref_type == 'tag' && github.event_name == 'workflow_dispatch' && inputs.mode == 'publish-tag' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: packages
+          path: release-artifacts
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: release-artifacts/**
+```
+
+Example scheduled maintenance cleanup:
+```yaml
+  maintenance:
+    name: Monthly Cleanup
+    needs: [route]
+    if: ${{ steps.route.outputs.is_maintenance == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - run: echo "Run gh api deletions for old workflow runs here"
+```
+
+
 
 ## 12. Autofix architecture
 
@@ -222,7 +328,7 @@ Build artifacts should use `actions/upload-artifact@v4`.
 `git-tag-inc` MUST BE A FIRST-CLASS DEFAULT.
 Do not use shell arithmetic fallbacks for semantic versions. Use `arran4/git-tag-inc` or `arran4/git-tag-inc-action` as the authoritative version logic. Version arithmetic belongs in shared tooling, while repository-specific logic controls the release *policy* and transactional *safety*.
 
-If `git-tag-inc-action` requires unsafe shell interpolation, say so explicitly and show the current safe pinned CLI installation approach as the temporary production recommendation until resolved.
+The current `git-tag-inc-action` interpolates inputs directly into shell source and is currently unsuitable for untrusted/user-controlled values. You must use the safe pinned CLI installation approach as the temporary production recommendation until the action is hardened.
 
 ## 15. Tagging and release preparation
 
@@ -387,9 +493,11 @@ on:
     - cron: '17 3 1 * *'
     - cron: '41 2 * * *'
 
+# Concurrency prevents duplicate manual releases from racing and cleans up outdated PR tests.
+# Crucially, release preparation should NOT cancel in progress to avoid aborting a cut tag.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ !startsWith(github.event.inputs.mode, 'release-') }}
 
 permissions:
   contents: read
@@ -415,6 +523,9 @@ jobs:
             is_pull_request=true
           elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             is_manual=true
+            if [[ "${{ github.event.inputs.mode }}" == "publish-tag" ]]; then
+                is_release=true
+            fi
           elif [[ "${{ github.event_name }}" == "schedule" ]]; then
             is_maintenance=true
           fi
@@ -451,9 +562,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
       - name: Verify Exact Origin/Main
         run: |
           set -euo pipefail
+          if [[ "${{ github.ref }}" != "refs/heads/main" ]]; then
+            echo "Error: Manual release preparation must run on refs/heads/main"
+            sh -c "exit 1"
+          fi
           git fetch origin main
           MAIN_SHA=$(git rev-parse origin/main)
           if [[ "$MAIN_SHA" != "${{ github.sha }}" ]]; then
@@ -466,6 +584,7 @@ jobs:
           RELEASE_VERSION_OVERRIDE: ${{ inputs.release_version_override }}
         run: |
           set -euo pipefail
+          export PATH="$(go env GOPATH)/bin:$PATH"
           if [[ -n "$RELEASE_VERSION_OVERRIDE" ]]; then
              echo "Recovering version $RELEASE_VERSION_OVERRIDE"
              TAG_SHA=$(git rev-list -n 1 "$RELEASE_VERSION_OVERRIDE^{}" || true)
@@ -478,10 +597,18 @@ jobs:
              # Use git-tag-inc safe version calculation
              echo "Installing pinned git-tag-inc..."
              go install github.com/arran4/git-tag-inc/cmd/git-tag-inc@90266586fefee6ffcb9fb02b00543b5959cd6c13
-             # Example usage composing its primitives:
+             # Usage composing primitives. See semver_calc wrapper from mvcommon#20 for real world policy mapping
              TAG="$(git-tag-inc --print-version-only --skip-forwards ${RELEASE_MODE#release-})"
-             # git tag "$TAG"
-             # git push origin "$TAG"
+             # Create and push the tag since it was calculated and verified
+             git tag "$TAG"
+             git push origin "$TAG" || {
+                # Race safe remote verification
+                REMOTE_SHA=$(git ls-remote --tags origin "$TAG" | awk '{print $1}')
+                if [[ "$REMOTE_SHA" != "${{ github.sha }}" ]]; then
+                   echo "Race condition: tag pushed remotely with different SHA"
+                   sh -c "exit 1"
+                fi
+             }
           fi
           echo "TAG=$TAG" >> "$GITHUB_ENV"
       - name: Dispatch Publisher
