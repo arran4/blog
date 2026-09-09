@@ -90,7 +90,7 @@ You must require the canonical `mode` input where applicable, including normal/m
 on:
   push:
     branches: [main, master]
-    tags: ['v*', 'v*.*.*', 'v*.*.*-rc*', 'v*.*.*-beta*', 'test-*']
+    tags: ['v*'] # Explicit v* only to avoid test-* pushes triggering release
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review, closed]
     branches: [main, master]
@@ -125,6 +125,7 @@ A routing job should parse events to determine if the run should execute monthly
       run_release: ${{ steps.route.outputs.run_release }}
       run_autofix: ${{ steps.route.outputs.run_autofix }}
       run_publisher: ${{ steps.route.outputs.run_publisher }}
+      run_maintenance: ${{ steps.route.outputs.run_maintenance }}
       mode: ${{ steps.route.outputs.mode }}
     steps:
       - id: route
@@ -132,6 +133,7 @@ A routing job should parse events to determine if the run should execute monthly
           EVENT_NAME: ${{ github.event_name }}
           INPUT_MODE: ${{ github.event.inputs.mode }}
           REF_TYPE: ${{ github.ref_type }}
+          GITHUB_REF: ${{ github.ref }}
         run: |
           set -euo pipefail
           run_code_checks=true
@@ -139,6 +141,7 @@ A routing job should parse events to determine if the run should execute monthly
           run_release=false
           run_autofix=false
           run_publisher=false
+          run_maintenance=false
           mode="build"
 
           if [[ "$EVENT_NAME" == "pull_request" ]]; then
@@ -146,6 +149,7 @@ A routing job should parse events to determine if the run should execute monthly
             :
           elif [[ "$EVENT_NAME" == "schedule" ]]; then
             run_autofix=true
+            run_maintenance=true
             mode="lint-fix"
           elif [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
             mode="${INPUT_MODE:-build}"
@@ -153,15 +157,21 @@ A routing job should parse events to determine if the run should execute monthly
                run_autofix=true
             elif [[ "$mode" == "publish-tag" ]]; then
                # The internal explicit publish-tag dispatch mode
-               if [[ "$REF_TYPE" == "tag" ]]; then
+               if [[ "$REF_TYPE" == "tag" && "$GITHUB_REF" == refs/tags/v* ]]; then
                   run_code_checks=false
                   run_build=false
                   run_publisher=true
+               else
+                  echo "Error: publish-tag mode requires a v* tag context. Found: $GITHUB_REF" >&2
+                  sh -c "exit 1"
                fi
             elif [[ "$mode" == release-* ]]; then
                run_release=true
+            elif [[ "$mode" == "monthly-maintenance" ]]; then
+               run_maintenance=true
+               run_autofix=true
             fi
-          elif [[ "$EVENT_NAME" == "push" && "$REF_TYPE" == "tag" ]]; then
+          elif [[ "$EVENT_NAME" == "push" && "$REF_TYPE" == "tag" && "$GITHUB_REF" == refs/tags/v* ]]; then
              # Standard external v* push publication
              run_publisher=true
           fi
@@ -171,6 +181,7 @@ A routing job should parse events to determine if the run should execute monthly
           echo "run_release=$run_release" >> "$GITHUB_OUTPUT"
           echo "run_autofix=$run_autofix" >> "$GITHUB_OUTPUT"
           echo "run_publisher=$run_publisher" >> "$GITHUB_OUTPUT"
+          echo "run_maintenance=$run_maintenance" >> "$GITHUB_OUTPUT"
           echo "mode=$mode" >> "$GITHUB_OUTPUT"
 ```
 
@@ -300,6 +311,28 @@ Example Security/Gitleaks lane:
 
 Example Autofix lane (the established manual `lint-fix` path that applies deterministic fixes and opens a focused automation PR):
 ```yaml
+  maintenance:
+    name: Monthly Maintenance
+    needs: [route]
+    if: ${{ needs.route.outputs.run_maintenance == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - run: go get -u ./... && go mod tidy
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore: monthly dependency update"
+          title: "chore: monthly dependency update"
+          branch: automation/maintenance
+          delete-branch: true
+
   autofix:
     name: Autofix Formatting
     needs: [route]
@@ -492,13 +525,17 @@ Include maintenance lanes for routine cleanup or deeper monthly scans. Ensure sc
 
 Artifacts should expire quickly. Merge-closed events or scheduled logic should optionally clean up test branches.
 
-## 23. Recovery/idempotency
+## 23. Recovery/idempotency and Manual Version Overrides
 
-If publication fails after a tag is created, use explicit recovery input (`release_version_override`). Recovery must:
-- verify the tag already exists;
-- verify it resolves to the exact validated `$GITHUB_SHA` (annotated tags dereferenced where necessary);
-- fail if it does not match exactly or does not exist.
-Do not silently move tags or bump to a new version. If it exists at the correct commit, continuing publication should be safe/idempotent.
+`release_version_override` permits explicitly setting a new version instead of relying on the automated bump calculation. It must:
+- Normalize optional leading `v` prefixes and validate the resulting `vX.Y.Z...` shape.
+- Pass the validated override through the standard idempotent tagging path.
+
+To safely retry/recover a failed publication, the standard tagging path itself must be idempotent:
+- Check if the calculated or overridden tag already exists.
+- If it exists, verify it resolves to the exact validated `$GITHUB_SHA` (annotated tags dereferenced where necessary) before continuing.
+- Fail explicitly if it points to the wrong SHA.
+- Never silently move tags or calculate a new version during recovery. `publish-tag` is the tag-context publication/recovery path and must never calculate/move a version.
 
 ## 24. Existing-workflow migration procedure
 
@@ -575,7 +612,7 @@ name: CI/CD
 on:
   push:
     branches: [main, master]
-    tags: ['v*', 'v*.*.*', 'v*.*.*-rc*', 'v*.*.*-beta*', 'test-*']
+    tags: ['v*'] # Explicit v* only to avoid test-* pushes triggering release
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review, closed]
     branches: [main, master]
@@ -609,35 +646,69 @@ jobs:
     name: Route Event
     runs-on: ubuntu-latest
     outputs:
-      is_pull_request: ${{ steps.route.outputs.is_pull_request }}
-      is_manual: ${{ steps.route.outputs.is_manual }}
-      is_release: ${{ steps.route.outputs.is_release }}
-      is_maintenance: ${{ steps.route.outputs.is_maintenance }}
+      run_code_checks: ${{ steps.route.outputs.run_code_checks }}
+      run_build: ${{ steps.route.outputs.run_build }}
+      run_release: ${{ steps.route.outputs.run_release }}
+      run_autofix: ${{ steps.route.outputs.run_autofix }}
+      run_publisher: ${{ steps.route.outputs.run_publisher }}
+      run_maintenance: ${{ steps.route.outputs.run_maintenance }}
+      mode: ${{ steps.route.outputs.mode }}
     steps:
       - id: route
         env:
           EVENT_NAME: ${{ github.event_name }}
           INPUT_MODE: ${{ github.event.inputs.mode }}
+          REF_TYPE: ${{ github.ref_type }}
+          GITHUB_REF: ${{ github.ref }}
         run: |
           set -euo pipefail
-          is_pull_request=false
-          is_manual=false
-          is_release=false
-          is_maintenance=false
+          run_code_checks=true
+          run_build=true
+          run_release=false
+          run_autofix=false
+          run_publisher=false
+          run_maintenance=false
+          mode="build"
+
           if [[ "$EVENT_NAME" == "pull_request" ]]; then
-            is_pull_request=true
-          elif [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
-            is_manual=true
-            if [[ "$INPUT_MODE" == "publish-tag" ]]; then
-                is_release=true
-            fi
+            # PRs just validate
+            :
           elif [[ "$EVENT_NAME" == "schedule" ]]; then
-            is_maintenance=true
+            run_autofix=true
+            run_maintenance=true
+            mode="lint-fix"
+          elif [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            mode="${INPUT_MODE:-build}"
+            if [[ "$mode" == "lint-fix" ]]; then
+               run_autofix=true
+            elif [[ "$mode" == "publish-tag" ]]; then
+               # The internal explicit publish-tag dispatch mode
+               if [[ "$REF_TYPE" == "tag" && "$GITHUB_REF" == refs/tags/v* ]]; then
+                  run_code_checks=false
+                  run_build=false
+                  run_publisher=true
+               else
+                  echo "Error: publish-tag mode requires a v* tag context. Found: $GITHUB_REF" >&2
+                  sh -c "exit 1"
+               fi
+            elif [[ "$mode" == release-* ]]; then
+               run_release=true
+            elif [[ "$mode" == "monthly-maintenance" ]]; then
+               run_maintenance=true
+               run_autofix=true
+            fi
+          elif [[ "$EVENT_NAME" == "push" && "$REF_TYPE" == "tag" && "$GITHUB_REF" == refs/tags/v* ]]; then
+             # Standard external v* push publication
+             run_publisher=true
           fi
-          echo "is_pull_request=$is_pull_request" >> "$GITHUB_OUTPUT"
-          echo "is_manual=$is_manual" >> "$GITHUB_OUTPUT"
-          echo "is_release=$is_release" >> "$GITHUB_OUTPUT"
-          echo "is_maintenance=$is_maintenance" >> "$GITHUB_OUTPUT"
+
+          echo "run_code_checks=$run_code_checks" >> "$GITHUB_OUTPUT"
+          echo "run_build=$run_build" >> "$GITHUB_OUTPUT"
+          echo "run_release=$run_release" >> "$GITHUB_OUTPUT"
+          echo "run_autofix=$run_autofix" >> "$GITHUB_OUTPUT"
+          echo "run_publisher=$run_publisher" >> "$GITHUB_OUTPUT"
+          echo "run_maintenance=$run_maintenance" >> "$GITHUB_OUTPUT"
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
 
   validation:
     name: Validation & Tests
@@ -650,6 +721,23 @@ jobs:
         with:
           go-version-file: go.mod
       - run: go test ./...
+
+  build:
+    name: Build Artifacts
+    needs: [route, validation]
+    if: ${{ always() && needs.route.outputs.run_build == 'true' && (needs.validation.result == 'success' || needs.validation.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - run: go build -o myapp ./cmd/myapp
+      - uses: actions/upload-artifact@v4
+        with:
+          name: built-binary
+          path: myapp
+          retention-days: 1
 
   release-ready:
     name: Release Quality Gates Passed
