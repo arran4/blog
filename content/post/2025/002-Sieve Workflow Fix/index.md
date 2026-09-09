@@ -5,9 +5,7 @@ draft: false
 tags: ["sieve", "jmap", "stalwart"]
 categories: ["tutorial"]
 ---
-
-<!-- cspell:words jmap -->
-
+<!-- cspell:words jmap resp -->
 In the previous post on deploying Sieve filters to Stalwart using JMAP the workflow always created a new script. After some testing I realised it should update the existing script when one already exists. Below is the corrected workflow.
 
 ```yaml

@@ -5,9 +5,7 @@ draft: false
 tags: ["issue", "gripe", "bug tracking", "linux"]
 categories: ["issue"]
 ---
-
-<!-- cspell:words acpi arrans HKEY -->
-
+<!-- cspell:words acpi arrans HKEY thinkpad -->
 So started using linux.. Getting this issue here:
 
 ```dmesg

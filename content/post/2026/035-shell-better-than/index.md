@@ -6,9 +6,7 @@ tags: ["linux", "shell", "cli", "unix", "tools"]
 categories: ["tools"]
 author: "Arran Ubels"
 ---
-
-<!-- cspell:words analyzer aristocratos bashtop bootandy bpytop btop Byron composability Coreutils dua duf findmnt Hisham iwconfig lsblk muesli ncdu Netlink nmcli proc procps procs ripgrep superfile tealdeer tldr yazi yorhel yorukot -->
-
+<!-- cspell:words analyzer aristocratos arrans bashtop bootandy bpytop btop Byron composability Coreutils dua duf findmnt Hisham iwconfig lsblk muesli ncdu Netlink nmcli proc procps procs ripgrep superfile tealdeer tldr yazi yorhel yorukot -->
 There are a lot of lists of "modern Unix commands", but they often put two quite different ideas in the same bucket.
 
 Sometimes I want **a better version of the command I already use**. It should solve essentially the same problem, fit into roughly the same place in my workflow, and improve the experience without asking me to adopt a whole new model.

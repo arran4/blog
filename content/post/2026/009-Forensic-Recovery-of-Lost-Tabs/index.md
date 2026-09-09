@@ -5,9 +5,7 @@ draft: false
 tags: ["linux", "firefox", "recovery", "jsonlz4", "python"]
 categories: ["tutorial", "forensics"]
 ---
-
-<!-- cspell:words btrfs oneshot pathlib sessionstore -->
-
+<!-- cspell:words baklz btrfs jsonlz oneshot pathlib sessionstore -->
 ### 1. Introduction
 
 I recently lost a Firefox window during shutdown, and unfortunately, it was not saved in the session restore. It was a window filled with extensive research, consisting of many tabs meticulously grouped. Losing it meant losing a significant amount of context and work.
