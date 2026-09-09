@@ -11,6 +11,8 @@ categories: ["devops", "reference", "automation"]
 <!-- cspell:words GOPATH jurplel mvcommon qmake sourcedir srcrpmdir stefanzweifel todate -->
 
 <!-- cspell:words GOPATH jurplel mvcommon qmake sourcedir srcrpmdir stefanzweifel todate -->
+
+<!-- cspell:words GOPATH jurplel mvcommon qmake sourcedir srcrpmdir stefanzweifel todate -->
 This is the canonical GitHub Actions CI/CD generation reference.
 
 It supersedes `006`, `011`, `028`, `041` and `042` where they conflict. Agents should normally need THIS article only. Older posts remain useful as historical/rationale material but are no longer the generation specification.
@@ -30,11 +32,16 @@ The purpose of this article is to serve as a complete generation specification f
 
 The article should strongly reduce agent discretion in areas where we already have preferred patterns. Repository-specific differences should come primarily from capability selection, not from every agent inventing a completely different CI topology.
 
+Downstream agents must implement `workflow_dispatch` as a migration/improvement process toward a useful manual operator UX. Do not blindly preserve stale or broken structures merely because they exist; instead, update them to the current canonical pattern while retaining genuinely useful repo-specific behavior. Repository-specific prompts should not need to independently request this UX improvement.
+
+A downstream agent should need only this canonical article and the target repository to produce the intended implementation. Do not require downstream agents to inspect other repositories as design references.
+
 ## 2. Required repository inspection before generation
 
 Before generating or modifying any CI configuration, you must:
 - enumerate all `.github/workflows/*`;
 - understand each trigger/job;
+- inspect existing manual-dispatch behavior to learn repository-specific requirements, but do not preserve stale/broken/bespoke structure merely because it exists;
 - inventory useful behavior;
 - identify duplicate validation;
 - identify every release owner;
@@ -47,6 +54,8 @@ Before generating or modifying any CI configuration, you must:
 ## 3. Canonical architecture and invariants
 
 The default should be the fewest coherent workflow files necessary, normally one central `.github/workflows/ci.yml` or `.github/workflows/ci.yaml`. Do not preserve multiple workflow files merely because they already exist. A second workflow is acceptable only for a concrete technical or trust-boundary reason.
+
+Explicitly, CI consolidation or simplification MUST NOT remove existing manual-dispatch capability without a documented capability-based exception. A canonical workflow is incomplete if the GitHub Actions UI cannot expose a useful “Run workflow” path after the workflow reaches the default branch. If manual dispatch is absent or broken, create/restore the canonical pattern. If it exists but is stale or awkward, migrate/improve it toward the current pattern while retaining genuinely useful repo-specific behavior.
 
 The canonical orchestration phases must remain consistent:
 ```text
@@ -72,7 +81,7 @@ Generated workflows must include a short top-of-file pointer back to THIS new ar
 ## 4. Capability-selection matrix
 
 Before generating jobs, classify capabilities as:
-- **A. UNIVERSAL DEFAULT:** Baseline routing, basic validation, concurrency logic.
+- **A. UNIVERSAL DEFAULT:** Baseline routing, basic validation, concurrency logic, practical manual dispatch UX (`workflow_dispatch` where viable).
 - **B. ENABLED WHEN REPOSITORY CAPABILITY EXISTS:** Language-specific lint/test (Go, Node, Dart, CMake, Dockerfile, Debian/RPM packaging, etc.), artifact building, packaging, GoReleaser.
 - **C. OPTIONAL POLICY:** Autofix PR generation, maintenance scheduling, PR constraints.
 - **D. EXCEPTION REQUIRING AN EXPLANATION:** Additional workflows, custom semantic version math.
@@ -81,12 +90,14 @@ Do not create irrelevant language jobs merely because examples exist. Conversely
 
 ## 5. Trigger/event model
 
-The standard event triggers should cover:
+The standard event triggers should cover the following. `workflow_dispatch` must be implemented to provide a useful manual operator UX where it is practical and viable, rather than being preserved blindly as a meaningless invariant. If manual dispatch genuinely has no practical role, allow a documented capability-based exception rather than requiring meaningless YAML.
+
+You must require the canonical `mode` input where applicable, including normal/manual validation/build modes and the existing release/maintenance/recovery modes described by the article. Clearly distinguish "the YAML contains `workflow_dispatch`" from "manual dispatch actually does useful work"—the inputs must actually route to functional jobs. For versioned repositories the established UI normally includes useful `mode` choices such as `build`, `release-major`, `release-minor`, `release-patch`, applicable prerelease modes, optional `release_version_override`, and release-safe tag-context publishing where applicable. Do not add release controls to repositories that do not have corresponding release capabilities.
 ```yaml
 on:
   push:
     branches: [main, master]
-    tags: ['v*', 'v*.*.*', 'v*.*.*-rc*', 'v*.*.*-beta*', 'test-*']
+    tags: ['v*'] # Explicit v* only to avoid test-* pushes triggering release
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review, closed]
     branches: [main, master]
@@ -109,7 +120,80 @@ on:
 
 ## 6. Routing
 
-A routing job should parse events to determine if the run should execute monthly jobs, manual releases, regular CI tests, auto-fixes, or deployment behaviors.
+A routing job should parse events to determine if the run should execute monthly jobs, manual releases, regular CI tests, auto-fixes, or deployment behaviors. Every exposed `workflow_dispatch` mode must demonstrably reach useful jobs.
+
+```yaml
+  route:
+    name: Route Event
+    runs-on: ubuntu-latest
+    outputs:
+      run_code_checks: ${{ steps.route.outputs.run_code_checks }}
+      run_build: ${{ steps.route.outputs.run_build }}
+      run_release: ${{ steps.route.outputs.run_release }}
+      run_autofix: ${{ steps.route.outputs.run_autofix }}
+      run_publisher: ${{ steps.route.outputs.run_publisher }}
+      run_maintenance: ${{ steps.route.outputs.run_maintenance }}
+      mode: ${{ steps.route.outputs.mode }}
+    steps:
+      - id: route
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_MODE: ${{ github.event.inputs.mode }}
+          REF_TYPE: ${{ github.ref_type }}
+          GITHUB_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          run_code_checks=true
+          run_build=true
+          run_release=false
+          run_autofix=false
+          run_publisher=false
+          run_maintenance=false
+          mode="build"
+
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            # PRs just validate
+            :
+          elif [[ "$EVENT_NAME" == "schedule" ]]; then
+            if [[ "${{ github.event.schedule }}" == "17 3 1 * *" ]]; then
+               run_maintenance=true
+               mode="monthly-maintenance"
+            else
+               run_autofix=true
+               mode="lint-fix"
+            fi
+          elif [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            mode="${INPUT_MODE:-build}"
+            if [[ "$mode" == "lint-fix" ]]; then
+               run_autofix=true
+            elif [[ "$mode" == "publish-tag" ]]; then
+               # The internal explicit publish-tag dispatch mode
+               if [[ "$REF_TYPE" == "tag" && "$GITHUB_REF" == refs/tags/v* ]]; then
+                  run_code_checks=false
+                  run_build=false
+                  run_publisher=true
+               else
+                  echo "Error: publish-tag mode requires a v* tag context. Found: $GITHUB_REF" >&2
+                  sh -c "exit 1"
+               fi
+            elif [[ "$mode" == release-* ]]; then
+               run_release=true
+            elif [[ "$mode" == "monthly-maintenance" ]]; then
+               run_maintenance=true
+            fi
+          elif [[ "$EVENT_NAME" == "push" && "$REF_TYPE" == "tag" && "$GITHUB_REF" == refs/tags/v* ]]; then
+             # Standard external v* push publication
+             run_publisher=true
+          fi
+
+          echo "run_code_checks=$run_code_checks" >> "$GITHUB_OUTPUT"
+          echo "run_build=$run_build" >> "$GITHUB_OUTPUT"
+          echo "run_release=$run_release" >> "$GITHUB_OUTPUT"
+          echo "run_autofix=$run_autofix" >> "$GITHUB_OUTPUT"
+          echo "run_publisher=$run_publisher" >> "$GITHUB_OUTPUT"
+          echo "run_maintenance=$run_maintenance" >> "$GITHUB_OUTPUT"
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+```
 
 ## 7. Concurrency
 
@@ -235,30 +319,55 @@ Example Security/Gitleaks lane:
       - uses: gitleaks/gitleaks-action@v3
 ```
 
-Example Autofix lane:
+Example Autofix lane (the established manual `lint-fix` path that applies deterministic fixes and opens a focused automation PR):
 ```yaml
-  autofix:
-    name: Autofix Formatting
+  maintenance:
+    name: Monthly Maintenance
     needs: [route]
-    # Only run on pull requests explicitly from the same repository to avoid fork push failures.
-    # Fork PRs should run validation only rather than attempt pushback.
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+    if: ${{ needs.route.outputs.run_maintenance == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
-          ref: ${{ github.head_ref }}
+          go-version-file: go.mod
+      - run: go get -u ./... && go mod tidy
+      - name: Create Pull Request
+        if: ${{ github.event_name == 'schedule' || inputs.allow_prs != false }}
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore: monthly dependency update"
+          title: "chore: monthly dependency update"
+          branch: automation/maintenance
+          delete-branch: true
+
+  autofix:
+    name: Autofix Formatting
+    needs: [route]
+    if: ${{ needs.route.outputs.run_autofix == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - run: go fmt ./...
-      - name: Commit fixes
-        uses: stefanzweifel/git-auto-commit-action@v7
+      - run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
+      - run: golangci-lint run --fix
+      - name: Create Pull Request
+        if: ${{ github.event_name == 'schedule' || inputs.allow_prs != false }}
+        uses: peter-evans/create-pull-request@v7
         with:
-          commit_message: "style: auto-format code"
+          commit-message: "style: auto-format code and lint fixes"
+          title: "style: auto-format code and lint fixes"
+          branch: automation/lint-fix
+          delete-branch: true
 ```
 
 Example Debian/RPM packaging lane:
@@ -315,7 +424,7 @@ Example scheduled maintenance cleanup:
   maintenance:
     name: Monthly Cleanup
     needs: [route]
-    if: ${{ needs.route.outputs.is_maintenance == 'true' }}
+    if: ${{ needs.route.outputs.run_maintenance == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -427,13 +536,17 @@ Include maintenance lanes for routine cleanup or deeper monthly scans. Ensure sc
 
 Artifacts should expire quickly. Merge-closed events or scheduled logic should optionally clean up test branches.
 
-## 23. Recovery/idempotency
+## 23. Recovery/idempotency and Manual Version Overrides
 
-If publication fails after a tag is created, use explicit recovery input (`release_version_override`). Recovery must:
-- verify the tag already exists;
-- verify it resolves to the exact validated `$GITHUB_SHA` (annotated tags dereferenced where necessary);
-- fail if it does not match exactly or does not exist.
-Do not silently move tags or bump to a new version. If it exists at the correct commit, continuing publication should be safe/idempotent.
+`release_version_override` permits explicitly setting a new version instead of relying on the automated bump calculation. It must:
+- Normalize optional leading `v` prefixes and validate the resulting `vX.Y.Z...` shape.
+- Pass the validated override through the standard idempotent tagging path.
+
+To safely retry/recover a failed publication, the standard tagging path itself must be idempotent:
+- Check if the calculated or overridden tag already exists.
+- If it exists, verify it resolves to the exact validated `$GITHUB_SHA` (annotated tags dereferenced where necessary) before continuing.
+- Fail explicitly if it points to the wrong SHA.
+- Never silently move tags or calculate a new version during recovery. `publish-tag` is the tag-context publication/recovery path and must never calculate/move a version.
 
 ## 24. Existing-workflow migration procedure
 
@@ -510,7 +623,7 @@ name: CI/CD
 on:
   push:
     branches: [main, master]
-    tags: ['v*', 'v*.*.*', 'v*.*.*-rc*', 'v*.*.*-beta*', 'test-*']
+    tags: ['v*'] # Explicit v* only to avoid test-* pushes triggering release
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review, closed]
     branches: [main, master]
@@ -544,39 +657,77 @@ jobs:
     name: Route Event
     runs-on: ubuntu-latest
     outputs:
-      is_pull_request: ${{ steps.route.outputs.is_pull_request }}
-      is_manual: ${{ steps.route.outputs.is_manual }}
-      is_release: ${{ steps.route.outputs.is_release }}
-      is_maintenance: ${{ steps.route.outputs.is_maintenance }}
+      run_code_checks: ${{ steps.route.outputs.run_code_checks }}
+      run_build: ${{ steps.route.outputs.run_build }}
+      run_release: ${{ steps.route.outputs.run_release }}
+      run_autofix: ${{ steps.route.outputs.run_autofix }}
+      run_publisher: ${{ steps.route.outputs.run_publisher }}
+      run_maintenance: ${{ steps.route.outputs.run_maintenance }}
+      mode: ${{ steps.route.outputs.mode }}
     steps:
       - id: route
         env:
           EVENT_NAME: ${{ github.event_name }}
           INPUT_MODE: ${{ github.event.inputs.mode }}
+          REF_TYPE: ${{ github.ref_type }}
+          GITHUB_REF: ${{ github.ref }}
         run: |
           set -euo pipefail
-          is_pull_request=false
-          is_manual=false
-          is_release=false
-          is_maintenance=false
+          run_code_checks=true
+          run_build=true
+          run_release=false
+          run_autofix=false
+          run_publisher=false
+          run_maintenance=false
+          mode="build"
+
           if [[ "$EVENT_NAME" == "pull_request" ]]; then
-            is_pull_request=true
-          elif [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
-            is_manual=true
-            if [[ "$INPUT_MODE" == "publish-tag" ]]; then
-                is_release=true
-            fi
+            # PRs just validate
+            :
           elif [[ "$EVENT_NAME" == "schedule" ]]; then
-            is_maintenance=true
+            if [[ "${{ github.event.schedule }}" == "17 3 1 * *" ]]; then
+               run_maintenance=true
+               mode="monthly-maintenance"
+            else
+               run_autofix=true
+               mode="lint-fix"
+            fi
+          elif [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            mode="${INPUT_MODE:-build}"
+            if [[ "$mode" == "lint-fix" ]]; then
+               run_autofix=true
+            elif [[ "$mode" == "publish-tag" ]]; then
+               # The internal explicit publish-tag dispatch mode
+               if [[ "$REF_TYPE" == "tag" && "$GITHUB_REF" == refs/tags/v* ]]; then
+                  run_code_checks=false
+                  run_build=false
+                  run_publisher=true
+               else
+                  echo "Error: publish-tag mode requires a v* tag context. Found: $GITHUB_REF" >&2
+                  sh -c "exit 1"
+               fi
+            elif [[ "$mode" == release-* ]]; then
+               run_release=true
+            elif [[ "$mode" == "monthly-maintenance" ]]; then
+               run_maintenance=true
+            fi
+          elif [[ "$EVENT_NAME" == "push" && "$REF_TYPE" == "tag" && "$GITHUB_REF" == refs/tags/v* ]]; then
+             # Standard external v* push publication
+             run_publisher=true
           fi
-          echo "is_pull_request=$is_pull_request" >> "$GITHUB_OUTPUT"
-          echo "is_manual=$is_manual" >> "$GITHUB_OUTPUT"
-          echo "is_release=$is_release" >> "$GITHUB_OUTPUT"
-          echo "is_maintenance=$is_maintenance" >> "$GITHUB_OUTPUT"
+
+          echo "run_code_checks=$run_code_checks" >> "$GITHUB_OUTPUT"
+          echo "run_build=$run_build" >> "$GITHUB_OUTPUT"
+          echo "run_release=$run_release" >> "$GITHUB_OUTPUT"
+          echo "run_autofix=$run_autofix" >> "$GITHUB_OUTPUT"
+          echo "run_publisher=$run_publisher" >> "$GITHUB_OUTPUT"
+          echo "run_maintenance=$run_maintenance" >> "$GITHUB_OUTPUT"
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
 
   validation:
     name: Validation & Tests
     needs: [route]
+    if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -585,9 +736,74 @@ jobs:
           go-version-file: go.mod
       - run: go test ./...
 
+  maintenance:
+    name: Monthly Maintenance
+    needs: [route]
+    if: ${{ needs.route.outputs.run_maintenance == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - run: go get -u ./... && go mod tidy
+      - name: Create Pull Request
+        if: ${{ github.event_name == 'schedule' || inputs.allow_prs != false }}
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore: monthly dependency update"
+          title: "chore: monthly dependency update"
+          branch: automation/maintenance
+          delete-branch: true
+
+  autofix:
+    name: Autofix Formatting
+    needs: [route]
+    if: ${{ needs.route.outputs.run_autofix == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - run: go fmt ./...
+      - run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
+      - run: golangci-lint run --fix
+      - name: Create Pull Request
+        if: ${{ github.event_name == 'schedule' || inputs.allow_prs != false }}
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "style: auto-format code and lint fixes"
+          title: "style: auto-format code and lint fixes"
+          branch: automation/lint-fix
+          delete-branch: true
+
+  build:
+    name: Build Artifacts
+    needs: [route, validation]
+    if: ${{ always() && needs.route.outputs.run_build == 'true' && (needs.validation.result == 'success' || needs.validation.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - run: go build -o myapp ./cmd/myapp
+      - uses: actions/upload-artifact@v7
+        with:
+          name: built-binary
+          path: myapp
+          retention-days: 1
+
   release-ready:
     name: Release Quality Gates Passed
-    needs: [route, validation]
+    needs: [route, validation, build]
     if: always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
     runs-on: ubuntu-latest
     steps:
@@ -596,7 +812,7 @@ jobs:
   prepare-release-tag:
     name: Prepare Release Tag
     needs: [route, release-ready]
-    if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') }}
+    if: ${{ needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -609,6 +825,10 @@ jobs:
         with:
           go-version-file: go.mod
           # If no go.mod exists, specify a current major version instead
+      - name: Install git-tag-inc
+        uses: arran4/git-tag-inc-action@v1
+        with:
+          mode: install
       - name: Verify Exact Origin/Main
         env:
           GITHUB_REF_NAME: ${{ github.ref }}
@@ -625,7 +845,7 @@ jobs:
             echo "Error: Requested release against $GITHUB_SHA but origin/main is at $MAIN_SHA"
             sh -c "exit 1"
           fi
-      - name: Calculate or recover version
+      - name: Calculate or explicitly set version
         env:
           RELEASE_MODE: ${{ inputs.mode }}
           RELEASE_VERSION_OVERRIDE: ${{ inputs.release_version_override }}
@@ -633,34 +853,54 @@ jobs:
           set -euo pipefail
           export PATH="$(go env GOPATH)/bin:$PATH"
           if [[ -n "$RELEASE_VERSION_OVERRIDE" ]]; then
-             echo "Recovering version $RELEASE_VERSION_OVERRIDE"
-             # Validate shape and ensure it's a remote tag, then dereference
-             if ! [[ "$RELEASE_VERSION_OVERRIDE" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
-                echo "Error: Override $RELEASE_VERSION_OVERRIDE is not a valid release tag shape."
+             # Normalize optional leading v
+             TAG="${RELEASE_VERSION_OVERRIDE#v}"
+             TAG="v${TAG}"
+             echo "Using manual version override: $TAG"
+             # Validate shape
+             if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+                echo "Error: Override $TAG is not a valid release tag shape."
                 sh -c "exit 1"
              fi
-             TAG_SHA=$(git ls-remote --tags origin "refs/tags/$RELEASE_VERSION_OVERRIDE" | grep -v '{}$' | awk '{print $1}')
-             if [[ -z "$TAG_SHA" ]]; then
-                echo "Recovery failed: Tag $RELEASE_VERSION_OVERRIDE does not exist on origin."
-                sh -c "exit 1"
-             fi
-             # Dereference if it's an annotated tag by checking for the peeled ^{} ref
-             PEELED_SHA=$(git ls-remote --tags origin "refs/tags/$RELEASE_VERSION_OVERRIDE^{}" | awk '{print $1}')
-             if [[ -n "$PEELED_SHA" ]]; then
-                 TAG_SHA="$PEELED_SHA"
-             fi
-             if [[ "$TAG_SHA" != "$GITHUB_SHA" ]]; then
-                echo "Recovery failed: Tag $RELEASE_VERSION_OVERRIDE points to $TAG_SHA, not $GITHUB_SHA"
-                sh -c "exit 1"
-             fi
-             TAG="$RELEASE_VERSION_OVERRIDE"
           else
+             echo "Using arran4/git-tag-inc..."
              # Use git-tag-inc safe version calculation
-             echo "Installing pinned git-tag-inc..."
-             go install github.com/arran4/git-tag-inc/cmd/git-tag-inc@90266586fefee6ffcb9fb02b00543b5959cd6c13
-             # Usage composing primitives. See semver_calc wrapper from mvcommon#20 for real world policy mapping
-             TAG="$(git-tag-inc --print-version-only --skip-forwards "${RELEASE_MODE#release-}")"
+             case "$RELEASE_MODE" in
+               release-major) level="major"; suffix="" ;;
+               release-minor) level="minor"; suffix="" ;;
+               release-patch) level="patch"; suffix="" ;;
+               release-test)  level="patch"; suffix="test" ;;
+               release-rc)    level="patch"; suffix="rc" ;;
+               release-alpha) level="patch"; suffix="alpha" ;;
+               *) echo "Unsupported release mode: $RELEASE_MODE" >&2; sh -c "exit 1" ;;
+             esac
+             args=(--print-version-only "$level")
+             [[ -n "$suffix" ]] && args+=("$suffix")
+             TAG="$(git-tag-inc "${args[@]}")"
+          fi
+          echo "Calculated TAG=$TAG"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+      - name: Tag and push (Idempotent)
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          # Check remote state for idempotency/retry
+          REMOTE_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | grep -v '{}$' | awk '{print $1}' || true)
+          # Also check peeled annotated tag if it exists
+          PEELED_SHA=$(git ls-remote --tags origin "refs/tags/$TAG^{}" | awk '{print $1}' || true)
+          if [[ -n "$PEELED_SHA" ]]; then
+              REMOTE_SHA="$PEELED_SHA"
+          fi
 
+          if [[ -n "$REMOTE_SHA" ]]; then
+             if [[ "$REMOTE_SHA" == "$GITHUB_SHA" ]]; then
+                echo "Tag $TAG already exists on origin and points to correct SHA ($GITHUB_SHA). Safely retrying publish."
+             else
+                echo "Error: Tag $TAG already exists on origin but points to $REMOTE_SHA, not expected $GITHUB_SHA."
+                sh -c "exit 1"
+             fi
+          else
              # Final race guard: verify origin/main is STILL exactly GITHUB_SHA right before tagging
              git fetch origin main
              CURRENT_MAIN_SHA=$(git rev-parse origin/main)
@@ -669,18 +909,20 @@ jobs:
                 sh -c "exit 1"
              fi
 
-             # Create and push the tag since it was calculated and verified
+             # If local tag exists but wasn't pushed, delete to recreate fresh
+             git tag -d "$TAG" 2>/dev/null || true
+
+             # Create and push the tag
              git tag "$TAG"
              git push origin "$TAG" || {
                 # Race safe remote verification
                 REMOTE_SHA=$(git ls-remote --tags origin "$TAG" | awk '{print $1}')
                 if [[ "$REMOTE_SHA" != "$GITHUB_SHA" ]]; then
-                   echo "Race condition: tag pushed remotely with different SHA"
+                   echo "Race condition: tag pushed remotely with different SHA ($REMOTE_SHA)"
                    sh -c "exit 1"
                 fi
              }
           fi
-          echo "TAG=$TAG" >> "$GITHUB_ENV"
       - name: Dispatch Publisher
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -689,23 +931,37 @@ jobs:
 
   publisher:
     name: Release Publisher
-    needs: [route]
-    # Runs when explicitly dispatched from a tag
-    if: ${{ github.ref_type == 'tag' && github.event_name == 'workflow_dispatch' && inputs.mode == 'publish-tag' }}
+    needs: [route, release-ready]
+    if: ${{ needs.route.outputs.run_publisher == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+      - name: Determine GoReleaser Args
+        id: args
+        env:
+          GITHUB_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" == refs/tags/*-test* || "$GITHUB_REF" == refs/tags/test-* ]]; then
+             echo "args=release --snapshot --clean" >> "$GITHUB_OUTPUT"
+          else
+             echo "args=release --clean" >> "$GITHUB_OUTPUT"
+          fi
       - name: Run GoReleaser (Sole Release Owner)
         uses: goreleaser/goreleaser-action@v7
         with:
           distribution: goreleaser
           version: latest
-          args: release --clean
+          args: ${{ steps.args.outputs.args }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ## 30. Generation acceptance checklist
@@ -729,6 +985,13 @@ Before opening a CI PR, ensure:
 - GoReleaser ownership is not duplicated;
 - test/snapshot/prerelease semantics are correct;
 - external human-created `v*` tag publication still behaves as intended where supported;
+- validate the actual `Run workflow` UX and routing, not just the presence of `workflow_dispatch:`;
+- if manual dispatch genuinely has no practical role, a documented capability-based exception exists;
+- intended manual inputs exist;
+- at least one ordinary manual mode, such as build, actually routes to useful validation/build jobs;
+- applicable manual release modes route to their validation/preparation jobs;
+- no `if:` expression makes the manual route dead;
+- consolidation did not remove the repository’s “Run workflow” capability;
 - scheduled jobs cannot release;
 - CI syntax validated;
 - repository-native tests pass;
