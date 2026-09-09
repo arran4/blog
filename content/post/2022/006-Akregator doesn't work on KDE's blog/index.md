@@ -6,6 +6,8 @@ tags: ["kde", "issues"]
 categories: ["gripes"]
 ---
 
+<!-- cspell:words Akregator Miniflux -->
+
 Small gripe.. But it seems that with a default install of KDE it the Akregator (RSS feed reader)
 comes pre configured with the KDE blog which doesn't render correctly. -_-
 

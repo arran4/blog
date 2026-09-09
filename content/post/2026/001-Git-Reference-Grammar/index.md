@@ -6,6 +6,8 @@ tags: ["git", "refspec", "references"]
 categories: ["reference"]
 ---
 
+<!-- cspell:words globbing objid reflog refpath refspec Refspecs symref Symrefs worktrees -->
+
 Git’s ref system is a tiny language for naming objects and mapping them across
 repositories. This post is a grammar reference first, and examples second.
 

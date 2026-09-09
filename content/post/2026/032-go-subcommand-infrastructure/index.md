@@ -6,6 +6,8 @@ tags: ["Go", "CLI", "Code Generation", "LLM", "Agents", "go-subcommand", "GoRele
 categories: ["Programming", "Artificial Intelligence"]
 ---
 
+<!-- cspell:words featurerequest gosubc infractl zstd -->
+
 A Go CLI often begins with a small `main.go`, a few flags, and a switch statement. Then it grows.
 
 Before long, `cmd/` contains argument parsing, configuration loading, filesystem access, database calls, output formatting, and the actual application logic. Adding a command means copying another block of flag handling. Testing a command means pretending to invoke the entire executable. Changing the CLI framework risks touching the whole program.

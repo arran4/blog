@@ -5,7 +5,7 @@ draft: false
 tags: ["github-actions", "automation", "reporting", "static-sites", "seo"]
 categories: ["automation", "best-practices"]
 ---
-
+<!-- cspell:words EPUBs oneline Pandoc reimplementing texlive timeframe wkhtmltopdf xelatex xetex -->
 For "link and article" style pages, as well as data-defined content repositories, generating monthly releases is a powerful way to keep your audience engaged. People often subscribe to "releases" on GitHub repositories, and providing them with a magazine-style "issue" gives them tangible updates without needing to dig through commit logs.
 
 This approach helps people remember your project rather than simply starring it and forgetting it exists. While generating a summary of changes automatically can be complex depending on the project structure, creating the release artifact itself is straightforward and highly valuable.

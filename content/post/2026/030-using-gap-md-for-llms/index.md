@@ -6,6 +6,8 @@ tags: ["LLM", "AI", "Prompting", "Workflow", "gap.md", "Project Management"]
 categories: ["Artificial Intelligence"]
 ---
 
+<!-- cspell:words featurerequest -->
+
 Working with Large Language Models (LLMs) on multi-module projects or complex codebases can sometimes feel like a high-wire act. You give the LLM a large set of instructions, and while it might accomplish the immediate tasks, you often find yourself wondering: *Did it actually have all the context it needed? Did it silently skip over something because a dependency wasn't ready?*
 
 To prevent the LLM from trying to stubbornly forge ahead when it lacks prerequisites—or worse, hallucinating a solution—I've developed a prompting pattern that I use regularly. I ask the LLM to generate a `gap.md` file.

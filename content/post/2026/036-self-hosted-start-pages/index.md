@@ -6,7 +6,7 @@ tags: ["self-hosted", "start-page", "dashboard", "bookmarks", "homepage", "confi
 categories: ["self-hosting", "software-comparison"]
 ---
 
-<!-- cspell:words Dashy gobookmarks Heimdall Homarr -->
+<!-- cspell:words Dashy gobookmarks Heimdall Homarr Jellyfin organisation tradeoffs -->
 
 Self-hosted start pages tend to look interchangeable from a distance: a grid of links, a search box, perhaps some status cards, and a convenient place to start a browser session. Their configuration models are much less interchangeable.
 

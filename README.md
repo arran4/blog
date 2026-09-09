@@ -1,3 +1,5 @@
+<!-- cspell:words maxdepth mindepth -->
+
 # blog
 
 I guess always under development.

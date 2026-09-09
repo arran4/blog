@@ -6,6 +6,8 @@ tags: ["windows", "issues", "IntelliJ", "WSL", "git"]
 categories: ["complaints"]
 ---
 
+<!-- cspell:words Gitbash IntelliJ Intellj Microsofts -->
+
 For some reason IntelliJ and Windows terminal discover available shells in different ways, but either way is
 not ideal. (In-fact IntelliJ uses two different means of discovery.)
 

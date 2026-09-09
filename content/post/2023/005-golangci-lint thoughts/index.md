@@ -5,7 +5,7 @@ draft: false
 tags: ["golang"]
 categories: ["thoughts", "programming"]
 ---
-
+<!-- cspell:words Getenv gosimple IntelliJ ioutil Lshortfile manualofstylechecker openapi postgo prego prettifer projecttemplate Timesheets varargs -->
 A while back I added `golangci-lint` to the github actions of all my projects. I never got around to insuring that they
 all have compliance, which means a lot of my projects look like this:
 

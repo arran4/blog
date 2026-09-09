@@ -14,6 +14,8 @@ categories:
   - LLM Instructions
 ---
 
+<!-- cspell:words sqflite timezone xanzy -->
+
 This post acts as explicit instructions and rules for LLMs tasked with upgrading software projects. When applying an upgrade, you must follow these rules meticulously to ensure the project remains stable and up-to-date.
 
 ## Upgrade Rules

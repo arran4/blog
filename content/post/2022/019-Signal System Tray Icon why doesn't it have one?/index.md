@@ -6,6 +6,8 @@ tags: ["Signal"]
 categories: ["UI"]
 ---
 
+<!-- cspell:words WhatsDesk -->
+
 ![img.png](img.png)
 
 Almost all the other chat clients I have can run in the background showing only a system tray icon...

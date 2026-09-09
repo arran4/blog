@@ -6,7 +6,7 @@ tags: ["go", "templates", "filesystem", "architecture", "embed"]
 categories: ["engineering-process", "reference"]
 ---
 
-<!-- cspell:words AddParseTree AddPrefix DAG DirFS ExecuteTemplate FuncMap Funcs MapFS ParseFS ValidPath WalkDir funcs fstest gohtml gotemplate imagetemplates linktemplates namespacing sharedtemplates templatefs walkfs walkmultifs -->
+<!-- cspell:words AddParseTree AddPrefix DAG ExecuteTemplate FuncMap funcs Funcs gohtml gotemplate imagetemplates linktemplates ParseFS templatefs ValidPath walkfs walkmultifs -->
 
 A useful Go pattern appears whenever files are part of application composition rather than merely data on disk: accept an `fs.FS`, recursively discover files, give them stable logical names, validate them, and assemble them into a larger runtime object.
 

@@ -7,6 +7,8 @@ categories: ["tools"]
 author: "Arran Ubels"
 ---
 
+<!-- cspell:words Alacritty btop Consible erresc Ghostty Konsole kterm mlterm priv ptyxis Qterminal roxterm rxvt Sakura urxvt vterm Yeahconsole zutty -->
+
 Short comparison of how `btop` renders in a few terminals.
 
 For my config checkout https://github.com/arran4/dotfiles

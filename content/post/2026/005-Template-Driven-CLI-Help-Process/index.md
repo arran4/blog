@@ -6,6 +6,8 @@ tags: ["go", "cli", "templates", "process", "agents"]
 categories: ["reference", "engineering-process"]
 ---
 
+<!-- cspell:words Fprintf gotmpl playbook -->
+
 A recent patch series for `arran4/git-tag-inc` (PR #54) is a good example of how
 to turn a one-off code change into a repeatable method other projects can use.
 

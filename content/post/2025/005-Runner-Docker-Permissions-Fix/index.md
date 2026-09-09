@@ -6,7 +6,7 @@ tags: ["github-actions", "docker", "devops"]
 categories: ["devops"]
 author: "Arran Ubels"
 ---
-
+<!-- cspell:words libcurl libicu usermod -->
 While testing the multi-runner setup I discovered containers started by the `runner` user could not invoke Docker. The base image lacked the `docker.io` package and the user was missing membership of the `docker` group.
 
 The `Dockerfile.ubuntu-runner` now installs Docker and ensures the `runner` user belongs to the `docker` group so each containerised runner can start sibling containers without needing root:

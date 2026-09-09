@@ -6,6 +6,8 @@ tags: ["go", "http", "caching", "web", "templates"]
 categories: ["engineering", "go-patterns", "reference"]
 ---
 
+<!-- cspell:words Brotli etag maxage precompute subresources unhashed -->
+
 When building web applications, a common goal is to serve static assets (CSS, JavaScript, images, WASM) as quickly as possible. The most effective way to achieve this is aggressive HTTP caching. However, aggressive caching introduces a challenge: when you update an asset and deploy the new version, you must ensure that users receive the updated file rather than a stale, cached copy, while avoiding unnecessary downloads for unchanged assets.
 
 The solution to this problem is **asset fingerprinting** (or content hashing). This article explores the architecture of asset fingerprinting from first principles, how to design an ideal implementation in Go, the appropriate HTTP caching headers to use, and progressively simpler fallback variants.

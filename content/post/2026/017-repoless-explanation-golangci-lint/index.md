@@ -12,6 +12,8 @@ categories:
   - DevOps
 ---
 
+<!-- cspell:words mdtohtml -->
+
 When encountering the following `golangci-lint` error in GitHub Actions or locally:
 
 ```text

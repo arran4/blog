@@ -6,6 +6,8 @@ tags: ["go", "testing", "golden-files", "txtar", "fs", "agentic-coding"]
 categories: ["engineering", "go-patterns"]
 ---
 
+<!-- cspell:words agentic -->
+
 `go test ./... -update` is a common **golden-test update convention**, but `-update` is **not built into `go test`**. The repository's test code defines that flag and uses it to decide whether to compare against or overwrite `.golden` files.
 
 A typical implementation looks like:

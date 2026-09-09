@@ -6,6 +6,8 @@ tags: ["untagged"]
 categories: ["uncategorized"]
 ---
 
+<!-- cspell:words checkpackages DEVNULL kdenlive pipx retcode traceback venv vosk -->
+
 Tried to use Kdenlive to install some packages via pip (I didn't want to but that's what it offered) finally got a good
 rejection!
 

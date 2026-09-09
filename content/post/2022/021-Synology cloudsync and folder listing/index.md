@@ -6,6 +6,8 @@ tags: ["synology"]
 categories: ["ui"]
 ---
 
+<!-- cspell:words Cloudsync -->
+
 ![img.png](img.png)
 
 Not sure why "Drive" gets it's own icon but all of my cloud sync items don't especially considering that 

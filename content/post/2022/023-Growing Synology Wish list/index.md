@@ -6,6 +6,8 @@ tags: ["wish list"]
 categories: ["wish list", "synology"]
 ---
 
+<!-- cspell:words favourite Kmail Kmails onedrive sandboxed scriptability sinced Takeout takeouts Webstation -->
+
 I am rather fond of synology's offering however it does leave me with a couple of wishes / desires.
 
 # Synology itself

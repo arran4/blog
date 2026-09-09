@@ -6,6 +6,8 @@ tags: ["ubuntu", "issues"]
 categories: ["tech-issue"]
 ---
 
+<!-- cspell:words dkms enroll Iwlwifi secureboot -->
+
 Had an issue with getting MOK to install my keys for my `Intel Corporation Wi-Fi 6 AX200 (rev 1a)` 
 wireless card on my Lenovo X1 Carbon Extreme G2.. Turns out there is a bug in the shell script that
 installs the self signed keys in to MOX... Which is great. But it turns out I have hit a bug..

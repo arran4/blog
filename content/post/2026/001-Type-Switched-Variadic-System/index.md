@@ -7,6 +7,8 @@ categories: ["notes"]
 author: "Arran Ubels"
 ---
 
+<!-- cspell:words structs -->
+
 I keep reaching for the same API shape in Go: a variadic argument list (`...any`) processed with a
 `type switch`.
 
