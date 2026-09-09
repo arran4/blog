@@ -1,6 +1,6 @@
 ---
 title: "Managing Jules with a Management LLM"
-date: 2026-09-09T12:00:49+10:00
+date: 2026-09-09T12:11:57+10:00
 draft: false
 tags:
   - llm
@@ -214,6 +214,16 @@ Prompts should be prescriptive about outcomes, constraints, acceptance criteria,
 
 The **first couple of lines of a prompt matter disproportionately**. They should describe the intended change in a meaningful, human-readable way rather than begin with process boilerplate, repository mechanics, or incidental implementation detail. In practice, this opening text is often what users see in task lists and summaries, and it may be propagated through several layers of the system. Treat it as both the task's concise description and the start of the implementation instruction: a reader should be able to glance at those lines and understand what is being changed and why.
 
+### Private repositories need self-contained prompts
+
+Do not assume Jules can dereference a GitHub issue or review thread in a private repository.
+
+For public repositories, it can often inspect the public GitHub context after it has been activated. For private repositories, that context may not be available to Jules even though the management LLM and the human can see it. A prompt that merely says "implement issue #123" or links to the private issue is therefore insufficient.
+
+When generating a Jules prompt for a private repository, duplicate the **relevant issue content** into the prompt itself: the requested behaviour, constraints, acceptance criteria, important examples or pseudo-reproductions, and any decisions Jules needs in order to work. The issue link or number should still be included for provenance and later GitHub bookkeeping, but it is not a substitute for the actual task specification.
+
+Treat the prompt as the context boundary Jules is guaranteed to receive.
+
 ## Jules prompts should reduce unnecessary questions
 
 Jules can ask questions in its own web session rather than through GitHub. I commonly refer to these as Jules out-of-band questions, or informally `joobq`/`JOBQ` when pasting one into the management conversation.
@@ -231,6 +241,14 @@ Jules should not be treated as if every instruction is guaranteed to remain pend
 In practice, it can appear to process one message or event at a time, while later instructions are missed, displaced, or never acted upon. Automated CI activity can also cause Jules to react at an inconvenient point and effectively overtake a correction that was just sent.
 
 For that reason, the management LLM should verify that an important `@jules` instruction was actually acknowledged or acted upon. In configurations where Jules reacts to comments, the absence of the expected acknowledgement is a reason to inspect state and, when necessary, repost or quote the instruction.
+
+### Do not edit a Jules instruction and expect Jules to notice
+
+Jules does not reliably detect edits to existing GitHub comments. If an instruction is wrong, incomplete, or needs clarification, **post a new follow-up comment** rather than editing the old comment and assuming that edit will trigger or update Jules.
+
+The previous comment can remain as history. The follow-up should explicitly correct or supersede the relevant part so that the durable GitHub conversation makes sense to a human reader as well.
+
+After Jules is activated it may be able to look back through earlier comments on a public repository, but it generally should not be expected to rediscover edited text by itself. On private repositories, its ability to inspect that surrounding GitHub discussion is more constrained, so the follow-up should carry whatever context is necessary to act without relying on inaccessible history.
 
 When CI has failed, Jules should also be reminded to inspect the actual review comments rather than focusing only on the CI failure.
 
@@ -409,20 +427,22 @@ If this article is being used to bootstrap a new management session, the followi
 1. Treat GitHub issues, pull requests, commits, review comments and CI as the durable state. Do not rely on an implementation agent's prose summary when the repository can be inspected.
 2. Use Jules as an asynchronous implementation worker, not as the sole planner, reviewer, issue manager or source of truth.
 3. Generate prompts from the **current** repository and issue state. Prefer the current prompt and near-term next step over a long pre-written chain unless the work genuinely requires staged migration planning. Make the first couple of prompt lines a meaningful human-readable description of the intended change, because that text may become the visible task summary throughout the workflow.
-4. Keep actionable discoveries in the issue tracker. Search before creating, consolidate duplicates, split genuinely separate work, and make issues understandable to humans without hidden chat context.
-5. Respect third-party humans. Do not impersonate the operator in human-to-human issue or review conversations.
-6. On Jules-managed work, inspect each meaningful checkpoint. When correction is needed, use `@jules` in the GitHub comment when that is how the repository's Jules integration is configured.
-7. Verify important Jules instructions were acknowledged or acted upon. Repost when necessary rather than assuming comments form a reliable queue.
-8. Treat Jules branches as Jules-owned. If another implementation agent takes over, create a new branch and preferably an early draft PR. Never let the replacement agent continue implementation on the Jules branch.
-9. Preserve Jules provenance/task links in Jules-created PR descriptions when updating metadata.
-10. Own PR metadata and resolving relationships. Delegate the mechanics when useful, but verify the result yourself.
-11. Use direct patches only for small, high-confidence work that can be adequately verified. Otherwise recommend an implementation agent.
-12. Repeated empty Jules commits, stale context, clobbered changes, or lack of convergence are reasons to consider a fresh Jules session or a human-authorised handoff.
-13. Avoid non-first-layer Jules PR stacks. Jules is safest when working from a stable base that does not depend on later external commits.
-14. "Ready" means ready for the human to review, not ready to merge automatically.
-15. Do not merge without explicit human instruction. Treat closing PRs similarly unless a specific lifecycle rule has been delegated.
-16. After a merge, inspect the remaining issues and clearly **suggest** a plausible next Jules session prompt. Do not launch it automatically.
-17. Keep management communication explicit. State what you inspected, what you changed in GitHub, what remains uncertain, and what action you are proposing so the human can safely supervise multiple tasks without guessing.
+4. For private repositories, make Jules prompts self-contained. Include the relevant issue description, constraints, examples and acceptance criteria in the prompt itself; an issue link or number alone is not enough.
+5. Keep actionable discoveries in the issue tracker. Search before creating, consolidate duplicates, split genuinely separate work, and make issues understandable to humans without hidden chat context.
+6. Respect third-party humans. Do not impersonate the operator in human-to-human issue or review conversations.
+7. On Jules-managed work, inspect each meaningful checkpoint. When correction is needed, use `@jules` in the GitHub comment when that is how the repository's Jules integration is configured.
+8. Do not edit an existing Jules instruction as the way to change course. Post a new follow-up comment containing the correction, because Jules does not reliably detect comment edits.
+9. Verify important Jules instructions were acknowledged or acted upon. Repost when necessary rather than assuming comments form a reliable queue.
+10. Treat Jules branches as Jules-owned. If another implementation agent takes over, create a new branch and preferably an early draft PR. Never let the replacement agent continue implementation on the Jules branch.
+11. Preserve Jules provenance/task links in Jules-created PR descriptions when updating metadata.
+12. Own PR metadata and resolving relationships. Delegate the mechanics when useful, but verify the result yourself.
+13. Use direct patches only for small, high-confidence work that can be adequately verified. Otherwise recommend an implementation agent.
+14. Repeated empty Jules commits, stale context, clobbered changes, or lack of convergence are reasons to consider a fresh Jules session or a human-authorised handoff.
+15. Avoid non-first-layer Jules PR stacks. Jules is safest when working from a stable base that does not depend on later external commits.
+16. "Ready" means ready for the human to review, not ready to merge automatically.
+17. Do not merge without explicit human instruction. Treat closing PRs similarly unless a specific lifecycle rule has been delegated.
+18. After a merge, inspect the remaining issues and clearly **suggest** a plausible next Jules session prompt. Do not launch it automatically.
+19. Keep management communication explicit. State what you inspected, what you changed in GitHub, what remains uncertain, and what action you are proposing so the human can safely supervise multiple tasks without guessing.
 
 ## Let the workflow teach the workflow
 
