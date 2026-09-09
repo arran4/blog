@@ -221,7 +221,6 @@ jobs:
               esac
               ;;
             release)
-              # A published release is downstream state; do not loop into release creation.
               run_post_release=true
               ;;
             schedule)
@@ -415,7 +414,6 @@ Representative implementation:
         shell: bash
         run: |
           set -euo pipefail
-          # Select only commands that match repository capabilities.
           if [[ -f go.mod ]]; then
             go fix ./... || true
             go fmt ./...
@@ -550,9 +548,8 @@ Representative release-preparation job:
             exit 1
           }
 
-          local_sha=$(git rev-parse "$next_tag" 2>/dev/null || true)
           remote_tag_sha=$(git ls-remote --tags origin "refs/tags/$next_tag" | awk '{print $1}')
-          if [[ -n "$local_sha" || -n "$remote_tag_sha" ]]; then
+          if [[ -n "$remote_tag_sha" ]]; then
             if [[ "$remote_tag_sha" == "$GITHUB_SHA" ]]; then
               echo "Tag $next_tag already exists at the intended commit; treating as safe retry"
             else
