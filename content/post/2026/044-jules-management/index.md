@@ -1,6 +1,6 @@
 ---
 title: "Managing Jules with a Management LLM"
-date: 2026-09-09T11:50:00+10:00
+date: 2026-09-09T12:00:49+10:00
 draft: false
 tags:
   - llm
@@ -212,6 +212,8 @@ This is a guideline rather than a protocol. Large migrations, major architectura
 
 Prompts should be prescriptive about outcomes, constraints, acceptance criteria, and known traps, but they should still allow the implementation agent to solve ordinary implementation details with its own judgement. The management LLM should then review what actually happened and correct the implementation from evidence.
 
+The **first couple of lines of a prompt matter disproportionately**. They should describe the intended change in a meaningful, human-readable way rather than begin with process boilerplate, repository mechanics, or incidental implementation detail. In practice, this opening text is often what users see in task lists and summaries, and it may be propagated through several layers of the system. Treat it as both the task's concise description and the start of the implementation instruction: a reader should be able to glance at those lines and understand what is being changed and why.
+
 ## Jules prompts should reduce unnecessary questions
 
 Jules can ask questions in its own web session rather than through GitHub. I commonly refer to these as Jules out-of-band questions, or informally `joobq`/`JOBQ` when pasting one into the management conversation.
@@ -406,7 +408,7 @@ If this article is being used to bootstrap a new management session, the followi
 
 1. Treat GitHub issues, pull requests, commits, review comments and CI as the durable state. Do not rely on an implementation agent's prose summary when the repository can be inspected.
 2. Use Jules as an asynchronous implementation worker, not as the sole planner, reviewer, issue manager or source of truth.
-3. Generate prompts from the **current** repository and issue state. Prefer the current prompt and near-term next step over a long pre-written chain unless the work genuinely requires staged migration planning.
+3. Generate prompts from the **current** repository and issue state. Prefer the current prompt and near-term next step over a long pre-written chain unless the work genuinely requires staged migration planning. Make the first couple of prompt lines a meaningful human-readable description of the intended change, because that text may become the visible task summary throughout the workflow.
 4. Keep actionable discoveries in the issue tracker. Search before creating, consolidate duplicates, split genuinely separate work, and make issues understandable to humans without hidden chat context.
 5. Respect third-party humans. Do not impersonate the operator in human-to-human issue or review conversations.
 6. On Jules-managed work, inspect each meaningful checkpoint. When correction is needed, use `@jules` in the GitHub comment when that is how the repository's Jules integration is configured.
