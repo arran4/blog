@@ -150,7 +150,6 @@ A routing job should parse events to determine if the run should execute monthly
           elif [[ "$EVENT_NAME" == "schedule" ]]; then
             if [[ "${{ github.event.schedule }}" == "17 3 1 * *" ]]; then
                run_maintenance=true
-               run_autofix=true
                mode="monthly-maintenance"
             else
                run_autofix=true
@@ -174,7 +173,6 @@ A routing job should parse events to determine if the run should execute monthly
                run_release=true
             elif [[ "$mode" == "monthly-maintenance" ]]; then
                run_maintenance=true
-               run_autofix=true
             fi
           elif [[ "$EVENT_NAME" == "push" && "$REF_TYPE" == "tag" && "$GITHUB_REF" == refs/tags/v* ]]; then
              # Standard external v* push publication
@@ -331,7 +329,7 @@ Example Autofix lane (the established manual `lint-fix` path that applies determ
           go-version-file: go.mod
       - run: go get -u ./... && go mod tidy
       - name: Create Pull Request
-        if: ${{ inputs.allow_prs != false }}
+        if: ${{ github.event_name == 'schedule' || inputs.allow_prs != false }}
         uses: peter-evans/create-pull-request@v7
         with:
           commit-message: "chore: monthly dependency update"
@@ -356,7 +354,7 @@ Example Autofix lane (the established manual `lint-fix` path that applies determ
       - run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
       - run: golangci-lint run --fix
       - name: Create Pull Request
-        if: ${{ inputs.allow_prs != false }}
+        if: ${{ github.event_name == 'schedule' || inputs.allow_prs != false }}
         uses: peter-evans/create-pull-request@v7
         with:
           commit-message: "style: auto-format code and lint fixes"
@@ -682,7 +680,6 @@ jobs:
           elif [[ "$EVENT_NAME" == "schedule" ]]; then
             if [[ "${{ github.event.schedule }}" == "17 3 1 * *" ]]; then
                run_maintenance=true
-               run_autofix=true
                mode="monthly-maintenance"
             else
                run_autofix=true
@@ -706,7 +703,6 @@ jobs:
                run_release=true
             elif [[ "$mode" == "monthly-maintenance" ]]; then
                run_maintenance=true
-               run_autofix=true
             fi
           elif [[ "$EVENT_NAME" == "push" && "$REF_TYPE" == "tag" && "$GITHUB_REF" == refs/tags/v* ]]; then
              # Standard external v* push publication
@@ -748,7 +744,7 @@ jobs:
           go-version-file: go.mod
       - run: go get -u ./... && go mod tidy
       - name: Create Pull Request
-        if: ${{ inputs.allow_prs != false }}
+        if: ${{ github.event_name == 'schedule' || inputs.allow_prs != false }}
         uses: peter-evans/create-pull-request@v7
         with:
           commit-message: "chore: monthly dependency update"
@@ -773,7 +769,7 @@ jobs:
       - run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
       - run: golangci-lint run --fix
       - name: Create Pull Request
-        if: ${{ inputs.allow_prs != false }}
+        if: ${{ github.event_name == 'schedule' || inputs.allow_prs != false }}
         uses: peter-evans/create-pull-request@v7
         with:
           commit-message: "style: auto-format code and lint fixes"
