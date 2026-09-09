@@ -1,0 +1,154 @@
+name: Complete cspell scope migration
+
+on:
+  push:
+    branches:
+      - docs/cspell-scope-policy
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: docs/cspell-scope-policy
+          fetch-depth: 0
+
+      - name: Normalize cspell exception scope
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import re
+          from pathlib import Path
+
+          config_path = Path('.cspell.json')
+          config = json.loads(config_path.read_text())
+          configured = set(config.get('words', []))
+
+          markdown_paths = [Path('README.md')]
+          markdown_paths.extend(sorted(Path('content').glob('**/*.md')))
+          markdown_paths = [p for p in markdown_paths if p.exists()]
+
+          directive_re = re.compile(r'^\s*<!--\s*cspell:words\s+(.*?)\s*-->\s*$', re.IGNORECASE)
+          original = {}
+          scan_text = {}
+          existing_local = {}
+
+          for path in markdown_paths:
+              text = path.read_text()
+              original[path] = text
+              kept = []
+              local_words = set()
+              for line in text.splitlines(keepends=True):
+                  match = directive_re.match(line.rstrip('\r\n'))
+                  if match:
+                      local_words.update(match.group(1).split())
+                  else:
+                      kept.append(line)
+              existing_local[path] = local_words
+              scan_text[path] = ''.join(kept)
+
+          candidates = set(configured)
+          for words in existing_local.values():
+              candidates.update(words)
+
+          def occurs(word, text):
+              # Match the configured spelling as a complete token/compound rather
+              # than as an arbitrary substring of a longer identifier.
+              pattern = rf'(?<![A-Za-z0-9_]){re.escape(word)}(?![A-Za-z0-9_])'
+              return re.search(pattern, text, re.IGNORECASE) is not None
+
+          usage = {word: [] for word in candidates}
+          for word in candidates:
+              for path in markdown_paths:
+                  if occurs(word, scan_text[path]):
+                      usage[word].append(path)
+
+          def is_article(path):
+              parts = path.parts
+              return (
+                  len(parts) >= 5
+                  and parts[0] == 'content'
+                  and parts[1] == 'post'
+                  and parts[-1] == 'index.md'
+                  and not path.name.startswith('_')
+              )
+
+          global_words = set()
+          local_by_path = {path: set() for path in markdown_paths}
+          unused = set()
+
+          for word in candidates:
+              files = usage[word]
+              article_count = sum(1 for path in files if is_article(path))
+              if not files:
+                  unused.add(word)
+              elif article_count >= 3:
+                  global_words.add(word)
+              else:
+                  for path in files:
+                      local_by_path[path].add(word)
+
+          config['words'] = sorted(global_words, key=str.casefold)
+          config_path.write_text(json.dumps(config, indent=2, ensure_ascii=False) + '\n')
+
+          def render_with_local_words(path, words):
+              text = scan_text[path]
+              if not words:
+                  return text
+
+              directive = '<!-- cspell:words ' + ' '.join(sorted(words, key=str.casefold)) + ' -->\n'
+              lines = text.splitlines(keepends=True)
+
+              # Article/content files use YAML front matter. Put the directive
+              # immediately after it. README has no front matter, so put it first.
+              if lines and lines[0].strip() == '---':
+                  closing = None
+                  for idx in range(1, len(lines)):
+                      if lines[idx].strip() == '---':
+                          closing = idx
+                          break
+                  if closing is not None:
+                      insert_at = closing + 1
+                      while insert_at < len(lines) and lines[insert_at].strip() == '':
+                          del lines[insert_at]
+                      lines[insert_at:insert_at] = ['\n', directive, '\n']
+                      return ''.join(lines)
+
+              while lines and lines[0].strip() == '':
+                  del lines[0]
+              return directive + '\n' + ''.join(lines)
+
+          changed_files = []
+          for path in markdown_paths:
+              new_text = render_with_local_words(path, local_by_path[path])
+              if new_text != original[path]:
+                  path.write_text(new_text)
+                  changed_files.append(path)
+
+          print(f'Candidate exceptions: {len(candidates)}')
+          print(f'Global after migration: {len(global_words)}')
+          print(f'Unused removed: {len(unused)}')
+          print(f'Files with local exceptions: {sum(bool(v) for v in local_by_path.values())}')
+          print(f'Markdown files changed: {len(changed_files)}')
+          if unused:
+              print('Unused: ' + ', '.join(sorted(unused, key=str.casefold)))
+          PY
+
+      - name: Commit migration
+        shell: bash
+        run: |
+          if git diff --quiet -- .cspell.json README.md content; then
+            echo 'No migration changes needed.'
+            exit 0
+          fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add .cspell.json README.md content
+          git commit -m 'chore: fully scope cspell vocabulary'
+          git push origin HEAD:docs/cspell-scope-policy
