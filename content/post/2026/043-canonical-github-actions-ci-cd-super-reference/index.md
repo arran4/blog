@@ -25,14 +25,14 @@ The purpose of this article is to serve as a complete generation specification f
 
 The article should strongly reduce agent discretion in areas where we already have preferred patterns. Repository-specific differences should come primarily from capability selection, not from every agent inventing a completely different CI topology.
 
-Downstream agents must add and preserve `workflow_dispatch` functionality because this canonical specification requires it. Repository-specific prompts should not need to independently request `workflow_dispatch`.
+Downstream agents must implement `workflow_dispatch` as a migration/improvement process toward a useful manual operator UX. Do not blindly preserve stale or broken structures merely because they exist; instead, update them to the current canonical pattern while retaining genuinely useful repo-specific behavior. Repository-specific prompts should not need to independently request this UX improvement. Use working repositories as design references, including `gobookmarks`, `g2`, `phonenumber`, `golang-wordwrap`, `git-tag-inc`, `lookup`, and `md2png`.
 
 ## 2. Required repository inspection before generation
 
 Before generating or modifying any CI configuration, you must:
 - enumerate all `.github/workflows/*`;
 - understand each trigger/job;
-- inventory existing manual-dispatch triggers, inputs, and behavior so they are preserved or migrated;
+- inspect existing manual-dispatch behavior to learn repository-specific requirements, but do not preserve stale/broken/bespoke structure merely because it exists;
 - inventory useful behavior;
 - identify duplicate validation;
 - identify every release owner;
@@ -46,7 +46,7 @@ Before generating or modifying any CI configuration, you must:
 
 The default should be the fewest coherent workflow files necessary, normally one central `.github/workflows/ci.yml` or `.github/workflows/ci.yaml`. Do not preserve multiple workflow files merely because they already exist. A second workflow is acceptable only for a concrete technical or trust-boundary reason.
 
-Explicitly, CI consolidation or simplification MUST NOT remove existing manual-dispatch capability. A canonical workflow is incomplete if the GitHub Actions UI cannot expose a useful “Run workflow” path after the workflow reaches the default branch.
+Explicitly, CI consolidation or simplification MUST NOT remove existing manual-dispatch capability without a documented capability-based exception. A canonical workflow is incomplete if the GitHub Actions UI cannot expose a useful “Run workflow” path after the workflow reaches the default branch. If manual dispatch is absent or broken, create/restore the canonical pattern. If it exists but is stale or awkward, migrate/improve it toward the current pattern while retaining genuinely useful repo-specific behavior.
 
 The canonical orchestration phases must remain consistent:
 ```text
@@ -72,7 +72,7 @@ Generated workflows must include a short top-of-file pointer back to THIS new ar
 ## 4. Capability-selection matrix
 
 Before generating jobs, classify capabilities as:
-- **A. UNIVERSAL DEFAULT:** Baseline routing, basic validation, concurrency logic, manual dispatch (`workflow_dispatch`).
+- **A. UNIVERSAL DEFAULT:** Baseline routing, basic validation, concurrency logic, practical manual dispatch UX (`workflow_dispatch` where viable).
 - **B. ENABLED WHEN REPOSITORY CAPABILITY EXISTS:** Language-specific lint/test (Go, Node, Dart, CMake, Dockerfile, Debian/RPM packaging, etc.), artifact building, packaging, GoReleaser.
 - **C. OPTIONAL POLICY:** Autofix PR generation, maintenance scheduling, PR constraints.
 - **D. EXCEPTION REQUIRING AN EXPLANATION:** Additional workflows, custom semantic version math.
@@ -81,9 +81,9 @@ Do not create irrelevant language jobs merely because examples exist. Conversely
 
 ## 5. Trigger/event model
 
-The standard event triggers should cover the following. `workflow_dispatch` is a UNIVERSAL REQUIRED trigger for canonical generated CI, unless there is a concrete documented technical reason it cannot exist.
+The standard event triggers should cover the following. `workflow_dispatch` must be implemented to provide a useful manual operator UX where it is practical and viable, rather than being preserved blindly as a meaningless invariant. If manual dispatch genuinely has no practical role, allow a documented capability-based exception rather than requiring meaningless YAML.
 
-You must require the canonical `mode` input where applicable, including normal/manual validation/build modes and the existing release/maintenance/recovery modes described by the article. Clearly distinguish "the YAML contains `workflow_dispatch`" from "manual dispatch actually does useful work"—the inputs must actually route to functional jobs.
+You must require the canonical `mode` input where applicable, including normal/manual validation/build modes and the existing release/maintenance/recovery modes described by the article. Clearly distinguish "the YAML contains `workflow_dispatch`" from "manual dispatch actually does useful work"—the inputs must actually route to functional jobs. For versioned repositories the established UI normally includes useful `mode` choices such as `build`, `release-major`, `release-minor`, `release-patch`, applicable prerelease modes, optional `release_version_override`, and release-safe tag-context publishing where applicable. Do not add release controls to repositories that do not have corresponding release capabilities.
 ```yaml
 on:
   push:
@@ -731,7 +731,8 @@ Before opening a CI PR, ensure:
 - GoReleaser ownership is not duplicated;
 - test/snapshot/prerelease semantics are correct;
 - external human-created `v*` tag publication still behaves as intended where supported;
-- final workflow has `on.workflow_dispatch`;
+- validate the actual `Run workflow` UX and routing, not just the presence of `workflow_dispatch:`;
+- if manual dispatch genuinely has no practical role, a documented capability-based exception exists;
 - intended manual inputs exist;
 - at least one ordinary manual mode, such as build, actually routes to useful validation/build jobs;
 - applicable manual release modes route to their validation/preparation jobs;
