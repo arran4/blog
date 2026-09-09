@@ -120,45 +120,57 @@ A routing job should parse events to determine if the run should execute monthly
     name: Route Event
     runs-on: ubuntu-latest
     outputs:
-      is_pull_request: ${{ steps.route.outputs.is_pull_request }}
-      is_manual: ${{ steps.route.outputs.is_manual }}
-      is_release: ${{ steps.route.outputs.is_release }}
-      is_maintenance: ${{ steps.route.outputs.is_maintenance }}
+      run_code_checks: ${{ steps.route.outputs.run_code_checks }}
+      run_build: ${{ steps.route.outputs.run_build }}
+      run_release: ${{ steps.route.outputs.run_release }}
+      run_autofix: ${{ steps.route.outputs.run_autofix }}
+      run_publisher: ${{ steps.route.outputs.run_publisher }}
       mode: ${{ steps.route.outputs.mode }}
     steps:
       - id: route
         env:
           EVENT_NAME: ${{ github.event_name }}
           INPUT_MODE: ${{ github.event.inputs.mode }}
+          REF_TYPE: ${{ github.ref_type }}
         run: |
           set -euo pipefail
-          is_pull_request=false
-          is_manual=false
-          is_release=false
-          is_maintenance=false
-          mode="$INPUT_MODE"
+          run_code_checks=true
+          run_build=true
+          run_release=false
+          run_autofix=false
+          run_publisher=false
+          mode="build"
 
           if [[ "$EVENT_NAME" == "pull_request" ]]; then
-            is_pull_request=true
-            mode="build"
-          elif [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
-            is_manual=true
-            if [[ "$INPUT_MODE" == "publish-tag" ]]; then
-                is_release=true
-            fi
+            # PRs just validate
+            :
           elif [[ "$EVENT_NAME" == "schedule" ]]; then
-            is_maintenance=true
+            run_autofix=true
             mode="lint-fix"
-          elif [[ "$EVENT_NAME" == "push" && "$GITHUB_REF" == refs/tags/* ]]; then
-             mode="build"
-          else
-             mode="build"
+          elif [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            mode="${INPUT_MODE:-build}"
+            if [[ "$mode" == "lint-fix" ]]; then
+               run_autofix=true
+            elif [[ "$mode" == "publish-tag" ]]; then
+               # The internal explicit publish-tag dispatch mode
+               if [[ "$REF_TYPE" == "tag" ]]; then
+                  run_code_checks=false
+                  run_build=false
+                  run_publisher=true
+               fi
+            elif [[ "$mode" == release-* ]]; then
+               run_release=true
+            fi
+          elif [[ "$EVENT_NAME" == "push" && "$REF_TYPE" == "tag" ]]; then
+             # Standard external v* push publication
+             run_publisher=true
           fi
 
-          echo "is_pull_request=$is_pull_request" >> "$GITHUB_OUTPUT"
-          echo "is_manual=$is_manual" >> "$GITHUB_OUTPUT"
-          echo "is_release=$is_release" >> "$GITHUB_OUTPUT"
-          echo "is_maintenance=$is_maintenance" >> "$GITHUB_OUTPUT"
+          echo "run_code_checks=$run_code_checks" >> "$GITHUB_OUTPUT"
+          echo "run_build=$run_build" >> "$GITHUB_OUTPUT"
+          echo "run_release=$run_release" >> "$GITHUB_OUTPUT"
+          echo "run_autofix=$run_autofix" >> "$GITHUB_OUTPUT"
+          echo "run_publisher=$run_publisher" >> "$GITHUB_OUTPUT"
           echo "mode=$mode" >> "$GITHUB_OUTPUT"
 ```
 
@@ -291,8 +303,7 @@ Example Autofix lane (the established manual `lint-fix` path that applies determ
   autofix:
     name: Autofix Formatting
     needs: [route]
-    # Explicitly supports workflow_dispatch manual lint-fix, and cleans up maintenance
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' || github.event_name == 'schedule' }}
+    if: ${{ needs.route.outputs.run_autofix == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -631,6 +642,7 @@ jobs:
   validation:
     name: Validation & Tests
     needs: [route]
+    if: ${{ needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -650,7 +662,7 @@ jobs:
   prepare-release-tag:
     name: Prepare Release Tag
     needs: [route, release-ready]
-    if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') }}
+    if: ${{ needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -683,7 +695,7 @@ jobs:
             echo "Error: Requested release against $GITHUB_SHA but origin/main is at $MAIN_SHA"
             sh -c "exit 1"
           fi
-      - name: Calculate or recover version
+      - name: Calculate or explicitly set version
         env:
           RELEASE_MODE: ${{ inputs.mode }}
           RELEASE_VERSION_OVERRIDE: ${{ inputs.release_version_override }}
@@ -691,42 +703,54 @@ jobs:
           set -euo pipefail
           export PATH="$(go env GOPATH)/bin:$PATH"
           if [[ -n "$RELEASE_VERSION_OVERRIDE" ]]; then
-             echo "Recovering version $RELEASE_VERSION_OVERRIDE"
-             # Validate shape and ensure it's a remote tag, then dereference
-             if ! [[ "$RELEASE_VERSION_OVERRIDE" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
-                echo "Error: Override $RELEASE_VERSION_OVERRIDE is not a valid release tag shape."
+             # Normalize optional leading v
+             TAG="${RELEASE_VERSION_OVERRIDE#v}"
+             TAG="v${TAG}"
+             echo "Using manual version override: $TAG"
+             # Validate shape
+             if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+                echo "Error: Override $TAG is not a valid release tag shape."
                 sh -c "exit 1"
              fi
-             TAG_SHA=$(git ls-remote --tags origin "refs/tags/$RELEASE_VERSION_OVERRIDE" | grep -v '{}$' | awk '{print $1}')
-             if [[ -z "$TAG_SHA" ]]; then
-                echo "Recovery failed: Tag $RELEASE_VERSION_OVERRIDE does not exist on origin."
-                sh -c "exit 1"
-             fi
-             # Dereference if it's an annotated tag by checking for the peeled ^{} ref
-             PEELED_SHA=$(git ls-remote --tags origin "refs/tags/$RELEASE_VERSION_OVERRIDE^{}" | awk '{print $1}')
-             if [[ -n "$PEELED_SHA" ]]; then
-                 TAG_SHA="$PEELED_SHA"
-             fi
-             if [[ "$TAG_SHA" != "$GITHUB_SHA" ]]; then
-                echo "Recovery failed: Tag $RELEASE_VERSION_OVERRIDE points to $TAG_SHA, not $GITHUB_SHA"
-                sh -c "exit 1"
-             fi
-             TAG="$RELEASE_VERSION_OVERRIDE"
           else
-             # Use git-tag-inc safe version calculation
              echo "Using arran4/git-tag-inc..."
-             # Call the installed git-tag-inc CLI with safely extracted workflow-selected arguments
+             # Use git-tag-inc safe version calculation
              case "$RELEASE_MODE" in
-               release-major) BUMP="major" ;;
-               release-minor) BUMP="minor" ;;
-               release-patch) BUMP="patch" ;;
-               release-test) BUMP="patch"; SUFFIX="--prerelease-suffix test" ;;
-               release-rc) BUMP="patch"; SUFFIX="--prerelease-suffix rc" ;;
-               release-alpha) BUMP="patch"; SUFFIX="--prerelease-suffix alpha" ;;
-               *) echo "Unknown release mode $RELEASE_MODE"; sh -c "exit 1" ;;
+               release-major) level="major"; suffix="" ;;
+               release-minor) level="minor"; suffix="" ;;
+               release-patch) level="patch"; suffix="" ;;
+               release-test)  level="patch"; suffix="test" ;;
+               release-rc)    level="patch"; suffix="rc" ;;
+               release-alpha) level="patch"; suffix="alpha" ;;
+               *) echo "Unsupported release mode: $RELEASE_MODE" >&2; sh -c "exit 1" ;;
              esac
-             TAG="$(git-tag-inc --print-version-only --skip-forwards "$BUMP" ${SUFFIX:-})"
+             args=(--print-version-only "$level")
+             [[ -n "$suffix" ]] && args+=("$suffix")
+             TAG="$(git-tag-inc "${args[@]}")"
+          fi
+          echo "Calculated TAG=$TAG"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+      - name: Tag and push (Idempotent)
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          # Check remote state for idempotency/retry
+          REMOTE_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | grep -v '{}$' | awk '{print $1}' || true)
+          # Also check peeled annotated tag if it exists
+          PEELED_SHA=$(git ls-remote --tags origin "refs/tags/$TAG^{}" | awk '{print $1}' || true)
+          if [[ -n "$PEELED_SHA" ]]; then
+              REMOTE_SHA="$PEELED_SHA"
+          fi
 
+          if [[ -n "$REMOTE_SHA" ]]; then
+             if [[ "$REMOTE_SHA" == "$GITHUB_SHA" ]]; then
+                echo "Tag $TAG already exists on origin and points to correct SHA ($GITHUB_SHA). Safely retrying publish."
+             else
+                echo "Error: Tag $TAG already exists on origin but points to $REMOTE_SHA, not expected $GITHUB_SHA."
+                sh -c "exit 1"
+             fi
+          else
              # Final race guard: verify origin/main is STILL exactly GITHUB_SHA right before tagging
              git fetch origin main
              CURRENT_MAIN_SHA=$(git rev-parse origin/main)
@@ -735,18 +759,20 @@ jobs:
                 sh -c "exit 1"
              fi
 
-             # Create and push the tag since it was calculated and verified
+             # If local tag exists but wasn't pushed, delete to recreate fresh
+             git tag -d "$TAG" 2>/dev/null || true
+
+             # Create and push the tag
              git tag "$TAG"
              git push origin "$TAG" || {
                 # Race safe remote verification
                 REMOTE_SHA=$(git ls-remote --tags origin "$TAG" | awk '{print $1}')
                 if [[ "$REMOTE_SHA" != "$GITHUB_SHA" ]]; then
-                   echo "Race condition: tag pushed remotely with different SHA"
+                   echo "Race condition: tag pushed remotely with different SHA ($REMOTE_SHA)"
                    sh -c "exit 1"
                 fi
              }
           fi
-          echo "TAG=$TAG" >> "$GITHUB_ENV"
       - name: Dispatch Publisher
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -756,8 +782,7 @@ jobs:
   publisher:
     name: Release Publisher
     needs: [route]
-    # Runs when explicitly dispatched from a tag
-    if: ${{ github.ref_type == 'tag' && github.event_name == 'workflow_dispatch' && inputs.mode == 'publish-tag' }}
+    if: ${{ needs.route.outputs.run_publisher == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
