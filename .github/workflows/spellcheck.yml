@@ -29,7 +29,10 @@ jobs:
             exit 1
           fi
 
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git fetch origin main
+
           set +e
           git merge --no-ff --no-commit origin/main
           merge_status=$?
@@ -37,6 +40,11 @@ jobs:
 
           if [[ $merge_status -ne 0 ]]; then
             mapfile -t conflicts < <(git diff --name-only --diff-filter=U)
+            if [[ ${#conflicts[@]} -eq 0 ]]; then
+              echo 'git merge failed before producing merge conflicts.' >&2
+              git merge --abort 2>/dev/null || true
+              exit 1
+            fi
             printf 'Conflicts: %s\n' "${conflicts[*]}"
             for path in "${conflicts[@]}"; do
               if [[ "$path" != '.cspell.json' && "$path" != "$article" ]]; then
@@ -78,11 +86,7 @@ jobs:
             exit 1
           fi
 
-          # Remove the earlier temporary workflow from the merge result.
           git rm -f .github/workflows/resolve-pr136-merge.yml 2>/dev/null || true
-
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add -A
           git commit -m 'Merge main into cspell scope policy'
           git push origin HEAD:docs/cspell-scope-policy
