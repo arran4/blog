@@ -56,6 +56,7 @@ jobs:
         if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PAGES_URL: ${{ steps.deployment.outputs.page_url }}
         run: |
           set -e
 
@@ -80,6 +81,7 @@ jobs:
             SLUG=$(echo "$DIR_NAME" | cut -d'/' -f4)
 
             PATHNAME="/blog/post/$YEAR/$SLUG/"
+            ARTICLE_URL="${PAGES_URL%/}/post/$YEAR/$SLUG/"
 
             ACTUAL_TITLE=$(grep -m1 '^title:' "$POST_FILE" | sed -E "s/^title:[[:space:]]*['\"]?(.*[^'\"])['\"]?[[:space:]]*$/\1/")
             DISCUSSION_TITLE="$ACTUAL_TITLE - $PATHNAME"
@@ -90,5 +92,5 @@ jobs:
               --repo ${{ github.repository }} \
               --category "Announcements" \
               --title "$DISCUSSION_TITLE" \
-              --body "A new blog post has been published: **$ACTUAL_TITLE**! @arran4"
+              --body "A new blog post has been published: **$ACTUAL_TITLE**! Read it at <$ARTICLE_URL>. @arran4"
           done
