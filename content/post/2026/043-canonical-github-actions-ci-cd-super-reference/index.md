@@ -237,30 +237,32 @@ Example Security/Gitleaks lane:
       - uses: gitleaks/gitleaks-action@v3
 ```
 
-Example Autofix lane:
+Example Autofix lane (the established manual `lint-fix` path that applies deterministic fixes and opens a focused automation PR):
 ```yaml
   autofix:
     name: Autofix Formatting
     needs: [route]
-    # Only run on pull requests explicitly from the same repository to avoid fork push failures.
-    # Fork PRs should run validation only rather than attempt pushback.
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+    # Explicitly supports workflow_dispatch manual lint-fix, and cleans up maintenance
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' || github.event_name == 'schedule' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v7
-        with:
-          ref: ${{ github.head_ref }}
-      - uses: actions/setup-go@v7
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
       - run: go fmt ./...
-      - name: Commit fixes
-        uses: stefanzweifel/git-auto-commit-action@v7
+      - run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
+      - run: golangci-lint run --fix
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
         with:
-          commit_message: "style: auto-format code"
+          commit-message: "style: auto-format code and lint fixes"
+          title: "style: auto-format code and lint fixes"
+          branch: automation/lint-fix
+          delete-branch: true
 ```
 
 Example Debian/RPM packaging lane:
@@ -611,6 +613,10 @@ jobs:
         with:
           go-version-file: go.mod
           # If no go.mod exists, specify a current major version instead
+      - name: Install git-tag-inc
+        uses: arran4/git-tag-inc-action@v1
+        with:
+          install-only: 'true'
       - name: Verify Exact Origin/Main
         env:
           GITHUB_REF_NAME: ${{ github.ref }}
@@ -658,9 +664,10 @@ jobs:
              TAG="$RELEASE_VERSION_OVERRIDE"
           else
              # Use git-tag-inc safe version calculation
-             echo "Installing pinned git-tag-inc..."
-             go install github.com/arran4/git-tag-inc/cmd/git-tag-inc@90266586fefee6ffcb9fb02b00543b5959cd6c13
-             # Usage composing primitives. See semver_calc wrapper from mvcommon#20 for real world policy mapping
+             echo "Using arran4/git-tag-inc..."
+             # Use arran4/git-tag-inc-action@v1 in install mode to get the binary
+             # Then call the installed git-tag-inc CLI with workflow-selected arguments
+             # (Assume git-tag-inc is in PATH from an earlier setup step, or call it directly)
              TAG="$(git-tag-inc --print-version-only --skip-forwards "${RELEASE_MODE#release-}")"
 
              # Final race guard: verify origin/main is STILL exactly GITHUB_SHA right before tagging
