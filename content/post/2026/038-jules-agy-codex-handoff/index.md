@@ -27,10 +27,10 @@ In practice my workflow looks more like this:
 3. have the outside assistant review the resulting PR and **each meaningful follow-up commit**, checking Git rather than trusting Jules' completion prose;
 4. use that review to write the next Jules PR response, answer a question Jules asks in its web session, or decide that no further prompt is needed;
 5. keep implementation changes inside Jules while Jules still owns the branch, because direct non-Jules pushes can be unwound by a later Jules update;
-6. when the Jules phase is deliberately over, either make very small, obvious fixes directly through the integrated GitHub tooling or hand substantial remaining work to **Google Antigravity CLI (`agy`)** or **OpenAI Codex**;
-7. if handing implementation to another agent, **always create a new branch**: either rebuild from current `main` or fork the last known-good Jules commit into a new branch; never let the replacement agent continue on the original Jules branch;
+6. when the Jules phase is deliberately over, either make very small, obvious fixes in detached/local state, ask **Google Antigravity CLI (`agy`)** or **OpenAI Codex** for a local repair, or authorise a substantial implementation takeover;
+7. never let another agent continue on the original Jules branch: use detached or equivalent local state for a local repair, or create a new non-Jules branch for an explicitly authorised full takeover;
 8. review the Agy/Codex changes with the outside assistant as well;
-9. when switching away from Jules, retire the Jules PR: optionally leave an immediate transition comment saying the work is being moved to a new branch and continued by `<agent>`; once the replacement PR exists and is ready to become the canonical work, comment on the Jules PR with the replacement link and close the Jules PR without merging it;
+9. when a full takeover includes a replacement PR, retire the Jules PR: optionally leave an immediate transition comment saying the work is being moved to a new branch and continued by `<agent>`; once the replacement PR exists and is ready to become the canonical work, comment on the Jules PR with the replacement link and close the Jules PR without merging it;
 10. throughout the job, keep the PR/work unit narrow but record credible out-of-scope discoveries in the project's durable issue register, normally GitHub Issues, updating an existing issue rather than creating a duplicate when one already exists;
 11. at the end of the job, reconcile the open issue register against what actually landed: close issues that are now fully resolved, update partially resolved issues with what was fixed and what remains, and make sure pending fixes are linked accurately when the PR has not yet merged;
 12. only merge the replacement when I explicitly decide the work is ready.
@@ -39,7 +39,9 @@ This means I am not asking one coding agent to both implement and police itself.
 
 This is not about one agent being universally better than another. The useful part is the separation of responsibilities and the ability to give a second implementation agent a **different context boundary**. A branch that has accumulated mistaken assumptions, repeated corrective prompts, generated churn, merge conflicts, or empty commits is often easier to finish by treating the old PR as evidence rather than as the workspace that must be preserved.
 
-This post documents the workflow I have converged on, including what information each system actually needs, what is usually redundant, how I review every step, when direct edits are safe, how out-of-scope discoveries are preserved without bloating the current PR, and when a handoff is worth the disruption.
+This post documents the workflow I have converged on, including what information each system actually needs, what is usually redundant, how I review every step, when local edits are safe, how out-of-scope discoveries are preserved without bloating the current PR, and when a handoff is worth the disruption.
+
+This article originally used "handoff" to mean a full implementation takeover with a replacement branch and pull request. The newer [management-LLM guidance](/blog/post/2026/044-jules-management/) makes an additional mode explicit: a human may ask another agent to inspect or repair a chosen commit in detached or equivalent local state and return a patch or diff, without authorising any new branch or pull request. In either mode, another agent must never commit to or push to the Jules branch.
 
 ## The missing layer: an outside orchestrator
 
@@ -56,7 +58,7 @@ There is a separate conversation, commonly ChatGPT with access to GitHub, that r
 - answer questions Jules asks inside the Jules web UI;
 - distinguish a real implementation question from something Jules can discover itself;
 - keep track of requirements that must survive later corrective passes;
-- decide whether the next action should be another Jules prompt, a direct tiny patch, an Agy/Codex handoff, or no change at all;
+- decide whether the next action should be another Jules prompt, a tiny local patch, an Agy/Codex handoff, or no change at all;
 - make sure credible out-of-scope discoveries are recorded in the project's issue register rather than being silently forgotten or smuggled into the current PR;
 - reconcile relevant open issues when the job finishes, closing fully resolved work and updating partially resolved work;
 - review replacement PRs and follow-up commits after the Jules phase;
@@ -174,9 +176,9 @@ Changing agents too early throws away useful working context.
 
 While I am in this state, I also avoid casually pushing my own fixes onto the Jules-controlled branch. Those edits may be correct and still be a bad workflow choice because Jules can later update from its own view of the task and **undo or overwrite a non-Jules push**.
 
-There is one hard boundary here: **if I decide to switch implementation agents, I stop using the Jules branch for implementation immediately**. Even when the branch is healthy and the handoff is voluntary, Agy, Codex, or any other replacement implementation agent gets a new branch. If the Jules head is trusted, the new branch can start at that exact commit; if it is not, the new branch starts from current `main` or another deliberately chosen trusted base.
+There is one hard boundary here: **if I decide to use another implementation agent, that agent does not use the Jules branch**. For a local repair or analysis, it starts from the chosen commit in detached or equivalent local state and returns a patch or diff. For a human-authorised full takeover, it gets a new branch. If the Jules head is trusted, that branch can start at the exact commit; if it is not, the branch starts from current `main` or another deliberately chosen trusted base.
 
-The Jules PR is also retired as part of that switch. It remains useful history, but it is no longer the active implementation PR. Once the replacement PR exists and is ready to take over, I link to it from the Jules PR and close the Jules PR without merging it.
+For a full takeover, the Jules PR is also retired as part of the switch. It remains useful history, but it is no longer the active implementation PR. Once the replacement PR exists and is ready to take over, I link to it from the Jules PR and close the Jules PR without merging it. A local repair leaves the Jules PR lifecycle unchanged.
 
 ### 2. Trust a specific commit: fork the known-good head
 
@@ -199,7 +201,7 @@ Use a clean rebuild when:
 
 In that case the replacement agent should inspect the old PR and its review discussion, but should treat them as a design/reference document. The new branch starts from current `main` and reproduces only the still-valid behaviour.
 
-The distinction between states 2 and 3 is therefore **which commit the new branch starts from**, not whether a new branch exists. A Jules-to-other-agent handoff always creates one.
+States 2 and 3 describe a full implementation takeover. The distinction between them is therefore **which commit the new branch starts from**, not whether that takeover branch exists. A local repair or analysis is a separate human-authorised mode and does not create a branch or pull request unless the human explicitly asks for one.
 
 ## Why Jules works well as the first implementation stage
 
@@ -239,7 +241,7 @@ Whenever I ask the outside assistant to produce a prompt, Jules response, Agy/Co
 
 Drafting that text and **acting on it are different operations**. Unless I explicitly ask the outside assistant to post the comment/review, update the PR, push a change, or merge, it should return the draft to me and stop there. In particular, "review this PR and give me a Jules response" is not permission to post that response to the PR, and a conclusion that a PR is ready is not permission to merge it.
 
-A request to **switch implementation away from Jules** is different from a request to merely draft a review response. In this workflow, the switch itself implies the branch/PR retirement lifecycle: create the replacement branch, move the implementation to the named agent, create the replacement PR, link the old Jules PR to it, and close the Jules PR once the replacement is ready to take over. It still does **not** imply permission to merge the replacement.
+A request for Codex, Agy, or another agent's help does not select a GitHub lifecycle by itself. The human must authorise either detached/local repair with no new branch or pull request, or a full implementation takeover. Only the full takeover implies creating a replacement branch and, when requested, a replacement PR; it still does **not** imply permission to merge.
 
 Issue-register maintenance is another deliberate workflow responsibility rather than an accidental PR comment. When I ask an agent to perform a coding/review job under this workflow, credible out-of-scope findings should be durably registered and the relevant open issues should be reconciled at completion. That does not authorize unrelated code changes; it is how the workflow preserves work while keeping the PR scoped.
 
@@ -381,7 +383,7 @@ For generated systems, I also explicitly distinguish **source-of-truth files** f
 
 This deserves its own rule because it changes how I use connected GitHub tools.
 
-While Jules is actively working a PR, I generally treat its branch as **Jules-owned**. The outside reviewer can read everything and can write PR comments, but it should be conservative about pushing code to that branch.
+While a branch remains a Jules branch, I treat it as **Jules-owned**. The outside reviewer can read everything and can write PR comments, but it must not push implementation code to that branch.
 
 The reason is practical rather than philosophical: Jules may later apply a plan based on its own task state and restore the version it believes should exist. A perfectly correct manual or ChatGPT-generated fix can therefore disappear in the next Jules commit.
 
@@ -397,13 +399,13 @@ outside assistant writes the next Jules response
 Jules makes the next code change
 ```
 
-I break that rule only deliberately.
+I keep that ownership boundary after deciding that Jules is finished; a local repair starts from a selected commit outside the Jules branch.
 
-### After the Jules phase, small direct fixes are efficient
+### After the Jules phase, small local fixes are efficient
 
 Once I have decided that Jules is finished and will no longer be allowed to mutate the branch, the trade-off changes.
 
-If review finds a **small, mechanically obvious change**, it can be faster and safer for ChatGPT or another integrated GitHub tool to patch it directly rather than starting another coding-agent cycle. Examples include:
+If review finds a **small, mechanically obvious change**, it can be faster and safer for ChatGPT or another tool to repair the selected commit in detached or equivalent local state rather than starting another coding-agent cycle. Examples include:
 
 - correcting a typo or documentation sentence;
 - fixing a small workflow condition whose intended form is already established;
@@ -416,15 +418,15 @@ The threshold is not a line count. The question is whether there is any **meanin
 
 If there is uncertainty, code generation, architecture, broad refactoring, generated-file regeneration, or substantial testing involved, I prefer Agy/Codex rather than turning the outside reviewer into an ad-hoc implementation agent.
 
-A small direct post-Jules patch by the outside orchestrator is not the same thing as handing ownership to another implementation agent. **If Agy, Codex, or another implementation agent takes over, a new branch is mandatory**, even if the only intended difference at the moment of handoff is the branch name.
+A small local post-Jules patch is not the same thing as handing ownership to another implementation agent. It does not authorise a branch, pull request, or push. The result should be returned as a patch, diff, local commit, or reviewed fix for deliberate application later. **If the human authorises Agy, Codex, or another implementation agent to take over fully, a new branch is mandatory**, even if the only intended difference at the moment of handoff is the branch name.
 
-Before a direct post-Jules push, I want the branch ownership transition to be explicit:
+Before a local post-Jules repair, I want the ownership boundary to be explicit:
 
-- Jules is no longer expected to modify this branch;
-- the current head has been reviewed and is the state being continued;
+- the exact starting commit has been reviewed and selected;
+- the original Jules branch will not be modified;
+- no branch, pull request, or push is authorised unless the human says otherwise;
 - the direct change is narrow and inspectable;
-- the resulting commit is reviewed again;
-- CI is checked afterwards.
+- the resulting patch, diff, or local commit is reviewed and tested.
 
 This prevents the worst hybrid state: two agents both believing they own the same branch.
 
@@ -444,7 +446,7 @@ A follow-up fixes A but breaks B; the next restores B but reintroduces A. This o
 
 ### The branch is being mutated by automation I no longer trust
 
-If the agent is still attached to the PR and automatically responding to comments or CI, preserving the current PR can be risky even after I have found a good commit. Fork the known-good commit to a new branch before further work.
+If the agent is still attached to the PR and automatically responding to comments or CI, preserving the current PR can be risky even after I have found a good commit. Start local repair from the known-good commit in detached state, or fork it to a new branch when a full takeover is authorised.
 
 ### The base moved and changed the truth
 
@@ -456,11 +458,11 @@ A clean rebuild forces the replacement agent to ask: **what remains necessary to
 
 A PR can eventually contain the right final files and still be difficult to trust because of generated churn, unrelated edits, or a long series of repair commits. If reconstructing the desired change from current `main` is cheaper than auditing the branch, reconstruction wins.
 
-### Switching agents always means switching branches and retiring the Jules PR
+### Full implementation takeover means switching branches and retiring the Jules PR
 
 This is true even when none of the failure modes above applies. A handoff can happen because a different environment is more useful, because local tooling is required, because I want an independent context, or simply because I choose to use another implementation agent.
 
-The rules are still the same:
+When the human authorises a full branch-and-PR takeover, the rules are:
 
 > **Never hand the original Jules branch to the replacement implementation agent. Create a new branch first.**
 >
@@ -487,6 +489,8 @@ Closing this Jules PR without merging it; please follow #<new> for the active wo
 
 Then I close the Jules PR. This makes the ownership transition visible in both Git and GitHub, preserves the Jules discussion as history, and prevents a later Jules action from colliding with the new agent's work.
 
+A request for local help is different. It does not imply permission to create a branch, open a pull request, or retire the Jules pull request. The replacement agent works from the selected commit in detached or equivalent local state and returns its patch, diff, local commit, or review for deliberate application later.
+
 ## Agy and Codex as second-stage implementation agents
 
 I use [Google Antigravity CLI](https://antigravity.google/docs/cli/overview/) (`agy`) and [OpenAI Codex](https://openai.com/codex/) for roughly the same second-stage role: give an independent agent a cleanly defined repository state and a compact record of what was learned from the first attempt.
@@ -501,13 +505,15 @@ That makes it well suited to a handoff where I want the agent to inspect Git sta
 
 The important practical requirements are:
 
-- **always create a new branch before Agy takes over from Jules**;
+- for an authorised full takeover, create a new branch before Agy takes over from Jules;
 - choose that new branch's base explicitly: current `main` or an exact trusted Jules commit;
 - start from a clean workspace or worktree for the new branch;
 - ensure Git/GitHub authentication is available if I expect it to push and open/close PRs or maintain the issue register;
 - state the PR lifecycle operations explicitly, because they are part of the task rather than implicit output of a Jules task;
 - record credible out-of-scope discoveries in the project issue register rather than broadening the current PR;
 - reconcile relevant open issues at the end of the job.
+
+For a local repair, give Agy the exact starting commit, prohibit changes to the Jules branch and new GitHub lifecycle objects, and ask it to return the local result rather than push.
 
 What Agy does **not** need is a tutorial on Git. If the repository is already checked out, it does not need the repository URL repeated in every prompt. If it can inspect the old PR/diff through GitHub tooling, I do not need to paste the complete patch into the prompt.
 
@@ -529,7 +535,7 @@ For Codex, the highest-value context is again not a giant transcript. It is:
 - how to handle out-of-scope issue discoveries and end-of-job issue reconciliation;
 - what GitHub lifecycle result I expect.
 
-When Codex takes over from Jules, it also **always works on a new branch**. The handoff must say whether that branch starts from current `main` or from an exact trusted Jules commit; continuing directly on the Jules branch is not an option in this workflow.
+When Codex takes over implementation from Jules, it works on a new non-Jules branch. The takeover prompt must say whether that branch starts from current `main` or from an exact trusted Jules commit. When Codex is asked only for a local repair or analysis, it instead uses the chosen commit in detached or equivalent local state and returns the result without pushing. Continuing directly on the Jules branch is never an option.
 
 A configured development environment and reliable test commands are much more valuable than verbose implementation instructions. OpenAI's Codex guidance similarly recommends prompts that look like good GitHub issues: scoped problem descriptions, relevant files/components, examples, and verification.
 
@@ -539,7 +545,7 @@ Codex has a similar environment boundary to Agy, but it can show up in more than
 
 The roles overlap heavily. I tend to favour Agy when the most valuable thing is the **existing local environment and direct branch/worktree manipulation**, and Codex when I want a **fresh independent audit or a clean agent workspace**. Availability, plan limits, and the state of the local toolchain can decide the choice just as legitimately as model preference. The workflow should survive either agent being temporarily unavailable.
 
-Whichever implementation agent I choose, switching away from Jules first creates the branch boundary and retires the Jules PR. Agent choice comes after those invariants, not instead of them.
+Whichever implementation agent I choose, the human first selects the handoff mode. A local repair preserves the Jules branch and PR without modifying them; a full takeover creates a new branch and, when authorised, retires the Jules PR after its replacement is ready. Agent choice comes after that ownership boundary, not instead of it.
 
 ### Shared limitation: a fresh agent can still faithfully implement the wrong specification
 
@@ -573,18 +579,20 @@ Rules I use:
 - default to **drafting, not acting**: do not post a PR comment/review, update PR metadata, push a change, or merge merely because the user asked for a review or a prompt; perform those actions only when explicitly instructed;
 - treat issue hygiene as part of the assigned engineering workflow: search for an existing issue before creating a duplicate, record credible out-of-scope discoveries durably, and reconcile relevant open issues when the job completes;
 - when updating an issue, include useful evidence such as the discovering PR/commit, affected symbol/path/line when warranted, tests or errors, and the remaining work;
-- treat an explicit request to **switch away from Jules** as an instruction to perform the standard handoff lifecycle, not merely draft it: create the new branch, arrange the replacement PR, cross-link it from the Jules PR when ready, and close the Jules PR without merging it;
+- do not infer a full branch-and-PR takeover merely from a request for Codex, Agy, or other agent help; preserve the human's explicit handoff mode and any instruction such as "no new branches or pull requests";
+- for a local repair, select the starting commit, require detached or equivalent local state, and request a patch, diff, local commit, or review without any push;
+- only when the human explicitly authorises a full takeover, create the new non-Jules branch and perform the requested replacement-PR lifecycle;
 - an optional early lifecycle comment may state that the work is moving to a new branch and being continued by the named agent; this is distinct from posting a drafted code-review response;
 - ask the implementation agent for behaviour, not unnecessary Git command choreography;
-- during the active Jules phase, prefer **comments/prompts over direct code pushes** to the Jules-owned branch;
-- after the Jules phase, direct-edit only narrow, low-uncertainty changes; hand substantial work to Agy/Codex;
-- whenever implementation ownership moves from Jules to Agy, Codex, or another coding agent, require a **new branch** before that agent changes code; start it from current `main` or an exact trusted Jules commit;
+- never push implementation code to a Jules-owned branch; use comments/prompts to continue Jules or non-Jules local state for a repair;
+- after the Jules phase, local-edit only narrow, low-uncertainty changes; require explicit human authorisation before handing substantial work to Agy/Codex on a new branch;
+- when the human authorises implementation ownership to move from Jules to Agy, Codex, or another coding agent, require a **new branch** before that agent changes code; start it from current `main` or an exact trusted Jules commit;
 - never tell a replacement agent to continue directly on the original Jules branch;
-- once the replacement PR is ready to take over, comment on the old Jules PR with the replacement link and agent name, then close the Jules PR without merging it;
+- when an authorised full takeover includes a replacement PR, once it is ready to take over, comment on the old Jules PR with the replacement link and agent name, then close the Jules PR without merging it;
 - perform other PR metadata/lifecycle operations such as updating summaries or labels when the connected tools support them **and when I have explicitly requested those actions**;
 - reserve branch-history surgery and force-push/rewrite work for a tool that actually has the required Git capabilities rather than trying to express it as a Jules implementation prompt;
 - if a branch or PR is being replaced, make the trusted starting point and lifecycle explicit;
-- re-review direct patches and agent patches after they land;
+- re-review local patches and agent patches after they land;
 - do not merge merely because checks are green or because an agent says it is done; merging is a separate explicit decision.
 
 The outside assistant should be willing to say **"no further prompt is needed"** when the change is correct. Continually inventing work is as harmful as missing a defect.
@@ -605,7 +613,7 @@ Rules I use:
 - do not ask Jules to update PR summaries/bodies, independently review landed commits, merge PRs, force-push/rewrite history, or administer superseding/replacement PRs;
 - route those GitHub control-plane tasks to ChatGPT, Agy, Codex, another suitably integrated tool, or an explicit human action;
 - do not mix casual non-Jules pushes into a branch Jules is still expected to update;
-- when another implementation agent takes over, retire the Jules branch from further implementation work, fork a new branch from the chosen trusted base, and retire the Jules PR once the replacement PR is ready;
+- when the human authorises a full implementation takeover, retire the Jules branch from further implementation work, fork a new branch from the chosen trusted base, and retire the Jules PR once the replacement PR is ready;
 - stop the loop when commits become empty, changes oscillate, the base invalidates the implementation, or the session is otherwise no longer trustworthy.
 
 Jules is allowed to be the **author**, but not the sole reviewer, Git historian, PR administrator, issue-register administrator, or merge authority for its work.
@@ -617,7 +625,8 @@ Jules is allowed to be the **author**, but not the sole reviewer, Git historian,
 Rules I use:
 
 - **never continue directly on the original Jules branch**;
-- create a new branch before making implementation changes;
+- for a full implementation takeover, create a new branch before making implementation changes;
+- for a local repair, use the selected commit in detached or equivalent local state and return a patch or diff without pushing;
 - tell Agy exactly which Git state that new branch starts from;
 - say whether it must start from current `main` or an exact trusted Jules commit;
 - explain why the previous PR/session is being replaced;
@@ -628,7 +637,7 @@ Rules I use:
 - let it inspect the repository rather than pasting everything into the prompt;
 - use the outside reviewer again after Agy changes the branch.
 
-Agy becomes the implementation owner only after the Jules ownership boundary is clear and the new branch exists.
+Agy becomes the implementation owner only after the human authorises a full takeover, the Jules ownership boundary is clear, and the new branch exists. Local repair does not transfer branch ownership.
 
 ### Codex
 
@@ -637,7 +646,8 @@ Agy becomes the implementation owner only after the Jules ownership boundary is 
 Rules I use:
 
 - **never continue directly on the original Jules branch**;
-- create a new branch before making implementation changes;
+- for a full implementation takeover, create a new branch before making implementation changes;
+- for a local repair, use the selected commit in detached or equivalent local state and return a patch or diff without pushing;
 - provide the same explicit trust boundary as for Agy: current `main` or an exact trusted Jules commit;
 - prefer issue-like prompts: problem, constraints, relevant components, examples, acceptance criteria, and verification;
 - say what old implementation evidence is informative but not authoritative;
@@ -667,9 +677,23 @@ The repository therefore has its own rules:
 - partially resolved issues should stay open but be updated so completed and remaining work are explicit;
 - credible out-of-scope findings should be registered rather than left only in an agent transcript.
 
-## Two handoff templates
+## Choose the handoff mode first
 
-These are intentionally different. Choosing the wrong one is a common source of wasted work. Both templates share two invariants: **the replacement implementation agent gets a new branch**, and **the old Jules PR is cross-linked and closed once the replacement is ready**.
+Asking Agy or Codex for help does not itself authorise a new branch or pull request. The human must choose a local repair or a full implementation takeover, and the management LLM must preserve that choice in the generated prompt. A local prompt can be concise:
+
+```text
+Inspect or repair the result starting from commit <sha>. Work in detached HEAD,
+a local worktree, a temporary checkout, or equivalent non-Jules-owned local
+state. Do not commit to or push to the Jules branch. Do not create a branch or
+pull request. Return the review and a patch, diff, or local commit for deliberate
+application later. Do not merge anything.
+```
+
+Only an explicit human decision to transfer substantial implementation work authorises the branch-and-PR workflow below.
+
+## Two full-takeover templates
+
+These are intentionally different. Choosing the wrong one is a common source of wasted work. Both templates apply only to an authorised full takeover and share two invariants: **the replacement implementation agent gets a new branch**, and **the old Jules PR is cross-linked and closed once the replacement is ready**.
 
 ### Template A: rebuild from current main
 
@@ -783,9 +807,9 @@ GitHub lifecycle:
 
 This pattern protects a good implementation from a bad *session* without needlessly reconstructing everything. The branch fork is still required even when the trusted commit itself is perfect.
 
-## What is actually required in a handoff prompt
+## What is actually required in a full-takeover prompt
 
-The most effective Agy/Codex handoff prompts I have used contain eight things.
+The most effective Agy/Codex full-takeover prompts I have used contain eight things. A local repair prompt instead needs the chosen commit, the detached/local-state requirement, the prohibition on modifying the Jules branch or creating GitHub lifecycle objects, the requested result, and the required verification.
 
 ### 1. The object being replaced
 
@@ -798,7 +822,7 @@ State both of these explicitly:
 - **create a new branch; do not continue on the Jules branch**, and
 - choose its base: **current `main`; old branch is untrusted**, or **exact commit `<sha>`; that state is trusted**.
 
-Do not leave either the branch transition or the base strategy implicit. The replacement agent always gets a new branch; the only question is what state that branch begins from.
+Do not leave either the branch transition or the base strategy implicit in a full takeover. The replacement agent gets a new branch in this mode; the question is what state that branch begins from.
 
 ### 3. The reason for replacement
 
@@ -846,13 +870,13 @@ This turns scope control into durable project memory rather than lost context.
 
 ### 7. Verification
 
-Name the focused tests and the normal repository checks. Also require an inspection of the **cumulative diff against the intended base** and confirmation that the implementation is happening on the new branch rather than the original Jules branch.
+Name the focused tests and the normal repository checks. For a full takeover, also require an inspection of the **cumulative diff against the intended base** and confirmation that the implementation is happening on the new branch rather than the original Jules branch. For a local repair, require the equivalent diff against the selected commit and confirmation that the Jules branch was not modified.
 
 A test suite can pass while the PR contains unrelated changes.
 
 ### 8. The GitHub lifecycle
 
-This is required when the handoff is meant to replace a Jules PR. The lifecycle is not optional or something the replacement agent should infer:
+This is required only when the human authorises the handoff to replace a Jules PR. In that mode, the lifecycle is not optional or something the replacement agent should infer:
 
 - create a different branch;
 - optionally annotate the old Jules PR immediately that work is moving to `<agent name>` on a new branch;
@@ -878,7 +902,7 @@ If the agent can inspect the PR or commit, point it there. Paste only small frag
 
 ### A branch name chosen in advance
 
-A **new branch is mandatory**, but its exact name usually is not important. I care that it is distinct from the Jules branch and starts from the correct base. Naming it in advance is low-value unless repository automation depends on a naming convention.
+For a full takeover, a **new branch is mandatory**, but its exact name usually is not important. I care that it is distinct from the Jules branch and starts from the correct base. Naming it in advance is low-value unless repository automation depends on a naming convention. A local repair has no branch name because it does not create a branch.
 
 ### Generic instructions such as "write good code"
 
@@ -998,11 +1022,11 @@ One mistaken commit is ordinary. A second empty commit after an explicit warning
 
 This is worth repeating because it is easy for an agent to interpret "continue from this PR" as "keep working on this branch".
 
-When the implementation agent changes, the branch changes too. If the Jules head is trusted, create a new branch at that exact commit. If the Jules implementation should be discarded, create a new branch from current `main`. In neither case should Agy, Codex, or another replacement implementation agent write to the original Jules branch.
+The Jules branch never becomes the replacement agent's implementation branch. For a local repair, use the chosen commit in detached or equivalent local state and return the result without pushing. For a full takeover, create a new branch at the exact trusted Jules commit, or create one from current `main` when the Jules implementation should be discarded.
 
-### Retire the Jules PR when implementation moves
+### Retire the Jules PR when a full takeover moves implementation
 
-A new branch alone is not enough; leaving the old Jules PR open makes it look like there are two active implementations and leaves Jules attached to an apparently live piece of work.
+In a full takeover, a new branch alone is not enough; leaving the old Jules PR open makes it look like there are two active implementations and leaves Jules attached to an apparently live piece of work. A local repair does not by itself authorise retiring the Jules PR.
 
 When I commit to the handoff, I may first leave a short transition comment saying that the work is moving to a new branch and naming the replacement agent. Once the replacement PR exists and is ready to become the active work, I add a second comment linking to it and close the Jules PR without merging it.
 
@@ -1027,7 +1051,7 @@ The `Supersedes` relationship explains PR history; the resolving keyword still c
 
 ### Close in the right order
 
-Once I have decided to switch, an optional early comment can mark the old Jules PR as being moved to `<agent name>` on a new branch. Then create the replacement branch and PR. Once that PR is ready to take over, add its link to the old Jules PR and close the old PR. Do not merge the Jules PR.
+Once I have authorised a full takeover, an optional early comment can mark the old Jules PR as being moved to `<agent name>` on a new branch. Then create the replacement branch and PR. Once that PR is ready to take over, add its link to the old Jules PR and close the old PR. Do not merge the Jules PR.
 
 This avoids both failure states: closing the old PR before there is anywhere useful to point readers, and leaving two PRs looking simultaneously active after the replacement is established.
 
@@ -1059,19 +1083,21 @@ After every meaningful implementation change I ask:
 
 If the code problem is clear and the Jules branch is healthy, continue Jules and send the next externally reviewed prompt.
 
-If Jules is deliberately finished and only a tiny, low-uncertainty correction remains, make the direct fix and review it.
+If Jules is deliberately finished and only a tiny, low-uncertainty correction remains, make the fix in detached or equivalent local state and review it.
 
-If another implementation agent is taking over, **create a new branch first**. If the Jules branch is good at a known commit, branch from that exact commit and continue with Agy/Codex there. If the Jules branch or its assumptions are no longer trustworthy, create the new branch from current `main`, use the old PR as reference, and rebuild only the validated intent. Once the replacement PR is ready to take over, link it from the old Jules PR and close the Jules PR without merging it.
+If the human requests a local repair or analysis, use the chosen commit in detached or equivalent local state, leave the Jules branch and GitHub lifecycle untouched, and return a patch, diff, local commit, or review.
+
+If the human authorises another implementation agent to take over fully, **create a new branch first**. If the Jules branch is good at a known commit, branch from that exact commit and continue with Agy/Codex there. If the Jules branch or its assumptions are no longer trustworthy, create the new branch from current `main`, use the old PR as reference, and rebuild only the validated intent. Once the replacement PR is ready to take over, link it from the old Jules PR and close the Jules PR without merging it.
 
 Before the job is declared complete, do the issue-register pass: inspect the open issues affected by the work, close those now fully resolved when the fix is authoritative, update those only partially resolved, and ensure any pending unmerged fixes are linked rather than misreported as already landed.
 
-After Agy/Codex or a direct patch, return to the outside-review step again. The pipeline ends because the change, project issue state, and handoff state are reviewed and ready, not merely because the last implementation agent stopped talking.
+After Agy/Codex or a local patch, return to the outside-review step again. The pipeline ends because the change, project issue state, and handoff state are reviewed and ready, not merely because the last implementation agent stopped talking.
 
 ## Final principle
 
 The most effective part of this multi-agent workflow is not "agent A writes code, agent B writes better code". It is a separation of **implementation, review, control, and durable project memory**.
 
-Jules can cheaply establish a first implementation, reveal codebase constraints, produce tests, and expose hidden requirements during review. ChatGPT or another integrated outside assistant can inspect what actually landed, maintain the current engineering specification, write the next question or response, ensure out-of-scope discoveries reach the issue register, reconcile issues after the work, and decide when the Jules phase has ended. Small, obvious changes can then be made directly once branch ownership is safe, while Agy or Codex can take over substantial remaining work from a deliberately chosen **new branch** based on either the trusted Jules commit or current `main`. The old Jules PR is then cross-linked and closed rather than left as a competing active implementation.
+Jules can cheaply establish a first implementation, reveal codebase constraints, produce tests, and expose hidden requirements during review. ChatGPT or another integrated outside assistant can inspect what actually landed, maintain the current engineering specification, write the next question or response, ensure out-of-scope discoveries reach the issue register, reconcile issues after the work, and decide when the Jules phase has ended. Small, obvious changes can then be made locally from a selected commit without modifying the Jules branch, while Agy or Codex can take over substantial remaining work from a deliberately chosen **new branch** based on either the trusted Jules commit or current `main`. The old Jules PR is cross-linked and closed only in the full-takeover path rather than left as a competing active implementation.
 
 The important handoff is therefore not only Jules -> Agy/Codex. There are several repeated transitions:
 
@@ -1086,11 +1112,11 @@ outside assistant: review actual Git state
     ↓
 record out-of-scope findings in the issue register
     ↓
-question / next prompt / approval / direct tiny fix / agent handoff
+question / next prompt / approval / local repair / full takeover
     ↓
-new branch before replacement implementation agent edits
+human selects detached local state or a new takeover branch
     ↓
-replacement PR linked from old Jules PR; old PR closed
+patch returned, or replacement PR linked and old Jules PR closed
     ↓
 reconcile open issues: close resolved, update partial
     ↓
