@@ -6,6 +6,8 @@ tags: ["issue", "gripe", "bug tracking", "linux"]
 categories: ["issue"]
 ---
 
+<!-- cspell:words acpi arrans HKEY -->
+
 So started using linux.. Getting this issue here:
 
 ```dmesg

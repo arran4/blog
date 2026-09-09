@@ -6,6 +6,8 @@ tags: ["complaints", "synology"]
 categories: ["complaints"]
 ---
 
+<!-- cspell:words synologys -->
+
 So I will be writing tech complaints here.. Here is the first one.
 
 Turns out Synology defaults the SSH to port 22... Then if you have enabled 

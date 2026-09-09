@@ -13,6 +13,8 @@ categories:
   - engineering
 ---
 
+<!-- cspell:words regexes -->
+
 When generating code, Large Language Models (LLMs) often default to using Regular Expressions (regex) for string parsing and validation tasks. While regex is a powerful tool for human developers aiming for concise code, it is rarely the optimal choice for LLMs writing production-grade software.
 
 Instead of always defaulting to dense regular expressions, LLMs should often expand logic into explicit, step-by-step procedural code and accompany that code with comprehensive, table-driven unit tests.

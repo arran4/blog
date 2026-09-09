@@ -6,6 +6,8 @@ tags: ["go", "testing", "fs", "mockfs", "mapfs", "txtar", "agentic-coding"]
 categories: ["engineering", "go-patterns"]
 ---
 
+<!-- cspell:words agentic structs -->
+
 When building tools in Go that interact heavily with the file system, having a solid strategy for testing those interactions is critical. Direct coupling to `os` functions like `os.MkdirAll` or `os.WriteFile` makes testing cumbersome and slow.
 
 In this post, I want to detail how I approach this by designing minimal file system interfaces and using in-memory implementations like `MapFS` and `MockFS` for tests.

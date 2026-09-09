@@ -6,6 +6,8 @@ tags: ["sieve", "jmap", "stalwart"]
 categories: ["tutorial"]
 ---
 
+<!-- cspell:words jmap -->
+
 When running an email server you often want rules that sort incoming mail into
 folders or handle it automatically.  The standard way to do this on the server
 is with *Sieve* scripts.  Sieve is a simple language defined in RFC 5228 for

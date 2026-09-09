@@ -6,6 +6,8 @@ tags: ["annoyance"]
 categories: ["synology"]
 ---
 
+<!-- cspell:words redownloading -->
+
 ![img.png](img.png)
 
 So when you use docker with Synology it has a rather

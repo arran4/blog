@@ -6,6 +6,8 @@ tags: ["go", "golangci-lint", "github-actions", "ci", "linting"]
 categories: ["reference", "devops"]
 ---
 
+<!-- cspell:words oldstable -->
+
 If you use this in GitHub Actions:
 
 ```yaml

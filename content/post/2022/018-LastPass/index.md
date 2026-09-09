@@ -6,6 +6,8 @@ tags: ["lastpass"]
 categories: ["UI"]
 ---
 
+<!-- cspell:words lastpass -->
+
 I use a fair number of password managers for various reasons. However something that bugs me with their 
 prompts is they don't have a button that easily allows me to configure an exemption.. I almost never want
 to remember a password used on "localhost" on some weird port number because I develop software and test

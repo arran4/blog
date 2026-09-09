@@ -6,6 +6,8 @@ tags: ["review", "complaints", "logitech"]
 categories: ["review"]
 ---
 
+<!-- cspell:words colour Logi synchronise -->
+
 So I bought a new speaker... A [Logitech G560](https://www.logitechg.com/en-au/products/gaming-audio/g560-rgb-gaming-speakers.980-001303.html)..
 I had been eyeing this speaker for a while. I assure you it wasn't because
 of the sound changing aspect. But there wasn't really a lot to my reasons to pick it.

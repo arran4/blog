@@ -12,6 +12,8 @@ categories:
   - Go
 ---
 
+<!-- cspell:words Debuggability debuggable httperr Println -->
+
 Error handling in Go is straightforward, explicit, and forces developers to deal with failure states right at the point of origin. While `if err != nil` is a running joke in the community, when used correctly, Go's error handling produces robust, debuggable, and maintainable software.
 
 In my Go projects, I adhere to a set of practices that ensure errors are not just checked, but are rich with context and actionable. Let's dive into how I handle errors effectively.

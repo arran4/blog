@@ -6,6 +6,8 @@ tags: ["complaints"]
 categories: ["complaints"]
 ---
 
+<!-- cspell:words gitdir gitemail organisation -->
+
 Since I have setup a [Dotfiles repo](https://github.com/arran4/dotfiles) using the useful [Chezmoi](https://www.chezmoi.io/) I am 
 using a single configuration everywhere. Something else I also do is use one account for all my work regardless of the
 computer I'm on.

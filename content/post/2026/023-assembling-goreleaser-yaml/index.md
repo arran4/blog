@@ -6,6 +6,8 @@ tags: ["golang", "goreleaser", "ci", "docker", "release"]
 categories: ["Programming", "Tutorial"]
 ---
 
+<!-- cspell:words ebuilds freebsd gemfury goarm illumos mips mips64 mips64le mipsle netbsd openbsd opencontainers plan9 ppc64 ppc64le riscv64 s390x sboms snapcraft snapcrafts systemd Winget -->
+
 Over time, I've created numerous `.goreleaser.yaml` files for various projects. While a lot of them are out of date and inconsistent, reviewing them has helped me formulate a standard set of practices for assembling a GoReleaser configuration file.
 
 This post outlines these standards to help maintain consistency, maximize distribution, and simplify CI processes across projects.

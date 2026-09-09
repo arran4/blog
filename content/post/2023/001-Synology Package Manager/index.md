@@ -6,6 +6,8 @@ tags: ["complaint", "synology"]
 categories: ["synology"]
 ---
 
+<!-- cspell:words corporates Shockwave unclickable unselectable -->
+
 One of the major improvements over time has been how text in error messages and other "static" components have become
 more like read only text box / webpage and interactive over the years. Which means when you get an error message you can
 copy and paste the text to aid you in your search. This also means that links work.

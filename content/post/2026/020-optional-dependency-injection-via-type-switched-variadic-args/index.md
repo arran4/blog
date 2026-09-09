@@ -6,6 +6,8 @@ tags: ["go", "testing", "architecture", "patterns", "memory-fs", "api-design", "
 categories: ["engineering-process", "reference"]
 ---
 
+<!-- cspell:words dataformats myapp -->
+
 If your Go code calls `os.Create`, `os.Stat`, `exec.LookPath`, or `net.Dial` directly from business logic, your tests are forced to touch real side effects more often than necessary.
 
 The core pattern in this space is simple:

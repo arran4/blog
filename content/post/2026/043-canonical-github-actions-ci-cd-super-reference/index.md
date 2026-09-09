@@ -6,6 +6,8 @@ tags: ["github-actions", "ci", "cd", "release", "automation", "goreleaser", "can
 categories: ["devops", "reference", "automation"]
 ---
 
+<!-- cspell:words GOPATH jurplel mvcommon qmake stefanzweifel todate -->
+
 This is the canonical GitHub Actions CI/CD generation reference.
 
 It supersedes `006`, `011`, `028`, `041` and `042` where they conflict. Agents should normally need THIS article only. Older posts remain useful as historical/rationale material but are no longer the generation specification.

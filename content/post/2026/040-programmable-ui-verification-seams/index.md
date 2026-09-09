@@ -6,6 +6,8 @@ tags: ["testing", "ui", "automation", "architecture", "ai-agents"]
 categories: ["Software Engineering"]
 ---
 
+<!-- cspell:words myapp omitempty timezone -->
+
 When testing server-rendered web applications, there is a common trap: relying on full end-to-end browser automation (like Selenium or Playwright) to verify simple presentation logic. If you want to know how a page renders when a user has no permissions, you often have to spin up a database, migrate it, insert seed data, authenticate a user, navigate to the page, and then assert against the DOM.
 
 This is slow, brittle, and introduces a massive amount of unrelated state (database connections, routing, session management) just to answer a simple question: *Does this HTML template render correctly?*

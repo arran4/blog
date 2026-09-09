@@ -6,6 +6,8 @@ tags: ["goland", "should be on a bugtracker"]
 categories: ["uncategorized"]
 ---
 
+<!-- cspell:words bugtracker goland -->
+
 Another one from the department of should have been a
 bug issue:
 ![](img.png)

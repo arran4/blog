@@ -7,6 +7,8 @@ categories: ["devops"]
 author: "Arran Ubels"
 ---
 
+<!-- cspell:words dind euxo installdependencies NOPASSWD seccomp tmpfs -->
+
 ## Introduction
 
 Running dozens of self-hosted GitHub Actions runners can quickly become a management headache. Maintaining separate Docker images for each runner and rebuilding them when GitHub updates the runner software burns time and storage. By leveraging one privileged Docker-in-Docker (DinD) container as a supervisor we can host many lightweight runner containers inside it. This approach isolates configuration per runner, keeps updates simple and avoids rebuilding the entire image each time a new runner version drops.

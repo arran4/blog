@@ -6,6 +6,7 @@ tags: ["github-actions", "ci", "cd", "go", "node", "dart", "flutter", "qt", "c++
 categories: ["devops", "reference", "automation"]
 ---
 
+<!-- cspell:words AEST distro golint redispatch zizmor -->
 
 > **⚠️ IMPORTANT: THIS ARTICLE IS SUPERSEDED FOR CI GENERATION**
 >

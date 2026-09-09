@@ -6,6 +6,8 @@ tags: ["kde"]
 categories: ["UI", "KDE"]
 ---
 
+<!-- cspell:words Akonadi emdedded FOSS interms Klient Kmail Kontact kopete listviews SDDM tabber Unshade -->
+
 Okay having used Windows and Mac OS for a couple years. Mostly due to driver issues. (Which didn't abate, 
 I had to effectively buy a new computer to solve my issues. Which is rather disappointing but I think 
 I will be moving back to a desktop / laptop hybrid model again. Laptops have disappointed me recently but

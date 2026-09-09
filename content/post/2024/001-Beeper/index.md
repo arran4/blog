@@ -6,6 +6,8 @@ tags: ["beeper"]
 categories: ["complaints"]
 ---
 
+<!-- cspell:words arranfour Backscrolling distro favourite Favourites Flatpaks gnulinux travelling Webclient webportal -->
+
 Lately I have been a bit obsessed with a communications protocol: Matrix. While I haven't done too much with it directly.
 I did attempt to read the spec etc. However, it seems a bit ... large for what it is. I have been using a couple Matrix
 clients and a couple matrix servers/services. Namely, [Beeper](https://www.beeper.com/) is the primary one.

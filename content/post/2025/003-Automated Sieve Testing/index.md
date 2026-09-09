@@ -6,6 +6,7 @@ tags: ["sieve", "rust", "testing"]
 categories: ["tutorial"]
 ---
 
+<!-- cspell:words dmarc fileinto serde serde_json -->
 
 In my earlier posts I uploaded Sieve filters straight to the server using GitHub Actions. That worked well until a typo slipped through and broke my inbox. To catch those mistakes before deploying I created a small Rust project that runs my Sieve rules against a set of example messages. The tests run locally and in pull requests so I can fix issues early.
 

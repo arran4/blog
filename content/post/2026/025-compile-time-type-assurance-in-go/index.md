@@ -12,6 +12,8 @@ categories:
   - programming
 ---
 
+<!-- cspell:words Marshaler myproject Unmarshaler -->
+
 When developing Go applications, we often define interfaces to abstract behavior and decouple components. This promotes testability and clean architecture. However, ensuring that our concrete types actually implement these interfaces can sometimes be a subtle source of errors, especially as codebases evolve.
 
 While Go's interface implementation is implicit, meaning you don't explicitly declare that a type implements an interface, it's beneficial to have a mechanism to verify this compliance early on—ideally at compile time. This prevents situations where a change in an interface or a concrete type breaks the implementation, which might only be discovered later during testing or runtime.

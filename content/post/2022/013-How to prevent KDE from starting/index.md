@@ -6,6 +6,8 @@ tags: ["bugs"]
 categories: ["kde"]
 ---
 
+<!-- cspell:words ksplashqml -->
+
 Turns out I could crash ksplashqml quite reliably rendering
 my kde setup unusable simply by having a bad `XDG_DATA_DIRS`
 configured in my `.zshenv` file.

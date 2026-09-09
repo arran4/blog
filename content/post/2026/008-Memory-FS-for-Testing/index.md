@@ -6,6 +6,8 @@ tags: ["go", "testing", "architecture", "patterns", "memory-fs"]
 categories: ["engineering-process", "reference"]
 ---
 
+<!-- cspell:words dialer dialers httptest -->
+
 If your Go code calls `os.Create`, `os.Stat`, `exec.LookPath`, or `net.Dial` directly from business logic, your tests are forced to touch real side effects more often than necessary.
 
 The pattern in this article is simple:

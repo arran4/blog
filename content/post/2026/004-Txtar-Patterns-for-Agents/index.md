@@ -6,6 +6,8 @@ tags: ["go", "testing", "txtar", "embed", "golden-files", "agents"]
 categories: ["reference", "testing"]
 ---
 
+<!-- cspell:words Deprojected fixturefs writable -->
+
 I use `txtar` as a practical test and fixture format across multiple repositories.
 This post is my reference for how I expect agents (and future me) to structure
 and evolve txtar-based systems.

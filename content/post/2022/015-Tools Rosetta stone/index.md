@@ -6,6 +6,8 @@ tags: ["tools"]
 categories: ["tools"]
 ---
 
+<!-- cspell:words Authy backupable Crossplatform Dotfile FOSS kdenlive keypass Kleopatra Konsole ksnip simplish Solaar Synchronises synchronising Twillio Vimdiff Webbrowser WhatsDesk Winget -->
+
 This is mostly just a list of things to remind me what to
 install when I reformat / start using a new PC. But
 I decided I would share anyway.

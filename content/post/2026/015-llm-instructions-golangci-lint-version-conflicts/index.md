@@ -13,6 +13,8 @@ categories:
   - DevOps
 ---
 
+<!-- cspell:words mdtohtml repoless -->
+
 This post serves as explicit instructions for LLM agents (like Jules) on how to correctly handle and resolve `golangci-lint` Go version mismatch errors without requiring the user to repeatedly copy-paste the same workflow.
 
 If you encounter an error like the following during a build or lint process:

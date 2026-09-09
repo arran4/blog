@@ -7,6 +7,8 @@ categories: ["notes"]
 author: "Arran Ubels"
 ---
 
+<!-- cspell:words Hotwire htmx iframes toolkits webdev -->
+
 A brain dump exploring what browsers might need in order to deliver the snappy feel of today’s single page apps without any JavaScript. The idea came from asking ChatGPT to outline a true "JS‑free" SPA.
 
 ## The Core Idea

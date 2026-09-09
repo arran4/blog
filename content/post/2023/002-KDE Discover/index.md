@@ -6,6 +6,8 @@ tags: ["KDE", "complaint"]
 categories: ["KDE"]
 ---
 
+<!-- cspell:words autoremove killall -->
+
 KDE's Discover...
 
 ![img_1.png](img_1.png)
