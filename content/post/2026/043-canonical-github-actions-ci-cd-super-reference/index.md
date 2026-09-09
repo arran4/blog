@@ -25,7 +25,9 @@ The purpose of this article is to serve as a complete generation specification f
 
 The article should strongly reduce agent discretion in areas where we already have preferred patterns. Repository-specific differences should come primarily from capability selection, not from every agent inventing a completely different CI topology.
 
-Downstream agents must implement `workflow_dispatch` as a migration/improvement process toward a useful manual operator UX. Do not blindly preserve stale or broken structures merely because they exist; instead, update them to the current canonical pattern while retaining genuinely useful repo-specific behavior. Repository-specific prompts should not need to independently request this UX improvement. Use working repositories as design references, including `gobookmarks`, `g2`, `phonenumber`, `golang-wordwrap`, `git-tag-inc`, `lookup`, and `md2png`.
+Downstream agents must implement `workflow_dispatch` as a migration/improvement process toward a useful manual operator UX. Do not blindly preserve stale or broken structures merely because they exist; instead, update them to the current canonical pattern while retaining genuinely useful repo-specific behavior. Repository-specific prompts should not need to independently request this UX improvement.
+
+A downstream agent should need only this canonical article and the target repository to produce the intended implementation. Do not require downstream agents to inspect other repositories as design references.
 
 ## 2. Required repository inspection before generation
 
@@ -111,7 +113,54 @@ on:
 
 ## 6. Routing
 
-A routing job should parse events to determine if the run should execute monthly jobs, manual releases, regular CI tests, auto-fixes, or deployment behaviors.
+A routing job should parse events to determine if the run should execute monthly jobs, manual releases, regular CI tests, auto-fixes, or deployment behaviors. Every exposed `workflow_dispatch` mode must demonstrably reach useful jobs.
+
+```yaml
+  route:
+    name: Route Event
+    runs-on: ubuntu-latest
+    outputs:
+      is_pull_request: ${{ steps.route.outputs.is_pull_request }}
+      is_manual: ${{ steps.route.outputs.is_manual }}
+      is_release: ${{ steps.route.outputs.is_release }}
+      is_maintenance: ${{ steps.route.outputs.is_maintenance }}
+      mode: ${{ steps.route.outputs.mode }}
+    steps:
+      - id: route
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_MODE: ${{ github.event.inputs.mode }}
+        run: |
+          set -euo pipefail
+          is_pull_request=false
+          is_manual=false
+          is_release=false
+          is_maintenance=false
+          mode="$INPUT_MODE"
+
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            is_pull_request=true
+            mode="build"
+          elif [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            is_manual=true
+            if [[ "$INPUT_MODE" == "publish-tag" ]]; then
+                is_release=true
+            fi
+          elif [[ "$EVENT_NAME" == "schedule" ]]; then
+            is_maintenance=true
+            mode="lint-fix"
+          elif [[ "$EVENT_NAME" == "push" && "$GITHUB_REF" == refs/tags/* ]]; then
+             mode="build"
+          else
+             mode="build"
+          fi
+
+          echo "is_pull_request=$is_pull_request" >> "$GITHUB_OUTPUT"
+          echo "is_manual=$is_manual" >> "$GITHUB_OUTPUT"
+          echo "is_release=$is_release" >> "$GITHUB_OUTPUT"
+          echo "is_maintenance=$is_maintenance" >> "$GITHUB_OUTPUT"
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+```
 
 ## 7. Concurrency
 
@@ -249,15 +298,16 @@ Example Autofix lane (the established manual `lint-fix` path that applies determ
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - run: go fmt ./...
       - run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
       - run: golangci-lint run --fix
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v6
+        if: ${{ inputs.allow_prs != false }}
+        uses: peter-evans/create-pull-request@v7
         with:
           commit-message: "style: auto-format code and lint fixes"
           title: "style: auto-format code and lint fixes"
@@ -616,7 +666,7 @@ jobs:
       - name: Install git-tag-inc
         uses: arran4/git-tag-inc-action@v1
         with:
-          install-only: 'true'
+          mode: install
       - name: Verify Exact Origin/Main
         env:
           GITHUB_REF_NAME: ${{ github.ref }}
@@ -665,10 +715,17 @@ jobs:
           else
              # Use git-tag-inc safe version calculation
              echo "Using arran4/git-tag-inc..."
-             # Use arran4/git-tag-inc-action@v1 in install mode to get the binary
-             # Then call the installed git-tag-inc CLI with workflow-selected arguments
-             # (Assume git-tag-inc is in PATH from an earlier setup step, or call it directly)
-             TAG="$(git-tag-inc --print-version-only --skip-forwards "${RELEASE_MODE#release-}")"
+             # Call the installed git-tag-inc CLI with safely extracted workflow-selected arguments
+             case "$RELEASE_MODE" in
+               release-major) BUMP="major" ;;
+               release-minor) BUMP="minor" ;;
+               release-patch) BUMP="patch" ;;
+               release-test) BUMP="patch"; SUFFIX="--prerelease-suffix test" ;;
+               release-rc) BUMP="patch"; SUFFIX="--prerelease-suffix rc" ;;
+               release-alpha) BUMP="patch"; SUFFIX="--prerelease-suffix alpha" ;;
+               *) echo "Unknown release mode $RELEASE_MODE"; sh -c "exit 1" ;;
+             esac
+             TAG="$(git-tag-inc --print-version-only --skip-forwards "$BUMP" ${SUFFIX:-})"
 
              # Final race guard: verify origin/main is STILL exactly GITHUB_SHA right before tagging
              git fetch origin main
