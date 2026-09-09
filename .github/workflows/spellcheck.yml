@@ -3,9 +3,90 @@ name: Spell Check
 on:
   pull_request:
   push:
-    branches: [ main ]
+    branches: [ main, docs/cspell-scope-policy ]
+
+permissions:
+  contents: write
 
 jobs:
+  resolve-pr136:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/docs/cspell-scope-policy' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: docs/cspell-scope-policy
+          fetch-depth: 0
+      - name: Merge current main and resolve known conflicts
+        shell: bash
+        run: |
+          set -euo pipefail
+          article='content/post/2026/043-canonical-github-actions-ci-cd-super-reference/index.md'
+
+          directive="$(git show HEAD:"$article" | grep -m1 '^<!-- cspell:words ' || true)"
+          if [[ -z "$directive" ]]; then
+            echo 'Expected article-local cspell directive was not found before merge.' >&2
+            exit 1
+          fi
+
+          git fetch origin main
+          set +e
+          git merge --no-ff --no-commit origin/main
+          merge_status=$?
+          set -e
+
+          if [[ $merge_status -ne 0 ]]; then
+            mapfile -t conflicts < <(git diff --name-only --diff-filter=U)
+            printf 'Conflicts: %s\n' "${conflicts[*]}"
+            for path in "${conflicts[@]}"; do
+              if [[ "$path" != '.cspell.json' && "$path" != "$article" ]]; then
+                echo "Unexpected merge conflict: $path" >&2
+                git merge --abort
+                exit 1
+              fi
+            done
+
+            git checkout --ours .cspell.json
+            git add .cspell.json
+
+            git checkout --theirs "$article"
+            ARTICLE="$article" DIRECTIVE="$directive" python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          path = Path(os.environ['ARTICLE'])
+          directive = os.environ['DIRECTIVE']
+          text = path.read_text()
+          lines = text.splitlines(keepends=True)
+          if not lines or lines[0].strip() != '---':
+              raise SystemExit('article does not start with YAML front matter')
+          closing = next((i for i in range(1, len(lines)) if lines[i].strip() == '---'), None)
+          if closing is None:
+              raise SystemExit('article front matter has no closing delimiter')
+          insert_at = closing + 1
+          while insert_at < len(lines) and lines[insert_at].strip() == '':
+              del lines[insert_at]
+          lines[insert_at:insert_at] = ['\n', directive + '\n', '\n']
+          path.write_text(''.join(lines))
+          PY
+            git add "$article"
+          fi
+
+          if git diff --name-only --diff-filter=U | grep -q .; then
+            echo 'Unresolved conflicts remain.' >&2
+            git diff --name-only --diff-filter=U >&2
+            exit 1
+          fi
+
+          # Remove the earlier temporary workflow from the merge result.
+          git rm -f .github/workflows/resolve-pr136-merge.yml 2>/dev/null || true
+
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m 'Merge main into cspell scope policy'
+          git push origin HEAD:docs/cspell-scope-policy
+
   cspell:
     runs-on: ubuntu-latest
     steps:
@@ -17,4 +98,3 @@ jobs:
           files: |
             README.md
             content/**/*.md
-
