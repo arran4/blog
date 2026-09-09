@@ -62,7 +62,7 @@ Human review and decision
   +----> merge only when explicitly instructed
 ```
 
-That is a **proto-flow**, not a rigid state machine. Some tasks need one Jules pass. Some need several review-and-correction rounds. Some need a new Jules session because the original prompt no longer matches the actual direction. Some need a tiny direct fix. Others need to be moved to a different implementation agent.
+That is a **proto-flow**, not a rigid state machine. Some tasks need one Jules pass. Some need several review-and-correction rounds. Some need a new Jules session because the original prompt no longer matches the actual direction. Some need a tiny local fix. Others need to be moved to a different implementation agent.
 
 The important thing is not the exact number of steps. The important thing is that each step has a clear owner and that GitHub remains the durable record of what is happening.
 
@@ -76,26 +76,30 @@ Management review
    |
    +---- healthy and converging ----> continue Jules
    |
-   +---- tiny, obvious, low-risk ---> management LLM may patch directly
+   +---- tiny, obvious, low-risk ---> local fix outside Jules branch
    |
    +---- session stale / confused / repeatedly empty commits / branch unsafe
                                       |
                                       v
-                              Human chooses handoff
-                                      |
-                                      v
-                          new branch + draft PR early
-                                      |
-                             Agy / Codex / other agent
-                                      |
-                                      v
+                         Human chooses handoff mode
+                           /                    \
+                          v                      v
+             local repair / analysis     full implementation takeover
+                          |                      |
+                          v                      v
+               detached / local state     new non-Jules branch
+                          |                      |
+                          v                      v
+              return patch / diff         draft PR when intended
+                           \                    /
+                            v                  v
                               management review
                                       |
                                       v
                                 human review
 ```
 
-The handoff is intentionally human-authorised. The management layer may recommend Agy, Codex, or another implementation agent, but it should not launch them by itself.
+The handoff is intentionally human-authorised. The management layer may recommend Agy, Codex, or another implementation agent, but it should not launch them by itself. A request for another agent's help does not by itself authorise a replacement branch or pull request; the human chooses between a local repair or analysis and a full implementation takeover.
 
 ## Why I use Jules first
 
@@ -139,7 +143,7 @@ The management LLM is the durable coordinator. It should usually be responsible 
 - maintaining pull-request metadata;
 - tracking issue relationships and resolving keywords;
 - deciding whether a discovered problem belongs in the current work or a separate issue;
-- recommending retries, direct fixes, a fresh Jules session, or a handoff;
+- recommending retries, local fixes, a fresh Jules session, or a handoff;
 - preserving enough human-readable context that I can re-enter the task without reconstructing the entire agent conversation;
 - raising credible improvements whenever they are discovered, not only at formal review boundaries;
 - after a merge, suggesting a sensible next Jules task from the remaining issue set.
@@ -339,25 +343,47 @@ For Jules-created pull requests, preserve the Jules-generated task/session link 
 
 ## Branch ownership matters
 
-A Jules branch should be treated as owned by Jules for as long as Jules remains the implementation agent.
+A branch created by Jules is Jules-owned for as long as it remains a Jules branch. Another coding agent must never commit to it, push to it, or treat it as its own implementation branch. This is true even when only one final test or small defect remains.
 
-Jules can force-push or otherwise rewrite its branch from its own view of the session. External implementation commits on that branch can therefore be lost or overwritten later.
+Jules can force-push or otherwise rewrite its branch from its own view of the session. A later Jules action can therefore lose or overwrite external implementation commits placed on that branch.
 
-The safe rule is:
+The unconditional rule is:
 
-> If another implementation agent takes over, create another branch.
+> Never continue implementation on a Jules branch with another agent.
 
-A replacement branch can begin from:
+That does not mean every request for Codex, Agy, or another agent must create a branch. "Never continue a Jules branch" and "always create another branch" are not equivalent rules. The first is unconditional; the second depends on the human authorising a full branch-and-PR takeover.
+
+### Small local repair or analysis
+
+When the human wants another agent to inspect or repair the Jules result without creating more GitHub lifecycle objects, the agent can start from the chosen known-good Jules commit in a detached HEAD, local worktree, temporary checkout, or equivalent non-Jules-owned local state. It can then return a patch, diff, local commit, or reviewed fix for deliberate application later.
+
+In this mode, do not modify the Jules branch, do not create a branch unless the human explicitly authorises one, and do not create a pull request unless the human explicitly authorises one. The agent should not push the repair.
+
+### Full implementation-agent takeover
+
+Only a deliberate human decision to hand substantial implementation work to another agent authorises a takeover branch. That separate, non-Jules-owned branch can begin from:
 
 - the exact trusted Jules commit, when the implementation is mostly good;
 - current `main`, when the old branch is no longer trustworthy;
 - another deliberately chosen trusted base.
 
-Create the replacement pull request as a **draft as early as practical**. Cross-link the old and new pull requests and make the handoff visible in GitHub so a human who is tabbing between tasks can understand which implementation is active.
+When a replacement pull request is part of the authorised GitHub workflow, create it as a **draft as early as practical**. Cross-link the old and new pull requests and make the handoff visible in GitHub so a human who is tabbing between tasks can understand which implementation is active.
 
 The old Jules pull request should not be closed automatically. Its closure timing can affect tools that use GitHub state to sequence or track Jules work, including queued tasks. Depending on the surrounding queue, it may need to remain open until the replacement is merged or closed, or it may need to be retired earlier when doing so is necessary for the next Jules job to proceed.
 
 That is a lifecycle decision, not a universal one-line rule.
+
+### Handoff prompts must preserve human authorisation
+
+The management LLM must make the selected mode explicit whenever it writes a Codex, Agy, or other replacement-agent prompt:
+
+- never instruct another agent to continue a Jules branch;
+- do not infer permission to create a replacement branch or pull request merely because the human requested another agent's help;
+- preserve explicit instructions such as "no new branches or pull requests";
+- when no new branch is authorised, name the chosen starting commit, require detached or equivalent local state, and ask for a patch or diff rather than a push;
+- when the human explicitly authorises a full takeover, require a new non-Jules-owned branch and state whether a replacement pull request is intended.
+
+Permission to implement, create a branch, create a pull request, and merge are distinct decisions. A merge still requires explicit human instruction.
 
 ## Avoid pull-request stacks behind Jules
 
@@ -403,15 +429,15 @@ Useful recovery actions include:
 
 Repeated empty commits are a useful warning sign. Roughly three or four empty commits in a row should bias the management layer toward restart or handoff, particularly when the task is complex and the implementation has not progressed far enough to justify preserving the session.
 
-That is a heuristic, not a magic threshold. If only one or two small fixes remain, a direct management patch may be simpler and safer.
+That is a heuristic, not a magic threshold. If only one or two small fixes remain, a management patch in non-Jules local state may be simpler and safer.
 
-## When the management LLM may patch directly
+## When the management LLM may patch locally
 
 There is no fixed line-count threshold.
 
 The useful question is whether the management layer can make the change with high confidence and verify it sufficiently from repository state and CI.
 
-A direct fix is more reasonable when:
+A local fix is more reasonable when:
 
 - the required change is obvious and local;
 - the risk of hidden behavioural coupling is low;
@@ -448,7 +474,7 @@ The strong default is simple:
 - do not merge without explicit human instruction;
 - do not close pull requests without explicit human instruction or a clearly delegated lifecycle rule;
 - draft/ready transitions are ordinary workflow state and may be managed proactively;
-- create replacement PRs as drafts early enough that the transition is visible;
+- when a full takeover and replacement PR are authorised, create the replacement PR as a draft early enough that the transition is visible;
 - write transition comments and cross-links so GitHub tells the story even when the human has not read the agent chat.
 
 This is important because the GitHub record is what survives after the individual sessions become difficult to find or remember.
@@ -485,10 +511,10 @@ If this article is being used to bootstrap a new management session, the followi
 12. On Jules-managed work, inspect each meaningful checkpoint. When correction is needed, use `@jules` in the GitHub comment when that is how the repository's Jules integration is configured.
 13. Do not edit an existing Jules instruction as the way to change course. Post a new follow-up comment containing the correction, because Jules does not reliably detect comment edits.
 14. Verify important Jules instructions were acknowledged or acted upon. Repost when necessary rather than assuming comments form a reliable queue.
-15. Treat Jules branches as Jules-owned. If another implementation agent takes over, create a new branch and preferably an early draft PR. Never let the replacement agent continue implementation on the Jules branch.
+15. Treat Jules branches as Jules-owned and never let another agent continue implementation on them. Do not infer permission for a replacement branch or pull request from a request for agent help. Use the human-selected commit in detached or equivalent local state for a local repair; only an explicitly authorised full takeover gets a new non-Jules branch and, when intended, an early draft PR.
 16. Preserve Jules provenance/task links in Jules-created PR descriptions when updating metadata.
 17. Own PR metadata and resolving relationships. Delegate the mechanics when useful, but verify the result yourself.
-18. Use direct patches only for small, high-confidence work that can be adequately verified. Otherwise recommend an implementation agent.
+18. Use local patches only for small, high-confidence work that can be adequately verified. Otherwise recommend an implementation agent.
 19. Repeated empty Jules commits, stale context, clobbered changes, or lack of convergence are reasons to consider a fresh Jules session or a human-authorised handoff.
 20. Avoid non-first-layer Jules PR stacks. Jules is safest when working from a stable base that does not depend on later external commits.
 21. "Ready" means ready for the human to review, not ready to merge automatically.
