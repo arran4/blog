@@ -1,6 +1,6 @@
 ---
 title: "Managing Jules with a Management LLM"
-date: 2026-09-09T12:11:57+10:00
+date: 2026-09-09T12:23:19+10:00
 draft: false
 tags:
   - llm
@@ -18,6 +18,8 @@ categories:
   - LLM Instructions
   - Automation
 ---
+
+<!-- cspell:words joobq oobjq -->
 
 I use Jules as an asynchronous implementation worker, but the useful workflow is larger than Jules itself. The part that makes it practical is a separate **management LLM** that sits between me, GitHub, the implementation agent, and the durable issue history.
 
@@ -139,6 +141,7 @@ The management LLM is the durable coordinator. It should usually be responsible 
 - deciding whether a discovered problem belongs in the current work or a separate issue;
 - recommending retries, direct fixes, a fresh Jules session, or a handoff;
 - preserving enough human-readable context that I can re-enter the task without reconstructing the entire agent conversation;
+- raising credible improvements whenever they are discovered, not only at formal review boundaries;
 - after a merge, suggesting a sensible next Jules task from the remaining issue set.
 
 The management LLM is not merely a prompt generator. It is reviewer, state tracker, GitHub administrator, issue curator, and traffic controller.
@@ -178,6 +181,8 @@ The management LLM should usually:
 
 Issue management should be mostly autonomous for issues discovered by the agents themselves. It should be more conservative with issues raised by third-party humans: the management layer may add technical context or references, but it should avoid taking over the human conversation.
 
+A credible improvement can be raised **at any time**. Discovery is not limited to the initial planning stage or final review. If an agent notices something that would materially improve the project, the management layer should decide whether it belongs in the current work, an existing issue, or a new issue. The same discipline against speculative backlog inflation still applies: the finding should be concrete enough to be useful.
+
 ### Issue quality matters
 
 An issue should be understandable by a casual reader who was not present for the discovery conversation.
@@ -195,6 +200,16 @@ Useful issue content normally includes:
 The reproduction does not need to be exhaustive. The purpose is to make the problem legible, not to turn every issue into a full diagnostic report.
 
 This extra context is primarily for humans. Coding LLMs can often recover missing context by searching aggressively; a human who returns to an issue weeks later should not have to reverse-engineer what the agent meant.
+
+### Related issues can share one implementation prompt
+
+An issue is a durable problem record; it does not have to map one-to-one to a Jules session.
+
+When several issues form one practical, understandable implementation unit, the management LLM should consider combining them into a single prompt. This is useful when the same code path, design decision, migration, or verification work naturally resolves several small issues together.
+
+Do not combine issues merely to reduce the number of sessions. A combined prompt should still have one coherent explanation, a comprehensible scope, and clear acceptance criteria for each included issue. If the combination makes the task harder to understand or easier to partially complete without noticing, keep the issues separate.
+
+Learnings from previous Jules attempts should influence this decision. If Jules repeatedly becomes confused when two concerns are combined, split them next time. If separate issues continually require the same investigation and change, a combined prompt may be clearer. Preserve the identity and resolving relationship of every issue even when one implementation prompt covers several of them.
 
 ## Prompt generation should follow the current state
 
@@ -214,6 +229,14 @@ Prompts should be prescriptive about outcomes, constraints, acceptance criteria,
 
 The **first couple of lines of a prompt matter disproportionately**. They should describe the intended change in a meaningful, human-readable way rather than begin with process boilerplate, repository mechanics, or incidental implementation detail. In practice, this opening text is often what users see in task lists and summaries, and it may be propagated through several layers of the system. Treat it as both the task's concise description and the start of the implementation instruction: a reader should be able to glance at those lines and understand what is being changed and why.
 
+### Use relevant project guidance, including blog posts
+
+My blog is also a durable home for style guidance, engineering concepts, recurring patterns, and agent instructions. During prompt generation, the management LLM should look for relevant guidance and refer or link to it when doing so helps the implementation agent understand the intended approach.
+
+These posts are **guidance, not immutable law**. Apply them when they fit the repository, task maturity, and current design. A post may describe a desirable architecture that would be premature for the current change, or a pattern whose trade-offs do not apply here. The management LLM should use the guidance to improve judgement, not substitute references for judgement.
+
+When a blog post is relevant but following it fully would over-engineer the current task, it is better to use the applicable principle and explicitly defer the larger architecture than to force the whole pattern into an early-stage change.
+
 ### Private repositories need self-contained prompts
 
 Do not assume Jules can dereference a GitHub issue or review thread in a private repository.
@@ -226,13 +249,37 @@ Treat the prompt as the context boundary Jules is guaranteed to receive.
 
 ## Jules prompts should reduce unnecessary questions
 
-Jules can ask questions in its own web session rather than through GitHub. I commonly refer to these as Jules out-of-band questions, or informally `joobq`/`JOBQ` when pasting one into the management conversation.
+Jules can ask questions in its own web session rather than through GitHub. I do not use one completely consistent abbreviation for these. `joobq`, `JOOBQ`, `OOBJQ`, "out-of-band Jules question", and "out-of-band Jules message" should all be understood as the same kind of event: Jules has paused outside the ordinary GitHub review loop and needs a response or decision to continue.
 
 Responses do not need ceremony. They need to get the work moving again.
 
 The management LLM should answer these questions pragmatically, using repository state, the issue, existing decisions, and reasonable engineering judgement. Initial prompts should also try to pre-empt predictable questions by making constraints and decision boundaries clear.
 
 The goal is not to eliminate every question. The goal is to avoid making the human repeatedly answer questions that the management layer can resolve from the existing state.
+
+## Publish Jules state early
+
+Visibility is much better when Jules publishes a pull request and intermediate state early rather than doing a large amount of work invisibly and only exposing it at the end.
+
+The management LLM should strongly prefer prompts and follow-up instructions that encourage Jules to establish the branch/PR early once it has a coherent foothold. If Jules encounters a blocker or needs to ask an out-of-band question after making changes, it should, where practical, commit/push or otherwise submit the current meaningful state **before** pausing for the question.
+
+This does not require pretending unfinished work is complete. Draft pull requests and explicit work-in-progress commits are useful precisely because they expose incomplete state honestly.
+
+The reason is operational: Jules can ask several questions from a locally modified state that the human and management LLM cannot inspect. Once that happens, it becomes difficult to tell what assumptions are already encoded in the work, how costly a direction change will be, or whether the question is even based on a sensible implementation. Early submission lets the management layer review the actual diff and answer from evidence.
+
+## Pasteable messages get their own code blocks
+
+Any text intended to be copied and pasted into another system should be presented as a **separate fenced code block**, one payload per block.
+
+This includes:
+
+- initial Jules prompts;
+- `@jules` follow-up comments;
+- `joobq`/`JOOBQ`/`OOBJQ` responses;
+- Agy or Codex handoff prompts;
+- other agent messages or commands the human is expected to paste verbatim.
+
+Explanations, review findings, caveats, and recommendations should remain outside the code block. If there are two separate messages to send, use two separate code blocks rather than combining them into one block with prose between them.
 
 ## Jules message delivery is not a reliable queue
 
@@ -412,9 +459,9 @@ A merged issue is also a useful planning boundary.
 
 After a merge, the management LLM should inspect the remaining relevant issue set and **suggest** where the next Jules session could go. It should not silently choose a new project direction and it should not launch another implementation agent by itself.
 
-A good continuation suggestion should be explicit about what it is doing. For example, it should identify the issue it believes is the best next candidate, explain briefly why that issue follows from the current state, and provide a draft Jules prompt that can be accepted, redirected, or discarded.
+A good continuation suggestion should be explicit about what it is doing. For example, it should identify the issue or coherent group of issues it believes is the best next candidate, explain briefly why that work follows from the current state, and provide a draft Jules prompt that can be accepted, redirected, split, combined differently, or discarded.
 
-Before suggesting it, the management layer should verify that the issue is still open, still relevant, not already covered by another active pull request, and not primarily a third-party human conversation that requires my response before implementation should proceed.
+Before suggesting it, the management layer should verify that the issue is still open, still relevant, not already covered by another active pull request, and not primarily a third-party human conversation that requires my response before implementation should proceed. It should also use learnings from the just-completed Jules work when deciding how much to combine, how much context to repeat, and which traps to call out in the next prompt.
 
 This is a recommendation layer, not an automatic queue consumer.
 
@@ -427,22 +474,27 @@ If this article is being used to bootstrap a new management session, the followi
 1. Treat GitHub issues, pull requests, commits, review comments and CI as the durable state. Do not rely on an implementation agent's prose summary when the repository can be inspected.
 2. Use Jules as an asynchronous implementation worker, not as the sole planner, reviewer, issue manager or source of truth.
 3. Generate prompts from the **current** repository and issue state. Prefer the current prompt and near-term next step over a long pre-written chain unless the work genuinely requires staged migration planning. Make the first couple of prompt lines a meaningful human-readable description of the intended change, because that text may become the visible task summary throughout the workflow.
-4. For private repositories, make Jules prompts self-contained. Include the relevant issue description, constraints, examples and acceptance criteria in the prompt itself; an issue link or number alone is not enough.
-5. Keep actionable discoveries in the issue tracker. Search before creating, consolidate duplicates, split genuinely separate work, and make issues understandable to humans without hidden chat context.
-6. Respect third-party humans. Do not impersonate the operator in human-to-human issue or review conversations.
-7. On Jules-managed work, inspect each meaningful checkpoint. When correction is needed, use `@jules` in the GitHub comment when that is how the repository's Jules integration is configured.
-8. Do not edit an existing Jules instruction as the way to change course. Post a new follow-up comment containing the correction, because Jules does not reliably detect comment edits.
-9. Verify important Jules instructions were acknowledged or acted upon. Repost when necessary rather than assuming comments form a reliable queue.
-10. Treat Jules branches as Jules-owned. If another implementation agent takes over, create a new branch and preferably an early draft PR. Never let the replacement agent continue implementation on the Jules branch.
-11. Preserve Jules provenance/task links in Jules-created PR descriptions when updating metadata.
-12. Own PR metadata and resolving relationships. Delegate the mechanics when useful, but verify the result yourself.
-13. Use direct patches only for small, high-confidence work that can be adequately verified. Otherwise recommend an implementation agent.
-14. Repeated empty Jules commits, stale context, clobbered changes, or lack of convergence are reasons to consider a fresh Jules session or a human-authorised handoff.
-15. Avoid non-first-layer Jules PR stacks. Jules is safest when working from a stable base that does not depend on later external commits.
-16. "Ready" means ready for the human to review, not ready to merge automatically.
-17. Do not merge without explicit human instruction. Treat closing PRs similarly unless a specific lifecycle rule has been delegated.
-18. After a merge, inspect the remaining issues and clearly **suggest** a plausible next Jules session prompt. Do not launch it automatically.
-19. Keep management communication explicit. State what you inspected, what you changed in GitHub, what remains uncertain, and what action you are proposing so the human can safely supervise multiple tasks without guessing.
+4. Issues and Jules sessions do not need a one-to-one mapping. Combine related issues when they form one coherent, understandable implementation unit; split them when combining would obscure scope or acceptance criteria. Use learnings from previous Jules attempts to improve that judgement.
+5. For private repositories, make Jules prompts self-contained. Include the relevant issue description, constraints, examples and acceptance criteria in the prompt itself; an issue link or number alone is not enough.
+6. Consult relevant durable project guidance, including applicable blog posts, while generating prompts. Link or refer to it when useful, but apply it with judgement rather than treating every pattern as mandatory or prematurely engineering the full ideal design.
+7. Keep actionable discoveries in the issue tracker. Search before creating, consolidate duplicates, split genuinely separate work, and make issues understandable to humans without hidden chat context. Credible improvements may be raised at any time, not only at formal planning or review boundaries.
+8. Respect third-party humans. Do not impersonate the operator in human-to-human issue or review conversations.
+9. Encourage Jules to publish a branch/PR and meaningful intermediate state early. When it has made changes and then needs to ask a question, prefer that it submit the current inspectable state before pausing, where practical.
+10. Treat `joobq`, `JOOBQ`, `OOBJQ`, "out-of-band Jules question", and "out-of-band Jules message" as equivalent labels for a Jules question/message outside the normal GitHub review loop.
+11. Put every Jules message and every other copy/paste payload in its **own fenced code block**. Keep explanation outside the block and do not combine distinct messages into one pasteable block.
+12. On Jules-managed work, inspect each meaningful checkpoint. When correction is needed, use `@jules` in the GitHub comment when that is how the repository's Jules integration is configured.
+13. Do not edit an existing Jules instruction as the way to change course. Post a new follow-up comment containing the correction, because Jules does not reliably detect comment edits.
+14. Verify important Jules instructions were acknowledged or acted upon. Repost when necessary rather than assuming comments form a reliable queue.
+15. Treat Jules branches as Jules-owned. If another implementation agent takes over, create a new branch and preferably an early draft PR. Never let the replacement agent continue implementation on the Jules branch.
+16. Preserve Jules provenance/task links in Jules-created PR descriptions when updating metadata.
+17. Own PR metadata and resolving relationships. Delegate the mechanics when useful, but verify the result yourself.
+18. Use direct patches only for small, high-confidence work that can be adequately verified. Otherwise recommend an implementation agent.
+19. Repeated empty Jules commits, stale context, clobbered changes, or lack of convergence are reasons to consider a fresh Jules session or a human-authorised handoff.
+20. Avoid non-first-layer Jules PR stacks. Jules is safest when working from a stable base that does not depend on later external commits.
+21. "Ready" means ready for the human to review, not ready to merge automatically.
+22. Do not merge without explicit human instruction. Treat closing PRs similarly unless a specific lifecycle rule has been delegated.
+23. After a merge, inspect the remaining issues and clearly **suggest** a plausible next Jules session prompt. Do not launch it automatically. Consider a coherent group of issues when that is clearer than forcing one issue per session.
+24. Keep management communication explicit. State what you inspected, what you changed in GitHub, what remains uncertain, and what action you are proposing so the human can safely supervise multiple tasks without guessing.
 
 ## Let the workflow teach the workflow
 
