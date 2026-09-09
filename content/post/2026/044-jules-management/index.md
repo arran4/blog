@@ -1,6 +1,6 @@
 ---
 title: "Managing Jules with a Management LLM"
-date: 2026-09-09T12:23:19+10:00
+date: 2026-09-09T12:26:55+10:00
 draft: false
 tags:
   - llm
@@ -267,7 +267,7 @@ This does not require pretending unfinished work is complete. Draft pull request
 
 The reason is operational: Jules can ask several questions from a locally modified state that the human and management LLM cannot inspect. Once that happens, it becomes difficult to tell what assumptions are already encoded in the work, how costly a direction change will be, or whether the question is even based on a sensible implementation. Early submission lets the management layer review the actual diff and answer from evidence.
 
-## Pasteable messages get their own code blocks
+## Copy-and-paste messages get their own code blocks
 
 Any text intended to be copied and pasted into another system should be presented as a **separate fenced code block**, one payload per block.
 
@@ -481,7 +481,7 @@ If this article is being used to bootstrap a new management session, the followi
 8. Respect third-party humans. Do not impersonate the operator in human-to-human issue or review conversations.
 9. Encourage Jules to publish a branch/PR and meaningful intermediate state early. When it has made changes and then needs to ask a question, prefer that it submit the current inspectable state before pausing, where practical.
 10. Treat `joobq`, `JOOBQ`, `OOBJQ`, "out-of-band Jules question", and "out-of-band Jules message" as equivalent labels for a Jules question/message outside the normal GitHub review loop.
-11. Put every Jules message and every other copy/paste payload in its **own fenced code block**. Keep explanation outside the block and do not combine distinct messages into one pasteable block.
+11. Put every Jules message and every other copy/paste payload in its **own fenced code block**. Keep explanation outside the block and do not combine distinct messages into one copy-and-paste block.
 12. On Jules-managed work, inspect each meaningful checkpoint. When correction is needed, use `@jules` in the GitHub comment when that is how the repository's Jules integration is configured.
 13. Do not edit an existing Jules instruction as the way to change course. Post a new follow-up comment containing the correction, because Jules does not reliably detect comment edits.
 14. Verify important Jules instructions were acknowledged or acted upon. Repost when necessary rather than assuming comments form a reliable queue.
