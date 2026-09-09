@@ -1,0 +1,95 @@
+name: Apply cspell tokenization corrections
+
+on:
+  push:
+    branches:
+      - docs/cspell-scope-policy
+
+permissions:
+  contents: write
+
+jobs:
+  correct:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: docs/cspell-scope-policy
+      - name: Apply corrections from full spell check
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import re
+          from pathlib import Path
+
+          local = {
+              "content/post/2022/009-Linux, Dmesg, and issue reporting/index.md": {"thinkpad"},
+              "content/post/2022/014-Synology -- How do I update the images against a tag in the docker view?/index.md": {"ksnip"},
+              "content/post/2022/015-Tools Rosetta stone/index.md": {"Kdiff"},
+              "content/post/2023/005-golangci-lint thoughts/index.md": {"postgo", "prego", "Timesheets"},
+              "content/post/2025/001-Deploying Sieve with JMAP/index.md": {"resp"},
+              "content/post/2025/002-Sieve Workflow Fix/index.md": {"resp"},
+              "content/post/2025/004-Running-Multiple-Self-Hosted-Runners/index.md": {"CERTDIR", "IMZJPA", "libcurl", "libicu", "QKYUIFN", "SHKDINDWQ"},
+              "content/post/2025/005-Runner-Docker-Permissions-Fix/index.md": {"libcurl", "libicu"},
+              "content/post/2026/004-Txtar-Patterns-for-Agents/index.md": {"mypkg"},
+              "content/post/2026/006-github-ci-and-deploy/index.md": {"Dgenerate", "Dnew", "Dskip", "mlocate", "Poms"},
+              "content/post/2026/009-Forensic-Recovery-of-Lost-Tabs/index.md": {"baklz", "jsonlz"},
+              "content/post/2026/018-txtar-patterns-for-agents-v2/index.md": {"ttmpfs"},
+              "content/post/2026/020-optional-dependency-injection-via-type-switched-variadic-args/index.md": {"RDONLY"},
+              "content/post/2026/021-monthly-releases-and-reports/index.md": {"EPUBs"},
+              "content/post/2026/022-llm-expand-regex-test/index.md": {"Leet"},
+              "content/post/2026/028-simplified-github-ci-updated/index.md": {"Dskip", "mlocate"},
+              "content/post/2026/033-testing-fs-with-mapfs-mockfs/index.md": {"Writable"},
+              "content/post/2026/035-shell-better-than/index.md": {"arrans"},
+              "content/post/2026/038-jules-agy-codex-handoff/index.md": {"arrans"},
+              "content/post/2026/043-canonical-github-actions-ci-cd-super-reference/index.md": {"sourcedir", "srcrpmdir"},
+          }
+
+          directive_re = re.compile(r'^(\s*)<!--\s*cspell:words\s+(.*?)\s*-->\s*$', re.IGNORECASE | re.MULTILINE)
+
+          def merge_local(path_str, additions):
+              path = Path(path_str)
+              text = path.read_text()
+              match = directive_re.search(text)
+              if match:
+                  words = set(match.group(2).split()) | additions
+                  replacement = '<!-- cspell:words ' + ' '.join(sorted(words, key=str.casefold)) + ' -->'
+                  text = text[:match.start()] + replacement + text[match.end():]
+              else:
+                  directive = '<!-- cspell:words ' + ' '.join(sorted(additions, key=str.casefold)) + ' -->\n'
+                  lines = text.splitlines(keepends=True)
+                  if lines and lines[0].strip() == '---':
+                      closing = next((i for i in range(1, len(lines)) if lines[i].strip() == '---'), None)
+                      if closing is not None:
+                          insert_at = closing + 1
+                          while insert_at < len(lines) and lines[insert_at].strip() == '':
+                              del lines[insert_at]
+                          lines[insert_at:insert_at] = ['\n', directive, '\n']
+                          text = ''.join(lines)
+                      else:
+                          text = directive + '\n' + text
+                  else:
+                      text = directive + '\n' + text
+              path.write_text(text)
+
+          for path, words in local.items():
+              merge_local(path, words)
+
+          config_path = Path('.cspell.json')
+          config = json.loads(config_path.read_text())
+          words = set(config.get('words', []))
+          words.add('DCMAKE')
+          config['words'] = sorted(words, key=str.casefold)
+          config_path.write_text(json.dumps(config, indent=2) + '\n')
+          PY
+
+      - name: Commit corrections
+        shell: bash
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add .cspell.json content
+          git commit -m 'fix: account for cspell tokenization'
+          git push origin HEAD:docs/cspell-scope-policy
