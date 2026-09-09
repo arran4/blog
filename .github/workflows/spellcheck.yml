@@ -3,56 +3,9 @@ name: Spell Check
 on:
   pull_request:
   push:
-    branches: [ main, docs/cspell-scope-policy ]
-
-permissions:
-  contents: write
+    branches: [ main ]
 
 jobs:
-  cleanup-pr136:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/docs/cspell-scope-policy' && github.actor != 'github-actions[bot]'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: docs/cspell-scope-policy
-          fetch-depth: 0
-      - name: Clean merge artifacts and restore workflow
-        shell: bash
-        run: |
-          set -euo pipefail
-          article='content/post/2026/043-canonical-github-actions-ci-cd-super-reference/index.md'
-          directive='<!-- cspell:words GOPATH jurplel mvcommon qmake sourcedir srcrpmdir stefanzweifel todate -->'
-
-          ARTICLE="$article" DIRECTIVE="$directive" python3 - <<'PY'
-          import os
-          from pathlib import Path
-
-          path = Path(os.environ['ARTICLE'])
-          directive = os.environ['DIRECTIVE']
-          text = path.read_text()
-          lines = text.splitlines(keepends=True)
-          lines = [line for line in lines if line.strip() != directive]
-          if not lines or lines[0].strip() != '---':
-              raise SystemExit('article does not start with YAML front matter')
-          closing = next((i for i in range(1, len(lines)) if lines[i].strip() == '---'), None)
-          if closing is None:
-              raise SystemExit('article front matter has no closing delimiter')
-          insert_at = closing + 1
-          while insert_at < len(lines) and lines[insert_at].strip() == '':
-              del lines[insert_at]
-          lines[insert_at:insert_at] = ['\n', directive + '\n', '\n']
-          path.write_text(''.join(lines))
-          PY
-
-          git fetch origin main
-          git checkout origin/main -- .github/workflows/spellcheck.yml
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add "$article" .github/workflows/spellcheck.yml
-          git commit -m 'chore: clean merge resolution'
-          git push origin HEAD:docs/cspell-scope-policy
-
   cspell:
     runs-on: ubuntu-latest
     steps:
@@ -64,3 +17,4 @@ jobs:
           files: |
             README.md
             content/**/*.md
+
