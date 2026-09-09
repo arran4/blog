@@ -148,9 +148,14 @@ A routing job should parse events to determine if the run should execute monthly
             # PRs just validate
             :
           elif [[ "$EVENT_NAME" == "schedule" ]]; then
-            run_autofix=true
-            run_maintenance=true
-            mode="lint-fix"
+            if [[ "${{ github.event.schedule }}" == "17 3 1 * *" ]]; then
+               run_maintenance=true
+               run_autofix=true
+               mode="monthly-maintenance"
+            else
+               run_autofix=true
+               mode="lint-fix"
+            fi
           elif [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
             mode="${INPUT_MODE:-build}"
             if [[ "$mode" == "lint-fix" ]]; then
@@ -333,6 +338,29 @@ Example Autofix lane (the established manual `lint-fix` path that applies determ
           branch: automation/maintenance
           delete-branch: true
 
+  maintenance:
+    name: Monthly Maintenance
+    needs: [route]
+    if: ${{ needs.route.outputs.run_maintenance == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - run: go get -u ./... && go mod tidy
+      - name: Create Pull Request
+        if: ${{ inputs.allow_prs != false }}
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore: monthly dependency update"
+          title: "chore: monthly dependency update"
+          branch: automation/maintenance
+          delete-branch: true
+
   autofix:
     name: Autofix Formatting
     needs: [route]
@@ -413,7 +441,7 @@ Example scheduled maintenance cleanup:
   maintenance:
     name: Monthly Cleanup
     needs: [route]
-    if: ${{ needs.route.outputs.is_maintenance == 'true' }}
+    if: ${{ needs.route.outputs.run_maintenance == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -674,9 +702,14 @@ jobs:
             # PRs just validate
             :
           elif [[ "$EVENT_NAME" == "schedule" ]]; then
-            run_autofix=true
-            run_maintenance=true
-            mode="lint-fix"
+            if [[ "${{ github.event.schedule }}" == "17 3 1 * *" ]]; then
+               run_maintenance=true
+               run_autofix=true
+               mode="monthly-maintenance"
+            else
+               run_autofix=true
+               mode="lint-fix"
+            fi
           elif [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
             mode="${INPUT_MODE:-build}"
             if [[ "$mode" == "lint-fix" ]]; then
@@ -733,7 +766,7 @@ jobs:
         with:
           go-version-file: go.mod
       - run: go build -o myapp ./cmd/myapp
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: built-binary
           path: myapp
@@ -741,7 +774,7 @@ jobs:
 
   release-ready:
     name: Release Quality Gates Passed
-    needs: [route, validation]
+    needs: [route, validation, build]
     if: always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
     runs-on: ubuntu-latest
     steps:
@@ -869,7 +902,7 @@ jobs:
 
   publisher:
     name: Release Publisher
-    needs: [route]
+    needs: [route, release-ready]
     if: ${{ needs.route.outputs.run_publisher == 'true' }}
     runs-on: ubuntu-latest
     permissions:
