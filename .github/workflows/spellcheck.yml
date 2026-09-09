@@ -3,51 +3,9 @@ name: Spell Check
 on:
   pull_request:
   push:
-    branches: [ main, docs/cspell-scope-policy ]
-
-permissions:
-  contents: write
+    branches: [ main ]
 
 jobs:
-  scope-merged-vocabulary:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/docs/cspell-scope-policy' && github.actor != 'github-actions[bot]'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: docs/cspell-scope-policy
-          fetch-depth: 0
-      - name: Scope new article vocabulary and restore workflow
-        shell: bash
-        run: |
-          set -euo pipefail
-          article='content/post/2026/043-canonical-github-actions-ci-cd-super-reference/index.md'
-          ARTICLE="$article" python3 - <<'PY'
-          import re
-          import os
-          from pathlib import Path
-
-          path = Path(os.environ['ARTICLE'])
-          text = path.read_text()
-          pattern = re.compile(r'<!--\s*cspell:words\s+(.*?)\s*-->')
-          match = pattern.search(text)
-          if not match:
-              raise SystemExit('expected cspell directive not found')
-          words = set(match.group(1).split())
-          words.add('myapp')
-          replacement = '<!-- cspell:words ' + ' '.join(sorted(words, key=str.casefold)) + ' -->'
-          text = text[:match.start()] + replacement + text[match.end():]
-          path.write_text(text)
-          PY
-
-          git fetch origin main
-          git checkout origin/main -- .github/workflows/spellcheck.yml
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add "$article" .github/workflows/spellcheck.yml
-          git commit -m 'docs: scope myapp spelling to CI article'
-          git push origin HEAD:docs/cspell-scope-policy
-
   cspell:
     runs-on: ubuntu-latest
     steps:
@@ -59,3 +17,4 @@ jobs:
           files: |
             README.md
             content/**/*.md
+

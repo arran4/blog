@@ -6,7 +6,7 @@ tags: ["github-actions", "ci", "cd", "release", "automation", "goreleaser", "can
 categories: ["devops", "reference", "automation"]
 ---
 
-<!-- cspell:words GOPATH jurplel mvcommon qmake sourcedir srcrpmdir stefanzweifel todate -->
+<!-- cspell:words GOPATH jurplel mvcommon myapp qmake sourcedir srcrpmdir stefanzweifel todate -->
 
 This is the canonical GitHub Actions CI/CD generation reference.
 
