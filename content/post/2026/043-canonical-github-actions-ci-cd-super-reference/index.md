@@ -25,11 +25,14 @@ The purpose of this article is to serve as a complete generation specification f
 
 The article should strongly reduce agent discretion in areas where we already have preferred patterns. Repository-specific differences should come primarily from capability selection, not from every agent inventing a completely different CI topology.
 
+Downstream agents must add and preserve `workflow_dispatch` functionality because this canonical specification requires it. Repository-specific prompts should not need to independently request `workflow_dispatch`.
+
 ## 2. Required repository inspection before generation
 
 Before generating or modifying any CI configuration, you must:
 - enumerate all `.github/workflows/*`;
 - understand each trigger/job;
+- inventory existing manual-dispatch triggers, inputs, and behavior so they are preserved or migrated;
 - inventory useful behavior;
 - identify duplicate validation;
 - identify every release owner;
@@ -42,6 +45,8 @@ Before generating or modifying any CI configuration, you must:
 ## 3. Canonical architecture and invariants
 
 The default should be the fewest coherent workflow files necessary, normally one central `.github/workflows/ci.yml` or `.github/workflows/ci.yaml`. Do not preserve multiple workflow files merely because they already exist. A second workflow is acceptable only for a concrete technical or trust-boundary reason.
+
+Explicitly, CI consolidation or simplification MUST NOT remove existing manual-dispatch capability. A canonical workflow is incomplete if the GitHub Actions UI cannot expose a useful “Run workflow” path after the workflow reaches the default branch.
 
 The canonical orchestration phases must remain consistent:
 ```text
@@ -67,7 +72,7 @@ Generated workflows must include a short top-of-file pointer back to THIS new ar
 ## 4. Capability-selection matrix
 
 Before generating jobs, classify capabilities as:
-- **A. UNIVERSAL DEFAULT:** Baseline routing, basic validation, concurrency logic.
+- **A. UNIVERSAL DEFAULT:** Baseline routing, basic validation, concurrency logic, manual dispatch (`workflow_dispatch`).
 - **B. ENABLED WHEN REPOSITORY CAPABILITY EXISTS:** Language-specific lint/test (Go, Node, Dart, CMake, Dockerfile, Debian/RPM packaging, etc.), artifact building, packaging, GoReleaser.
 - **C. OPTIONAL POLICY:** Autofix PR generation, maintenance scheduling, PR constraints.
 - **D. EXCEPTION REQUIRING AN EXPLANATION:** Additional workflows, custom semantic version math.
@@ -76,7 +81,9 @@ Do not create irrelevant language jobs merely because examples exist. Conversely
 
 ## 5. Trigger/event model
 
-The standard event triggers should cover:
+The standard event triggers should cover the following. `workflow_dispatch` is a UNIVERSAL REQUIRED trigger for canonical generated CI, unless there is a concrete documented technical reason it cannot exist.
+
+You must require the canonical `mode` input where applicable, including normal/manual validation/build modes and the existing release/maintenance/recovery modes described by the article. Clearly distinguish "the YAML contains `workflow_dispatch`" from "manual dispatch actually does useful work"—the inputs must actually route to functional jobs.
 ```yaml
 on:
   push:
@@ -724,6 +731,12 @@ Before opening a CI PR, ensure:
 - GoReleaser ownership is not duplicated;
 - test/snapshot/prerelease semantics are correct;
 - external human-created `v*` tag publication still behaves as intended where supported;
+- final workflow has `on.workflow_dispatch`;
+- intended manual inputs exist;
+- at least one ordinary manual mode, such as build, actually routes to useful validation/build jobs;
+- applicable manual release modes route to their validation/preparation jobs;
+- no `if:` expression makes the manual route dead;
+- consolidation did not remove the repository’s “Run workflow” capability;
 - scheduled jobs cannot release;
 - CI syntax validated;
 - repository-native tests pass;
