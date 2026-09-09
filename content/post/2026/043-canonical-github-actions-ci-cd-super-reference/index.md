@@ -331,28 +331,6 @@ Example Autofix lane (the established manual `lint-fix` path that applies determ
           go-version-file: go.mod
       - run: go get -u ./... && go mod tidy
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v7
-        with:
-          commit-message: "chore: monthly dependency update"
-          title: "chore: monthly dependency update"
-          branch: automation/maintenance
-          delete-branch: true
-
-  maintenance:
-    name: Monthly Maintenance
-    needs: [route]
-    if: ${{ needs.route.outputs.run_maintenance == 'true' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
-        with:
-          go-version-file: go.mod
-      - run: go get -u ./... && go mod tidy
-      - name: Create Pull Request
         if: ${{ inputs.allow_prs != false }}
         uses: peter-evans/create-pull-request@v7
         with:
@@ -755,6 +733,54 @@ jobs:
           go-version-file: go.mod
       - run: go test ./...
 
+  maintenance:
+    name: Monthly Maintenance
+    needs: [route]
+    if: ${{ needs.route.outputs.run_maintenance == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - run: go get -u ./... && go mod tidy
+      - name: Create Pull Request
+        if: ${{ inputs.allow_prs != false }}
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore: monthly dependency update"
+          title: "chore: monthly dependency update"
+          branch: automation/maintenance
+          delete-branch: true
+
+  autofix:
+    name: Autofix Formatting
+    needs: [route]
+    if: ${{ needs.route.outputs.run_autofix == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - run: go fmt ./...
+      - run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
+      - run: golangci-lint run --fix
+      - name: Create Pull Request
+        if: ${{ inputs.allow_prs != false }}
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "style: auto-format code and lint fixes"
+          title: "style: auto-format code and lint fixes"
+          branch: automation/lint-fix
+          delete-branch: true
+
   build:
     name: Build Artifacts
     needs: [route, validation]
@@ -912,12 +938,23 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+      - name: Determine GoReleaser Args
+        id: args
+        env:
+          GITHUB_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" == refs/tags/*-test* || "$GITHUB_REF" == refs/tags/test-* ]]; then
+             echo "args=release --snapshot --clean" >> "$GITHUB_OUTPUT"
+          else
+             echo "args=release --clean" >> "$GITHUB_OUTPUT"
+          fi
       - name: Run GoReleaser (Sole Release Owner)
         uses: goreleaser/goreleaser-action@v7
         with:
           distribution: goreleaser
           version: latest
-          args: release --clean
+          args: ${{ steps.args.outputs.args }}
 ```
 
 ## 30. Generation acceptance checklist
