@@ -14,7 +14,7 @@ It supersedes `006`, `011`, `028`, `041` and `042` where they conflict. Agents s
 
 ## 1. Purpose and intended use
 
-The purpose of this article is to serve as a complete generation specification for GitHub Actions CI/CD. An agent receiving only this article should have enough guidance to:
+The purpose of this article is to serve as a complete generation specification for GitHub Actions CI/CD. It establishes that periodic scheduled CI verification is a baseline capability for maintained repositories, not merely optional maintenance. An agent receiving only this article should have enough guidance to:
 1. inspect a repository;
 2. inventory its languages, build systems, package/release mechanisms, existing workflows, and repository-specific requirements;
 3. determine which standard CI capabilities apply;
@@ -50,6 +50,8 @@ Before generating or modifying any CI configuration, you must:
 
 The default should be the fewest coherent workflow files necessary, normally one central `.github/workflows/ci.yml` or `.github/workflows/ci.yaml`. Do not preserve multiple workflow files merely because they already exist. A second workflow is acceptable only for a concrete technical or trust-boundary reason.
 
+CI simplification also includes minimizing the number of support files. Agents should actively consider whether CI-specific helper files can be removed or folded into the main workflow or existing repository tooling. Do not extract small routing fragments into separate scripts merely for architectural symmetry, and avoid adding helper files only so tiny pieces of workflow logic can have their own file. However, preserve helper code when there is a concrete reason for it, especially when shared production logic genuinely needs direct testing. When helper code genuinely improves testability or complexity management, prefer the repository's existing language, structure, conventions, naming, and test framework.
+
 Explicitly, CI consolidation or simplification MUST NOT remove existing manual-dispatch capability without a documented capability-based exception. A canonical workflow is incomplete if the GitHub Actions UI cannot expose a useful “Run workflow” path after the workflow reaches the default branch. If manual dispatch is absent or broken, create/restore the canonical pattern. If it exists but is stale or awkward, migrate/improve it toward the current pattern while retaining genuinely useful repo-specific behavior.
 
 The canonical orchestration phases must remain consistent:
@@ -76,9 +78,9 @@ Generated workflows must include a short top-of-file pointer back to THIS new ar
 ## 4. Capability-selection matrix
 
 Before generating jobs, classify capabilities as:
-- **A. UNIVERSAL DEFAULT:** Baseline routing, basic validation, concurrency logic, practical manual dispatch UX (`workflow_dispatch` where viable).
+- **A. UNIVERSAL DEFAULT:** Baseline routing, basic validation, concurrency logic, practical manual dispatch UX (`workflow_dispatch` where viable), periodic CI verification (monthly baseline).
 - **B. ENABLED WHEN REPOSITORY CAPABILITY EXISTS:** Language-specific lint/test (Go, Node, Dart, CMake, Dockerfile, Debian/RPM packaging, etc.), artifact building, packaging, GoReleaser.
-- **C. OPTIONAL POLICY:** Autofix PR generation, maintenance scheduling, PR constraints.
+- **C. OPTIONAL POLICY:** Autofix PR generation, PR constraints.
 - **D. EXCEPTION REQUIRING AN EXPLANATION:** Additional workflows, custom semantic version math.
 
 Do not create irrelevant language jobs merely because examples exist. Conversely, do not omit an obvious standard lane if it matches a repository capability. At the same time, do not omit an obvious standard lane merely because the agent decided to produce a minimalist workflow.
@@ -109,13 +111,12 @@ on:
         type: boolean
         default: true
   schedule:
-    - cron: '17 3 1 * *'
-    - cron: '41 2 * * *'
+    - cron: '0 19 1 * *'
 ```
 
 ## 6. Routing
 
-A routing job should parse events to determine if the run should execute monthly jobs, manual releases, regular CI tests, auto-fixes, or deployment behaviors. Every exposed `workflow_dispatch` mode must demonstrably reach useful jobs.
+A routing job should parse events to determine if the run should execute monthly verification, dependency freshness checks, manual releases, regular CI tests, auto-fixes, or deployment behaviors. Every exposed `workflow_dispatch` mode must demonstrably reach useful jobs.
 
 ```yaml
   route:
@@ -150,8 +151,10 @@ A routing job should parse events to determine if the run should execute monthly
             # PRs just validate
             :
           elif [[ "$EVENT_NAME" == "schedule" ]]; then
-            if [[ "${{ github.event.schedule }}" == "17 3 1 * *" ]]; then
+            if [[ "${{ github.event.schedule }}" == "0 19 1 * *" ]]; then
                run_maintenance=true
+               run_code_checks=true
+               run_build=true
                mode="monthly-maintenance"
             else
                run_autofix=true
@@ -175,6 +178,8 @@ A routing job should parse events to determine if the run should execute monthly
                run_release=true
             elif [[ "$mode" == "monthly-maintenance" ]]; then
                run_maintenance=true
+               run_code_checks=true
+               run_build=true
             fi
           elif [[ "$EVENT_NAME" == "push" && "$REF_TYPE" == "tag" && "$GITHUB_REF" == refs/tags/v* ]]; then
              # Standard external v* push publication
@@ -314,10 +319,10 @@ Example Security/Gitleaks lane:
       - uses: gitleaks/gitleaks-action@v3
 ```
 
-Example Autofix lane (the established manual `lint-fix` path that applies deterministic fixes and opens a focused automation PR):
+Example dependency-freshness test / maintenance (mechanics are ecosystem-specific, e.g., Go):
 ```yaml
   maintenance:
-    name: Monthly Maintenance
+    name: Monthly Maintenance (Dependency Freshness)
     needs: [route]
     if: ${{ needs.route.outputs.run_maintenance == 'true' }}
     runs-on: ubuntu-latest
@@ -329,6 +334,8 @@ Example Autofix lane (the established manual `lint-fix` path that applies determ
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+      # Dependency update mechanics are ecosystem/repository-specific.
+      # E.g., for Go:
       - run: go get -u ./... && go mod tidy
       - name: Create Pull Request
         if: ${{ github.event_name == 'schedule' || inputs.allow_prs != false }}
@@ -338,7 +345,10 @@ Example Autofix lane (the established manual `lint-fix` path that applies determ
           title: "chore: monthly dependency update"
           branch: automation/maintenance
           delete-branch: true
+```
 
+Example Autofix lane (the established manual `lint-fix` path that applies deterministic fixes and opens a focused automation PR):
+```yaml
   autofix:
     name: Autofix Formatting
     needs: [route]
@@ -523,9 +533,15 @@ Example artifact consumption:
 ```
 
 
-## 21. Scheduled/monthly maintenance
+## 21. Scheduled/monthly verification
 
-Include maintenance lanes for routine cleanup or deeper monthly scans. Ensure scheduled jobs cannot accidentally route into release publication.
+Maintained repositories should normally have a scheduled CI run even when there have been no recent pushes or pull requests. The purpose is to continuously prove that the checked-in project and its CI environment still work. A scheduled failure acts as a recurring signal that something has drifted or broken (e.g., tests, toolchains, GitHub Actions, dependency compatibility).
+
+The standard baseline schedule is the 2nd day of each month at 05:00 AEST, ignoring daylight-saving time (UTC `0 19 1 * *`). Private repositories default to this once-monthly verification; public repositories may run more frequently where requirements justify it.
+
+The scheduled run must execute real CI (e.g., tests, lint, build) and not just toggle a boolean. It should also test dependency freshness using the safest repository-appropriate model (e.g., isolated test or automation PR) without publishing releases.
+
+Agents should actively consider whether CI-specific helper files can be removed or folded into the main workflow or existing repository tooling to minimize support-file topology.
 
 ## 22. Cleanup lifecycle
 
@@ -546,6 +562,15 @@ To safely retry/recover a failed publication, the standard tagging path itself m
 ## 24. Existing-workflow migration procedure
 
 When upgrading CI, inventory existing capabilities, remove duplicated workflows, and consolidate them into the canonical layout. Map existing behavior into the canonical architecture. Delete dead CI files. Do not leave dead/disabled copies behind.
+
+Crucially:
+- an existing useful scheduled verification path should be preserved and corrected to the canonical cadence where appropriate;
+- dead monthly/nightly routing outputs can be removed without deleting scheduled verification;
+- meaningless scheduled maintenance jobs can be replaced with ordinary validation plus applicable dependency-freshness checking;
+- existing unnecessary CI helper files should be candidates for consolidation/removal;
+- useful repository-native helper implementations should not be flattened merely to reduce a number.
+
+Explicitly prevent the failure mode: an agent seeing unused `is_monthly`/`is_nightly` state and deleting the schedules along with the dead state.
 
 ## 25. User Input / Shell Safety
 
@@ -635,8 +660,7 @@ on:
         type: boolean
         default: true
   schedule:
-    - cron: '17 3 1 * *'
-    - cron: '41 2 * * *'
+    - cron: '0 19 1 * *'
 
 # Concurrency prevents duplicate manual releases from racing and cleans up outdated PR tests.
 # Crucially, release preparation should NOT cancel in progress to avoid aborting a cut tag.
@@ -680,8 +704,10 @@ jobs:
             # PRs just validate
             :
           elif [[ "$EVENT_NAME" == "schedule" ]]; then
-            if [[ "${{ github.event.schedule }}" == "17 3 1 * *" ]]; then
+            if [[ "${{ github.event.schedule }}" == "0 19 1 * *" ]]; then
                run_maintenance=true
+               run_code_checks=true
+               run_build=true
                mode="monthly-maintenance"
             else
                run_autofix=true
@@ -705,6 +731,8 @@ jobs:
                run_release=true
             elif [[ "$mode" == "monthly-maintenance" ]]; then
                run_maintenance=true
+               run_code_checks=true
+               run_build=true
             fi
           elif [[ "$EVENT_NAME" == "push" && "$REF_TYPE" == "tag" && "$GITHUB_REF" == refs/tags/v* ]]; then
              # Standard external v* push publication
@@ -732,7 +760,7 @@ jobs:
       - run: go test ./...
 
   maintenance:
-    name: Monthly Maintenance
+    name: Monthly Maintenance (Dependency Freshness)
     needs: [route]
     if: ${{ needs.route.outputs.run_maintenance == 'true' }}
     runs-on: ubuntu-latest
@@ -744,6 +772,8 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+      # Dependency update mechanics are ecosystem/repository-specific.
+      # E.g., for Go:
       - run: go get -u ./... && go mod tidy
       - name: Create Pull Request
         if: ${{ github.event_name == 'schedule' || inputs.allow_prs != false }}
@@ -963,6 +993,18 @@ jobs:
 
 Before opening a CI PR, ensure:
 - repository inspected before generation;
+- maintained repositories normally have periodic CI verification;
+- private repositories use the monthly baseline;
+- public repositories may run more frequently when justified;
+- canonical monthly timing is `0 19 1 * *` (2nd at 05:00 AEST, ignoring DST);
+- scheduled runs execute meaningful normal validation/build work;
+- scheduled failures are intentionally useful health/drift signals;
+- schedules cannot release;
+- dependency freshness is tested where applicable (mechanics are ecosystem-specific);
+- checked-in dependency verification and latest-dependency compatibility are conceptually distinct;
+- CI simplification considers support-file count and avoids unnecessary helper files;
+- remaining helper code fits the project's normal language/structure/style;
+- existing release safety remains intact;
 - selected capability matrix documented;
 - obsolete workflows removed;
 - event routes mutually coherent;
