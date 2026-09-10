@@ -254,6 +254,8 @@ Jules can ask questions in its own web session rather than through GitHub. I do 
 
 Responses do not need ceremony. They need to get the work moving again.
 
+**Channel matters.** A `joobq`/`JOOBQ`/`OOBJQ` response is, by default, a payload for the human to copy back into the Jules management/web-session interface. It is **not** a GitHub review comment and should not be posted to GitHub automatically. Do not prefix an out-of-band response with `@jules`; that mention belongs to GitHub comments. The management LLM may inspect GitHub to answer the question accurately, but it must keep the reply in the out-of-band channel unless the human explicitly asks for the same instruction to be posted to GitHub as well.
+
 The management LLM should answer these questions pragmatically, using repository state, the issue, existing decisions, and reasonable engineering judgement. Initial prompts should also try to pre-empt predictable questions by making constraints and decision boundaries clear.
 
 The goal is not to eliminate every question. The goal is to avoid making the human repeatedly answer questions that the management layer can resolve from the existing state.
@@ -283,6 +285,8 @@ This includes:
 - `joobq`/`JOOBQ`/`OOBJQ` responses;
 - Agy or Codex handoff prompts;
 - other agent messages or commands the human is expected to paste verbatim.
+
+The destination must be preserved. `joobq`/`JOOBQ`/`OOBJQ` payloads go back to the Jules management/web-session interface and should not contain `@jules`. GitHub corrective comments are a separate surface and may use `@jules` when the integration requires it. Do not silently substitute one delivery channel for the other merely because both ultimately instruct Jules.
 
 Explanations, review findings, caveats, and recommendations should remain outside the code block. If there are two separate messages to send, use two separate code blocks rather than combining them into one block with prose between them.
 
@@ -497,9 +501,9 @@ If this article is being used to bootstrap a new management session, the followi
 7. Keep actionable discoveries in the issue tracker. Search before creating, consolidate duplicates, split genuinely separate work, and make issues understandable to humans without hidden chat context. Credible improvements may be raised at any time, not only at formal planning or review boundaries.
 8. Respect third-party humans. Do not impersonate the operator in human-to-human issue or review conversations.
 9. Encourage Jules to publish a branch and **draft PR** with meaningful intermediate state early. Treat draft as the normal initial state for Jules-created PRs, not as an exceptional failure state. When Jules has made changes and then needs to ask a question, prefer that it submit the current inspectable state before pausing, where practical.
-10. Treat `joobq`, `JOOBQ`, `OOBJQ`, "out-of-band Jules question", and "out-of-band Jules message" as equivalent labels for a Jules question/message outside the normal GitHub review loop.
-11. Put every Jules message and every other copy/paste payload in its **own fenced code block**. Keep explanation outside the block and do not combine distinct messages into one copy-and-paste block.
-12. On Jules-managed work, inspect each meaningful checkpoint. When correction is needed, use `@jules` in the GitHub comment when that is how the repository's Jules integration is configured.
+10. Treat `joobq`, `JOOBQ`, `OOBJQ`, "out-of-band Jules question", and "out-of-band Jules message" as equivalent labels for a Jules question/message outside the normal GitHub review loop. Respond with a copy/paste payload for the Jules management/web-session interface; do not post it to GitHub or add `@jules` unless the human explicitly asks for GitHub delivery too.
+11. Put every Jules message and every other copy/paste payload in its **own fenced code block**. Keep explanation outside the block and do not combine distinct messages into one copy-and-paste block. Preserve the intended destination: JOOBQ/OOBJQ goes to the Jules app; GitHub review-loop corrections go to GitHub.
+12. On Jules-managed work, inspect each meaningful checkpoint. When correction is needed **in the GitHub review loop**, use `@jules` in the GitHub comment when that is how the repository's Jules integration is configured.
 13. Do not edit an existing Jules instruction as the way to change course. Post a new follow-up comment containing the correction, because Jules does not reliably detect comment edits.
 14. Verify important Jules instructions were acknowledged or acted upon. Repost when necessary rather than assuming comments form a reliable queue.
 15. Treat Jules branches as Jules-owned. If another implementation agent takes over, create a new branch and preferably an early draft PR. Never let the replacement agent continue implementation on the Jules branch.
