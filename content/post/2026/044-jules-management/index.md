@@ -43,7 +43,7 @@ Management LLM
   v
 Jules
   |
-  |  branch / pull request / commits
+  |  branch / draft pull request / commits
   v
 GitHub
   |
@@ -55,7 +55,7 @@ Management LLM
   |                                          |
   +<-----------------------------------------+
   |
-  |  "ready for human review"
+  |  "management review: APPROVED — ready for human review"
   v
 Human review and decision
   |
@@ -125,7 +125,7 @@ The workflow is easier to reason about when the roles are explicit.
 
 The human owns intent, judgement, final review, and consequential lifecycle decisions. The human can redirect the work at any review point, choose a different implementation agent, decide that an issue has become too broad, or decide that the current result should not continue at all.
 
-The management LLM can prepare and perform a large amount of work, but it should not merge or close pull requests unless explicitly instructed. Moving a pull request between draft and ready-for-review is ordinary workflow management and can be done more freely.
+The management LLM can prepare and perform a large amount of work, but it should not merge or close pull requests unless explicitly instructed. Draft versus ready-for-review state is ordinary workflow management rather than a consequential merge decision, so the management layer should manage it actively. A Jules-created pull request should normally remain a draft while implementation or delegated technical review is incomplete, may be returned to draft if a blocker appears, and should be marked ready-for-review before the management layer hands an approved result to the human.
 
 ### Management LLM
 
@@ -137,6 +137,7 @@ The management LLM is the durable coordinator. It should usually be responsible 
 - writing concise corrective prompts for Jules;
 - answering Jules out-of-band questions pragmatically;
 - maintaining pull-request metadata;
+- actively managing draft versus ready-for-review state so GitHub reflects whether human attention is useful;
 - tracking issue relationships and resolving keywords;
 - deciding whether a discovered problem belongs in the current work or a separate issue;
 - recommending retries, direct fixes, a fresh Jules session, or a handoff;
@@ -261,7 +262,11 @@ The goal is not to eliminate every question. The goal is to avoid making the hum
 
 Visibility is much better when Jules publishes a pull request and intermediate state early rather than doing a large amount of work invisibly and only exposing it at the end.
 
-The management LLM should strongly prefer prompts and follow-up instructions that encourage Jules to establish the branch/PR early once it has a coherent foothold. If Jules encounters a blocker or needs to ask an out-of-band question after making changes, it should, where practical, commit/push or otherwise submit the current meaningful state **before** pausing for the question.
+Jules-created pull requests should normally be opened as **drafts**. The draft state is a useful operational signal: implementation is still in progress, delegated review has not yet passed, or the human should not spend attention on the pull request yet. The management LLM should strongly prefer prompts and follow-up instructions that encourage Jules to establish the branch and draft PR early once it has a coherent foothold. If Jules encounters a blocker or needs to ask an out-of-band question after making changes, it should, where practical, commit/push or otherwise submit the current meaningful state **before** pausing for the question.
+
+The management layer should keep a PR in draft, or proactively return it to draft, while substantive blockers, requested corrections, or unresolved delegated-review concerns remain. If a PR was previously marked ready and a new blocker is discovered, moving it back to draft is the correct state repair; this does not require separate human permission.
+
+Conversely, once the management LLM has completed its delegated technical review and would tell the human that the work is approved for review, it should first mark the pull request **ready for review**. Do not leave a technically approved PR in draft while telling the human to inspect it. GitHub state and management prose should agree about whether human attention is being requested.
 
 This does not require pretending unfinished work is complete. Draft pull requests and explicit work-in-progress commits are useful precisely because they expose incomplete state honestly.
 
@@ -330,8 +335,10 @@ The management LLM should normally own or supervise:
 - resolving keywords such as `Fixes #123` or `Closes #123`;
 - handoff notices;
 - links between superseded and replacement pull requests;
-- draft versus ready-for-review state;
+- draft versus ready-for-review state, including proactively moving in either direction when review state changes;
 - human-readable explanation of what is happening.
+
+Draft state should be treated as meaningful metadata, not merely as the state Jules happened to choose when it created the PR. While implementation or management review remains incomplete, draft is normally correct. Once management review is approved and human attention is requested, ready-for-review is normally correct. If later evidence invalidates that approval, the management layer should return the PR to draft and state why.
 
 This work can be delegated to another capable agent when appropriate, but the management LLM is usually better positioned to write human-oriented metadata because it has the broader conversation and review context.
 
@@ -381,11 +388,15 @@ The management LLM should review:
 - whether earlier correct decisions survived later fixes;
 - whether the change has widened beyond the intended scope.
 
-When it says the work is **ready for human review**, that means the management layer has completed its delegated technical review and believes the current state is coherent enough for me to spend time on it.
+When that delegated technical review passes, the management layer has **approved** the work for human review. It should make that approval unambiguous rather than merely saying that the PR looks ready. Before handing the result to me, it should ensure the pull request is no longer a draft and use wording with the same meaning as:
 
-That is a junction, not an automatic merge point.
+> **Management review: APPROVED — ready for human review.**
 
-My review may result in approval, another round in the same session, a new Jules session, new follow-up issues, a direct management fix, or a handoff to a different coding agent.
+The accompanying message should make clear that management approval has actually been given, identify any residual caveats worth my attention, and say that the remaining decision is mine. This approval is not an automatic merge instruction and does not substitute for my final judgement.
+
+If the delegated review does not pass, or if a blocker is discovered after an earlier approval, the management layer should not leave the PR in a misleading ready state. It should keep or return the PR to draft, clearly state that management approval is not currently in force, and continue the correction/review loop.
+
+My review may result in merge approval, another round in the same session, a new Jules session, new follow-up issues, a direct management fix, or a handoff to a different coding agent.
 
 ## Recovery is judgement-based
 
@@ -447,9 +458,15 @@ The strong default is simple:
 
 - do not merge without explicit human instruction;
 - do not close pull requests without explicit human instruction or a clearly delegated lifecycle rule;
-- draft/ready transitions are ordinary workflow state and may be managed proactively;
+- Jules-created pull requests should normally start as drafts so unfinished agent work does not present itself as waiting for human review;
+- the management LLM is authorised to move pull requests between draft and ready-for-review proactively as the review state changes;
+- keep or return a PR to draft while substantive blockers, requested corrections, or unresolved delegated-review concerns remain;
+- when management review passes, mark the PR ready-for-review **before** telling the human that it is approved and ready to inspect;
+- if new evidence invalidates an earlier approval, return the PR to draft and explicitly revoke or qualify that management approval until the blocker is resolved;
 - create replacement PRs as drafts early enough that the transition is visible;
 - write transition comments and cross-links so GitHub tells the story even when the human has not read the agent chat.
+
+Ready-for-review means that management has finished its delegated review and is deliberately requesting human attention. It does **not** mean that the PR may be merged without explicit human instruction.
 
 This is important because the GitHub record is what survives after the individual sessions become difficult to find or remember.
 
@@ -479,7 +496,7 @@ If this article is being used to bootstrap a new management session, the followi
 6. Consult relevant durable project guidance, including applicable blog posts, while generating prompts. Link or refer to it when useful, but apply it with judgement rather than treating every pattern as mandatory or prematurely engineering the full ideal design.
 7. Keep actionable discoveries in the issue tracker. Search before creating, consolidate duplicates, split genuinely separate work, and make issues understandable to humans without hidden chat context. Credible improvements may be raised at any time, not only at formal planning or review boundaries.
 8. Respect third-party humans. Do not impersonate the operator in human-to-human issue or review conversations.
-9. Encourage Jules to publish a branch/PR and meaningful intermediate state early. When it has made changes and then needs to ask a question, prefer that it submit the current inspectable state before pausing, where practical.
+9. Encourage Jules to publish a branch and **draft PR** with meaningful intermediate state early. Treat draft as the normal initial state for Jules-created PRs, not as an exceptional failure state. When Jules has made changes and then needs to ask a question, prefer that it submit the current inspectable state before pausing, where practical.
 10. Treat `joobq`, `JOOBQ`, `OOBJQ`, "out-of-band Jules question", and "out-of-band Jules message" as equivalent labels for a Jules question/message outside the normal GitHub review loop.
 11. Put every Jules message and every other copy/paste payload in its **own fenced code block**. Keep explanation outside the block and do not combine distinct messages into one copy-and-paste block.
 12. On Jules-managed work, inspect each meaningful checkpoint. When correction is needed, use `@jules` in the GitHub comment when that is how the repository's Jules integration is configured.
@@ -487,14 +504,15 @@ If this article is being used to bootstrap a new management session, the followi
 14. Verify important Jules instructions were acknowledged or acted upon. Repost when necessary rather than assuming comments form a reliable queue.
 15. Treat Jules branches as Jules-owned. If another implementation agent takes over, create a new branch and preferably an early draft PR. Never let the replacement agent continue implementation on the Jules branch.
 16. Preserve Jules provenance/task links in Jules-created PR descriptions when updating metadata.
-17. Own PR metadata and resolving relationships. Delegate the mechanics when useful, but verify the result yourself.
+17. Own PR metadata, resolving relationships, and draft/ready-for-review state. Delegate the mechanics when useful, but verify the result yourself. Keep or return unfinished work to draft; when delegated technical review passes, mark it ready before asking the human to review it.
 18. Use direct patches only for small, high-confidence work that can be adequately verified. Otherwise recommend an implementation agent.
 19. Repeated empty Jules commits, stale context, clobbered changes, or lack of convergence are reasons to consider a fresh Jules session or a human-authorised handoff.
 20. Avoid non-first-layer Jules PR stacks. Jules is safest when working from a stable base that does not depend on later external commits.
-21. "Ready" means ready for the human to review, not ready to merge automatically.
-22. Do not merge without explicit human instruction. Treat closing PRs similarly unless a specific lifecycle rule has been delegated.
-23. After a merge, inspect the remaining issues and clearly **suggest** a plausible next Jules session prompt. Do not launch it automatically. Consider a coherent group of issues when that is clearer than forcing one issue per session.
-24. Keep management communication explicit. State what you inspected, what you changed in GitHub, what remains uncertain, and what action you are proposing so the human can safely supervise multiple tasks without guessing.
+21. When delegated review passes, say so explicitly: **"Management review: APPROVED — ready for human review."** Approval means the management layer has completed and passed its technical review; it is stronger and clearer than merely saying "ready".
+22. If blockers remain or reappear, the PR should be draft and management approval should not be presented as current. The management LLM may move PRs in either direction between draft and ready without asking first.
+23. Do not merge without explicit human instruction. Treat closing PRs similarly unless a specific lifecycle rule has been delegated. Ready-for-review and management approval request human attention; they do not authorise merge.
+24. After a merge, inspect the remaining issues and clearly **suggest** a plausible next Jules session prompt. Do not launch it automatically. Consider a coherent group of issues when that is clearer than forcing one issue per session.
+25. Keep management communication explicit. State what you inspected, what you changed in GitHub, what remains uncertain, and what action you are proposing so the human can safely supervise multiple tasks without guessing.
 
 ## Let the workflow teach the workflow
 
