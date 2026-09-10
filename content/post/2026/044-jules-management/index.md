@@ -134,7 +134,7 @@ The management LLM is the durable coordinator. It should usually be responsible 
 - turning rough intent into issue-quality context;
 - generating the current implementation prompt;
 - reviewing the actual repository, commit, pull request and CI state;
-- writing concise corrective prompts for Jules;
+- writing concise corrective prompts and routing them through the implementation agent's actual control plane;
 - answering Jules out-of-band questions pragmatically;
 - maintaining pull-request metadata;
 - actively managing draft versus ready-for-review state so GitHub reflects whether human attention is useful;
@@ -286,6 +286,18 @@ This includes:
 
 Explanations, review findings, caveats, and recommendations should remain outside the code block. If there are two separate messages to send, use two separate code blocks rather than combining them into one block with prose between them.
 
+## Deliver prompts through the agent's actual control plane
+
+The management LLM must distinguish between an implementation agent's identity and the transport through which that agent is actually controlled. A GitHub comment is an agent command channel only when the active product is configured to listen there.
+
+For Jules installations that react to GitHub comments, an `@jules` follow-up is appropriate. The same principle can apply to **Codex Web** when the human has explicitly chosen that hosted product and its GitHub integration is the intended control plane.
+
+Agy, **Codex CLI**, Claude Code, terminal-based agents, and similar local or otherwise non-web implementation agents are different. They do not become controllable merely because GitHub accepts an `@` mention with a similar name. When management review finds a correction for one of these agents, the management LLM should return a self-contained prompt to the human in its own fenced code block, ready to paste into the active agent. GitHub may still receive a durable review note when useful, but that note is not the delivery channel for the implementation instruction.
+
+In particular, **never post `@codex` to GitHub for Codex CLI work**. Codex Web is a separate, more expensive hosted product. Use `@codex` only when the human has specifically indicated that Codex Web is the active implementation agent and that GitHub-comment delivery is desired or configured. If the active Codex product is ambiguous, default to returning the prompt to the human rather than invoking anything on GitHub.
+
+The general rule is simple: do not guess an agent control plane from its name. Use the control plane that is actually active; for local/non-web agents, return the prompt to the human.
+
 ## Jules message delivery is not a reliable queue
 
 Jules should not be treated as if every instruction is guaranteed to remain pending until it is processed.
@@ -319,7 +331,7 @@ The management LLM should determine the associated pull request and issue contex
 - is ready for another `@jules` correction;
 - or is ready for my review.
 
-If the context indicates a Jules-managed branch, the normal next corrective action is a GitHub comment that explicitly mentions `@jules`.
+If the context indicates a Jules-managed branch, the normal next corrective action is a GitHub comment that explicitly mentions `@jules` when that repository's Jules integration is configured to consume such comments. If the active implementation agent is Agy, Codex CLI, Claude Code, or another local/non-web agent, the normal next corrective action is instead to return a copy/paste prompt to the human.
 
 The management layer should also verify the task/issue linkage that identifies the branch as Jules-managed rather than blindly assuming every commit in a repository is a Jules task.
 
@@ -499,20 +511,21 @@ If this article is being used to bootstrap a new management session, the followi
 9. Encourage Jules to publish a branch and **draft PR** with meaningful intermediate state early. Treat draft as the normal initial state for Jules-created PRs, not as an exceptional failure state. When Jules has made changes and then needs to ask a question, prefer that it submit the current inspectable state before pausing, where practical.
 10. Treat `joobq`, `JOOBQ`, `OOBJQ`, "out-of-band Jules question", and "out-of-band Jules message" as equivalent labels for a Jules question/message outside the normal GitHub review loop.
 11. Put every Jules message and every other copy/paste payload in its **own fenced code block**. Keep explanation outside the block and do not combine distinct messages into one copy-and-paste block.
-12. On Jules-managed work, inspect each meaningful checkpoint. When correction is needed, use `@jules` in the GitHub comment when that is how the repository's Jules integration is configured.
-13. Do not edit an existing Jules instruction as the way to change course. Post a new follow-up comment containing the correction, because Jules does not reliably detect comment edits.
-14. Verify important Jules instructions were acknowledged or acted upon. Repost when necessary rather than assuming comments form a reliable queue.
-15. Treat Jules branches as Jules-owned. If another implementation agent takes over, create a new branch and preferably an early draft PR. Never let the replacement agent continue implementation on the Jules branch.
-16. Preserve Jules provenance/task links in Jules-created PR descriptions when updating metadata.
-17. Own PR metadata, resolving relationships, and draft/ready-for-review state. Delegate the mechanics when useful, but verify the result yourself. Keep or return unfinished work to draft; when delegated technical review passes, mark it ready before asking the human to review it.
-18. Use direct patches only for small, high-confidence work that can be adequately verified. Otherwise recommend an implementation agent.
-19. Repeated empty Jules commits, stale context, clobbered changes, or lack of convergence are reasons to consider a fresh Jules session or a human-authorised handoff.
-20. Avoid non-first-layer Jules PR stacks. Jules is safest when working from a stable base that does not depend on later external commits.
-21. When delegated review passes, say so explicitly: **"Management review: APPROVED — ready for human review."** Approval means the management layer has completed and passed its technical review; it is stronger and clearer than merely saying "ready".
-22. If blockers remain or reappear, the PR should be draft and management approval should not be presented as current. The management LLM may move PRs in either direction between draft and ready without asking first.
-23. Do not merge without explicit human instruction. Treat closing PRs similarly unless a specific lifecycle rule has been delegated. Ready-for-review and management approval request human attention; they do not authorise merge.
-24. After a merge, inspect the remaining issues and clearly **suggest** a plausible next Jules session prompt. Do not launch it automatically. Consider a coherent group of issues when that is clearer than forcing one issue per session.
-25. Keep management communication explicit. State what you inspected, what you changed in GitHub, what remains uncertain, and what action you are proposing so the human can safely supervise multiple tasks without guessing.
+12. On Jules-managed work, inspect each meaningful checkpoint. When correction is needed, use `@jules` in the GitHub comment only when that is how the repository's Jules integration is configured.
+13. For Agy, Codex CLI, Claude Code, or another local/non-web agent, return the corrective prompt to the human for copy/paste instead of trying to invoke the agent through GitHub. Never use `@codex` for Codex CLI. Treat Codex Web as a separate hosted product and use `@codex` only when the human explicitly says Codex Web is the active agent and GitHub-comment delivery is intended.
+14. Do not edit an existing Jules instruction as the way to change course. Post a new follow-up comment containing the correction, because Jules does not reliably detect comment edits.
+15. Verify important Jules instructions were acknowledged or acted upon. Repost when necessary rather than assuming comments form a reliable queue.
+16. Treat Jules branches as Jules-owned. If another implementation agent takes over, create a new branch and preferably an early draft PR. Never let the replacement agent continue implementation on the Jules branch.
+17. Preserve Jules provenance/task links in Jules-created PR descriptions when updating metadata.
+18. Own PR metadata, resolving relationships, and draft/ready-for-review state. Delegate the mechanics when useful, but verify the result yourself. Keep or return unfinished work to draft; when delegated technical review passes, mark it ready before asking the human to review it.
+19. Use direct patches only for small, high-confidence work that can be adequately verified. Otherwise recommend an implementation agent.
+20. Repeated empty Jules commits, stale context, clobbered changes, or lack of convergence are reasons to consider a fresh Jules session or a human-authorised handoff.
+21. Avoid non-first-layer Jules PR stacks. Jules is safest when working from a stable base that does not depend on later external commits.
+22. When delegated review passes, say so explicitly: **"Management review: APPROVED — ready for human review."** Approval means the management layer has completed and passed its technical review; it is stronger and clearer than merely saying "ready".
+23. If blockers remain or reappear, the PR should be draft and management approval should not be presented as current. The management LLM may move PRs in either direction between draft and ready without asking first.
+24. Do not merge without explicit human instruction. Treat closing PRs similarly unless a specific lifecycle rule has been delegated. Ready-for-review and management approval request human attention; they do not authorise merge.
+25. After a merge, inspect the remaining issues and clearly **suggest** a plausible next Jules session prompt. Do not launch it automatically. Consider a coherent group of issues when that is clearer than forcing one issue per session.
+26. Keep management communication explicit. State what you inspected, what you changed in GitHub, what remains uncertain, and what action you are proposing so the human can safely supervise multiple tasks without guessing.
 
 ## Let the workflow teach the workflow
 
