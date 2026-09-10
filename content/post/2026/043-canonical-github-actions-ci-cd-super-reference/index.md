@@ -151,15 +151,17 @@ A routing job should parse events to determine if the run should execute monthly
             # PRs just validate
             :
           elif [[ "$EVENT_NAME" == "schedule" ]]; then
-            if [[ "${{ github.event.schedule }}" == "0 19 1 * *" ]]; then
-               run_maintenance=true
-               run_code_checks=true
-               run_build=true
-               mode="monthly-maintenance"
-            else
-               run_autofix=true
-               mode="lint-fix"
-            fi
+            # Ensure scheduled verification executes actual validation
+            run_maintenance=true
+            run_code_checks=true
+            run_build=true
+            mode="monthly-maintenance"
+            # If the repository configures a separate schedule for autofix (e.g., '0 4 * * *'), explicitly distinguish it here rather than defaulting all unknown schedules to autofix.
+            # if [[ "${{ github.event.schedule }}" == "0 4 * * *" ]]; then
+            #    run_autofix=true
+            #    run_maintenance=false
+            #    mode="lint-fix"
+            # fi
           elif [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
             mode="${INPUT_MODE:-build}"
             if [[ "$mode" == "lint-fix" ]]; then
@@ -222,6 +224,8 @@ Every git-mutating job, and every build job, must use actions/checkout. Use `fet
 ## 10. Validation/test/lint architecture
 
 Tests and linters should run concurrently after routing. All release policies require test validation before permanent tags are cut. Public repositories can generally run broader checks by default. Visibility check via `github.event.repository.private`. Private repositories may use a more conservative/cost-aware profile, but do not compromise required release validation.
+
+Crucially, scheduled verification runs must exercise meaningful normal validation/build work. A scheduled failure is intentionally useful as a health signal indicating stale or broken CI/toolchains, dependency drift, or other unstated runtime assumptions.
 
 ## 11. Language-specific lanes
 
@@ -613,6 +617,8 @@ Version arithmetic itself should be tested upstream in `git-tag-inc`; repository
 ## 28. Anti-patterns
 
 DO NOT GENERATE:
+- deleting the baseline periodic schedule merely because old `is_monthly`/`is_nightly` or maintenance routing state is dead;
+- proliferating unnecessary CI-only helper files or moving tiny routing logic into bespoke support files when the main workflow or repository-native tooling is the clearer home;
 - multiple GitHub Release owners;
 - bespoke repository SemVer parsers when `git-tag-inc` can do the arithmetic;
 - fallback shell SemVer implementations;
@@ -704,15 +710,17 @@ jobs:
             # PRs just validate
             :
           elif [[ "$EVENT_NAME" == "schedule" ]]; then
-            if [[ "${{ github.event.schedule }}" == "0 19 1 * *" ]]; then
-               run_maintenance=true
-               run_code_checks=true
-               run_build=true
-               mode="monthly-maintenance"
-            else
-               run_autofix=true
-               mode="lint-fix"
-            fi
+            # Ensure scheduled verification executes actual validation
+            run_maintenance=true
+            run_code_checks=true
+            run_build=true
+            mode="monthly-maintenance"
+            # If the repository configures a separate schedule for autofix (e.g., '0 4 * * *'), explicitly distinguish it here rather than defaulting all unknown schedules to autofix.
+            # if [[ "${{ github.event.schedule }}" == "0 4 * * *" ]]; then
+            #    run_autofix=true
+            #    run_maintenance=false
+            #    mode="lint-fix"
+            # fi
           elif [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
             mode="${INPUT_MODE:-build}"
             if [[ "$mode" == "lint-fix" ]]; then
