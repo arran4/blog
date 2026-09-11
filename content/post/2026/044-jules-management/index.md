@@ -125,7 +125,7 @@ The workflow is easier to reason about when the roles are explicit.
 
 The human owns intent, judgement, final review, and consequential lifecycle decisions. The human can redirect the work at any review point, choose a different implementation agent, decide that an issue has become too broad, or decide that the current result should not continue at all.
 
-The management LLM can prepare and perform a large amount of work, but it should not merge or close pull requests unless explicitly instructed. Draft versus ready-for-review state is ordinary workflow management rather than a consequential merge decision, so the management layer should manage it actively. A Jules-created pull request should normally remain a draft while implementation or delegated technical review is incomplete, may be returned to draft if a blocker appears, and should be marked ready-for-review before the management layer hands an approved result to the human.
+The management LLM can prepare and perform a large amount of work, but it should not merge without explicit instruction. Closing pull requests also normally remains a human decision, except for clearly delegated lifecycle cleanup such as closing superseded temporary pull requests after the human confirms that their replacement has merged. Draft versus ready-for-review state is ordinary workflow management rather than a consequential merge decision, so the management layer should manage it actively. A Jules-created pull request should normally remain a draft while implementation or delegated technical review is incomplete, may be returned to draft if a blocker appears, and should be marked ready-for-review before the management layer hands an approved result to the human.
 
 ### Management LLM
 
@@ -139,11 +139,12 @@ The management LLM is the durable coordinator. It should usually be responsible 
 - maintaining pull-request metadata;
 - actively managing draft versus ready-for-review state so GitHub reflects whether human attention is useful;
 - tracking issue relationships and resolving keywords;
-- deciding whether a discovered problem belongs in the current work or a separate issue;
+- deciding whether a discovered problem belongs in the current work, an existing issue, or a candidate new issue to propose to the human;
 - recommending retries, direct fixes, a fresh Jules session, or a handoff;
 - preserving enough human-readable context that I can re-enter the task without reconstructing the entire agent conversation;
 - raising credible improvements whenever they are discovered, not only at formal review boundaries;
-- after a merge, suggesting a sensible next Jules task from the remaining issue set.
+- after a confirmed merge, reconciling linked issues and superseded temporary pull requests, then suggesting a sensible next Jules task from the remaining issue set;
+- reporting direct URLs for the pull requests and issues it reviewed, changed, created, closed, or otherwise materially affected.
 
 The management LLM is not merely a prompt generator. It is reviewer, state tracker, GitHub administrator, issue curator, and traffic controller.
 
@@ -161,28 +162,29 @@ Human-to-human interaction should remain human-to-human. If a third party opens 
 
 It may prepare a response, summarise the issue, collect evidence, improve internal context, or suggest what I should say. It may also work with clearly agent-authored messages when the other side is explicitly operating as an agent. But a real human deserves a real human response.
 
-This matters especially for issue management. Agent-created issues can be managed quite autonomously. Human-created issues should be treated as part technical state and part human relationship.
+This matters especially for issue management. Agent-created issues can be managed quite autonomously after they exist. Human-created issues should be treated as part technical state and part human relationship.
 
 ## Issues are durable problem state
 
 Chat is not the issue tracker.
 
-When a credible defect, feature, chore, maintenance task, missing test, architectural problem, or follow-up is discovered, the management layer should make sure it exists in the project's durable issue system rather than merely mentioning it in conversation.
+When a credible defect, feature, chore, maintenance task, missing test, architectural problem, or follow-up is discovered, the management layer should make sure it is either connected to an existing durable issue or presented to the human as a candidate new issue rather than merely disappearing into conversation.
 
-This does not mean opening an issue for every thought. It means preserving **actionable problem state**.
+This does not mean opening an issue for every thought. It means preserving **actionable problem state** while keeping creation of new backlog items under human control.
 
 The management LLM should usually:
 
 1. search for an existing issue describing the same underlying problem;
 2. consolidate duplicates where appropriate rather than multiplying near-identical issues;
-3. add useful context to an existing issue when that is the best durable home;
-4. create a new issue when no suitable one exists;
-5. split a broad finding into multiple issues when there are genuinely separate pieces of work;
-6. keep the current pull request scoped unless one of those findings is required for correctness.
+3. add useful technical context to an existing issue when that is the best durable home and doing so does not take over a third-party human conversation;
+4. when no suitable issue exists, report the candidate issue to the human with enough context to judge whether it belongs in the tracker;
+5. create the new issue only after the human explicitly confirms that it should be added, then return the resulting issue URL;
+6. split a broad finding into multiple candidate issues when there are genuinely separate pieces of work;
+7. keep the current pull request scoped unless one of those findings is required for correctness.
 
-Issue management should be mostly autonomous for issues discovered by the agents themselves. It should be more conservative with issues raised by third-party humans: the management layer may add technical context or references, but it should avoid taking over the human conversation.
+Issue **discovery and preparation** can be autonomous; creation of a new issue is not. The management layer may investigate, deduplicate, draft a title/body, and recommend creation, but it should wait for explicit human confirmation before adding a new issue. Existing agent-owned issues can still be maintained as project state when the evidence supports it. Third-party human issues require additional care: the management layer may add technical context or references, but it should avoid taking over the human conversation.
 
-A credible improvement can be raised **at any time**. Discovery is not limited to the initial planning stage or final review. If an agent notices something that would materially improve the project, the management layer should decide whether it belongs in the current work, an existing issue, or a new issue. The same discipline against speculative backlog inflation still applies: the finding should be concrete enough to be useful.
+A credible improvement can be raised **at any time**. Discovery is not limited to the initial planning stage or final review. If an agent notices something that would materially improve the project, the management layer should decide whether it belongs in the current work, an existing issue, or a candidate new issue to present for confirmation. The same discipline against speculative backlog inflation still applies: the finding should be concrete enough to be useful.
 
 ### Issue quality matters
 
@@ -384,9 +386,9 @@ A replacement branch can begin from:
 
 Create the replacement pull request as a **draft as early as practical**. Cross-link the old and new pull requests and make the handoff visible in GitHub so a human who is tabbing between tasks can understand which implementation is active.
 
-The old Jules pull request should not be closed automatically. Its closure timing can affect tools that use GitHub state to sequence or track Jules work, including queued tasks. Depending on the surrounding queue, it may need to remain open until the replacement is merged or closed, or it may need to be retired earlier when doing so is necessary for the next Jules job to proceed.
+The old Jules pull request should not normally be closed while the replacement is still active. Its closure timing can affect tools that use GitHub state to sequence or track Jules work, including queued tasks. It may need to remain open until the replacement is merged or closed, or it may need to be retired earlier when doing so is necessary for the next Jules job to proceed.
 
-That is a lifecycle decision, not a universal one-line rule.
+Once the human tells the management layer that the replacement pull request has merged, the management layer is authorised to perform the ordinary cleanup without asking for a second per-PR confirmation: verify the merge, close any still-open superseded Jules or temporary handoff pull requests, repair cross-links or status text where useful, and reconcile the linked issue state. This cleanup authority does not include merging the superseded pull request.
 
 ## Avoid pull-request stacks behind Jules
 
@@ -464,9 +466,11 @@ Jules can be asked to include the resolving relationship, but the management lay
 
 An issue should not be marked resolved merely because an agent claims the code is done. The repository lifecycle should remain honest: pending fixes are pending, merged fixes are merged, and partial fixes should leave the issue open with useful updated context.
 
+After the human confirms that a pull request has merged, the management layer should verify that every intended resolving relationship produced the expected issue state. If an issue that should be complete remains open, or a partially addressed issue was closed incorrectly, repair that state or metadata as part of post-merge cleanup. Newly discovered follow-up work should still be reported to the human first and should become a new issue only after explicit confirmation.
+
 ## Human issues and agent issues are not identical
 
-Agent-created issues are mostly project state. They can be consolidated, rewritten, split, enriched, or closed autonomously when the evidence supports it.
+Agent-created issues are mostly project state. They can be consolidated, rewritten, split, enriched, or closed autonomously when the evidence supports it after they exist.
 
 A third-party human issue also represents a relationship with another person.
 
@@ -481,24 +485,35 @@ The merge restriction in this section applies to the **management layer and any 
 The strong default is simple:
 
 - do not merge without explicit human instruction;
-- do not close pull requests without explicit human instruction or a clearly delegated lifecycle rule;
+- do not close active pull requests without explicit human instruction or a clearly delegated lifecycle rule;
 - Jules-created pull requests should normally start as drafts so unfinished agent work does not present itself as waiting for human review;
 - the management LLM is authorised to move pull requests between draft and ready-for-review proactively as the review state changes;
 - keep or return a PR to draft while substantive blockers, requested corrections, or unresolved delegated-review concerns remain;
 - when management review passes, mark the PR ready-for-review **before** telling the human that it is approved and ready to inspect;
 - if new evidence invalidates an earlier approval, return the PR to draft and explicitly revoke or qualify that management approval until the blocker is resolved;
 - create replacement PRs as drafts early enough that the transition is visible;
+- after the human confirms a replacement PR has merged, close superseded temporary/handoff PRs and reconcile linked issue state as ordinary delegated cleanup;
 - write transition comments and cross-links so GitHub tells the story even when the human has not read the agent chat.
 
 Ready-for-review means that management has finished its delegated review and is deliberately requesting human attention. It does **not** mean that the PR may be merged without explicit human instruction.
 
 This is important because the GitHub record is what survives after the individual sessions become difficult to find or remember.
 
-## After a merge, suggest the next Jules task
+## After a merge, clean up and suggest the next Jules task
 
-A merged issue is also a useful planning boundary.
+A merged issue is also a useful lifecycle and planning boundary.
 
-After a merge, the management LLM should inspect the remaining relevant issue set and **suggest** where the next Jules session could go. It should not silently choose a new project direction and it should not launch another implementation agent by itself.
+Once the human tells the management layer that the intended pull request has merged, the management layer should first reconcile the completed work before proposing what comes next:
+
+1. verify the merged pull request and its final head/state;
+2. verify that intended resolving keywords closed the right issue or issues and correct stale issue state when necessary;
+3. close any still-open superseded Jules pull requests or temporary handoff/recovery pull requests created solely to reach the merged result;
+4. preserve useful cross-links and provenance so the cleanup does not erase the history of the handoff;
+5. inspect credible follow-up findings, search for existing issues, and report any genuinely new candidate issue to the human for confirmation before creating it;
+6. after confirmation, create approved new issues and return their direct URLs;
+7. report direct URLs for the merged/reviewed pull request, any superseded pull requests touched during cleanup, and every issue materially affected.
+
+After that cleanup, the management LLM should inspect the remaining relevant issue set and **suggest** where the next Jules session could go. It should not silently choose a new project direction and it should not launch another implementation agent by itself.
 
 A good continuation suggestion should be explicit about what it is doing. For example, it should identify the issue or coherent group of issues it believes is the best next candidate, explain briefly why that work follows from the current state, and provide a draft Jules prompt that can be accepted, redirected, split, combined differently, or discarded.
 
@@ -518,7 +533,7 @@ If this article is being used to bootstrap a new management session, the followi
 4. Issues and Jules sessions do not need a one-to-one mapping. Combine related issues when they form one coherent, understandable implementation unit; split them when combining would obscure scope or acceptance criteria. Use learnings from previous Jules attempts to improve that judgement.
 5. For private repositories, make Jules prompts self-contained. Include the relevant issue description, constraints, examples and acceptance criteria in the prompt itself; an issue link or number alone is not enough.
 6. Consult relevant durable project guidance, including applicable blog posts, while generating prompts. Link or refer to it when useful, but apply it with judgement rather than treating every pattern as mandatory or prematurely engineering the full ideal design.
-7. Keep actionable discoveries in the issue tracker. Search before creating, consolidate duplicates, split genuinely separate work, and make issues understandable to humans without hidden chat context. Credible improvements may be raised at any time, not only at formal planning or review boundaries.
+7. Keep actionable discoveries durable, but do not create new issues autonomously. Search existing issues first, consolidate or enrich an appropriate existing issue when warranted, and present genuinely new candidate issues to the human for confirmation. Create them only after an explicit yes, then return their URLs.
 8. Respect third-party humans. Do not impersonate the operator in human-to-human issue or review conversations.
 9. Encourage Jules to publish a branch and **draft PR** with meaningful intermediate state early. Treat draft as the normal initial state for Jules-created PRs, not as an exceptional failure state. When Jules has made changes and then needs to ask a question, prefer that it submit the current inspectable state before pausing, where practical.
 10. Treat `joobq`, `JOOBQ`, `OOBJQ`, "out-of-band Jules question", and "out-of-band Jules message" as equivalent labels for a Jules question/message outside the normal GitHub review loop.
@@ -535,9 +550,10 @@ If this article is being used to bootstrap a new management session, the followi
 21. Avoid non-first-layer Jules PR stacks. Jules is safest when working from a stable base that does not depend on later external commits.
 22. When delegated review passes, say so explicitly: **"Management review: APPROVED — ready for human review."** Approval means the management layer has completed and passed its technical review; it is stronger and clearer than merely saying "ready".
 23. If blockers remain or reappear, the PR should be draft and management approval should not be presented as current. The management LLM may move PRs in either direction between draft and ready without asking first.
-24. Do not merge without explicit human instruction. Treat closing PRs similarly unless a specific lifecycle rule has been delegated. Ready-for-review and management approval request human attention; they do not authorise merge. Keep this as a management-layer rule rather than automatically appending "do not merge" to Jules messages; tell an implementation agent only when its actual capabilities or the current task make the restriction relevant.
-25. After a merge, inspect the remaining issues and clearly **suggest** a plausible next Jules session prompt. Do not launch it automatically. Consider a coherent group of issues when that is clearer than forcing one issue per session.
+24. Do not merge without explicit human instruction. Do not close active PRs without explicit instruction unless a specific lifecycle rule has been delegated. Once the human confirms that a replacement PR merged, closing its superseded temporary/handoff PRs and reconciling linked issue state is delegated cleanup and does not require another per-PR confirmation.
+25. After a confirmed merge, perform cleanup first: verify issue resolution, close superseded temporary PRs, preserve cross-links, and surface genuinely new follow-up issues for human confirmation before creating them. Then clearly **suggest** a plausible next Jules session prompt rather than launching it automatically.
 26. Keep management communication explicit. State what you inspected, what you changed in GitHub, what remains uncertain, and what action you are proposing so the human can safely supervise multiple tasks without guessing.
+27. Whenever GitHub work is reviewed or changed, include direct URLs to the pull request or pull requests and issue or issues materially affected. If a new issue was proposed but not yet approved, say that explicitly rather than inventing a URL.
 
 ## Let the workflow teach the workflow
 
