@@ -84,8 +84,14 @@ Management review
                               Human chooses handoff
                                       |
                                       v
-                          new branch + draft PR early
-                                      |
+                 leaving a Jules-owned implementation branch?
+                         | yes                    | no
+                         v                        v
+                new branch + draft PR       reuse current branch/PR
+                     early                   when safe
+                         \                       /
+                          \                     /
+                           v                   v
                              Agy / Codex / other agent
                                       |
                                       v
@@ -96,6 +102,8 @@ Management review
 ```
 
 The handoff is intentionally human-authorised. The management layer may recommend Agy, Codex, or another implementation agent, but it should not launch them by itself.
+
+The replacement-branch step above is specifically about **leaving a Jules-owned branch**. It is not a blanket rule that every change of implementation agent requires another branch and another pull request. Outside Jules branch ownership, the management layer should normally preserve the current branch and pull request when doing so is safe and clear; create another branch or PR only when the actual context calls for isolation, parallel ownership, provenance, rewrite safety, or a distinct lifecycle.
 
 ## Why I use Jules first
 
@@ -376,15 +384,17 @@ Jules can force-push or otherwise rewrite its branch from its own view of the se
 
 The safe rule is:
 
-> If another implementation agent takes over, create another branch.
+> If another implementation agent takes over from a Jules-owned branch, create another branch.
 
-A replacement branch can begin from:
+This is specifically a **Jules branch-ownership safety rule**, not a generic requirement for every implementation-agent switch. If work is already on a human/management-owned branch, an Agy-owned branch, a Codex-owned branch, or another branch that the incoming agent can safely continue, the normal choice is to keep the existing branch and pull request. Create another branch or replacement PR only when context gives a concrete reason, such as rewrite risk, conflicting or parallel ownership, a deliberately separate line of work, provenance requirements, or a lifecycle boundary that is clearer as a new PR.
+
+When leaving a Jules-owned branch, a replacement branch can begin from:
 
 - the exact trusted Jules commit, when the implementation is mostly good;
 - current `main`, when the old branch is no longer trustworthy;
 - another deliberately chosen trusted base.
 
-Create the replacement pull request as a **draft as early as practical**. Cross-link the old and new pull requests and make the handoff visible in GitHub so a human who is tabbing between tasks can understand which implementation is active.
+When replacing a Jules-owned implementation branch, create the replacement pull request as a **draft as early as practical**. Cross-link the old and new pull requests and make the handoff visible in GitHub so a human who is tabbing between tasks can understand which implementation is active.
 
 The old Jules pull request should not normally be closed while the replacement is still active. Its closure timing can affect tools that use GitHub state to sequence or track Jules work, including queued tasks. It may need to remain open until the replacement is merged or closed, or it may need to be retired earlier when doing so is necessary for the next Jules job to proceed.
 
@@ -491,7 +501,7 @@ The strong default is simple:
 - keep or return a PR to draft while substantive blockers, requested corrections, or unresolved delegated-review concerns remain;
 - when management review passes, mark the PR ready-for-review **before** telling the human that it is approved and ready to inspect;
 - if new evidence invalidates an earlier approval, return the PR to draft and explicitly revoke or qualify that management approval until the blocker is resolved;
-- create replacement PRs as drafts early enough that the transition is visible;
+- when replacing a Jules-owned implementation branch, create the replacement PR as a draft early enough that the transition is visible;
 - after the human confirms a replacement PR has merged, close superseded temporary/handoff PRs and reconcile linked issue state as ordinary delegated cleanup;
 - write transition comments and cross-links so GitHub tells the story even when the human has not read the agent chat.
 
@@ -542,7 +552,7 @@ If this article is being used to bootstrap a new management session, the followi
 13. For Agy, Codex CLI, Claude Code, or another local/non-web agent, return the corrective prompt to the human for copy/paste instead of trying to invoke the agent through GitHub. Never use `@codex` for Codex CLI. Treat Codex Web as a separate hosted product and use `@codex` only when the human explicitly says Codex Web is the active agent and GitHub-comment delivery is intended.
 14. Do not edit an existing Jules instruction as the way to change course. Post a new follow-up comment containing the correction, because Jules does not reliably detect comment edits.
 15. Verify important Jules instructions were acknowledged or acted upon. Repost when necessary rather than assuming comments form a reliable queue.
-16. Treat Jules branches as Jules-owned. If another implementation agent takes over, create a new branch and preferably an early draft PR. Never let the replacement agent continue implementation on the Jules branch.
+16. Treat Jules branches as Jules-owned. If another implementation agent takes over from Jules, create a new branch and preferably an early draft PR. This is not a generic agent-switch rule: when switching between non-Jules agents on a branch they can safely share, normally continue the existing branch and PR unless the context gives a concrete reason to isolate the work. Never let the replacement agent continue implementation on the Jules branch.
 17. Preserve Jules provenance/task links in Jules-created PR descriptions when updating metadata.
 18. Own PR metadata, resolving relationships, and draft/ready-for-review state. Delegate the mechanics when useful, but verify the result yourself. Keep or return unfinished work to draft; when delegated technical review passes, mark it ready before asking the human to review it.
 19. Use direct patches only for small, high-confidence work that can be adequately verified. Otherwise recommend an implementation agent.
