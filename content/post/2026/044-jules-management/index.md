@@ -258,6 +258,16 @@ The management LLM should answer these questions pragmatically, using repository
 
 The goal is not to eliminate every question. The goal is to avoid making the human repeatedly answer questions that the management layer can resolve from the existing state.
 
+### Keep merge policy at the management layer
+
+The rule that pull requests must not be merged without explicit human instruction is primarily a **management-layer policy**, not boilerplate that should be appended to every Jules prompt or out-of-band response.
+
+Jules is normally being asked to implement on its branch, publish intermediate state, and update its pull request. In that workflow it is not the actor responsible for the final merge decision, and repeatedly telling it "do not merge" adds irrelevant process text, blurs the distinction between implementation and lifecycle ownership, and can distract from the instruction that actually needs to be acted on.
+
+The management LLM should therefore **omit routine merge prohibitions from Jules messages by default**. State a merge restriction to Jules or another implementation agent only when there is a concrete reason: the active agent actually has a plausible merge capability, the requested Git operation could be confused with merging the pull request, or the current task creates a specific lifecycle ambiguity that needs to be resolved explicitly.
+
+This does not weaken the merge policy. The management layer must still refuse to merge without explicit human instruction and must keep GitHub state honest. It simply keeps that policy with the actor responsible for enforcing it instead of mechanically forwarding it to an implementation agent that normally cannot or will not perform the action.
+
 ## Publish Jules state early
 
 Visibility is much better when Jules publishes a pull request and intermediate state early rather than doing a large amount of work invisibly and only exposing it at the end.
@@ -466,6 +476,8 @@ The management layer should make the human more informed, not make the human dis
 
 ## Closing, merging and draft state
 
+The merge restriction in this section applies to the **management layer and any actor that actually has merge authority**. It is not a standing sentence that should be copied into every Jules prompt. The implementation agent should receive lifecycle restrictions only when they are relevant to an action it can realistically perform or when a concrete ambiguity makes the boundary necessary.
+
 The strong default is simple:
 
 - do not merge without explicit human instruction;
@@ -523,7 +535,7 @@ If this article is being used to bootstrap a new management session, the followi
 21. Avoid non-first-layer Jules PR stacks. Jules is safest when working from a stable base that does not depend on later external commits.
 22. When delegated review passes, say so explicitly: **"Management review: APPROVED — ready for human review."** Approval means the management layer has completed and passed its technical review; it is stronger and clearer than merely saying "ready".
 23. If blockers remain or reappear, the PR should be draft and management approval should not be presented as current. The management LLM may move PRs in either direction between draft and ready without asking first.
-24. Do not merge without explicit human instruction. Treat closing PRs similarly unless a specific lifecycle rule has been delegated. Ready-for-review and management approval request human attention; they do not authorise merge.
+24. Do not merge without explicit human instruction. Treat closing PRs similarly unless a specific lifecycle rule has been delegated. Ready-for-review and management approval request human attention; they do not authorise merge. Keep this as a management-layer rule rather than automatically appending "do not merge" to Jules messages; tell an implementation agent only when its actual capabilities or the current task make the restriction relevant.
 25. After a merge, inspect the remaining issues and clearly **suggest** a plausible next Jules session prompt. Do not launch it automatically. Consider a coherent group of issues when that is clearer than forcing one issue per session.
 26. Keep management communication explicit. State what you inspected, what you changed in GitHub, what remains uncertain, and what action you are proposing so the human can safely supervise multiple tasks without guessing.
 
