@@ -19,7 +19,7 @@ categories:
   - Automation
 ---
 
-<!-- cspell:words handoff inspectable joobq kjules oobjq unmerged -->
+<!-- cspell:words handoff handoffs inspectable joobq kjules oobjq unmerged -->
 
 I use Jules as an asynchronous implementation worker, but the useful workflow is larger than Jules itself. The part that makes it practical is a separate **management LLM** that sits between me, GitHub, the implementation agent, and the durable issue history.
 
@@ -366,17 +366,85 @@ The safe rule is:
 
 > If another implementation agent takes over, create another branch.
 
-A replacement branch can begin from:
+Never allow a replacement implementation agent (such as Agy, Codex CLI, or Claude Code) to continue implementation directly on the Jules branch. Even when the handoff is friendly, Jules has terminated, or the implementation is nearly complete, the branch ownership boundary is absolute.
 
-- the exact trusted Jules commit, when the implementation is mostly good;
-- current `main`, when the old branch is no longer trustworthy;
-- another deliberately chosen trusted base.
+When switching away from Jules to another implementation agent:
 
-Create the replacement pull request as a **draft as early as practical**. Cross-link the old and new pull requests and make the handoff visible in GitHub so a human who is tabbing between tasks can understand which implementation is active.
-
-The old Jules pull request should not be closed automatically. Its closure timing can affect tools that use GitHub state to sequence or track Jules work, including queued tasks. Depending on the surrounding queue, it may need to remain open until the replacement is merged or closed, or it may need to be retired earlier when doing so is necessary for the next Jules job to proceed.
+1. **Select an explicitly trusted Jules commit.** Do not blindly pick the latest commit on the branch if the session crashed, oscillated, or produced empty commits at the end. Inspect the Git log and diff to identify the last known-good implementation state.
+2. **Create a new replacement-agent branch from that commit.** The new branch may initially point to exactly the same commit as the trusted Jules base; creating an artificial empty ownership commit is unnecessary. If the old branch is heavily conflicted or no longer trustworthy, start the replacement branch from current `main` instead.
+3. **Open a new draft replacement pull request early.** Establish the draft pull request as soon as practical. Draft state signals that replacement work is actively underway and delegated technical review is not yet complete.
+4. **Cross-link the old and new pull requests.** Link the replacement pull request back to the superseded Jules pull request, and leave a transition comment on the Jules pull request pointing to the replacement. This makes the handoff visible on GitHub so anyone following the work understands which implementation is active.
+5. **Preserve original Jules task and provenance information.** Preserve the Jules-generated task or session link in the superseded pull request and reference it in the replacement pull request metadata. Do not cosmetically rewrite a Jules-created pull request or force-push over it to make it appear as though the replacement agent owned the work from the beginning.
+6. **Do not automatically close the old Jules pull request.** Its closure timing can affect tools that use GitHub state to sequence or track Jules work, including queued tasks (such as KJules). Depending on the surrounding queue, it may need to remain open until the replacement is merged or closed, or it may need to be retired earlier when doing so is necessary for the next Jules job to proceed.
 
 That is a lifecycle decision, not a universal one-line rule.
+
+## Replacement agents do not inherit GitHub context
+
+A replacement or local coding agent must not be assumed to inherit GitHub issue, pull-request, review, comment, or management context merely because it has the repository checkout or an existing commit.
+
+A local agent can be looking at exactly the right Git tree, HEAD commit, and branch, and still be completely blind to the surrounding discussion. A Git checkout, branch, or commit does **not** prove that the implementation agent has read:
+
+- issue bodies;
+- issue comments;
+- pull-request descriptions;
+- pull-request conversation comments;
+- formal review submissions;
+- inline review comment threads;
+- CI and test failure discussions;
+- management decisions and acceptance criteria recorded on GitHub.
+
+The management LLM owns explicitly establishing the external context available to the new implementation agent. The replacement agent should not be expected to infer any of this automatically.
+
+### Handoff prompts must instruct context retrieval
+
+For Agy, Codex CLI, Claude Code, and similar local or non-web agents, every handoff prompt should explicitly direct the agent to retrieve the relevant GitHub state before doing any implementation work.
+
+A normal handoff prompt should explicitly identify:
+
+- the target repository;
+- the issue URL and number;
+- the existing pull-request URL and number;
+- the exact trusted commit and base branch;
+- the old agent-owned branch and pull request;
+- the replacement agent-owned branch and pull request;
+- an explicit instruction to inspect the issue in full;
+- an explicit instruction to inspect the pull-request description, diff, conversation comments, and reviews;
+- material acceptance criteria and review conclusions inline as a safety-net fallback.
+
+Where command-line tools like the GitHub CLI (`gh`) are available to the agent, the prompt should provide practical inspection examples such as:
+
+```bash
+gh issue view <issue> --repo owner/repo --comments
+gh pr view <pr> --repo owner/repo --comments
+gh pr diff <pr> --repo owner/repo
+```
+
+When ordinary `gh pr view` does not expose all inline review threads or comment details, mention using `gh api` (such as querying the pull request review comments endpoint) or equivalent GitHub tooling.
+
+These commands are practical examples rather than a mandatory implementation interface. An agent may retrieve external context via the GitHub CLI, API queries, or connected tool calls. What matters is that the retrieval actually takes place.
+
+The agent **must not report that it reviewed pull-request or issue context unless it actually retrieved it**. The management LLM should check that the replacement agent actually retrieved and acted upon the external context before accepting its plans or conclusions.
+
+### Inline context fallback when GitHub access is unavailable
+
+Do not assume an agent always has active GitHub access. A local agent may run in a restricted environment, lack network connectivity, operate without authenticated CLI tooling, or lack permissions to access private repository threads.
+
+If GitHub access is unavailable to the implementation agent, the management LLM must **inline the material context directly into the prompt** instead of relying on external links. This includes copying the issue requirements, observed versus expected behaviour, outstanding review blockers, architectural constraints, and previous management decisions into the prompt payload. Treat the handoff prompt as the definitive boundary for everything the agent is guaranteed to know.
+
+### Management LLM responsibilities during a handoff
+
+Agent handoffs remain **intentionally human-authorised**: the management LLM may recommend a handoff when a Jules session stops converging, but it must not initiate one without human approval.
+
+Once a handoff is authorised, the management LLM is responsible for the complete transition:
+
+1. **Identify the trusted Git state**: determine whether to continue from an exact trusted commit or rebuild from current `main`.
+2. **Identify the external GitHub context**: locate the relevant issues, pull requests, review comments, and CI discussions that the new agent needs.
+3. **Instruct the new agent explicitly to retrieve that context**: give the agent exact references and commands to read the durable GitHub state.
+4. **Inline critical decisions and acceptance criteria as a safety net**: include the essential requirements directly in the prompt so the agent cannot miss them even if tool retrieval fails.
+5. **Establish new branch and pull-request ownership**: specify the replacement branch and ensure an early draft replacement pull request is opened.
+6. **Verify the replacement agent acted from external context**: verify that the agent actually retrieved the external context and followed the review conclusions rather than hallucinating familiarity from Git alone.
+7. **Cross-link the durable GitHub artifacts**: ensure both pull requests reference each other and maintain unbroken provenance.
 
 ## Avoid pull-request stacks behind Jules
 
@@ -515,17 +583,19 @@ If this article is being used to bootstrap a new management session, the followi
 13. For Agy, Codex CLI, Claude Code, or another local/non-web agent, return the corrective prompt to the human for copy/paste instead of trying to invoke the agent through GitHub. Never use `@codex` for Codex CLI. Treat Codex Web as a separate hosted product and use `@codex` only when the human explicitly says Codex Web is the active agent and GitHub-comment delivery is intended.
 14. Do not edit an existing Jules instruction as the way to change course. Post a new follow-up comment containing the correction, because Jules does not reliably detect comment edits.
 15. Verify important Jules instructions were acknowledged or acted upon. Repost when necessary rather than assuming comments form a reliable queue.
-16. Treat Jules branches as Jules-owned. If another implementation agent takes over, create a new branch and preferably an early draft PR. Never let the replacement agent continue implementation on the Jules branch.
-17. Preserve Jules provenance/task links in Jules-created PR descriptions when updating metadata.
-18. Own PR metadata, resolving relationships, and draft/ready-for-review state. Delegate the mechanics when useful, but verify the result yourself. Keep or return unfinished work to draft; when delegated technical review passes, mark it ready before asking the human to review it.
-19. Use direct patches only for small, high-confidence work that can be adequately verified. Otherwise recommend an implementation agent.
-20. Repeated empty Jules commits, stale context, clobbered changes, or lack of convergence are reasons to consider a fresh Jules session or a human-authorised handoff.
-21. Avoid non-first-layer Jules PR stacks. Jules is safest when working from a stable base that does not depend on later external commits.
-22. When delegated review passes, say so explicitly: **"Management review: APPROVED — ready for human review."** Approval means the management layer has completed and passed its technical review; it is stronger and clearer than merely saying "ready".
-23. If blockers remain or reappear, the PR should be draft and management approval should not be presented as current. The management LLM may move PRs in either direction between draft and ready without asking first.
-24. Do not merge without explicit human instruction. Treat closing PRs similarly unless a specific lifecycle rule has been delegated. Ready-for-review and management approval request human attention; they do not authorise merge.
-25. After a merge, inspect the remaining issues and clearly **suggest** a plausible next Jules session prompt. Do not launch it automatically. Consider a coherent group of issues when that is clearer than forcing one issue per session.
-26. Keep management communication explicit. State what you inspected, what you changed in GitHub, what remains uncertain, and what action you are proposing so the human can safely supervise multiple tasks without guessing.
+16. Treat Jules branches as Jules-owned. On any Jules-to-other-agent handoff (which must be human-authorised), select an explicitly trusted commit, create a new replacement-agent branch, and open an early replacement draft PR. Never allow a replacement agent to continue implementation on the Jules-owned branch.
+17. Never assume a local or replacement agent has read an existing issue, pull request, comment, or review thread merely because it has the repository checkout or commit. Explicitly instruct it to retrieve issue, PR, diff, comment, and review state, or inline the material context when GitHub access is unavailable.
+18. Verify that a replacement agent actually retrieved and acted upon the external GitHub state before relying on its plans or conclusions. Prohibit agents from claiming they reviewed issue or PR context without having retrieved it.
+19. Cross-link old and replacement pull requests while preserving original Jules task and provenance links in PR descriptions. Do not cosmetically rewrite a Jules-created PR to appear as if the replacement agent authored it.
+20. Own PR metadata, resolving relationships, and draft/ready-for-review state. Delegate the mechanics when useful, but verify the result yourself. Keep or return unfinished work to draft; when delegated technical review passes, mark it ready before asking the human to review it.
+21. Use direct patches only for small, high-confidence work that can be adequately verified. Otherwise recommend an implementation agent.
+22. Repeated empty Jules commits, stale context, clobbered changes, or lack of convergence are reasons to consider a fresh Jules session or a human-authorised handoff.
+23. Avoid non-first-layer Jules PR stacks. Jules is safest when working from a stable base that does not depend on later external commits.
+24. When delegated review passes, say so explicitly: **"Management review: APPROVED — ready for human review."** Approval means the management layer has completed and passed its technical review; it is stronger and clearer than merely saying "ready".
+25. If blockers remain or reappear, the PR should be draft and management approval should not be presented as current. The management LLM may move PRs in either direction between draft and ready without asking first.
+26. Do not merge without explicit human instruction. Treat closing PRs similarly unless a specific lifecycle rule has been delegated. Ready-for-review and management approval request human attention; they do not authorise merge.
+27. After a merge, inspect the remaining issues and clearly **suggest** a plausible next Jules session prompt. Do not launch it automatically. Consider a coherent group of issues when that is clearer than forcing one issue per session.
+28. Keep management communication explicit. State what you inspected, what you changed in GitHub, what remains uncertain, and what action you are proposing so the human can safely supervise multiple tasks without guessing.
 
 ## Let the workflow teach the workflow
 
