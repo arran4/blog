@@ -19,7 +19,7 @@ categories:
   - Automation
 ---
 
-<!-- cspell:words handoff inspectable joobq kjules oobjq undraft unmerged -->
+<!-- cspell:words handoff handoffs inspectable joobq kjules oobjq undraft unmerged -->
 
 I use Jules as an asynchronous implementation worker, but the useful workflow is larger than Jules itself. The part that makes it practical is a separate **management LLM** that sits between me, GitHub, the implementation agent, and the durable issue history.
 
