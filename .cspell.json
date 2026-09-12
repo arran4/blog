@@ -50,6 +50,7 @@
     "cutoff",
     "dartobjectutils",
     "debhelper",
+    "debuggable",
     "devscripts",
     "dpkg",
     "elif",
