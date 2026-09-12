@@ -470,7 +470,7 @@ Build artifacts should use `actions/upload-artifact@v7`.
 `git-tag-inc` MUST BE A FIRST-CLASS DEFAULT.
 Do not use shell arithmetic fallbacks for semantic versions. Use `arran4/git-tag-inc` or `arran4/git-tag-inc-action` as the authoritative version logic. Version arithmetic belongs in shared tooling, while repository-specific logic controls the release *policy* and transactional *safety*.
 
-The current `git-tag-inc-action` interpolates inputs directly into shell source and is currently unsuitable for untrusted/user-controlled values. You must use the safe pinned CLI installation approach as the temporary production recommendation until the action is hardened.
+Use `arran4/git-tag-inc-action` for installation and version calculation rather than duplicating a repository-local installer. Release-critical workflows must pin an exact `git-tag-inc` version and its archive SHA256 via the action's `version` and `sha256` inputs. The action must pass workflow inputs as data (for example through `env:` and quoted arguments), never interpolate user-controlled values directly into shell source. If the currently published action version does not support checksum-pinned safe input handling, harden and release the shared action first rather than copying a bespoke installer into each downstream repository.
 
 ## 15. Tagging and release preparation
 
@@ -619,6 +619,7 @@ Version arithmetic itself should be tested upstream in `git-tag-inc`; repository
 DO NOT GENERATE:
 - deleting the baseline periodic schedule merely because old `is_monthly`/`is_nightly` or maintenance routing state is dead;
 - proliferating unnecessary CI-only helper files or moving tiny routing logic into bespoke support files when the main workflow or repository-native tooling is the clearer home;
+- repository-local `git-tag-inc` installer scripts when the hardened shared action can provide the same pinned, verified installation;
 - multiple GitHub Release owners;
 - bespoke repository SemVer parsers when `git-tag-inc` can do the arithmetic;
 - fallback shell SemVer implementations;
@@ -858,10 +859,12 @@ jobs:
         with:
           go-version-file: go.mod
           # If no go.mod exists, specify a current major version instead
-      - name: Install git-tag-inc
+      - name: Install pinned git-tag-inc
         uses: arran4/git-tag-inc-action@v1
         with:
           mode: install
+          version: v1.3.10
+          sha256: 4fab8594ffff76ef99cb911baf0fe3126e4674a4fda2194d33d4f37993f82d9d
       - name: Verify Exact Origin/Main
         env:
           GITHUB_REF_NAME: ${{ github.ref }}
@@ -1025,6 +1028,7 @@ Before opening a CI PR, ensure:
 - manual release only operates against current main;
 - release concurrency protects tag calculation;
 - shared `git-tag-inc` used rather than local SemVer arithmetic;
+- release-critical `git-tag-inc-action` installs pin an exact CLI version and SHA256 rather than duplicating local installer scripts;
 - recovery is exact-tag/exact-SHA;
 - exactly one release publisher exists;
 - GoReleaser ownership is not duplicated;
