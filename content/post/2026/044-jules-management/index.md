@@ -400,6 +400,16 @@ The old Jules pull request should not normally be closed while the replacement i
 
 Once the human tells the management layer that the replacement pull request has merged, the management layer is authorised to perform the ordinary cleanup without asking for a second per-PR confirmation: verify the merge, close any still-open superseded Jules or temporary handoff pull requests, repair cross-links or status text where useful, and reconcile the linked issue state. This cleanup authority does not include merging the superseded pull request.
 
+## Repository identity is part of task state
+
+Multi-repository work creates a different failure mode from branch ownership: the implementation can be correct while being published in the wrong repository. This is easy to trigger when a task consumes a dependency from another repository, the agent clones that dependency for inspection, or a failed session leaves the shell in a different checkout.
+
+Before any push, pull-request creation, or repository mutation, the implementation agent—and the management layer when it can inspect the state—should verify that the durable task agrees with the intended target repository, current working tree, `origin` remote, active branch, and explicit repository/base supplied to the PR command. A successful commit or `gh pr create` is not proof that this is correct; GitHub can accept a perfectly valid pull request in the wrong repository.
+
+If the work exists in the wrong checkout, do not “solve” that by committing patch files, saved `.git` configuration, or other transport artifacts into whichever repository happens to be active. Re-home the real changes into the intended repository on a clean branch, publish them there, and cross-link any mistaken pull request so the durable record explains what happened.
+
+On handoff, restate the target `owner/repo` near the start of the prompt and have the incoming agent verify its remote before publishing. Dependency repositories may be inspected or changed by separate explicitly scoped tasks, but they are not interchangeable with the consumer repository.
+
 ## Avoid pull-request stacks behind Jules
 
 Jules works poorly when it is not the first layer in a pull-request stack, because its view of the repository and branch can lag behind later changes and it can clobber work it did not create.
@@ -553,17 +563,18 @@ If this article is being used to bootstrap a new management session, the followi
 14. Do not edit an existing Jules instruction as the way to change course. Post a new follow-up comment containing the correction, because Jules does not reliably detect comment edits.
 15. Verify important Jules instructions were acknowledged or acted upon. Repost when necessary rather than assuming comments form a reliable queue.
 16. Treat Jules branches as Jules-owned. If another implementation agent takes over from Jules, create a new branch and preferably an early draft PR. This is not a generic agent-switch rule: when switching between non-Jules agents on a branch they can safely share, normally continue the existing branch and PR unless the context gives a concrete reason to isolate the work. Never let the replacement agent continue implementation on the Jules branch.
-17. Preserve Jules provenance/task links in Jules-created PR descriptions when updating metadata.
-18. Own PR metadata, resolving relationships, and draft/ready-for-review state. Delegate the mechanics when useful, but verify the result yourself. Keep or return unfinished work to draft; when delegated technical review passes, mark it ready before asking the human to review it.
-19. Use direct patches only for small, high-confidence work that can be adequately verified. Otherwise recommend an implementation agent.
-20. Repeated empty Jules commits, stale context, clobbered changes, or lack of convergence are reasons to consider a fresh Jules session or a human-authorised handoff.
-21. Avoid non-first-layer Jules PR stacks. Jules is safest when working from a stable base that does not depend on later external commits.
-22. When delegated review passes, say so explicitly: **"Management review: APPROVED — ready for human review."** Approval means the management layer has completed and passed its technical review; it is stronger and clearer than merely saying "ready".
-23. If blockers remain or reappear, the PR should be draft and management approval should not be presented as current. The management LLM may move PRs in either direction between draft and ready without asking first.
-24. Do not merge without explicit human instruction. Do not close active PRs without explicit instruction unless a specific lifecycle rule has been delegated. Once the human confirms that a replacement PR merged, closing its superseded temporary/handoff PRs and reconciling linked issue state is delegated cleanup and does not require another per-PR confirmation.
-25. After a confirmed merge, perform cleanup first: verify issue resolution, close superseded temporary PRs, preserve cross-links, and surface genuinely new follow-up issues for human confirmation before creating them. Then clearly **suggest** a plausible next Jules session prompt rather than launching it automatically.
-26. Keep management communication explicit. State what you inspected, what you changed in GitHub, what remains uncertain, and what action you are proposing so the human can safely supervise multiple tasks without guessing.
-27. Whenever GitHub work is reviewed or changed, include direct URLs to the pull request or pull requests and issue or issues materially affected. If a new issue was proposed but not yet approved, say that explicitly rather than inventing a URL.
+17. Before any push, PR creation, or repository mutation, verify the task's intended `owner/repo`, current working tree, `origin` remote, active branch, and explicit PR destination all agree. A valid PR in the wrong repository is still a failed publication; re-home the actual changes rather than committing patch/config transport artifacts into the accidental repository.
+18. Preserve Jules provenance/task links in Jules-created PR descriptions when updating metadata.
+19. Own PR metadata, resolving relationships, and draft/ready-for-review state. Delegate the mechanics when useful, but verify the result yourself. Keep or return unfinished work to draft; when delegated technical review passes, mark it ready before asking the human to review it.
+20. Use direct patches only for small, high-confidence work that can be adequately verified. Otherwise recommend an implementation agent.
+21. Repeated empty Jules commits, stale context, clobbered changes, or lack of convergence are reasons to consider a fresh Jules session or a human-authorised handoff.
+22. Avoid non-first-layer Jules PR stacks. Jules is safest when working from a stable base that does not depend on later external commits.
+23. When delegated review passes, say so explicitly: **"Management review: APPROVED — ready for human review."** Approval means the management layer has completed and passed its technical review; it is stronger and clearer than merely saying "ready".
+24. If blockers remain or reappear, the PR should be draft and management approval should not be presented as current. The management LLM may move PRs in either direction between draft and ready without asking first.
+25. Do not merge without explicit human instruction. Do not close active PRs without explicit instruction unless a specific lifecycle rule has been delegated. Once the human confirms that a replacement PR merged, closing its superseded temporary/handoff PRs and reconciling linked issue state is delegated cleanup and does not require another per-PR confirmation.
+26. After a confirmed merge, perform cleanup first: verify issue resolution, close superseded temporary PRs, preserve cross-links, and surface genuinely new follow-up issues for human confirmation before creating them. Then clearly **suggest** a plausible next Jules session prompt rather than launching it automatically.
+27. Keep management communication explicit. State what you inspected, what you changed in GitHub, what remains uncertain, and what action you are proposing so the human can safely supervise multiple tasks without guessing.
+28. Whenever GitHub work is reviewed or changed, include direct URLs to the pull request or pull requests and issue or issues materially affected. If a new issue was proposed but not yet approved, say that explicitly rather than inventing a URL.
 
 ## Let the workflow teach the workflow
 
