@@ -73,6 +73,7 @@
     "linters",
     "llms",
     "mapfs",
+    "mergeable",
     "mockfs",
     "mydocs",
     "myfs",
