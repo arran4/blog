@@ -382,15 +382,25 @@ For Jules-created pull requests, preserve the Jules-generated task/session link 
 
 ## Branch ownership matters
 
-A Jules branch should be treated as owned by Jules for as long as Jules remains the implementation agent.
+A Jules branch should be treated as owned by Jules for as long as Jules may still be able to publish to it.
 
-Jules can force-push or otherwise rewrite its branch from its own view of the session. External implementation commits on that branch can therefore be lost or overwritten later.
+Jules can force-push or otherwise rewrite its branch from its own view of the session. External implementation commits on that branch can therefore be lost or overwritten later. A failed VM, expired authentication, apparently terminated session, clean working tree, or belief that Jules is "done" is **not** evidence that the branch has stopped being Jules-owned. A stale or recovered Jules session may still push later.
 
 The safe rule is:
 
-> If another implementation agent takes over from a Jules-owned branch, create another branch.
+> If another implementation agent takes over from a Jules-owned branch, create another branch **before the replacement agent writes or pushes**.
 
 This is specifically a **Jules branch-ownership safety rule**, not a generic requirement for every implementation-agent switch. If work is already on a human/management-owned branch, an Agy-owned branch, a Codex-owned branch, or another branch that the incoming agent can safely continue, the normal choice is to keep the existing branch and pull request. Create another branch or replacement PR only when context gives a concrete reason, such as rewrite risk, conflicting or parallel ownership, a deliberately separate line of work, provenance requirements, or a lifecycle boundary that is clearer as a new PR.
+
+Before handing work away from Jules, the management layer should perform a branch-ownership preflight:
+
+1. identify the current implementation branch and pull request;
+2. identify which agent still has write ownership of that branch;
+3. identify the last independently reviewed good commit that should become the handoff base;
+4. create the replacement branch from that commit before the new implementation agent is instructed to modify or push;
+5. open a replacement draft pull request early;
+6. name the old Jules branch and PR as read-only historical context in the replacement-agent prompt;
+7. explicitly prohibit pulling, rebasing, merging, force-updating, or pushing the old Jules branch as part of the new implementation line.
 
 When leaving a Jules-owned branch, a replacement branch can begin from:
 
@@ -407,6 +417,51 @@ When the handoff is caused by a Jules service or execution-environment failure, 
 The old Jules pull request should not normally be closed while the replacement is still active. Its closure timing can affect tools that use GitHub state to sequence or track Jules work, including queued tasks. It may need to remain open until the replacement is merged or closed, or it may need to be retired earlier when doing so is necessary for the next Jules job to proceed.
 
 Once the human tells the management layer that the replacement pull request has merged, the management layer is authorised to perform the ordinary cleanup without asking for a second per-PR confirmation: verify the merge, close any still-open superseded Jules or temporary handoff pull requests, repair cross-links or status text where useful, and reconcile the linked issue state. This cleanup authority does not include merging the superseded pull request.
+
+### Recovering when two agents already wrote the Jules branch
+
+If the ownership gate was missed and Jules later writes over a branch another implementation agent had continued, do not treat the newest commit as the new baseline merely because it is newest or because CI happens to be green.
+
+Instead:
+
+1. stop additional writes to the contested branch;
+2. identify the last independently reviewed good commit before the ownership conflict;
+3. preserve any local or unpublished replacement-agent work before changing branches;
+4. create a new replacement branch and draft PR from that trusted commit;
+5. replay only the intended replacement-agent work onto the new branch;
+6. compare later Jules commits against the trusted checkpoint separately;
+7. salvage only narrow Jules changes that are independently correct and useful;
+8. discard broad rollback/recreation work rather than letting it redefine the implementation line;
+9. continue management review and CI on the isolated replacement PR.
+
+A later Jules commit can contain a good isolated fix while still being destructive overall. Salvage that fix by reimplementing it or cherry-picking only the proven-safe piece; do not accept the contaminated commit wholesale.
+
+### When local-agent credits run out
+
+Running out of Agy, Codex, or another local-agent credit is a scheduling constraint, not evidence that the current issue should automatically be restarted or handed back to Jules.
+
+The management layer should first classify the current work:
+
+- **safe to land:** the PR is independently reviewed, release-safe and green, and remaining uncertainty is non-blocking validation or hardening;
+- **safe to park:** useful durable progress exists, but more implementation is needed and there is no urgent reason to finish it immediately;
+- **urgent and incomplete:** the current task still has a release blocker or time-sensitive dependency that cannot reasonably wait for local-agent credit to return.
+
+For **safe-to-land** work, prefer finishing the management lifecycle instead of extending the implementation loop indefinitely. Move non-blocking live/manual validation or extra hardening into a focused follow-up issue, mark the PR ready for human review when appropriate, and merge only after explicit human instruction. Do not recreate the large original issue merely because the preferred implementation agent ran out of credit near the finish line.
+
+For **safe-to-park** work, preserve the current branch, PR, issue state, last reviewed good commit, and an explicit resumption prompt. If there is a useful queue of unrelated or independently mergeable issues, let Jules spend its asynchronous capacity there from stable `main` while the parked task waits for local-agent credit. This is usually safer and more productive than forcing Jules into a fragile handoff solely to keep one task moving.
+
+For **urgent and incomplete** work, a Jules takeover may be warranted despite its higher failure rate, but isolate it deliberately. Create a **new Jules-owned branch** from the last reviewed good commit or other trusted base; do not point Jules at the Agy/Codex branch as a shared write target. Give Jules a small, bounded, self-contained task and keep the usual evidence/review loop tight.
+
+A Jules PR stacked on an unmerged Agy/Codex parent is a last resort. Prefer, in order:
+
+1. land the safe parent first and let Jules start from updated `main`;
+2. park the current task and use Jules on independent queued issues;
+3. split a release-safe subset from the remaining work;
+4. only when urgency leaves no better option, use an explicitly isolated Jules child branch/PR whose parent dependency is documented and whose diff will be revalidated after the parent moves.
+
+If the local agent runs out of credit in the middle of uncommitted work, preserve that work before any handoff: commit it to an isolated branch when safe, or at minimum capture a patch and the exact base commit. Never let credit exhaustion turn into silent loss of the best-known implementation state.
+
+The practical goal is continuity without pretending all agents have the same reliability profile. Jules' failure rate may be tolerable when it is buying useful parallel throughput, especially across a queue of bounded issues; it is much less attractive as an emergency writer on a large contested branch.
 
 ## Avoid pull-request stacks behind Jules
 
@@ -578,7 +633,7 @@ If this article is being used to bootstrap a new management session, the followi
 13. For Agy, Codex CLI, Claude Code, or another local/non-web agent, return the corrective prompt to the human for copy/paste instead of trying to invoke the agent through GitHub. Never use `@codex` for Codex CLI. Treat Codex Web as a separate hosted product and use `@codex` only when the human explicitly says Codex Web is the active agent and GitHub-comment delivery is intended.
 14. Do not edit an existing Jules instruction as the way to change course. Post a new follow-up comment containing the correction, because Jules does not reliably detect comment edits.
 15. Verify important Jules instructions were acknowledged or acted upon. Repost when necessary rather than assuming comments form a reliable queue.
-16. Treat Jules branches as Jules-owned. If another implementation agent takes over from Jules, create a new branch and preferably an early draft PR. This is not a generic agent-switch rule: when switching between non-Jules agents on a branch they can safely share, normally continue the existing branch and PR unless the context gives a concrete reason to isolate the work. When replacing Jules, record the last trusted commit and add reciprocal cross-links between the old and new PRs. Never let the replacement agent continue implementation on the Jules branch.
+16. Treat Jules branches as Jules-owned for as long as Jules may still be able to publish to them. If another implementation agent takes over from Jules, create a new branch and preferably an early draft PR **before** the replacement agent writes or pushes. A failed VM/session/authentication attempt does not release Jules ownership. When replacing Jules, record the last trusted commit and add reciprocal cross-links between the old and new PRs. If the ownership rule is violated, recover from the last reviewed good commit on a new branch and salvage later Jules changes only selectively.
 17. Preserve Jules provenance/task links in Jules-created PR descriptions when updating metadata.
 18. Own PR metadata, resolving relationships, and draft/ready-for-review state. Delegate the mechanics when useful, but verify the result yourself. Keep or return unfinished work to draft. When delegated technical review passes, **approval includes marking the PR ready-for-review before asking the human to review it**. If that GitHub mutation fails or is not permitted, disclose the failure and say that the PR remains draft instead of implying that approval state was fully applied.
 19. Use direct patches only for small, high-confidence work that can be adequately verified. Otherwise recommend an implementation agent.
@@ -590,6 +645,7 @@ If this article is being used to bootstrap a new management session, the followi
 25. After a confirmed merge, perform cleanup first: verify issue resolution, close superseded temporary PRs, preserve cross-links, and surface genuinely new follow-up issues for human confirmation before creating them. Then clearly **suggest** a plausible next Jules session prompt rather than launching it automatically.
 26. Keep management communication explicit. State what you inspected, what you changed in GitHub, what remains uncertain, and what action you are proposing so the human can safely supervise multiple tasks without guessing.
 27. Whenever GitHub work is reviewed or changed, include direct URLs to the pull request or pull requests and issue or issues materially affected. If a new issue was proposed but not yet approved, say that explicitly rather than inventing a URL.
+28. When Agy/Codex/local-agent credit is exhausted, classify the current work before changing agents. Prefer landing a reviewed green PR plus a focused follow-up, or parking it durably and using Jules on independent queued issues. If urgency genuinely requires Jules to take over unfinished work, give Jules a new isolated branch from a trusted commit; do not share the local agent's branch, and treat a Jules PR stacked behind an unmerged non-Jules parent as a last resort.
 
 ## Let the workflow teach the workflow
 
