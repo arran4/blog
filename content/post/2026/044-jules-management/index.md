@@ -143,7 +143,7 @@ The management LLM is the durable coordinator. It should usually be responsible 
 - generating the current implementation prompt;
 - reviewing the actual repository, commit, pull request and CI state;
 - writing concise corrective prompts and routing them through the implementation agent's actual control plane;
-- answering Jules out-of-band questions pragmatically;
+- answering Jules out-of-band questions (`joobq`) pragmatically;
 - maintaining pull-request metadata;
 - actively managing draft versus ready-for-review state so GitHub reflects whether human attention is useful;
 - tracking issue relationships and resolving keywords;
@@ -260,9 +260,13 @@ Treat the prompt as the context boundary Jules is guaranteed to receive.
 
 ## Jules prompts should reduce unnecessary questions
 
-Jules can ask questions in its own web session rather than through GitHub. I do not use one completely consistent abbreviation for these. `joobq`, `JOOBQ`, `OOBJQ`, "out-of-band Jules question", and "out-of-band Jules message" should all be understood as the same kind of event: Jules has paused outside the ordinary GitHub review loop and needs a response or decision to continue.
+Jules can ask questions in its own interface rather than through GitHub. I use `joobq` / `JOOBQ` as an acronym for **Jules out-of-band question**. A joobq is specifically a question or message shown in the Jules interface, outside the GitHub issue, pull-request, and comment loop. It is not an `@jules` GitHub comment. Older shorthand such as `OOBJQ`, "out-of-band Jules question", and "out-of-band Jules message" should be interpreted as the same kind of event when encountered, but `joobq` is the canonical term in this document.
 
 Responses do not need ceremony. They need to get the work moving again.
+
+In the current workflow, a joobq is a **manual copy-and-paste bridge**. I copy the question from the Jules interface into the management-LLM conversation, the management LLM returns a response for me to copy, and I paste that response back into the Jules interface. Neither leg is a GitHub comment. When I prefix pasted text with `joobq:`, the management LLM should therefore understand that the quoted text came from the Jules interface and return a response for that same interface rather than posting it to GitHub.
+
+The management LLM may inspect GitHub, CI, issues, pull requests, or repository state to answer a joobq accurately, but it must keep the answer in the out-of-band channel unless the human explicitly asks for the same instruction to be posted to GitHub as well. A joobq response should not be prefixed with `@jules`; that mention belongs to GitHub comments when the repository's Jules integration uses them.
 
 The management LLM should answer these questions pragmatically, using repository state, the issue, existing decisions, and reasonable engineering judgement. Initial prompts should also try to pre-empt predictable questions by making constraints and decision boundaries clear.
 
@@ -302,9 +306,11 @@ This includes:
 
 - initial Jules prompts;
 - `@jules` follow-up comments;
-- `joobq`/`JOOBQ`/`OOBJQ` responses;
+- `joobq` / `JOOBQ` (**Jules out-of-band question**) responses;
 - Agy or Codex handoff prompts;
 - other agent messages or commands the human is expected to paste verbatim.
+
+For a joobq specifically, the payload is for the human to paste back into the Jules interface. It is not a GitHub review comment and should not contain `@jules`. GitHub corrective comments are a separate surface and may use `@jules` when the integration requires it. Do not silently substitute one delivery channel for the other merely because both ultimately instruct Jules.
 
 Explanations, review findings, caveats, and recommendations should remain outside the code block. If there are two separate messages to send, use two separate code blocks rather than combining them into one block with prose between them.
 
@@ -503,7 +509,7 @@ There is no single hard retry count for Jules failures.
 
 Useful recovery actions include:
 
-- answer an out-of-band question;
+- answer a joobq (Jules out-of-band question);
 - restate or simplify the instruction;
 - repost a missed `@jules` comment;
 - let the current session retry;
@@ -627,9 +633,9 @@ If this article is being used to bootstrap a new management session, the followi
 7. Keep actionable discoveries durable, but do not create new issues autonomously. Search existing issues first, consolidate or enrich an appropriate existing issue when warranted, and present genuinely new candidate issues to the human for confirmation. Create them only after an explicit yes, then return their URLs.
 8. Respect third-party humans. Do not impersonate the operator in human-to-human issue or review conversations.
 9. Encourage Jules to publish a branch and **draft PR** with meaningful intermediate state early. Treat draft as the normal initial state for Jules-created PRs, not as an exceptional failure state. When Jules has made changes and then needs to ask a question, prefer that it submit the current inspectable state before pausing, where practical.
-10. Treat `joobq`, `JOOBQ`, `OOBJQ`, "out-of-band Jules question", and "out-of-band Jules message" as equivalent labels for a Jules question/message outside the normal GitHub review loop.
-11. Put every Jules message and every other copy/paste payload in its **own fenced code block**. Keep explanation outside the block and do not combine distinct messages into one copy-and-paste block.
-12. On Jules-managed work, inspect each meaningful checkpoint. When correction is needed, use `@jules` in the GitHub comment only when that is how the repository's Jules integration is configured.
+10. Treat `joobq` / `JOOBQ` as the acronym for **Jules out-of-band question**: a question copied from the Jules interface into the management-LLM conversation, outside the normal GitHub review loop. Return the answer as a copy/paste payload for the Jules interface; do not post it to GitHub or add `@jules` unless the human explicitly asks for GitHub delivery too. Interpret older `OOBJQ` wording as the same event when encountered.
+11. Put every Jules message and every other copy/paste payload in its **own fenced code block**. Keep explanation outside the block and do not combine distinct messages into one copy-and-paste block. Preserve the intended destination: joobq responses go back to the Jules interface; GitHub review-loop corrections go to GitHub.
+12. On Jules-managed work, inspect each meaningful checkpoint. When correction is needed **in the GitHub review loop**, use `@jules` in the GitHub comment only when that is how the repository's Jules integration is configured.
 13. For Agy, Codex CLI, Claude Code, or another local/non-web agent, return the corrective prompt to the human for copy/paste instead of trying to invoke the agent through GitHub. Never use `@codex` for Codex CLI. Treat Codex Web as a separate hosted product and use `@codex` only when the human explicitly says Codex Web is the active agent and GitHub-comment delivery is intended.
 14. Do not edit an existing Jules instruction as the way to change course. Post a new follow-up comment containing the correction, because Jules does not reliably detect comment edits.
 15. Verify important Jules instructions were acknowledged or acted upon. Repost when necessary rather than assuming comments form a reliable queue.
