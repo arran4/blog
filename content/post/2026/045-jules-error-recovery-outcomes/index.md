@@ -17,7 +17,7 @@ categories:
   - Automation
 ---
 
-<!-- cspell:words handoff handoffs inspectable joobq unmerged -->
+<!-- cspell:words handoff handoffs inspectable Isar joobq unmerged -->
 
 This is a companion to [Managing Jules with a Management LLM](https://arran4.github.io/blog/post/2026/044-jules-management/). That post describes the overall management model and the important rule that a Jules branch remains Jules-owned even after a failed VM or apparently dead session.
 
