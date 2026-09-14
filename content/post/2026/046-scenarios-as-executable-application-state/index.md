@@ -1,6 +1,6 @@
 ---
 title: "Scenarios as Executable Application State"
-date: 2026-09-12T12:52:01+00:00
+date: 2026-09-14T01:39:39+00:00
 draft: false
 tags:
   - testing
@@ -13,6 +13,8 @@ categories:
   - Software Architecture
   - Testing
 ---
+
+<!-- cspell:words debuggable ksuids -->
 
 There is a recurring problem in application development that tends to acquire a
 collection of unrelated solutions.
