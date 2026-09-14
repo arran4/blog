@@ -511,6 +511,24 @@ Useful recovery actions include:
 - make a very small, obvious fix directly;
 - recommend moving the work to another implementation agent.
 
+### Schedule observation and pressure instead of relying on memory
+
+A stalled Jules session is a good candidate for **bounded scheduled observation**. The schedule should inspect real repository state before deciding whether to send another message; it should not blindly post the same reminder on a timer.
+
+A useful scheduled check can inspect the pull-request head, cumulative diff, changed files, comments, CI, and linked issue state. If meaningful implementation or bookkeeping progress has occurred, the check should remain quiet. If there is still no progress and GitHub comments are the active Jules control plane, it may post a concise `@jules` continuation or pressure message.
+
+Count **zero-diff or no-changed-file commits as failed Jules sequences, not as progress**. This matters when a stalled session responds to repeated pressure by producing empty commits with reassuring commit messages. The management layer should keep a visible count of those sequences and mention the count in later pressure messages so both the human and the durable GitHub record show that the session is cycling rather than advancing.
+
+Time and failed attempts are different signals. A practical default is to require **both** a reasonable wall-clock window and several failed cycles before recreating a session when the only evidence is lack of progress. For example, around a day plus roughly three failed pressure/message cycles is a reasonable point to regenerate a fresh prompt from current durable state. This is deliberately a heuristic rather than a fixed service-level objective.
+
+The polling cadence should match the likely failure mode. When credits or transient service capacity are the likely constraint, checks every few hours may be enough. When the human deliberately wants active recovery, an hourly conditional check capped to roughly a day can be reasonable. In either case, cap the schedule: an old Jules session should not receive indefinite automated pressure.
+
+Every scheduled retry should carry the **current** task facts rather than merely saying "try again". Preserve decisions already answered, name work that is already complete, state what remains, and explicitly prohibit known failure loops such as recreating historical branches or manufacturing placeholder commits. If the session eventually needs to be replaced, build the new prompt from current `main`, current issue state, the answered questions, and the useful evidence from the failed session.
+
+Pressure should stop early when Jules reports a concrete capability blocker that repeated comments cannot fix, such as missing repository credentials or an unavailable GitHub issue-management operation. At that point another empty commit is not a useful retry. Record the blocker accurately, stop the pressure schedule, and either let the management layer perform the bookkeeping when it has the required capability or move to a fresh environment/session when that can materially change the capability.
+
+Scheduled recovery does not change lifecycle authority. It must not merge, silently hand work to another implementation agent, create unapproved backlog items, or otherwise turn a retry timer into autonomous project management. Its job is to observe, nudge, count failure cycles, stop when the evidence says pressure cannot help, and prepare a clean restart when the bounded recovery window has been exhausted.
+
 ### Record Jules failures and handoffs durably
 
 When Jules itself fails, distinguish **implementation failure** from **agent/service/environment failure**. If the evidence says Jules could not prepare its virtual machine, clone or access the repository, authenticate, retain its environment, or otherwise reach the point where it could continue implementation, record that narrow fact in GitHub rather than implying that the code or requested approach failed.
@@ -646,6 +664,7 @@ If this article is being used to bootstrap a new management session, the followi
 26. Keep management communication explicit. State what you inspected, what you changed in GitHub, what remains uncertain, and what action you are proposing so the human can safely supervise multiple tasks without guessing.
 27. Whenever GitHub work is reviewed or changed, include direct URLs to the pull request or pull requests and issue or issues materially affected. If a new issue was proposed but not yet approved, say that explicitly rather than inventing a URL.
 28. When Agy/Codex/local-agent credit is exhausted, classify the current work before changing agents. Prefer landing a reviewed green PR plus a focused follow-up, or parking it durably and using Jules on independent queued issues. If urgency genuinely requires Jules to take over unfinished work, give Jules a new isolated branch from a trusted commit; do not share the local agent's branch, and treat a Jules PR stacked behind an unmerged non-Jules parent as a last resort.
+29. For stalled Jules sessions, use bounded scheduled condition checks rather than blind repeated comments. Inspect repository state before each nudge, count zero-diff/no-changed-file commits as failed cycles, stop early on real progress or an explicit capability blocker, and cap the recovery window. When both a reasonable wall-clock interval (around a day) and several failed cycles (around three) have elapsed without progress, regenerate a fresh prompt from current durable state and the decisions already answered instead of indefinitely pressuring the old session.
 
 ## Let the workflow teach the workflow
 
