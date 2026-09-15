@@ -1,6 +1,6 @@
 ---
 title: "Scenarios as Executable Application State"
-date: 2026-09-15T15:01:42+10:00
+date: 2026-09-15T15:04:51+10:00
 draft: false
 tags:
   - testing
@@ -14,7 +14,7 @@ categories:
   - Testing
 ---
 
-<!-- cspell:words debuggable ksuids -->
+<!-- cspell:words debuggable inspectable ksuids -->
 
 There is a recurring problem in application development that tends to acquire a
 collection of unrelated solutions.
