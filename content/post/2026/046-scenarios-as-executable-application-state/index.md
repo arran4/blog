@@ -1,6 +1,6 @@
 ---
 title: "Scenarios as Executable Application State"
-date: 2026-09-14T01:39:39+00:00
+date: 2026-09-15T15:01:42+10:00
 draft: false
 tags:
   - testing
@@ -433,28 +433,76 @@ Ideally the same scenario can be applied to several useful targets.
 
 | Target | Main purpose |
 | --- | --- |
-| Pure in-memory repository | Fast unit, UI and agent testing |
+| Query or repository stub | Fast, controlled unit tests and error-path testing |
+| Pure in-memory repository | Stateful unit, UI and agent testing without SQL |
 | In-memory SQLite | Real SQL behaviour without persistent infrastructure |
-| Temporary on-disk SQLite | Debuggable disposable environments |
+| Temporary on-disk SQLite | Disposable but inspectable SQL environments |
 | Normal application database | Development/demo/bootstrap when explicitly requested |
 | Domain-native filesystem/archive | Applications whose real persistence format is already portable |
 
-An in-memory implementation is especially attractive when the application
-already depends on repository interfaces.
+These targets form a **testing ladder**. They should not be treated as synonyms.
 
-In that architecture, a scenario does not need to mock individual calls made by
-a page. It can populate a real in-memory implementation of the same
-repositories used by the application.
+A query or repository stub is a programmable test double. It is ideal when a
+test needs to say "this lookup returns these two rows" or "this write fails with
+this error". It should not pretend to be a small database. It proves how the
+caller reacts to an interface contract, not whether SQL, migrations or
+constraints are correct.
 
-The UI then asks for data normally.
+A genuine in-memory repository is different. It implements the repository or
+application storage interface with coherent mutable state. If one operation
+creates a user and a later operation queries that user, the result follows from
+the state of the fake repository rather than from a separately programmed
+expectation. This makes it useful for larger unit tests, UI tests and agent
+experiments where SQL semantics are not the thing being tested.
 
-That produces a much stronger test than teaching every view helper to return a
-canned value.
+SQLite is different again. It is a real database engine. An in-memory SQLite
+scenario should run the application's real migrations, driver-specific seed
+data, query adapter and constraints before applying the scenario. That makes it
+excellent for disposable application instances and integration tests. It is not
+a replacement for testing the production database dialect, but it catches a
+large class of problems that a repository fake deliberately cannot.
 
-SQLite is also valuable. It is fast enough for disposable instances while still
-exercising migrations, constraints and SQL queries.
+Temporary on-disk SQLite is worth keeping as a separate mode. It can run the
+same migrations and scenario as the in-memory form while leaving a database
+file that a developer can inspect after a failure. A useful implementation can
+default to memory and offer an explicit "keep" or database-file option for
+cases where post-mortem inspection matters.
 
-The two are complementary.
+The cheapest target that proves the behaviour should normally be preferred.
+The same scenario being portable across several rungs is what makes the system
+particularly useful.
+
+### SQLite should be a supported target, not a shortcut
+
+It is tempting to implement a scenario's SQLite mode with a hand-maintained test
+schema. That quickly recreates the fixture problem at another level.
+
+If the main application normally uses another database, SQLite support should
+still pass through the ordinary persistence architecture. Driver-specific query
+differences can be hidden behind the same query or repository interface used by
+the application. Migrations can be filtered or adapted per driver. Mandatory
+seed data can have a SQLite representation. The scenario runner should remain
+unaware of those details.
+
+There is also a practical trap with SQLite memory databases. A plain `:memory:`
+connection may create a separate database for each connection opened by a
+pool. A server or integration test that expects several connections can
+therefore appear to lose its schema or data. A named shared-memory connection
+string is often safer, conceptually:
+
+```
+file:scenario-UNIQUE?mode=memory&cache=shared
+```
+
+The process should keep the owning database connection alive for as long as the
+environment is running and use a unique name for each isolated scenario.
+
+SQLite support may also be optional in a compiled application. That is fine, but
+discoverability still matters. It is better for `scenario serve` to remain a
+known command and fail clearly with a message explaining that SQLite support is
+not present than for the command to silently disappear from help output. A
+reviewer, developer or agent should be able to discover both the capability and
+how to enable it.
 
 ## Embedded scenarios and external scenarios should coexist
 
@@ -488,54 +536,117 @@ override them.
 This gives a standalone production binary without taking extensibility away
 from developers.
 
-## Applying and serving are different operations
+## The CLI is part of the scenario feature
 
-A particularly useful command set is conceptually:
+A scenario system is much less useful if it can only be reached through test
+helpers or package APIs. Humans, CI jobs and automated development agents all
+benefit from the same boring, documented command-line entry point.
 
-```
-scenario list
-scenario show NAME
-scenario validate SOURCE
-scenario apply SOURCE
-scenario serve SOURCE
-```
-
-validate performs the full preflight but no mutation.
-
-apply writes the scenario into an explicitly selected target.
-
-serve creates a disposable environment, runs normal initialization and
-migrations, applies the scenario, and starts the application against it.
-
-The latter is extremely useful.
-
-Instead of:
+A useful minimum is:
 
 ```
-start database
-configure account
-run migration
-create users
-set permissions
-import data
-start application
-find relevant page
+application scenario validate PATH
+application scenario apply PATH
+application scenario serve PATH
 ```
 
-a developer or agent can run:
+Once an application has a catalog of embedded scenarios, `list` and `show`
+become useful additions:
 
 ```
-application scenario serve private-collaboration
+application scenario list
+application scenario show NAME
 ```
 
-and receive a working application containing precisely the interesting state.
+The important property is that these commands all use the same parser,
+validator and operation registry. The CLI should not grow a second scenario
+implementation around them.
 
-External network side effects should normally be disabled in this mode. Email
-should go to a capture sink or nowhere. Uploads and caches should use temporary
-directories. Persistent configured databases should be ignored unless the user
-explicitly opts in.
+### Accept both a file and a directory
 
-A disposable scenario should be genuinely disposable.
+A small usability choice makes scenarios much easier to work with. Let a command
+accept either the scenario file itself or a directory containing a conventional
+scenario filename and adjacent assets.
+
+For example, all of these can be reasonable:
+
+```
+application scenario validate scenarios/private-collaboration/scenario.txtar
+application scenario validate scenarios/private-collaboration
+application scenario apply scenarios/private-collaboration
+application scenario serve scenarios/private-collaboration
+```
+
+The directory form is particularly useful once scenarios have attachments or
+other assets. The caller should not need to know how the parser internally
+locates those resources.
+
+`validate` should require as little application configuration as possible. It
+should parse the scenario, resolve its assets and perform the full preflight
+without opening the configured application database.
+
+`apply` is deliberately more consequential. It writes to an explicitly selected
+or configured persistent target, so the command should make that target obvious
+and perform validation before the first mutation.
+
+`serve` is the accessible demonstration and debugging path. A repository should
+be able to document a one-command quick start such as:
+
+```
+go run -tags sqlite ./cmd/application scenario serve scenarios/private-collaboration
+```
+
+and then tell the reader which local URL to open and which scenario users or
+states to inspect. A `--listen` option is useful when the default port is already
+occupied:
+
+```
+go run -tags sqlite ./cmd/application scenario serve --listen :8090 scenarios/private-collaboration
+```
+
+That kind of command is valuable documentation. It gives a new contributor, a
+reviewer and an LLM exactly the same reproducible entry point.
+
+### `serve` should be isolated by construction
+
+A disposable scenario server should not merely *intend* to be safe. Its runtime
+configuration should be rewritten so that persistent side effects are difficult
+to trigger accidentally.
+
+A strong implementation ignores the normal persistent database connection and
+opens an ephemeral SQLite database instead. It applies the normal migrations
+and mandatory seed data, validates and applies the scenario, derives a local
+base URL from the listen address, disables external email delivery, redirects
+uploads and caches into a temporary directory, uses process-local signing and
+session secrets, and selects an ephemeral dead-letter or background-job target.
+On shutdown it closes the server, closes the database and removes the temporary
+filesystem state.
+
+That boundary matters because `scenario serve` is precisely the command people
+will run casually. It should be safer than the normal application invocation,
+not merely shorter.
+
+## The command itself should be testable
+
+Command-line accessibility is only durable if the CLI can be tested without
+starting a production-shaped process for every case.
+
+The scenario command benefits from the same dependency boundaries as the
+application. The loader can accept a filesystem abstraction so tests can use an
+in-memory filesystem. `apply` can accept an injected query or repository
+interface so unit tests can use a stub or SQL mock. `serve` can accept an
+injected database handle so bootstrap and cleanup behaviour can be tested
+without depending on a globally configured database.
+
+That makes it cheap to cover details that otherwise become shell-script
+assumptions: command dispatch, missing arguments, file versus directory input,
+missing scenario files, missing assets, validation failures, expected
+application-layer writes and successful cleanup.
+
+It also provides a clean split in the test suite. Small CLI tests can use an
+in-memory filesystem and query stubs. SQL-facing tests can use SQLite. A smaller
+set of end-to-end tests can run the full disposable server. The user sees one
+CLI, while the implementation can test each layer at the cheapest useful level.
 
 ## Real database seeding is a first-class use case
 
@@ -758,6 +869,11 @@ It should be cheap enough to use for tests, deterministic enough for CI,
 understandable enough for humans, structured enough for LLMs, portable enough
 for demos and faithful enough to exercise the real application pathways beneath
 the transport layer.
+
+It should also be operationally accessible. A useful scenario can be validated
+from the command line, applied through the same application services against an
+appropriate target, or served as a disposable environment without requiring a
+reviewer to reverse-engineer the application's test harness first.
 
 Done this way, scenarios provide something database fixtures, mocks and
 full-stack browser scripts each struggle to provide on their own:
