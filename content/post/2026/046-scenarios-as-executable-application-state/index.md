@@ -1,6 +1,6 @@
 ---
 title: "Scenarios as Executable Application State"
-date: 2026-09-15T15:04:51+10:00
+date: 2026-09-15T16:10:51+10:00
 draft: false
 tags:
   - testing
@@ -248,9 +248,27 @@ An event journal works well for this sort of system.
 TXTAR is particularly convenient in Go because a single readable file can
 contain metadata, a sequence of event files and auxiliary assets.
 
-A simplified example might look like this:
+TXTAR also has a useful feature that is easy to overlook: everything before the
+first `-- filename --` marker is the archive comment. That gives a scenario a
+natural human-facing description before any machine-readable files begin.
+
+That preamble is an excellent place to explain the **who, what and why** of the
+scenario, along with anything else a person or agent should know before running
+it: the feature being demonstrated, the actors involved, the state being built,
+the behaviour that should be visible, useful entry points, important negative
+checks, assumptions and known limitations. The description travels with the
+scenario instead of becoming a separate README that can drift away from it.
+
+A simplified example might therefore look like this:
 
 ```
+Private collaboration scenario.
+
+Who: Alice and Bob are project members; Carol is deliberately outside the room.
+What: A private project room with an existing welcome thread and reply.
+Why: Demonstrate positive and negative visibility checks and reply permissions.
+Useful checks: Alice and Bob can open the room and reply; Carol cannot see it.
+
 -- scenario.meta --
 Format: example-scenario/v1
 Name: private-collaboration
@@ -292,6 +310,12 @@ At: 2026-01-01T09:17:00Z
 
 Thanks. I can see it.
 ```
+
+The runner does not need to interpret that prose as application state. It can
+preserve and expose the TXTAR comment as scenario documentation while parsing
+the named files normally. A `scenario show` command, test-reporting tool or
+scenario picker can surface the preamble directly, making the scenario useful
+to someone before they execute it.
 
 But an event stream must not become dogma.
 
@@ -557,6 +581,11 @@ become useful additions:
 application scenario list
 application scenario show NAME
 ```
+
+For TXTAR-backed scenarios, `show` should present the archive comment or
+preamble prominently before lower-level metadata. That description is the
+scenario's natural explanation of who is involved, what state exists, why the
+scenario matters and what a reviewer should try.
 
 The important property is that these commands all use the same parser,
 validator and operation registry. The CLI should not grow a second scenario
