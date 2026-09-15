@@ -1,6 +1,6 @@
 ---
 title: "Scenarios as Executable Application State"
-date: 2026-09-15T16:10:51+10:00
+date: 2026-09-15T17:19:57+10:00
 draft: false
 tags:
   - testing
@@ -654,6 +654,56 @@ filesystem state.
 That boundary matters because `scenario serve` is precisely the command people
 will run casually. It should be safer than the normal application invocation,
 not merely shorter.
+
+## Configuration and service doubles can extend the idea
+
+The core scenario idea is about meaningful application state. It does not need
+to become a complete deployment-description format.
+
+Still, some useful situations depend on more than persisted data. Behaviour can
+change because of feature flags, base URLs, tenant settings or the presence of
+an external service such as an OAuth2 or OpenID Connect identity provider,
+email service, object store, queue, webhook receiver, payment gateway or search
+backend.
+
+One useful extension is to let a scenario environment apply a small,
+scenario-specific configuration overlay when configuration materially affects
+the state being demonstrated. Another is to let the application substitute
+local, in-memory or fake implementations for selected external services. These
+are capabilities a scenario runner *can* make available, not requirements every
+scenario format must implement.
+
+For example, an interactive authentication scenario might point the
+application at a local fake OAuth2/OpenID Connect provider. That provider could
+return deterministic users and claims, or model useful outcomes such as consent
+denial, an expired token or an account whose groups do not grant access. A mail
+scenario might send into a capture provider. An object-store integration might
+write into a temporary directory. A queue might be replaced by an in-memory
+implementation whose submitted work can be inspected.
+
+The important boundary is still application intent. A scenario might say that
+Alice signs in through an external identity with a particular set of claims. It
+should not normally need to spell out every HTTP response in an OAuth2 exchange
+unless the protocol exchange itself is what is under test. The fake service or
+adapter can provide the protocol behaviour while the scenario describes the
+meaningful condition.
+
+Provider registries, interfaces and dependency injection make this style easier
+because the normal application path can remain intact while the environment
+chooses a safer implementation. A disposable `scenario serve` mode might also
+rewrite endpoints and credentials so real external services cannot be reached
+accidentally. Captured requests can then become useful assertions or debugging
+artifacts.
+
+Configuration should stay similarly scoped. The goal is not to copy a
+production configuration file into every scenario. It is to record or select
+only the configuration that is important to understanding and reproducing that
+particular situation, while making the effective scenario configuration visible
+to the person or agent running it.
+
+Not every application needs these extensions and not every scenario should use
+them. They are additional ways to make a scenario environment faithful when the
+interesting application state crosses a process or configuration boundary.
 
 ## The command itself should be testable
 
