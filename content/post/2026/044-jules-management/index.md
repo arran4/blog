@@ -357,6 +357,29 @@ If the context indicates a Jules-managed branch, the normal next corrective acti
 
 The management layer should also verify the task/issue linkage that identifies the branch as Jules-managed rather than blindly assuming every commit in a repository is a Jules task.
 
+### Recognising whether a PR is actually Jules-managed
+
+Do not classify a pull request as Jules-managed merely because it discusses Jules, appears in a repository that often uses Jules, or is part of this management workflow.
+
+In my current setup, the practical positive signals are that **the Jules bot has responded on the pull request** and **the PR description contains the Jules task/session link**. Those two pieces of provenance make Jules ownership visible from GitHub without relying on conversational memory.
+
+When those signals are absent, the management layer should not send `@jules` instructions or treat the branch as Jules-owned unless some other concrete evidence establishes that Jules is the active implementation agent. A management-owned PR should be edited directly when the requested change is within the management layer's capabilities.
+
+### Recovery choices after a Jules environment or session failure
+
+An environment failure and an implementation failure are different events. A failed VM preparation, clone, authentication step, lost environment, or similar service-side failure says little about whether the last committed code was correct. Treat the last independently inspectable Git state as the durable implementation state and classify the agent-runtime failure separately.
+
+When a Jules session cannot sensibly continue, prefer these recovery paths:
+
+1. **Small direct correction:** if the remaining change is narrow and high-confidence, make it on a new management-owned branch/PR from the last trusted commit rather than writing to the Jules-owned branch.
+2. **Replacement Jules session:** if substantial implementation remains, start a fresh Jules task with a replay-complete prompt rather than expecting the new session to rediscover the old decisions.
+3. **Merge complete work, then follow up:** if the current PR independently satisfies its acceptance criteria and the remaining concern is genuinely separate, merge only after the normal human approval and start the follow-up from updated `main`.
+4. **Stacked PR:** use only when a real dependency makes it unavoidable; it is the least preferred recovery because a lower Jules branch may still be rewritten.
+
+A replacement prompt should carry forward what the failed attempt already taught us: the prior PR and last trusted commit, exact files and symbols involved, outstanding review blockers, previous JOOBQ answers, rejected approaches and why they were rejected, the tests and validation commands that matter, and snippets or pseudocode when review has already established the intended implementation shape. The goal is not to dictate every line; it is to avoid paying the same discovery and clarification cost again simply because the agent environment disappeared.
+
+CI automation also changes the risk calculation. If a Jules CI fixer or recovered session can still write the original branch, a manual recovery change on that same branch creates two writers. Prefer an isolated management-owned branch/PR instead of racing automation or assuming an apparently dead session has released ownership.
+
 ## Pull-request metadata belongs mostly to the management layer
 
 Jules should be given light Git instructions. It is best treated as staying on its own branch and making implementation commits there.
