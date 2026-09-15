@@ -468,18 +468,18 @@ Build artifacts should use `actions/upload-artifact@v7`.
 ## 14. Release-version planning
 
 `git-tag-inc` MUST BE A FIRST-CLASS DEFAULT.
-Do not use shell arithmetic fallbacks for semantic versions. Use `arran4/git-tag-inc` or `arran4/git-tag-inc-action` as the authoritative version logic. Version arithmetic belongs in shared tooling, while repository-specific logic controls the release *policy* and transactional *safety*.
+Do not use shell arithmetic fallbacks for semantic versions. Use `arran4/git-tag-inc` as the authoritative version logic. Version arithmetic belongs in shared tooling, while repository-specific logic controls the release *policy* and transactional *safety*.
 
-The current `git-tag-inc-action` interpolates inputs directly into shell source and is currently unsuitable for untrusted/user-controlled values. You must use the safe pinned CLI installation approach as the temporary production recommendation until the action is hardened.
+The current `git-tag-inc-action` interpolates inputs directly into shell source and is currently unsuitable for untrusted/user-controlled values. You must use the safe pinned/checksum-verified CLI installation approach (e.g., `go install github.com/arran4/git-tag-inc/cmd/git-tag-inc@vX.Y.Z`) as the required production standard. Never use the unsafe action directly.
 
 ## 15. Tagging and release preparation
 
 Manual release validation gates:
-- verify request is on main
+- verify request is on the authoritative release branch (e.g., `main` or `master`)
 - checkout full history/tags
 - run validation/tests
-- fetch current `origin/main`
-- verify `$GITHUB_SHA == origin/main`
+- fetch current `origin/<authoritative-branch>`
+- verify `$GITHUB_SHA == origin/<authoritative-branch>`
 - calculate next tag using shared tooling
 - create/push immutable tag
 - explicitly dispatch publisher at that TAG REF using `GITHUB_TOKEN`
@@ -576,9 +576,16 @@ Crucially:
 
 Explicitly prevent the failure mode: an agent seeing unused `is_monthly`/`is_nightly` state and deleting the schedules along with the dead state.
 
-## 25. User Input / Shell Safety
+## 25. Environment Variables and Shell Safety
 
-Make this a general rule. Never embed user-controlled workflow input directly into shell source like:
+Never attempt to override GitHub's reserved `GITHUB_*` default environment variables. Use their documented semantics directly, or copy a value into a separately named custom variable when transformation/renaming is needed.
+
+Crucially:
+- `GITHUB_REF` = full ref (e.g., `refs/heads/main`, `refs/tags/v1.0.0`)
+- `GITHUB_REF_NAME` = short ref name (e.g., `main`, `v1.0.0`)
+- Branch verification and subsequent `git fetch`/`rev-parse` must refer to the same authoritative branch.
+
+Make this a general rule for user inputs as well. Never embed user-controlled workflow input directly into shell source like:
 
 ```yaml
     run: something "${{ inputs.foo }}"
@@ -859,23 +866,28 @@ jobs:
           go-version-file: go.mod
           # If no go.mod exists, specify a current major version instead
       - name: Install git-tag-inc
-        uses: arran4/git-tag-inc-action@v1
-        with:
-          mode: install
-      - name: Verify Exact Origin/Main
-        env:
-          GITHUB_REF_NAME: ${{ github.ref }}
-          GITHUB_SHA: ${{ github.sha }}
+        run: go install github.com/arran4/git-tag-inc/cmd/git-tag-inc@v1.0.0
+      - name: Verify Exact Origin Branch
         run: |
           set -euo pipefail
-          if [[ "$GITHUB_REF_NAME" != "refs/heads/main" ]]; then
-            echo "Error: Manual release preparation must run on refs/heads/main, got $GITHUB_REF_NAME"
+          GITHUB_REF="${{ github.ref }}"
+          GITHUB_SHA="${{ github.sha }}"
+
+          # Safely extract the branch name from GITHUB_REF (e.g., refs/heads/main -> main)
+          AUTHORITATIVE_BRANCH="${GITHUB_REF#refs/heads/}"
+
+          if [[ "$AUTHORITATIVE_BRANCH" != "main" && "$AUTHORITATIVE_BRANCH" != "master" ]]; then
+            echo "Error: Manual release preparation must run on main or master, got $AUTHORITATIVE_BRANCH"
             sh -c "exit 1"
           fi
-          git fetch origin main
-          MAIN_SHA=$(git rev-parse origin/main)
+
+          # Explicitly export so subsequent steps can use it for race guards
+          echo "AUTHORITATIVE_BRANCH=$AUTHORITATIVE_BRANCH" >> "$GITHUB_ENV"
+
+          git fetch origin "$AUTHORITATIVE_BRANCH"
+          MAIN_SHA=$(git rev-parse "origin/$AUTHORITATIVE_BRANCH")
           if [[ "$MAIN_SHA" != "$GITHUB_SHA" ]]; then
-            echo "Error: Requested release against $GITHUB_SHA but origin/main is at $MAIN_SHA"
+            echo "Error: Requested release against $GITHUB_SHA but origin/$AUTHORITATIVE_BRANCH is at $MAIN_SHA"
             sh -c "exit 1"
           fi
       - name: Calculate or explicitly set version
@@ -914,10 +926,9 @@ jobs:
           echo "Calculated TAG=$TAG"
           echo "TAG=$TAG" >> "$GITHUB_ENV"
       - name: Tag and push (Idempotent)
-        env:
-          GITHUB_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
+          GITHUB_SHA="${{ github.sha }}"
           # Check remote state for idempotency/retry
           REMOTE_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | grep -v '{}$' | awk '{print $1}' || true)
           # Also check peeled annotated tag if it exists
@@ -934,11 +945,11 @@ jobs:
                 sh -c "exit 1"
              fi
           else
-             # Final race guard: verify origin/main is STILL exactly GITHUB_SHA right before tagging
-             git fetch origin main
-             CURRENT_MAIN_SHA=$(git rev-parse origin/main)
+             # Final race guard: verify origin/$AUTHORITATIVE_BRANCH is STILL exactly GITHUB_SHA right before tagging
+             git fetch origin "$AUTHORITATIVE_BRANCH"
+             CURRENT_MAIN_SHA=$(git rev-parse "origin/$AUTHORITATIVE_BRANCH")
              if [[ "$CURRENT_MAIN_SHA" != "$GITHUB_SHA" ]]; then
-                echo "Race condition: origin/main advanced to $CURRENT_MAIN_SHA before tagging"
+                echo "Race condition: origin/$AUTHORITATIVE_BRANCH advanced to $CURRENT_MAIN_SHA before tagging"
                 sh -c "exit 1"
              fi
 
@@ -1022,7 +1033,7 @@ Before opening a CI PR, ensure:
 - user inputs safely passed via environment variables;
 - tests/lint/build selected correctly;
 - release validation happens before permanent tag;
-- manual release only operates against current main;
+- manual release only operates against the correct authoritative branch;
 - release concurrency protects tag calculation;
 - shared `git-tag-inc` used rather than local SemVer arithmetic;
 - recovery is exact-tag/exact-SHA;
