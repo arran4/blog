@@ -870,8 +870,6 @@ jobs:
       - name: Verify Exact Origin Branch
         run: |
           set -euo pipefail
-          GITHUB_REF="${{ github.ref }}"
-          GITHUB_SHA="${{ github.sha }}"
 
           # Safely extract the branch name from GITHUB_REF (e.g., refs/heads/main -> main)
           AUTHORITATIVE_BRANCH="${GITHUB_REF#refs/heads/}"
@@ -885,9 +883,9 @@ jobs:
           echo "AUTHORITATIVE_BRANCH=$AUTHORITATIVE_BRANCH" >> "$GITHUB_ENV"
 
           git fetch origin "$AUTHORITATIVE_BRANCH"
-          MAIN_SHA=$(git rev-parse "origin/$AUTHORITATIVE_BRANCH")
-          if [[ "$MAIN_SHA" != "$GITHUB_SHA" ]]; then
-            echo "Error: Requested release against $GITHUB_SHA but origin/$AUTHORITATIVE_BRANCH is at $MAIN_SHA"
+          ORIGIN_SHA=$(git rev-parse "origin/$AUTHORITATIVE_BRANCH")
+          if [[ "$ORIGIN_SHA" != "$GITHUB_SHA" ]]; then
+            echo "Error: Requested release against $GITHUB_SHA but origin/$AUTHORITATIVE_BRANCH is at $ORIGIN_SHA"
             sh -c "exit 1"
           fi
       - name: Calculate or explicitly set version
@@ -928,7 +926,6 @@ jobs:
       - name: Tag and push (Idempotent)
         run: |
           set -euo pipefail
-          GITHUB_SHA="${{ github.sha }}"
           # Check remote state for idempotency/retry
           REMOTE_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | grep -v '{}$' | awk '{print $1}' || true)
           # Also check peeled annotated tag if it exists
@@ -947,9 +944,9 @@ jobs:
           else
              # Final race guard: verify origin/$AUTHORITATIVE_BRANCH is STILL exactly GITHUB_SHA right before tagging
              git fetch origin "$AUTHORITATIVE_BRANCH"
-             CURRENT_MAIN_SHA=$(git rev-parse "origin/$AUTHORITATIVE_BRANCH")
-             if [[ "$CURRENT_MAIN_SHA" != "$GITHUB_SHA" ]]; then
-                echo "Race condition: origin/$AUTHORITATIVE_BRANCH advanced to $CURRENT_MAIN_SHA before tagging"
+             CURRENT_ORIGIN_SHA=$(git rev-parse "origin/$AUTHORITATIVE_BRANCH")
+             if [[ "$CURRENT_ORIGIN_SHA" != "$GITHUB_SHA" ]]; then
+                echo "Race condition: origin/$AUTHORITATIVE_BRANCH advanced to $CURRENT_ORIGIN_SHA before tagging"
                 sh -c "exit 1"
              fi
 
