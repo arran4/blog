@@ -1,6 +1,6 @@
 ---
 title: "Scenarios as Executable Application State"
-date: 2026-09-15T17:19:57+10:00
+date: 2026-09-15T17:35:48+10:00
 draft: false
 tags:
   - testing
@@ -317,6 +317,39 @@ the named files normally. A `scenario show` command, test-reporting tool or
 scenario picker can surface the preamble directly, making the scenario useful
 to someone before they execute it.
 
+TXTAR's named files also form a small virtual directory tree. That means textual
+supporting material does not need to live beside the archive merely because it
+is not an event. Emails, JSON documents, templates, expected output, scripts and
+other non-binary assets can live inside the TXTAR itself under paths that make
+their purpose obvious.
+
+For example:
+
+```
+-- inbox/001-welcome.eml --
+From: alice@example.test
+To: bob@example.test
+Subject: Welcome
+
+Welcome to the project.
+
+-- templates/invite.txt --
+You have been invited to {{.Project}}.
+
+-- attachments/readme.txt --
+This text file is attached to the example discussion.
+```
+
+Purpose-specific subdirectories such as `inbox/`, `templates/`, `responses/` or
+`expected/` can make those files self-describing. Another useful convention is
+to put supporting files under `attachments/` and have scenario operations refer
+to them by path. Both approaches keep the scenario portable as one text file.
+
+The natural limitation is binary data. TXTAR is a text archive, so genuinely
+binary assets either need an explicit textual encoding convention or need to
+live outside the TXTAR. That is a packaging decision rather than a reason to
+externalise ordinary textual assets.
+
 But an event stream must not become dogma.
 
 An address book may be clearer as structured contacts and relationships.
@@ -324,9 +357,10 @@ An address book may be clearer as structured contacts and relationships.
 A bookmark manager may need nothing more complicated than users, bookmarks,
 tags and timestamps.
 
-A mail application may already have a perfectly good scenario language: a
-directory containing RFC email messages, attachments and perhaps a small
-manifest describing mailbox placement, flags and dates.
+A mail application may already have a perfectly good scenario language: RFC
+email messages, attachments and perhaps a small manifest describing mailbox
+placement, flags and dates. When those inputs are textual, they can themselves
+be files inside a TXTAR rather than requiring a second directory hierarchy.
 
 A filesystem application might use an actual directory tree.
 
@@ -606,9 +640,13 @@ application scenario apply scenarios/private-collaboration
 application scenario serve scenarios/private-collaboration
 ```
 
-The directory form is particularly useful once scenarios have attachments or
-other assets. The caller should not need to know how the parser internally
-locates those resources.
+The directory form should not be required merely because the scenario has
+textual attachments or supporting files: a TXTAR can contain those directly in
+its own virtual subdirectories. A surrounding directory becomes particularly
+useful when the scenario needs genuinely binary or very large assets, when
+several scenario files are packaged together, or when the application's native
+input is already directory-shaped. The caller should not need to know how the
+parser internally locates whichever resources the chosen format supports.
 
 `validate` should require as little application configuration as possible. It
 should parse the scenario, resolve its assets and perform the full preflight
@@ -885,24 +923,47 @@ different trade-offs from portable scenario design.
 
 Email is a useful counterexample to excessive abstraction.
 
-If the application exists to consume email, an .eml file already describes a
-very large amount of meaningful state.
-
-A scenario directory might therefore look like:
+If the application exists to consume email, an `.eml` file already describes a
+very large amount of meaningful state. Because ordinary email source is textual,
+it can live directly inside a TXTAR scenario:
 
 ```
-scenario.yaml
-inbox/
-    001-welcome.eml
-    002-calendar-invite.eml
-    003-html-newsletter.eml
-attachments/
-    example.pdf
+Mail import scenario.
+
+-- inbox/001-welcome.eml --
+From: alice@example.test
+To: bob@example.test
+Subject: Welcome
+
+Welcome to the project.
+
+-- inbox/002-calendar-invite.eml --
+From: calendar@example.test
+To: bob@example.test
+Subject: Project meeting
+
+Meeting details go here.
+
+-- attachments/notes.txt --
+Notes accompanying the imported messages.
+
+-- 100-import.event --
+Op: mail.import
+Mailbox: inbox
+Message: inbox/001-welcome.eml
+Attachment: attachments/notes.txt
 ```
 
-The manifest only needs to describe information that is not naturally carried
-by the message itself: mailbox placement, local flags, profile ownership, read
-status or an artificial import timestamp.
+The event or manifest only needs to describe information that is not naturally
+carried by the message itself: mailbox placement, local flags, profile ownership,
+read status, an artificial import timestamp, or references to other scenario
+assets.
+
+This pattern is not specific to email. TXTAR subdirectories can group text files
+by their role in the scenario, while an `attachments/` subtree provides a simple
+convention for files that operations refer to as supporting material. Binary
+assets can remain external or use an explicit encoding convention when that is
+worth the trade-off.
 
 Inventing a second language that restates From, To, Subject, MIME parts and
 attachments would make the scenario system worse.
