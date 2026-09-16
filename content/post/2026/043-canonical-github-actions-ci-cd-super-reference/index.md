@@ -1333,6 +1333,8 @@ Use non-cancelling serialization for the release-critical mutation path:
           git tag "$TAG"
           if ! git push origin "$TAG"; then
             REMOTE_SHA="$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}' || true)"
+            PEELED_SHA="$(git ls-remote --tags origin "refs/tags/$TAG^{}" | awk '{print $1}' || true)"
+            [[ -n "$PEELED_SHA" ]] && REMOTE_SHA="$PEELED_SHA"
             if [[ "$REMOTE_SHA" != "$GITHUB_SHA" ]]; then
               echo "Concurrent tag creation did not resolve to $GITHUB_SHA" >&2
               exit 1
