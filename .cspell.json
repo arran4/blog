@@ -11,8 +11,10 @@
   ],
   "words": [
     "AEST",
+    "DBUILD",
     "DCMAKE",
     "DirFS",
+    "Dockerfiles",
     "Dockerized",
     "Dotfiles",
     "Errorf",
@@ -67,6 +69,7 @@
     "goreleaser",
     "goreleaserbot",
     "govet",
+    "handoff",
     "homebrew",
     "ineffassign",
     "kagura",
@@ -103,6 +106,7 @@
     "topdir",
     "tsobjectutils",
     "txtar",
+    "typecheck",
     "uncategorized",
     "vars"
   ]
