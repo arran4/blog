@@ -369,12 +369,15 @@ When those signals are absent, the management layer should not send `@jules` ins
 
 An environment failure and an implementation failure are different events. A failed VM preparation, clone, authentication step, lost environment, or similar service-side failure says little about whether the last committed code was correct. Treat the last independently inspectable Git state as the durable implementation state and classify the agent-runtime failure separately.
 
-When a Jules session cannot sensibly continue, prefer these recovery paths:
+When a Jules session cannot sensibly continue, the default preference is to restore a clean lifecycle rather than preserve the old session shape. **Creating another pull request is cheap; avoiding a new PR is not an important goal. Starting a fresh Jules task from a non-`main` branch is also a lower-priority exception rather than the normal continuation path.** Prefer these recovery paths:
 
-1. **Small direct correction:** if the remaining change is narrow and high-confidence, make it on a new management-owned branch/PR from the last trusted commit rather than writing to the Jules-owned branch.
-2. **Replacement Jules session:** if substantial implementation remains, start a fresh Jules task with a replay-complete prompt rather than expecting the new session to rediscover the old decisions.
-3. **Merge complete work, then follow up:** if the current PR independently satisfies its acceptance criteria and the remaining concern is genuinely separate, merge only after the normal human approval and start the follow-up from updated `main`.
-4. **Stacked PR:** use only when a real dependency makes it unavoidable; it is the least preferred recovery because a lower Jules branch may still be rewritten.
+1. **Land a coherent partial PR, then follow up from updated `main`:** if the current PR contains an independently useful, reviewable slice, narrow its metadata to what it actually completes, capture the remaining work in a durable focused issue, merge only after normal human approval, then give a fresh Jules session that follow-up from updated `main` in a new PR.
+2. **Fresh Jules from updated `main`:** if the current PR is not worth salvaging, preserve useful lessons in the issue/prompt and start the replacement Jules task from stable current `main`, accepting that it will create a new PR.
+3. **Small direct correction:** if the remaining change is narrow and high-confidence, make it on an isolated management-owned branch/PR rather than racing a Jules-owned branch.
+4. **Non-`main` recovery base:** start Jules from a deliberately created recovery branch only when there is a concrete dependency on trusted unmerged state that cannot reasonably be landed first. Do not choose this merely to preserve commit history, reduce PR count, or avoid recreating a small amount of work.
+5. **Stacked PR:** use only when a real dependency makes it unavoidable; it is the least preferred recovery because the parent may still move or be rewritten.
+
+A useful salvage pattern is therefore: **make the existing PR truthful, split the unfinished remainder into a focused issue, land the coherent slice, then restart Jules from updated `main` for the remainder**. This gives the new Jules session the simplest repository state and avoids teaching it about an old agent-owned implementation branch unless that dependency is genuinely necessary.
 
 A replacement prompt should carry forward what the failed attempt already taught us: the prior PR and last trusted commit, exact files and symbols involved, outstanding review blockers, previous JOOBQ answers, rejected approaches and why they were rejected, the tests and validation commands that matter, and snippets or pseudocode when review has already established the intended implementation shape. The goal is not to dictate every line; it is to avoid paying the same discovery and clarification cost again simply because the agent environment disappeared.
 
@@ -427,9 +430,11 @@ Before handing work away from Jules, the management layer should perform a branc
 
 When leaving a Jules-owned branch, a replacement branch can begin from:
 
-- the exact trusted Jules commit, when the implementation is mostly good;
-- current `main`, when the old branch is no longer trustworthy;
+- current `main`, which is the preferred base for a **fresh Jules session** after any independently useful predecessor work has been landed;
+- the exact trusted Jules commit, when a different replacement implementation agent needs that state and isolation is safer than replaying it;
 - another deliberately chosen trusted base.
+
+For fresh Jules work specifically, do not optimize for keeping the same PR or preserving an unmerged branch lineage. A new Jules PR from updated `main` is normally simpler and safer. Starting Jules from a non-`main` recovery branch should require a real dependency on unmerged state, not merely a desire to save a PR, preserve history, or avoid repeating some investigation.
 
 When replacing a Jules-owned implementation branch, create the replacement pull request as a **draft as early as practical**. Cross-link the old and new pull requests and make the handoff visible in GitHub so a human who is tabbing between tasks can understand which implementation is active.
 
@@ -530,9 +535,13 @@ Useful recovery actions include:
 - restate or simplify the instruction;
 - repost a missed `@jules` comment;
 - let the current session retry;
-- start a fresh Jules session from the durable issue state;
-- make a very small, obvious fix directly;
+- salvage an independently useful PR slice, make its metadata truthful, and move the remainder into a focused issue;
+- start a fresh Jules session from stable updated `main`, accepting a new PR as the normal outcome;
+- make a very small, obvious fix directly on an isolated management-owned branch;
+- use a non-`main` recovery base for Jules only when a concrete unmerged dependency makes it necessary;
 - recommend moving the work to another implementation agent.
+
+The management layer should not spend complexity merely to avoid another pull request. For Jules, a clean new PR from current `main` is generally preferable to teaching a replacement session about an old implementation branch. If the old PR contains a coherent subset that is safe to land, make that boundary explicit, preserve the remainder as durable issue state, and let the next Jules task begin from the repository state after the merge.
 
 ### Record Jules failures and handoffs durably
 
@@ -656,11 +665,11 @@ If this article is being used to bootstrap a new management session, the followi
 13. For Agy, Codex CLI, Claude Code, or another local/non-web agent, return the corrective prompt to the human for copy/paste instead of trying to invoke the agent through GitHub. Never use `@codex` for Codex CLI. Treat Codex Web as a separate hosted product and use `@codex` only when the human explicitly says Codex Web is the active agent and GitHub-comment delivery is intended.
 14. Do not edit an existing Jules instruction as the way to change course. Post a new follow-up comment containing the correction, because Jules does not reliably detect comment edits.
 15. Verify important Jules instructions were acknowledged or acted upon. Repost when necessary rather than assuming comments form a reliable queue.
-16. Treat Jules branches as Jules-owned for as long as Jules may still be able to publish to them. If another implementation agent takes over from Jules, create a new branch and preferably an early draft PR **before** the replacement agent writes or pushes. A failed VM/session/authentication attempt does not release Jules ownership. When replacing Jules, record the last trusted commit and add reciprocal cross-links between the old and new PRs. If the ownership rule is violated, recover from the last reviewed good commit on a new branch and salvage later Jules changes only selectively.
+16. Treat Jules branches as Jules-owned for as long as Jules may still be able to publish to them. A failed VM/session/authentication attempt does not release that ownership. When a fresh Jules session is needed, prefer making any useful predecessor PR truthful and landable, preserving unfinished work as a focused issue, then start the new Jules task from updated `main` in a new PR. Do not treat avoiding a new PR as an important objective, and use a non-`main` Jules recovery base only when there is a concrete dependency on trusted unmerged state that cannot reasonably be landed first. If another implementation agent takes over from Jules, create a separate branch before it writes.
 17. Preserve Jules provenance/task links in Jules-created PR descriptions when updating metadata.
 18. Own PR metadata, resolving relationships, and draft/ready-for-review state. Delegate the mechanics when useful, but verify the result yourself. Keep or return unfinished work to draft. When delegated technical review passes, **approval includes marking the PR ready-for-review before asking the human to review it**. If that GitHub mutation fails or is not permitted, disclose the failure and say that the PR remains draft instead of implying that approval state was fully applied.
 19. Use direct patches only for small, high-confidence work that can be adequately verified. Otherwise recommend an implementation agent.
-20. Repeated empty Jules commits, stale context, clobbered changes, lack of convergence, or clear Jules environment/access failures are reasons to consider a fresh Jules session or a human-authorised handoff. Attribute environment or service failures as such rather than blaming the implementation, and sanitize internal failure details before placing them in public GitHub comments.
+20. Repeated empty Jules commits, stale context, clobbered changes, lack of convergence, or clear Jules environment/access failures are reasons to consider a fresh Jules session or a human-authorised handoff. For a fresh Jules session, prefer updated `main` plus a new PR over continuation from a non-`main` branch; split and land coherent predecessor work first when that creates a clean mainline boundary. Attribute environment or service failures as such rather than blaming the implementation, and sanitize internal failure details before placing them in public GitHub comments.
 21. Avoid non-first-layer Jules PR stacks. Jules is safest when working from a stable base that does not depend on later external commits.
 22. When delegated review passes, first mark the PR ready-for-review, then say explicitly: **"Management review: APPROVED — ready for human review."** If the state transition cannot be performed, say that technical review passed but the PR remains draft and needs the human's **Ready for review** action; do not claim the transition succeeded.
 23. If blockers remain or reappear, the PR should be draft and management approval should not be presented as current. The management LLM may move PRs in either direction between draft and ready without asking first.
