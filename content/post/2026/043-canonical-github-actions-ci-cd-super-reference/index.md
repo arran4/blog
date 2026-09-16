@@ -121,7 +121,7 @@ on:
     tags: ['v*']
 
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize]
     branches: [main, master]
 
   workflow_dispatch:
@@ -136,12 +136,13 @@ The intent is deliberate:
 - **Every push to the authoritative branch runs CI.** The default branch is deployed/shared state and must remain continuously verified.
 - **Opening a pull request runs CI.** The initial PR state must be checked even if the branch commit already existed before the PR.
 - **Updating an open pull request runs CI through `pull_request:synchronize`.** Do not also subscribe to ordinary pushes for every feature branch; that creates duplicate branch-push + PR runs for the same commit.
-- **Reopening or marking a draft ready can run CI** because review state changed.
 - **Eligible version tags run the publication/release path.**
 - **Scheduled runs prove a quiet repository still works.**
 - **Manual dispatch exposes only useful operator actions.**
 
-Do not subscribe to `pull_request: closed` by default. A merge already produces the authoritative-branch push that needs normal CI. Add `closed` only when the repository has a concrete cleanup/lifecycle action that cannot be handled elsewhere, and route it only to that cheap cleanup path rather than rerunning the normal test/build graph.
+Do not subscribe to PR state-only events such as `reopened`, `ready_for_review` or `closed` for ordinary validation by default. They do not change the commit being validated. Add one only when the repository has a concrete state-dependent lifecycle job, and route that event only to the cheap job that requires it.
+
+A merge already produces the authoritative-branch push that needs normal CI, so `pull_request: closed` must not rerun the normal test/build graph.
 
 Likewise, do not add `push` for all branches when pull-request events already provide the review validation you need.
 
@@ -232,6 +233,8 @@ For every newly introduced external CI dependency, prefer existing repository-na
 - whether it receives a token, secrets, write permission or untrusted input.
 
 Where a repository explicitly declares CI/security to be high assurance, strengthen this baseline: consider commit-SHA pinning, `zizmor`, dependency review, secret scanning, provenance/attestation and stricter token boundaries. These are capability/risk-driven additions, not universal boilerplate.
+
+When generating or upgrading CI, verify that referenced Action majors and release-tool versions are currently supported. Do not treat version numbers in this article as permanently current. Release-critical tools should use the repository's normal pinning policy; newly introduced external dependencies should be documented as above.
 
 ## 9. Shell and GitHub context safety
 
@@ -623,7 +626,7 @@ A MySQL/MariaDB/PostgreSQL/version compatibility check is normally a job/matrix 
 
 Keep CI credentials ephemeral and local where possible. Do not expose production secrets to untrusted pull-request code.
 
-Canonical service-container shape:
+Canonical service-container shape, using PostgreSQL only as a structural example:
 
 ```yaml
   integration-db:
@@ -632,28 +635,28 @@ Canonical service-container shape:
     if: ${{ needs.route.outputs.validation == 'true' }}
     runs-on: ubuntu-latest
     services:
-      db:
-        image: repository-required-database-image
+      postgres:
+        image: postgres:18
         env:
-          DATABASE_NAME: test
-          DATABASE_USER: test
-          DATABASE_PASSWORD: test
+          POSTGRES_DB: test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "repository-specific-health-command"
+          --health-cmd "pg_isready -U test -d test"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
     env:
-      DATABASE_URL: repository-specific-local-test-url
+      DATABASE_URL: postgres://test:test@127.0.0.1:5432/test
     steps:
       - uses: actions/checkout@v7
       # Add only the repository's language/toolchain setup.
       - run: ./repository-specific-integration-test-command
 ```
 
-When multiple supported engines or versions matter, convert the image/version into a matrix rather than cloning the job into separate workflow files.
+Use the repository's actual supported engine/version rather than copying PostgreSQL into unrelated projects. When multiple supported engines or versions matter, convert the image/version into a matrix rather than cloning the job into separate workflow files.
 
 ## 18. Workflow validation
 
@@ -743,7 +746,7 @@ Canonical autofix shape:
             git diff --check
           fi
       - name: Open focused autofix PR
-        if: ${{ steps.changes.outputs.changed == 'true' }}
+        if: ${{ steps.changes.outputs.changed == 'true' && (github.event_name != 'workflow_dispatch' || inputs.allow_prs) }}
         uses: peter-evans/create-pull-request@v7
         with:
           commit-message: "style: automated fixes"
@@ -752,7 +755,7 @@ Canonical autofix shape:
           delete-branch: true
 ```
 
-`peter-evans/create-pull-request` is an external action. Reuse it where already established; if newly introduced, list and justify it in the PR. A repository that deliberately avoids this dependency may implement the same focused-PR contract with its existing repository-native automation.
+`allow_prs: false` therefore permits a manually requested fix/check run without creating a PR. `peter-evans/create-pull-request` is an external action. Reuse it where already established; if newly introduced, list and justify it in the PR. A repository that deliberately avoids this dependency may implement the same focused-PR contract with its existing repository-native automation.
 
 Canonical monthly-maintenance shape:
 
@@ -932,7 +935,7 @@ on:
     branches: [main, master]
     tags: ['v*']
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize]
     branches: [main, master]
   workflow_dispatch:
     inputs:
@@ -1341,11 +1344,11 @@ Use non-cancelling serialization for the release-critical mutation path:
         run: gh workflow run ci.yml --ref "$TAG" -f mode=publish-tag
 ```
 
-If the repository has no `go.mod`, use its established way of installing the current pinned `git-tag-inc` CLI. The important contract is shared version arithmetic plus the exact-origin/idempotent-tag/race-guard flow.
+If the repository uses `.github/workflows/ci.yaml`, adapt the dispatch filename accordingly. If the repository has no `go.mod`, use its established way of installing the current pinned `git-tag-inc` CLI. The important contract is shared version arithmetic plus the exact-origin/idempotent-tag/race-guard flow.
 
 ### 27.6 Generic GitHub Release publisher
 
-For repositories not using GoReleaser as the release owner, prefer a single publisher. This variant uses the GitHub CLI already present on GitHub-hosted runners rather than introducing another release action:
+For repositories not using GoReleaser as the release owner, prefer a single publisher. This variant uses the GitHub CLI already present on GitHub-hosted runners rather than introducing another release action, and makes retry behavior explicit:
 
 ```yaml
   publisher:
@@ -1363,15 +1366,19 @@ For repositories not using GoReleaser as the release owner, prefer a single publ
         with:
           name: release-candidates
           path: release-candidates
-      - name: Publish release exactly once
+      - name: Publish release idempotently
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          gh release create "$GITHUB_REF_NAME" release-candidates/** --verify-tag --generate-notes
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" release-candidates/* --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" release-candidates/* --verify-tag --generate-notes
+          fi
 ```
 
-If recovery must support an already-created release, make that behavior explicit and idempotent. Do not hide an ownership conflict with `|| true`.
+The existing release must correspond to the immutable tag context selected by the workflow. Do not hide an ownership conflict with `|| true`.
 
 ### 27.7 GoReleaser publisher
 
@@ -1465,6 +1472,7 @@ The generation agent should prefer the canonical modules over inventing equivale
 Do not generate:
 
 - feature-branch `push` plus PR validation that runs the same commit twice without a reason;
+- PR state-only events rerunning the ordinary validation graph when the commit has not changed;
 - `pull_request: closed` rerunning the normal validation graph after a merge push;
 - a broad concurrency rule that cancels main/tag/release runs;
 - multiple GitHub Release owners;
@@ -1475,6 +1483,7 @@ Do not generate:
 - broad workflow-global write permissions for convenience;
 - reserved `GITHUB_*` variables redefined in `env:`;
 - user-controlled `${{ inputs.* }}` inserted directly into shell source;
+- unused `workflow_dispatch` inputs or router outputs;
 - unnecessary new external Actions dependencies without PR documentation;
 - heavyweight security lanes in repositories that have not selected that risk posture;
 - generator drift checks without validating the generated artifact;
@@ -1498,14 +1507,16 @@ Before opening a CI PR, verify:
 - obsolete workflow files are removed;
 - default-branch pushes run;
 - PR opening and PR updates run without duplicate feature-branch push validation;
+- state-only PR events do not rerun ordinary validation unless a concrete lifecycle job requires them;
 - tag publication runs only for eligible tags;
 - `pull_request: closed` is absent unless it has a concrete cheap lifecycle job;
 - scheduled verification performs meaningful work and cannot release;
-- manual inputs all route to useful jobs;
+- manual inputs all route to useful jobs and no exposed input is dead;
 - irrelevant events/jobs exit cheaply;
 - concurrency cancels only genuinely superseded/conflicting work;
 - permissions are minimal;
 - newly introduced external CI dependencies are listed and justified;
+- referenced action/tool versions were checked at generation time;
 - reserved GitHub environment variables are not overridden;
 - user input crosses into shell safely;
 - generated committed output is regenerated and drift-checked where applicable;
@@ -1520,6 +1531,7 @@ Before opening a CI PR, verify:
 - release recovery is exact-tag/exact-SHA;
 - manual release preparation is non-cancelling and serialized where version races are possible;
 - exactly one publisher exists;
+- generic release publication has explicit retry behavior;
 - GoReleaser publication is not duplicated;
 - external/human-created eligible tags behave as intended where supported;
 - selected canonical modules were instantiated rather than replaced with vague placeholders;
