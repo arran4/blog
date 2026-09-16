@@ -87,8 +87,8 @@ Management review
                  leaving a Jules-owned implementation branch?
                          | yes                    | no
                          v                        v
-                new branch + draft PR       reuse current branch/PR
-                     early                   when safe
+          management creates new branch     reuse current branch/PR
+             + draft PR before prompt          when safe
                          \                       /
                           \                     /
                            v                   v
@@ -104,6 +104,8 @@ Management review
 The handoff is intentionally human-authorised. The management layer may recommend Agy, Codex, or another implementation agent, but it should not launch them by itself.
 
 The replacement-branch step above is specifically about **leaving a Jules-owned branch**. It is not a blanket rule that every change of implementation agent requires another branch and another pull request. Outside Jules branch ownership, the management layer should normally preserve the current branch and pull request when doing so is safe and clear; create another branch or PR only when the actual context calls for isolation, parallel ownership, provenance, rewrite safety, or a distinct lifecycle.
+
+When the current branch **is** Jules-owned, there is no "continue the existing PR branch" option for an Agy, Codex CLI, Claude Code, or other replacement implementation agent. The management layer must create the replacement branch first and should open its draft PR before generating the handoff prompt. The old Jules PR and branch then become read-only historical context for the replacement agent. A handoff prompt that tells the incoming agent to work on the existing Jules PR branch is wrong and should be regenerated rather than sent.
 
 ## Why I use Jules first
 
@@ -239,6 +241,8 @@ This is a guideline rather than a protocol. Large migrations, major architectura
 Prompts should be prescriptive about outcomes, constraints, acceptance criteria, and known traps, but they should still allow the implementation agent to solve ordinary implementation details with its own judgement. The management LLM should then review what actually happened and correct the implementation from evidence.
 
 The **first couple of lines of a prompt matter disproportionately**. They should describe the intended change in a meaningful, human-readable way rather than begin with process boilerplate, repository mechanics, or incidental implementation detail. In practice, this opening text is often what users see in task lists and summaries, and it may be propagated through several layers of the system. Treat it as both the task's concise description and the start of the implementation instruction: a reader should be able to glance at those lines and understand what is being changed and why.
+
+A Jules-to-other-agent handoff has one additional precondition before prompt generation: branch isolation must already exist. If the active implementation branch is Jules-owned, the management layer should first create the replacement branch from the chosen trusted base and preferably open its draft PR. Only then should it generate the Agy/Codex/local-agent prompt, and that prompt should name the **replacement** branch/PR as the writable target. The Jules branch/PR may be cited only as read-only context. Do not output a handoff prompt that says to continue, check out, update, or push the existing Jules PR branch and leave branch creation to the incoming agent.
 
 ### Use relevant project guidance, including blog posts
 
@@ -411,7 +415,7 @@ Jules can force-push or otherwise rewrite its branch from its own view of the se
 
 The safe rule is:
 
-> If another implementation agent takes over from a Jules-owned branch, create another branch **before the replacement agent writes or pushes**.
+> If another implementation agent takes over from a Jules-owned branch, create another branch **before the replacement agent writes or pushes**. The replacement agent must not be instructed to continue the existing Jules PR branch.
 
 This is specifically a **Jules branch-ownership safety rule**, not a generic requirement for every implementation-agent switch. If work is already on a human/management-owned branch, an Agy-owned branch, a Codex-owned branch, or another branch that the incoming agent can safely continue, the normal choice is to keep the existing branch and pull request. Create another branch or replacement PR only when context gives a concrete reason, such as rewrite risk, conflicting or parallel ownership, a deliberately separate line of work, provenance requirements, or a lifecycle boundary that is clearer as a new PR.
 
@@ -422,8 +426,11 @@ Before handing work away from Jules, the management layer should perform a branc
 3. identify the last independently reviewed good commit that should become the handoff base;
 4. create the replacement branch from that commit before the new implementation agent is instructed to modify or push;
 5. open a replacement draft pull request early;
-6. name the old Jules branch and PR as read-only historical context in the replacement-agent prompt;
-7. explicitly prohibit pulling, rebasing, merging, force-updating, or pushing the old Jules branch as part of the new implementation line.
+6. only after steps 4 and 5, generate the replacement-agent prompt and point it at the new branch/PR;
+7. name the old Jules branch and PR as read-only historical context in the replacement-agent prompt;
+8. explicitly prohibit pulling, rebasing, merging, force-updating, or pushing the old Jules branch as part of the new implementation line.
+
+If the management layer can create branches and pull requests itself, it should do that setup directly rather than delegating branch isolation to the incoming implementation agent. This prevents the handoff prompt from accidentally treating the Jules branch as the writable target and makes the ownership transition visible in GitHub before any replacement-agent work begins.
 
 When leaving a Jules-owned branch, a replacement branch can begin from:
 
@@ -547,6 +554,8 @@ A handoff away from a failed Jules session should normally leave a durable trail
 5. comment on the replacement PR with a backlink to the original Jules PR, the continuation commit/base, and the reason for the handoff;
 6. preserve the original PR long enough for its normal queue/lifecycle purpose, then retire it under the ordinary cleanup rules after the replacement is resolved.
 
+The replacement-agent prompt should be generated **after** steps 2 and 3. It should name the new replacement branch/PR as the only writable continuation target and name the Jules branch/PR only as read-only provenance and source material.
+
 Failure attribution should be evidence-based and conservative. If only the failure category is known, say so. Do not turn an error from an internal proxy, credential helper, container, or repository-clone layer into an unsupported claim about the underlying root cause. Public GitHub comments should summarize the useful category and omit secrets and internal infrastructure details.
 
 Repeated empty commits are a useful warning sign. Roughly three or four empty commits in a row should bias the management layer toward restart or handoff, particularly when the task is complex and the implementation has not progressed far enough to justify preserving the session.
@@ -656,7 +665,7 @@ If this article is being used to bootstrap a new management session, the followi
 13. For Agy, Codex CLI, Claude Code, or another local/non-web agent, return the corrective prompt to the human for copy/paste instead of trying to invoke the agent through GitHub. Never use `@codex` for Codex CLI. Treat Codex Web as a separate hosted product and use `@codex` only when the human explicitly says Codex Web is the active agent and GitHub-comment delivery is intended.
 14. Do not edit an existing Jules instruction as the way to change course. Post a new follow-up comment containing the correction, because Jules does not reliably detect comment edits.
 15. Verify important Jules instructions were acknowledged or acted upon. Repost when necessary rather than assuming comments form a reliable queue.
-16. Treat Jules branches as Jules-owned for as long as Jules may still be able to publish to them. If another implementation agent takes over from Jules, create a new branch and preferably an early draft PR **before** the replacement agent writes or pushes. A failed VM/session/authentication attempt does not release Jules ownership. When replacing Jules, record the last trusted commit and add reciprocal cross-links between the old and new PRs. If the ownership rule is violated, recover from the last reviewed good commit on a new branch and salvage later Jules changes only selectively.
+16. Treat Jules branches as Jules-owned for as long as Jules may still be able to publish to them. If another implementation agent takes over from Jules, **do not generate a prompt that targets the existing Jules PR branch**. First create a new branch from the last trusted commit or other deliberately chosen trusted base and preferably open an early draft replacement PR; only then generate the replacement-agent prompt and name that new branch/PR as the writable target. A failed VM/session/authentication attempt does not release Jules ownership. Record the last trusted commit and add reciprocal cross-links between the old and new PRs. If the ownership rule is violated, recover from the last reviewed good commit on a new branch and salvage later Jules changes only selectively.
 17. Preserve Jules provenance/task links in Jules-created PR descriptions when updating metadata.
 18. Own PR metadata, resolving relationships, and draft/ready-for-review state. Delegate the mechanics when useful, but verify the result yourself. Keep or return unfinished work to draft. When delegated technical review passes, **approval includes marking the PR ready-for-review before asking the human to review it**. If that GitHub mutation fails or is not permitted, disclose the failure and say that the PR remains draft instead of implying that approval state was fully applied.
 19. Use direct patches only for small, high-confidence work that can be adequately verified. Otherwise recommend an implementation agent.
