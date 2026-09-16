@@ -6,649 +6,618 @@ tags: ["github-actions", "ci", "cd", "release", "automation", "goreleaser", "can
 categories: ["devops", "reference", "automation"]
 ---
 
-<!-- cspell:words GOPATH jurplel mvcommon myapp qmake sourcedir srcrpmdir stefanzweifel todate -->
+<!-- cspell:words actionlint AppImage Buildx GOPATH GoReleaser jurplel mvcommon myapp nFPM prerelease qmake semver stefanzweifel todate TXTAR zizmor -->
 
 This is the canonical GitHub Actions CI/CD generation reference.
 
-It supersedes `006`, `011`, `028`, `041` and `042` where they conflict. Agents should normally need THIS article only. Older posts remain useful as historical/rationale material but are no longer the generation specification.
+It supersedes `006`, `011`, `028`, `041` and `042` where they conflict. Older posts remain useful as rationale, but an agent should normally need only this article plus the target repository to create or modernise its CI.
 
-## 1. Purpose and intended use
+The goal is consistency without generic bloat: the agent discovers what the repository actually contains, selects the applicable capabilities here, and writes a bespoke workflow that already knows what it is responsible for. The checked-in workflow should not rediscover the project on every run.
 
-The purpose of this article is to serve as a complete generation specification for GitHub Actions CI/CD. It establishes that periodic scheduled CI verification is a baseline capability for maintained repositories, not merely optional maintenance. An agent receiving only this article should have enough guidance to:
-1. inspect a repository;
-2. inventory its languages, build systems, package/release mechanisms, existing workflows, and repository-specific requirements;
-3. determine which standard CI capabilities apply;
-4. create one coherent workflow architecture;
-5. preserve useful existing behavior;
-6. remove obsolete/duplicate CI;
-7. implement tests/lint/build/autofix/artifacts/release/maintenance consistently;
-8. validate the resulting workflow;
-9. explain any justified deviations from the canonical architecture.
+## 1. Purpose and design objective
 
-The article should strongly reduce agent discretion in areas where we already have preferred patterns. Repository-specific differences should come primarily from capability selection, not from every agent inventing a completely different CI topology.
+A generated workflow should be:
 
-Downstream agents must implement `workflow_dispatch` as a migration/improvement process toward a useful manual operator UX. Do not blindly preserve stale or broken structures merely because they exist; instead, update them to the current canonical pattern while retaining genuinely useful repo-specific behavior. Repository-specific prompts should not need to independently request this UX improvement.
+- **single-owner:** one coherent CI/CD dependency graph and exactly one GitHub Release publisher per tag;
+- **single-file by default:** normally one `.github/workflows/ci.yml` or `.github/workflows/ci.yaml`;
+- **event-efficient:** run when new information needs validation, and cheaply avoid work that an event cannot require;
+- **repository-specific:** include only languages, platforms, generators, services, packaging and release mechanisms that exist in the repository;
+- **release-safe:** validation precedes permanent tagging and publication;
+- **self-verifying:** generated files, examples, workflows and built release artifacts are checked when those capabilities exist;
+- **maintainable:** avoid unnecessary helper files and duplicated policy.
 
-A downstream agent should need only this canonical article and the target repository to produce the intended implementation. Do not require downstream agents to inspect other repositories as design references.
+The canonical shape is a specification for generation, not a universal workflow to paste unchanged into every project.
 
-## 2. Required repository inspection before generation
+## 2. Discovery happens when the workflow is generated
 
-Before generating or modifying any CI configuration, you must:
-- enumerate all `.github/workflows/*`;
-- understand each trigger/job;
-- inspect existing manual-dispatch behavior to learn repository-specific requirements, but do not preserve stale/broken/bespoke structure merely because it exists;
-- inventory useful behavior;
-- identify duplicate validation;
-- identify every release owner;
-- identify obsolete compatibility wrappers;
-- inspect repository build/release documentation;
-- inspect package/release configuration;
-- identify relevant secrets and permissions;
-- inspect historical CI failures if necessary.
+Before editing CI, the agent must inspect the repository and make the design decisions once.
 
-## 3. Canonical architecture and invariants
+Inventory:
 
-The default should be the fewest coherent workflow files necessary, normally one central `.github/workflows/ci.yml` or `.github/workflows/ci.yaml`. Do not preserve multiple workflow files merely because they already exist. A second workflow is acceptable only for a concrete technical or trust-boundary reason.
+- every `.github/workflows/*` file and every trigger/job;
+- repository instructions such as `AGENTS.md`, README files and build/release documentation;
+- languages and build systems;
+- tests, linters, formatters and static-analysis tools;
+- committed generated source;
+- generated documentation, man pages, fixtures and compatibility matrices;
+- generated examples and generated workflow/configuration examples;
+- runnable examples and demos;
+- integration tests and their filesystem/process/network/database/service boundaries;
+- any end-to-end or system tests;
+- Dockerfiles and Compose environments;
+- declared supported operating systems and architectures;
+- minimum supported language/toolchain versions;
+- packaging/installers and GoReleaser or equivalent release configuration;
+- release binaries whose version/commit/date metadata is injected at build time;
+- existing schedules, manual modes, autofix automation and cleanup;
+- every current release owner;
+- secrets, token permissions and trust boundaries;
+- historical CI failures where they explain an existing workaround.
 
-CI simplification also includes minimizing the number of support files. Agents should actively consider whether CI-specific helper files can be removed or folded into the main workflow or existing repository tooling. Do not extract small routing fragments into separate scripts merely for architectural symmetry, and avoid adding helper files only so tiny pieces of workflow logic can have their own file. However, preserve helper code when there is a concrete reason for it, especially when shared production logic genuinely needs direct testing. When helper code genuinely improves testability or complexity management, prefer the repository's existing language, structure, conventions, naming, and test framework.
+Also classify the repository itself. Archived forks and upstream-tracking forks normally should not be rewritten merely to impose this architecture unless they are intentionally maintained as independent projects.
 
-Explicitly, CI consolidation or simplification MUST NOT remove existing manual-dispatch capability without a documented capability-based exception. A canonical workflow is incomplete if the GitHub Actions UI cannot expose a useful “Run workflow” path after the workflow reaches the default branch. If manual dispatch is absent or broken, create/restore the canonical pattern. If it exists but is stale or awkward, migrate/improve it toward the current pattern while retaining genuinely useful repo-specific behavior.
+The result of discovery is a tailored checked-in workflow. Runtime capability discovery is a fallback only for facts that genuinely vary during a run. Do not build a giant `discover` job which re-detects known project structure on every invocation.
 
-The canonical orchestration phases must remain consistent:
-```text
-route
-  |
-  +-- validation/lint/test
-  |
-  +-- autofix where applicable
-  |
-  +-- build/artifacts
-  |
-  +-- release validation
-  |
-  +-- release/tag context
-  |
-  +-- one publisher
-  |
-  +-- downstream/post-release work
-```
+## 3. One self-contained workflow is the normative target
 
-Generated workflows must include a short top-of-file pointer back to THIS new article. Do not accumulate pointers to superseded articles.
+The normal result is exactly one coherent `.github/workflows/ci.yml` or `.github/workflows/ci.yaml` containing validation, build, maintenance and release orchestration.
 
-## 4. Capability-selection matrix
+When upgrading an existing repository, actively attempt to fold these into that workflow:
 
-Before generating jobs, classify capabilities as:
-- **A. UNIVERSAL DEFAULT:** Baseline routing, basic validation, concurrency logic, practical manual dispatch UX (`workflow_dispatch` where viable), periodic CI verification (monthly baseline).
-- **B. ENABLED WHEN REPOSITORY CAPABILITY EXISTS:** Language-specific lint/test (Go, Node, Dart, CMake, Dockerfile, Debian/RPM packaging, etc.), artifact building, packaging, GoReleaser.
-- **C. OPTIONAL POLICY:** Autofix PR generation, PR constraints.
-- **D. EXCEPTION REQUIRING AN EXPLANATION:** Additional workflows, custom semantic version math.
+- workflow validation;
+- generated-output and generated-example verification;
+- lint/static analysis;
+- unit/component tests;
+- integration/service compatibility tests;
+- selective end-to-end/system smoke tests;
+- build and package jobs;
+- artifact smoke verification;
+- release gates;
+- tag preparation;
+- publication;
+- scheduled verification;
+- ordinary maintenance and autofix.
 
-Do not create irrelevant language jobs merely because examples exist. Conversely, do not omit an obvious standard lane if it matches a repository capability. At the same time, do not omit an obvious standard lane merely because the agent decided to produce a minimalist workflow.
+Use native `needs:` edges so the dependency graph is visible in one place. Delete superseded workflow files after consolidation. Do not keep disabled wrappers or legacy compatibility YAML simply because it already exists.
 
-## 5. Trigger/event model
+A second workflow needs a concrete reason. Valid exceptions include:
 
-The standard event triggers should cover the following. `workflow_dispatch` must be implemented to provide a useful manual operator UX where it is practical and viable, rather than being preserved blindly as a meaningless invariant. If manual dispatch genuinely has no practical role, allow a documented capability-based exception rather than requiring meaningless YAML.
+- a genuine reusable `workflow_call` interface;
+- a materially different secret or trust boundary;
+- a GitHub event/platform limitation that prevents coherent consolidation;
+- genuinely independent administrative automation;
+- a large family of independently scheduled generated maintenance workflows where forcing every schedule into one monolithic file would materially reduce readability or maintainability.
 
-You must require the canonical `mode` input where applicable, including normal/manual validation/build modes and the existing release/maintenance/recovery modes described by the article. Clearly distinguish "the YAML contains `workflow_dispatch`" from "manual dispatch actually does useful work"—the inputs must actually route to functional jobs. For versioned repositories the established UI normally includes useful `mode` choices such as `build`, `release-major`, `release-minor`, `release-patch`, applicable prerelease modes, optional `release_version_override`, and release-safe tag-context publishing where applicable. Do not add release controls to repositories that do not have corresponding release capabilities.
+Historical structure is not an exception. If more than one workflow remains, the PR should explain why each additional workflow cannot reasonably be a job in the central graph.
+
+The same principle applies to support files. Keep small routing and shell logic inline. Do not create helper scripts merely to make YAML look smaller. Preserve or introduce helper code when it is substantial, naturally belongs to the repository's implementation language, is shared with production logic, or materially improves direct testing.
+
+## 4. Capability selection
+
+Classify discovered capabilities before writing jobs:
+
+- **Universal baseline:** event routing, ordinary validation, minimal permissions, useful manual dispatch where applicable, and periodic verification for maintained repositories.
+- **Enable when present:** language-specific lint/test, generation checks, examples, integration/services, E2E/system smoke, platform/toolchain matrices, packaging, containers, release artifacts, GoReleaser.
+- **Optional policy:** autofix PRs, dependency-update PRs, expensive scheduled checks.
+- **Exception requiring explanation:** additional workflow files, bespoke version arithmetic, unusual release ownership, or unusually broad permissions.
+
+Do not add a lane merely because this article contains an example. Do not omit an obvious lane merely to keep YAML short.
+
+## 5. Trigger model: run when information changes, avoid duplicate runs
+
+The trigger set should cover every state transition that needs validation without running the same logical validation twice.
+
+The standard baseline is:
+
 ```yaml
 on:
   push:
     branches: [main, master]
-    tags: ['v*'] # Explicit v* only to avoid test-* pushes triggering release
+    tags: ['v*']
+
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review, closed]
+    types: [opened, synchronize, reopened, ready_for_review]
     branches: [main, master]
+
   workflow_dispatch:
-    inputs:
-      mode:
-        type: choice
-        default: lint-fix
-        options: [lint-fix, build, release-major, release-minor, release-patch, release-test, release-rc, release-alpha, monthly-maintenance, publish-tag]
-      release_version_override:
-        type: string
-        default: ''
-      allow_prs:
-        type: boolean
-        default: true
+    # repository-specific useful modes
+
   schedule:
     - cron: '0 19 1 * *'
 ```
 
-## 6. Routing
+The intent is deliberate:
 
-A routing job should parse events to determine if the run should execute monthly verification, dependency freshness checks, manual releases, regular CI tests, auto-fixes, or deployment behaviors. Every exposed `workflow_dispatch` mode must demonstrably reach useful jobs.
+- **Every push to the authoritative branch runs CI.** The default branch is deployed/shared state and must remain continuously verified.
+- **Opening a pull request runs CI.** The initial PR state must be checked even if the branch commit already existed before the PR.
+- **Updating an open pull request runs CI through `pull_request:synchronize`.** Do not also subscribe to ordinary pushes for every feature branch; that creates duplicate branch-push + PR runs for the same commit.
+- **Reopening or marking a draft ready can run CI** because review state changed.
+- **Eligible version tags run the publication/release path.**
+- **Scheduled runs prove a quiet repository still works.**
+- **Manual dispatch exposes only useful operator actions.**
 
-```yaml
-  route:
-    name: Route Event
-    runs-on: ubuntu-latest
-    outputs:
-      run_code_checks: ${{ steps.route.outputs.run_code_checks }}
-      run_build: ${{ steps.route.outputs.run_build }}
-      run_release: ${{ steps.route.outputs.run_release }}
-      run_autofix: ${{ steps.route.outputs.run_autofix }}
-      run_publisher: ${{ steps.route.outputs.run_publisher }}
-      run_maintenance: ${{ steps.route.outputs.run_maintenance }}
-      mode: ${{ steps.route.outputs.mode }}
-    steps:
-      - id: route
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          INPUT_MODE: ${{ github.event.inputs.mode }}
-          REF_TYPE: ${{ github.ref_type }}
-          GITHUB_REF: ${{ github.ref }}
-        run: |
-          set -euo pipefail
-          run_code_checks=true
-          run_build=true
-          run_release=false
-          run_autofix=false
-          run_publisher=false
-          run_maintenance=false
-          mode="build"
+Do not subscribe to `pull_request: closed` by default. A merge already produces the authoritative-branch push that needs normal CI. Add `closed` only when the repository has a concrete cleanup/lifecycle action that cannot be handled elsewhere, and route it only to that cheap cleanup path rather than rerunning the normal test/build graph.
 
-          if [[ "$EVENT_NAME" == "pull_request" ]]; then
-            # PRs just validate
-            :
-          elif [[ "$EVENT_NAME" == "schedule" ]]; then
-            # Ensure scheduled verification executes actual validation
-            run_maintenance=true
-            run_code_checks=true
-            run_build=true
-            mode="monthly-maintenance"
-            # If the repository configures a separate schedule for autofix (e.g., '0 4 * * *'), explicitly distinguish it here rather than defaulting all unknown schedules to autofix.
-            # if [[ "${{ github.event.schedule }}" == "0 4 * * *" ]]; then
-            #    run_autofix=true
-            #    run_maintenance=false
-            #    mode="lint-fix"
-            # fi
-          elif [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
-            mode="${INPUT_MODE:-build}"
-            if [[ "$mode" == "lint-fix" ]]; then
-               run_autofix=true
-            elif [[ "$mode" == "publish-tag" ]]; then
-               # The internal explicit publish-tag dispatch mode
-               if [[ "$REF_TYPE" == "tag" && "$GITHUB_REF" == refs/tags/v* ]]; then
-                  run_code_checks=false
-                  run_build=false
-                  run_publisher=true
-               else
-                  echo "Error: publish-tag mode requires a v* tag context. Found: $GITHUB_REF" >&2
-                  sh -c "exit 1"
-               fi
-            elif [[ "$mode" == release-* ]]; then
-               run_release=true
-            elif [[ "$mode" == "monthly-maintenance" ]]; then
-               run_maintenance=true
-               run_code_checks=true
-               run_build=true
-            fi
-          elif [[ "$EVENT_NAME" == "push" && "$REF_TYPE" == "tag" && "$GITHUB_REF" == refs/tags/v* ]]; then
-             # Standard external v* push publication
-             run_publisher=true
-          fi
+Likewise, do not add `push` for all branches when pull-request events already provide the review validation you need.
 
-          echo "run_code_checks=$run_code_checks" >> "$GITHUB_OUTPUT"
-          echo "run_build=$run_build" >> "$GITHUB_OUTPUT"
-          echo "run_release=$run_release" >> "$GITHUB_OUTPUT"
-          echo "run_autofix=$run_autofix" >> "$GITHUB_OUTPUT"
-          echo "run_publisher=$run_publisher" >> "$GITHUB_OUTPUT"
-          echo "run_maintenance=$run_maintenance" >> "$GITHUB_OUTPUT"
-          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+Path filters may reduce cost for clearly isolated areas, but only when it is safe for required checks and cross-cutting changes. Prefer job-level capability conditions over a clever filter that can silently suppress required validation.
+
+## 6. Route cheaply and exit early
+
+A small router may convert GitHub events and manual inputs into explicit policy outputs, but the event triggers themselves should already eliminate obvious duplicate runs.
+
+The router should be cheap: no full checkout or dependency installation unless routing genuinely needs repository state.
+
+A useful policy model is:
+
+```text
+event
+  |
+  +-- default-branch push ------> normal validation/build
+  |
+  +-- PR opened/updated --------> PR validation
+  |
+  +-- v* tag -------------------> tag-context validation/publisher
+  |
+  +-- manual build -------------> requested validation/build
+  |
+  +-- manual release -----------> validation -> tag preparation
+  |
+  +-- monthly schedule ---------> health/freshness validation
 ```
 
-## 7. Concurrency
+Jobs should use `if:` conditions to leave the run as early as possible when they cannot apply. An irrelevant event should not install a toolchain merely to discover that there is nothing to do.
 
-Concurrency prevents duplicate manual releases from racing and cleans up outdated PR tests.
-```yaml
-# Concurrency prevents duplicate manual releases from racing and cleans up outdated PR tests.
-# Crucially, release preparation should NOT cancel in progress to avoid aborting a cut tag.
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: ${{ !startsWith(github.event.inputs.mode, 'release-') }}
+Every exposed `workflow_dispatch` mode must demonstrably reach useful work. Do not keep decorative inputs or dead router outputs.
+
+## 7. Concurrency is selective, not a substitute for correct routing
+
+Correct triggers and routing come first. Concurrency should address real races or superseded work, not hide duplicate-event design.
+
+Good default uses:
+
+- **PR validation:** newer commits may cancel older validation for the same PR, because the older result is superseded.
+- **Default-branch pushes:** normally let every authoritative-branch run complete; do not silently cancel required verification.
+- **Tag publication:** do not cancel an in-progress publication.
+- **Manual release/tag preparation:** serialize the release-critical section when concurrent version calculations could race.
+- **Independent maintenance jobs:** use repository-specific groups only where concurrent mutation would conflict, for example package-update automation in a large overlay.
+
+Avoid one broad workflow-level concurrency group that accidentally cancels tag publication, main-branch validation or manual release work.
+
+If using workflow-level PR cancellation, make non-PR runs unique rather than placing unrelated events into one shared group. Release-critical jobs may instead use their own job-level concurrency group with `cancel-in-progress: false`.
+
+## 8. Permissions, dependencies and security posture
+
+Use read-only workflow-level permissions by default and elevate per job where practical:
+
+- ordinary validation: `contents: read`;
+- autofix/maintenance PR: `contents: write`, `pull-requests: write`;
+- tag preparation: `contents: write`, and `actions: write` only if explicit dispatch is needed;
+- release publication: `contents: write`, plus `packages: write` only when publishing packages/containers;
+- security uploads: only the specific permission required by the selected scanner.
+
+Security hardening should match the repository's stated risk. Do not turn every small personal repository into a heavyweight high-assurance pipeline.
+
+### Action/dependency provenance
+
+When adding CI dependencies, classify them:
+
+1. GitHub-maintained actions such as `actions/checkout`, `actions/setup-*`, `actions/upload-artifact` and `actions/download-artifact`;
+2. actions/tools owned by the repository owner, such as `arran4/*`;
+3. established external dependencies already used by the project;
+4. a new external dependency introduced only for this CI change.
+
+Owner-controlled actions are not a third-party supply-chain concern in the same way as a newly introduced external action. That does **not** make a known implementation defect harmless: unsafe shell/input handling still needs to be avoided or fixed.
+
+For every newly introduced external CI dependency, prefer existing repository-native tooling when it is equally clear, and list the new dependency in the PR description with:
+
+- what it does;
+- why an existing tool or simple native command is not sufficient;
+- the selected version/reference;
+- whether it receives a token, secrets, write permission or untrusted input.
+
+Where a repository explicitly declares CI/security to be high assurance, strengthen this baseline: consider commit-SHA pinning, `zizmor`, dependency review, secret scanning, provenance/attestation and stricter token boundaries. These are capability/risk-driven additions, not universal boilerplate.
+
+## 9. Shell and GitHub context safety
+
+Never attempt to override GitHub's reserved `GITHUB_*` default environment variables.
+
+Use the variables GitHub already exports in shell steps:
+
+- `GITHUB_REF` is the full ref, such as `refs/heads/main` or `refs/tags/v1.2.3`;
+- `GITHUB_REF_NAME` is the short ref name;
+- `GITHUB_SHA` is the commit selected for the run.
+
+If a transformed value is needed, copy it to a differently named variable:
+
+```bash
+AUTHORITATIVE_BRANCH="${GITHUB_REF#refs/heads/}"
 ```
 
-## 8. Permissions/security boundaries
+Do not write:
 
-Use read-only workflow-level permissions by default, and elevate them per-job. Do not give the whole workflow broad write permissions for convenience.
-- normal validation: `contents: read`
-- autofix: `contents: write`, `pull-requests: write`
-- manual tag + explicit dispatch: `contents: write`, `actions: write`
-- release publisher: `contents: write`, `packages: write` (when containers/packages need it)
-- security upload: `security-events: write` (only where necessary)
-
-## 9. Common checkout/setup conventions
-
-Every git-mutating job, and every build job, must use actions/checkout. Use `fetch-depth: 0` for release prep jobs or when the history is needed.
-
-## 10. Validation/test/lint architecture
-
-Tests and linters should run concurrently after routing. All release policies require test validation before permanent tags are cut. Public repositories can generally run broader checks by default. Visibility check via `github.event.repository.private`. Private repositories may use a more conservative/cost-aware profile, but do not compromise required release validation.
-
-Crucially, scheduled verification runs must exercise meaningful normal validation/build work. A scheduled failure is intentionally useful as a health signal indicating stale or broken CI/toolchains, dependency drift, or other unstated runtime assumptions.
-
-## 11. Language-specific lanes
-
-Standard modules exist for:
-- Go (`golangci-lint`, `go test`, `go vet`, `gofmt`)
-- Node (`npm test`, `eslint`, `prettier`)
-- Dart / Flutter (`dart analyze`, `flutter test`)
-- C / C++ / CMake / Qt
-Select modules based on repository capabilities, not generically. Keep these as standard selectable modules within one architecture, with compatible routers and outputs.
-
-Example Go lane:
 ```yaml
-  golangci:
-    name: Lint Go Code
-    needs: [route]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
-        with:
-          go-version-file: go.mod
-      - run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
-      - run: golangci-lint run
+env:
+  GITHUB_REF: ${{ github.ref }}
 ```
 
-Example Node lane:
-```yaml
-  node-lint-test:
-    name: Node Lint & Test
-    needs: [route]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: '20'
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run lint
-      - run: npm test
+User-controlled values should also cross into shell via `env:` and then be consumed as quoted shell variables. Avoid embedding `${{ inputs.* }}` directly into shell source when it may contain shell syntax.
+
+## 10. Canonical verification graph
+
+Capabilities that do not exist disappear from the graph:
+
+```text
+route
+  |
+  +-- workflow/dependency validation
+  |
+  +-- generated-output/example verification
+  |
+  +-- lint/static analysis
+  |
+  +-- unit/component tests
+  |
+  +-- compatibility/integration tests
+  |
+  +-- selective E2E/system smoke
+  |
+  +-- build/package artifacts
+  |
+  +-- built-artifact smoke verification
+  |
+  +-- release-validation aggregate
+  |
+  +-- immutable tag/release context
+  |
+  +-- exactly one publisher
+  |
+  +-- post-release work
 ```
 
-Example Dart lane:
-```yaml
-  dart-analyze-test:
-    name: Dart Analyze & Test
-    needs: [route]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: dart-lang/setup-dart@v1
-      - run: dart pub get
-      - run: dart analyze --fatal-infos
-      - run: dart test
+Independent checks should run in parallel when they can. Release publication should depend on one clear aggregate release gate rather than each repository reinventing complicated skipped-job expressions.
+
+## 11. Testing hierarchy
+
+Use the cheapest useful test at each layer:
+
+- many unit/component tests with controlled dependencies;
+- fewer integration tests against real filesystem/process/database/network/service boundaries;
+- a small number of end-to-end/system tests where they provide confidence that cheaper tests cannot.
+
+Do not require browser automation simply because a repository has a web UI. Prefer programmable rendering or handler seams when they prove the behavior more cheaply and deterministically.
+
+Use E2E/system tests when the actual assembled system matters, for example:
+
+- invoke the built CLI as a subprocess;
+- start a disposable server and make HTTP requests;
+- start a real temporary database/service;
+- bring up a Compose environment;
+- launch a built container and probe it;
+- exercise browser-level behavior that genuinely depends on the browser;
+- install a package and run a smoke command.
+
+Expensive, non-release-critical E2E, fuzz or compatibility tests may run on a schedule or manual mode. Anything required to claim a release is valid must gate publication.
+
+## 12. Generated outputs are a first-class capability
+
+Classify generated content as:
+
+1. **Committed generated output** — must remain synchronized with its source;
+2. **Generated examples/documentation/fixtures** — must remain synchronized and should be validated as artifacts;
+3. **Ephemeral build/test output** — should normally remain uncommitted.
+
+For committed generated output, the normal validation pattern is:
+
+```text
+run authoritative generator
+        |
+        v
+check working tree/diff
+        |
+        +-- clean -> continue
+        |
+        +-- changed -> fail and show the diff
 ```
 
-Example C/CMake lane:
+For Go, `go generate ./...` followed by a clean-tree check is a common implementation, but use the repository's authoritative deterministic generator when `go generate ./...` is too broad or inappropriate.
+
+Normal CI must not silently accept and commit regenerated output. An optional automation lane may regenerate and open a focused PR, but that does not replace the validation check.
+
+## 13. Validate generated artifacts, not only drift
+
+"Up to date" and "valid" are separate assertions.
+
+After regeneration and drift checking, validate the generated artifact with the normal validator/compiler/parser for that artifact:
+
+- generated GitHub Actions YAML -> regenerate -> diff check -> `actionlint`;
+- generated Go source -> regenerate -> diff check -> compile/test;
+- generated configuration -> regenerate -> load with the production parser;
+- generated examples -> regenerate -> diff check -> compile or run representative examples;
+- generated man pages/docs -> regenerate -> perform the repository's structural/build validation.
+
+Generated workflow examples are particularly important: a generator can deterministically reproduce invalid YAML. Drift checking alone will not detect that.
+
+## 14. Runnable examples and documentation smoke tests
+
+Inspect `examples/`, demos, sample configuration and documented commands.
+
+Where practical:
+
+- compile examples;
+- run cheap examples;
+- parse sample configs;
+- exercise CLI `--help` and `--version`;
+- verify documented representative commands still parse/run;
+- validate generated example output.
+
+Do not execute examples with destructive or external side effects merely for coverage.
+
+## 15. Language and ecosystem modules
+
+These are selectable modules, not mandatory blocks.
+
+### Go
+
+Typical checks:
+
 ```yaml
-  c-make-build-test:
-    name: C CMake Build & Test
-    needs: [route]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - run: cmake -B build -S .
-      - run: cmake --build build
-      - run: ctest --test-dir build --output-on-failure
+- uses: actions/setup-go@v7
+  with:
+    go-version-file: go.mod
+- run: go test ./...
+- run: go vet ./...
 ```
 
-Example Qt/C++ lane:
+Use `gofmt`/`golangci-lint` where the repository already uses them or where adding them is justified. Test minimum supported Go versions when the project makes such a compatibility claim.
+
+### Node / JavaScript / TypeScript
+
+Typical checks:
+
 ```yaml
-  qt-build-test:
-    name: Qt C++ Build & Test
-    needs: [route]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v4
-      - run: qmake
-      - run: make
-      - run: make check
+- uses: actions/setup-node@v7
+  with:
+    node-version: '20'
+    cache: npm
+- run: npm ci
+- run: npm test
 ```
 
-Example Security/Gitleaks lane:
+Add the repository's actual lint/typecheck/build commands (`eslint`, `prettier`, `tsc`, bundling) rather than assuming names.
+
+### Dart / Flutter
+
+Typical validation:
+
 ```yaml
-  gitleaks:
-    name: Gitleaks
-    needs: [route]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v3
+- run: flutter pub get
+- run: dart analyze
+- run: flutter test
 ```
 
-Example dependency-freshness test / maintenance (mechanics are ecosystem-specific, e.g., Go):
+Desktop applications may require platform-specific Linux/Windows/macOS build jobs. Only add those platforms when the project claims or releases support for them.
+
+### C / C++ / CMake / Qt / KDE
+
+Use the repository's actual CMake/qmake/Ninja conventions. A representative CMake shape is:
+
 ```yaml
-  maintenance:
-    name: Monthly Maintenance (Dependency Freshness)
-    needs: [route]
-    if: ${{ needs.route.outputs.run_maintenance == 'true' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
-        with:
-          go-version-file: go.mod
-      # Dependency update mechanics are ecosystem/repository-specific.
-      # E.g., for Go:
-      - run: go get -u ./... && go mod tidy
-      - name: Create Pull Request
-        if: ${{ github.event_name == 'schedule' || inputs.allow_prs != false }}
-        uses: peter-evans/create-pull-request@v7
-        with:
-          commit-message: "chore: monthly dependency update"
-          title: "chore: monthly dependency update"
-          branch: automation/maintenance
-          delete-branch: true
+- run: cmake -S . -B build -DBUILD_TESTING=ON
+- run: cmake --build build --parallel
+- run: ctest --test-dir build --output-on-failure
 ```
 
-Example Autofix lane (the established manual `lint-fix` path that applies deterministic fixes and opens a focused automation PR):
+Qt/KDE projects may require additional package installation or an existing project bootstrap/container. Preserve those project-native environment contracts rather than replacing them with a generic Qt action if that loses necessary dependencies.
+
+### Containers
+
+Build containers when the repository actually ships or relies on them. Prefer a build-and-smoke path before publication. If GoReleaser owns the image, do not add a second image publisher for the same tags.
+
+### Native/package-manager packaging
+
+Debian, RPM, Flatpak, AppImage, Gentoo metadata or other packaging is selected only when the project supports it. Package builds should be treated as artifacts that can themselves need smoke/install validation.
+
+## 16. Compatibility matrices are evidence-driven
+
+Do not create matrices merely because they look comprehensive.
+
+Use a matrix to prove a support claim or materially different behavior:
+
+- a library's minimum supported language/toolchain version;
+- Linux/macOS/Windows behavior where those systems are supported;
+- architecture-specific release builds;
+- database engine/version compatibility;
+- GUI/headless variants where the project genuinely supports them.
+
+Separate:
+
+- the fast ordinary PR test;
+- compatibility coverage;
+- the release artifact matrix.
+
+Expensive static analysis normally needs one representative/current toolchain, not every matrix entry.
+
+## 17. Integration and service compatibility
+
+Projects using databases, queues or local services should normally keep compatibility/integration jobs in the central workflow.
+
+Prefer:
+
+- GitHub Actions service containers;
+- disposable local processes;
+- temporary databases;
+- deterministic fixtures;
+- repository-provided Compose environments.
+
+A MySQL/MariaDB/PostgreSQL/version compatibility check is normally a job/matrix in `ci.yml`, not automatically a reason for another workflow file.
+
+Keep CI credentials ephemeral and local where possible. Do not expose production secrets to untrusted pull-request code.
+
+## 18. Workflow validation
+
+GitHub Actions YAML is code.
+
+Where viable, repositories containing Actions workflows should run `actionlint`, particularly when workflows are generated or heavily templated.
+
+When the repository's security posture warrants it, also consider:
+
+- `zizmor`;
+- dependency review;
+- secret scanning;
+- ecosystem vulnerability scanners.
+
+A CI change should be reasoned through for:
+
+- every `needs:` edge;
+- every referenced output;
+- event-specific contexts;
+- skipped-job behavior;
+- permissions;
+- concurrency;
+- release recursion assumptions;
+- manual-dispatch routes.
+
+Successful YAML parsing alone is insufficient.
+
+## 19. Autofix and maintenance
+
+Autofix is optional and should:
+
+- perform deterministic mechanical changes only;
+- produce no PR when the tree remains clean;
+- create a focused automation PR when allowed;
+- avoid mixing unrelated dependency or semantic changes;
+- never publish a release.
+
+Maintained repositories should normally have periodic verification even when quiet. The baseline private-repository cadence is the second day of each month around 05:00 AEST, represented as:
+
 ```yaml
-  autofix:
-    name: Autofix Formatting
-    needs: [route]
-    if: ${{ needs.route.outputs.run_autofix == 'true' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
-        with:
-          go-version-file: go.mod
-      - run: go fmt ./...
-      - run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
-      - run: golangci-lint run --fix
-      - name: Create Pull Request
-        if: ${{ github.event_name == 'schedule' || inputs.allow_prs != false }}
-        uses: peter-evans/create-pull-request@v7
-        with:
-          commit-message: "style: auto-format code and lint fixes"
-          title: "style: auto-format code and lint fixes"
-          branch: automation/lint-fix
-          delete-branch: true
+schedule:
+  - cron: '0 19 1 * *'
 ```
 
-Example Debian/RPM packaging lane:
+Scheduled verification should run meaningful normal validation and optionally repository-appropriate dependency-freshness checks. A schedule must not publish a release.
+
+Do not add a nightly job merely because an old template had one.
+
+## 20. Build artifacts and smoke verification
+
+Build jobs should produce the artifacts that the project actually promises.
+
+Use short Actions-artifact retention for transient handoff artifacts; one day is a good default when publication consumes them immediately.
+
+Before publication, test actual candidate artifacts where relevant:
+
+- run a CLI candidate with `--version`;
+- verify injected version/commit/date metadata;
+- execute a representative command;
+- verify all expected binaries are present;
+- inspect archive/package contents;
+- install and smoke-test a package where practical;
+- start a built container and probe a command/health endpoint;
+- confirm platform/architecture artifacts match their names and targets.
+
+Source tests do not prove a release artifact works after packaging, linking or metadata injection.
+
+## 21. Release version planning
+
+`arran4/git-tag-inc` is the default shared semantic-version tool for repositories using this release model. Do not duplicate SemVer arithmetic in shell.
+
+Owner-controlled tooling may be used directly. Choose the interface according to its actual safety characteristics:
+
+- fixed trusted inputs to an owner-controlled action can be acceptable;
+- user-controlled strings must not be interpolated unsafely into shell;
+- where an action interface cannot safely carry the required input, install/use the CLI and pass values through environment variables.
+
+For example:
+
 ```yaml
-  packaging:
-    name: Linux Packages
-    needs: [route, validation]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - name: Build Source Debian Package
-        run: |
-          # Use proper debian source packaging
-          sudo apt-get install -y dpkg-dev
-          dpkg-source -b .
-          mkdir -p dist
-          mv ../*.dsc ../*.tar.* dist/
-      - name: Build Source RPM Package
-        run: |
-          # Use proper rpm source packaging
-          sudo apt-get install -y rpm
-          mkdir -p dist
-          rpmbuild -bs --define "_sourcedir $PWD" --define "_srcrpmdir $PWD/dist" package.spec
-      - uses: actions/upload-artifact@v7
-        with:
-          name: packages
-          path: dist/*
-          if-no-files-found: error
-          retention-days: 1
+- name: Install git-tag-inc
+  run: go install github.com/arran4/git-tag-inc/cmd/git-tag-inc@v1.0.0
 ```
 
-Example non-GoReleaser single owner publication:
-```yaml
-  publish-generic:
-    name: Publish Generic Release
-    needs: [route, packaging]
-    if: ${{ github.ref_type == 'tag' && github.event_name == 'workflow_dispatch' && inputs.mode == 'publish-tag' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/download-artifact@v8
-        with:
-          name: packages
-          path: release-artifacts
-      - uses: softprops/action-gh-release@v3
-        with:
-          files: release-artifacts/**
+Use the current appropriate version when generating/upgrading the repository. Do not treat the example version as forever canonical.
+
+## 22. Manual release preparation and immutable tags
+
+Manual release preparation must:
+
+1. run the repository's required release-validation gate;
+2. operate only against the authoritative release branch;
+3. checkout/fetch enough history and tags;
+4. verify the selected commit still equals current `origin/<authoritative-branch>`;
+5. calculate or explicitly select the intended tag;
+6. if the tag already exists, verify it resolves to the exact validated commit;
+7. create/push the immutable tag only after validation;
+8. route publication using the tag as immutable context.
+
+Use GitHub's existing shell environment variables directly:
+
+```bash
+set -euo pipefail
+
+AUTHORITATIVE_BRANCH="${GITHUB_REF#refs/heads/}"
+
+case "$AUTHORITATIVE_BRANCH" in
+  main|master) ;;
+  *)
+    echo "Release preparation must run on main or master" >&2
+    exit 1
+    ;;
+esac
+
+git fetch origin "$AUTHORITATIVE_BRANCH"
+ORIGIN_SHA="$(git rev-parse "origin/$AUTHORITATIVE_BRANCH")"
+
+if [[ "$ORIGIN_SHA" != "$GITHUB_SHA" ]]; then
+  echo "origin/$AUTHORITATIVE_BRANCH advanced; refusing to tag" >&2
+  exit 1
+fi
 ```
 
-Example scheduled maintenance cleanup:
-```yaml
-  maintenance:
-    name: Monthly Cleanup
-    needs: [route]
-    if: ${{ needs.route.outputs.run_maintenance == 'true' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      actions: write
-    steps:
-      - name: Cleanup old workflow runs
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # E.g., delete runs older than 30 days
-          gh api repos/${{ github.repository }}/actions/runs --paginate -q '.workflow_runs[] | select(.created_at < (now - 2592000 | todate)) | .id' | xargs -I{} gh api -X DELETE repos/${{ github.repository }}/actions/runs/{} || true
-```
+Repeat the origin check immediately before creating a new tag to close the race window.
 
+Never silently move an existing release tag.
 
+## 23. Recovery and manual version overrides
 
-## 12. Autofix architecture
+`release_version_override` may explicitly choose a version instead of calculating a new one.
 
-Autofix should:
-- be opt-in / appropriate to the repository;
-- run deterministic mechanical fixes (`gofmt / go fix`, `prettier`, `dart/flutter format`);
-- inspect resulting diff and do nothing when clean;
-- create a focused PR when allowed;
-- not mix unrelated fixes;
-- not publish releases;
-- have appropriately narrow permissions.
+Normalize an optional leading `v`, validate the resulting shape, and pass it through the same idempotent tag verification.
 
-## 13. Build/artifact architecture
+A failed publication after a tag has already been pushed must recover the **same** intended tag. Do not rerun auto-increment logic and silently advance to another release version.
 
-Build artifacts should use `actions/upload-artifact@v7`.
-**Crucial constraint:** Always set `retention-days: 1` on every `actions/upload-artifact` step to prevent storage overages. Publish/promote jobs should consume artifacts immediately in the same workflow run.
+`publish-tag` is the immutable tag-context publication/recovery path. It must not calculate or move a version.
 
-## 14. Release-version planning
+Annotated tags must be dereferenced appropriately when verifying the commit.
 
-`git-tag-inc` MUST BE A FIRST-CLASS DEFAULT.
-Do not use shell arithmetic fallbacks for semantic versions. Use `arran4/git-tag-inc` as the authoritative version logic. Version arithmetic belongs in shared tooling, while repository-specific logic controls the release *policy* and transactional *safety*.
+## 24. Exactly one release owner
 
-The current `git-tag-inc-action` interpolates inputs directly into shell source and is currently unsuitable for untrusted/user-controlled values. You must use the safe pinned/checksum-verified CLI installation approach (e.g., `go install github.com/arran4/git-tag-inc/cmd/git-tag-inc@vX.Y.Z`) as the required production standard. Never use the unsafe action directly.
+For one tag, exactly one job or tool owns creation/publication of the GitHub Release.
 
-## 15. Tagging and release preparation
+- If GoReleaser publishes the GitHub Release, GoReleaser is the sole owner.
+- Otherwise one generic publisher owns it.
+- `release: published` is downstream state, not another release creator.
+- Do not create a second draft release merely to collect artifacts.
+- Do not hide duplicate release creation with `|| true`.
 
-Manual release validation gates:
-- verify request is on the authoritative release branch (e.g., `main` or `master`)
-- checkout full history/tags
-- run validation/tests
-- fetch current `origin/<authoritative-branch>`
-- verify `$GITHUB_SHA == origin/<authoritative-branch>`
-- calculate next tag using shared tooling
-- create/push immutable tag
-- explicitly dispatch publisher at that TAG REF using `GITHUB_TOKEN`
+The publisher consumes artifacts only after the release-validation aggregate succeeds.
 
-The permanent tag MUST come after validation gates. Use concurrency so two manual release requests cannot race.
+## 25. External tags and manual dispatch
 
-## 16. GitHub Release ownership
+Repositories may support human/external `v*` tag pushes as a direct publication path.
 
-FOR ONE TAG, EXACTLY ONE JOB OR TOOL OWNS CREATION/PUBLICATION OF THE GITHUB RELEASE. Do not surround it with multiple release creators, duplicate draft steps, or `|| true`. `release: published` is downstream/notification state, not another creation path. Never hide duplicate release creation with `|| true`.
+That tag-context run should validate whatever is required for publication and should not try to recalculate or move the tag.
 
-## 17. GoReleaser architecture
+For workflow-created tags, remember that events produced using ordinary `GITHUB_TOKEN` are subject to recursion suppression. Do not assume pushing a tag with `GITHUB_TOKEN` will start another workflow automatically. Either keep publication in the same workflow run or explicitly dispatch the tag-context publisher when the repository's design requires a separate run.
 
-If GoReleaser is used, GoReleaser is the *sole* release owner. Do not create a separate `softprops/action-gh-release` step.
+## 26. Generic orchestration skeleton
 
-## 18. Non-GoReleaser release architecture
-
-If not using GoReleaser, one generic publisher job uses `softprops/action-gh-release` or another appropriate single mechanism.
-
-## 19. Containers
-
-Docker build lanes should integrate securely, utilizing `.Env.GITHUB_REPOSITORY | tolower` in GoReleaser templates if dynamically injecting tags.
-
-If building containers outside of GoReleaser, use the standard `docker/build-push-action`.
+The skeleton is intentionally ecosystem-neutral. The generation agent replaces the comments with only the modules that the repository actually needs.
 
 ```yaml
-  docker-build:
-    name: Docker Build
-    needs: [route]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-      - name: Build and push (internal cache, no release)
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          push: false
-          load: true
-          tags: test-image:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-```
-
-## 20. Package/source-package publication
-
-Native packages (Debian, RPM, etc.) are generated as artifacts and gathered by the single release owner for distribution.
-
-Example artifact consumption:
-```yaml
-      - name: Collect artifacts
-        uses: actions/download-artifact@v8
-        with:
-          path: dist-release
-```
-
-
-## 21. Scheduled/monthly verification
-
-Maintained repositories should normally have a scheduled CI run even when there have been no recent pushes or pull requests. The purpose is to continuously prove that the checked-in project and its CI environment still work. A scheduled failure acts as a recurring signal that something has drifted or broken (e.g., tests, toolchains, GitHub Actions, dependency compatibility).
-
-The standard baseline schedule is the 2nd day of each month at 05:00 AEST, ignoring daylight-saving time (UTC `0 19 1 * *`). Private repositories default to this once-monthly verification; public repositories may run more frequently where requirements justify it.
-
-The scheduled run must execute real CI (e.g., tests, lint, build) and not just toggle a boolean. It should also test dependency freshness using the safest repository-appropriate model (e.g., isolated test or automation PR) without publishing releases.
-
-Agents should actively consider whether CI-specific helper files can be removed or folded into the main workflow or existing repository tooling to minimize support-file topology.
-
-## 22. Cleanup lifecycle
-
-Artifacts should expire quickly. Merge-closed events or scheduled logic should optionally clean up test branches.
-
-## 23. Recovery/idempotency and Manual Version Overrides
-
-`release_version_override` permits explicitly setting a new version instead of relying on the automated bump calculation. It must:
-- Normalize optional leading `v` prefixes and validate the resulting `vX.Y.Z...` shape.
-- Pass the validated override through the standard idempotent tagging path.
-
-To safely retry/recover a failed publication, the standard tagging path itself must be idempotent:
-- Check if the calculated or overridden tag already exists.
-- If it exists, verify it resolves to the exact validated `$GITHUB_SHA` (annotated tags dereferenced where necessary) before continuing.
-- Fail explicitly if it points to the wrong SHA.
-- Never silently move tags or calculate a new version during recovery. `publish-tag` is the tag-context publication/recovery path and must never calculate/move a version.
-
-## 24. Existing-workflow migration procedure
-
-When upgrading CI, inventory existing capabilities, remove duplicated workflows, and consolidate them into the canonical layout. Map existing behavior into the canonical architecture. Delete dead CI files. Do not leave dead/disabled copies behind.
-
-Crucially:
-- an existing useful scheduled verification path should be preserved and corrected to the canonical cadence where appropriate;
-- dead monthly/nightly routing outputs can be removed without deleting scheduled verification;
-- meaningless scheduled maintenance jobs can be replaced with ordinary validation plus applicable dependency-freshness checking;
-- existing unnecessary CI helper files should be candidates for consolidation/removal;
-- useful repository-native helper implementations should not be flattened merely to reduce a number.
-
-Explicitly prevent the failure mode: an agent seeing unused `is_monthly`/`is_nightly` state and deleting the schedules along with the dead state.
-
-## 25. Environment Variables and Shell Safety
-
-Never attempt to override GitHub's reserved `GITHUB_*` default environment variables. Use their documented semantics directly, or copy a value into a separately named custom variable when transformation/renaming is needed.
-
-Crucially:
-- `GITHUB_REF` = full ref (e.g., `refs/heads/main`, `refs/tags/v1.0.0`)
-- `GITHUB_REF_NAME` = short ref name (e.g., `main`, `v1.0.0`)
-- Branch verification and subsequent `git fetch`/`rev-parse` must refer to the same authoritative branch.
-
-Make this a general rule for user inputs as well. Never embed user-controlled workflow input directly into shell source like:
-
-```yaml
-    run: something "${{ inputs.foo }}"
-```
-
-when the value can contain shell syntax. Pass inputs through `env:` and consume them as properly quoted shell variables. Apply this to release versions, modes, refs, action arguments, filenames, etc. Explain that action authors need the same discipline.
-
-## 26. Action Version Policy
-
-Agents MUST verify current supported GitHub Action versions when generating/upgrading CI. Do not trust remembered major versions from model training. However, distinguish:
-- GitHub Action major references where following a supported major is intended;
-- release-critical external binaries/actions where a more precise pin is desirable.
-
-Avoid examples that imply stale major versions are forever canonical. Verify current major/version at generation time.
-
-## 27. Testability
-
-Generated release policy should be testable. When repository-specific helper code is necessary, tests should call the SAME helper production calls. Do not let test scripts reimplement the version/recovery algorithm.
-
-For release calculation/recovery tests, cover relevant cases such as:
-- normal stable patch/minor/major;
-- stable release after an RC;
-- RC continuation;
-- test continuation;
-- RC/test channel isolation;
-- malformed tag histories;
-- valid recovery;
-- missing recovery tag;
-- wrong-SHA recovery tag;
-- annotated tags where relevant;
-- shell-meta-character input;
-- dry-run/non-mutating behavior.
-
-Version arithmetic itself should be tested upstream in `git-tag-inc`; repository tests should focus on repository policy and integration.
-
-## 28. Anti-patterns
-
-DO NOT GENERATE:
-- deleting the baseline periodic schedule merely because old `is_monthly`/`is_nightly` or maintenance routing state is dead;
-- proliferating unnecessary CI-only helper files or moving tiny routing logic into bespoke support files when the main workflow or repository-native tooling is the clearer home;
-- multiple GitHub Release owners;
-- bespoke repository SemVer parsers when `git-tag-inc` can do the arithmetic;
-- fallback shell SemVer implementations;
-- tag creation before validation;
-- assuming `GITHUB_TOKEN` tag push automatically triggers another workflow;
-- `release: published` feeding back into publication;
-- broad workflow-global write permissions;
-- user-controlled `${{ inputs.* }}` injected directly into shell source;
-- blind recreation/movement of an existing release tag;
-- independent release logic duplicated between YAML and test scripts;
-- tests that reimplement production logic rather than invoking it;
-- ignored release errors via `|| true`;
-- keeping dead legacy workflow files;
-- a generic workflow that runs irrelevant language lanes;
-- a minimalist workflow that silently omits obvious repo capabilities;
-- dynamic runtime detection being used as an excuse not to tailor the generated YAML to the repository.
-
-## 29. Full coherent reference skeleton
-
-This is a comprehensive skeleton demonstrating the correct relationships. Note: Adjust jobs and steps to match the specific repo capabilities.
-
-```yaml
-# Canonical Reference workflow. For generating/updating CI, refer to:
+# Generated using:
 # https://arran4.github.io/blog/post/2026/043-canonical-github-actions-ci-cd-super-reference/
 
 name: CI/CD
@@ -656,403 +625,217 @@ name: CI/CD
 on:
   push:
     branches: [main, master]
-    tags: ['v*'] # Explicit v* only to avoid test-* pushes triggering release
+    tags: ['v*']
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review, closed]
+    types: [opened, synchronize, reopened, ready_for_review]
     branches: [main, master]
   workflow_dispatch:
     inputs:
       mode:
         type: choice
-        default: lint-fix
-        options: [lint-fix, build, release-major, release-minor, release-patch, release-test, release-rc, release-alpha, monthly-maintenance, publish-tag]
-      release_version_override:
-        type: string
-        default: ''
-      allow_prs:
-        type: boolean
-        default: true
+        required: true
+        default: build
+        options: [build]
   schedule:
     - cron: '0 19 1 * *'
-
-# Concurrency prevents duplicate manual releases from racing and cleans up outdated PR tests.
-# Crucially, release preparation should NOT cancel in progress to avoid aborting a cut tag.
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: ${{ !startsWith(github.event.inputs.mode, 'release-') }}
 
 permissions:
   contents: read
 
 jobs:
   route:
-    name: Route Event
     runs-on: ubuntu-latest
     outputs:
-      run_code_checks: ${{ steps.route.outputs.run_code_checks }}
-      run_build: ${{ steps.route.outputs.run_build }}
-      run_release: ${{ steps.route.outputs.run_release }}
-      run_autofix: ${{ steps.route.outputs.run_autofix }}
-      run_publisher: ${{ steps.route.outputs.run_publisher }}
-      run_maintenance: ${{ steps.route.outputs.run_maintenance }}
-      mode: ${{ steps.route.outputs.mode }}
+      validation: ${{ steps.route.outputs.validation }}
+      build: ${{ steps.route.outputs.build }}
+      publisher: ${{ steps.route.outputs.publisher }}
     steps:
       - id: route
+        shell: bash
         env:
           EVENT_NAME: ${{ github.event_name }}
-          INPUT_MODE: ${{ github.event.inputs.mode }}
           REF_TYPE: ${{ github.ref_type }}
-          GITHUB_REF: ${{ github.ref }}
+          INPUT_MODE: ${{ inputs.mode }}
         run: |
           set -euo pipefail
-          run_code_checks=true
-          run_build=true
-          run_release=false
-          run_autofix=false
-          run_publisher=false
-          run_maintenance=false
-          mode="build"
 
-          if [[ "$EVENT_NAME" == "pull_request" ]]; then
-            # PRs just validate
-            :
-          elif [[ "$EVENT_NAME" == "schedule" ]]; then
-            # Ensure scheduled verification executes actual validation
-            run_maintenance=true
-            run_code_checks=true
-            run_build=true
-            mode="monthly-maintenance"
-            # If the repository configures a separate schedule for autofix (e.g., '0 4 * * *'), explicitly distinguish it here rather than defaulting all unknown schedules to autofix.
-            # if [[ "${{ github.event.schedule }}" == "0 4 * * *" ]]; then
-            #    run_autofix=true
-            #    run_maintenance=false
-            #    mode="lint-fix"
-            # fi
-          elif [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
-            mode="${INPUT_MODE:-build}"
-            if [[ "$mode" == "lint-fix" ]]; then
-               run_autofix=true
-            elif [[ "$mode" == "publish-tag" ]]; then
-               # The internal explicit publish-tag dispatch mode
-               if [[ "$REF_TYPE" == "tag" && "$GITHUB_REF" == refs/tags/v* ]]; then
-                  run_code_checks=false
-                  run_build=false
-                  run_publisher=true
-               else
-                  echo "Error: publish-tag mode requires a v* tag context. Found: $GITHUB_REF" >&2
-                  sh -c "exit 1"
-               fi
-            elif [[ "$mode" == release-* ]]; then
-               run_release=true
-            elif [[ "$mode" == "monthly-maintenance" ]]; then
-               run_maintenance=true
-               run_code_checks=true
-               run_build=true
-            fi
-          elif [[ "$EVENT_NAME" == "push" && "$REF_TYPE" == "tag" && "$GITHUB_REF" == refs/tags/v* ]]; then
-             # Standard external v* push publication
-             run_publisher=true
-          fi
+          validation=false
+          build=false
+          publisher=false
 
-          echo "run_code_checks=$run_code_checks" >> "$GITHUB_OUTPUT"
-          echo "run_build=$run_build" >> "$GITHUB_OUTPUT"
-          echo "run_release=$run_release" >> "$GITHUB_OUTPUT"
-          echo "run_autofix=$run_autofix" >> "$GITHUB_OUTPUT"
-          echo "run_publisher=$run_publisher" >> "$GITHUB_OUTPUT"
-          echo "run_maintenance=$run_maintenance" >> "$GITHUB_OUTPUT"
-          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          case "$EVENT_NAME" in
+            pull_request)
+              validation=true
+              build=true
+              ;;
+            push)
+              if [[ "$REF_TYPE" == "tag" ]]; then
+                validation=true
+                build=true
+                publisher=true
+              else
+                validation=true
+                build=true
+              fi
+              ;;
+            schedule)
+              validation=true
+              build=true
+              ;;
+            workflow_dispatch)
+              case "$INPUT_MODE" in
+                build)
+                  validation=true
+                  build=true
+                  ;;
+                *)
+                  echo "Unsupported manual mode: $INPUT_MODE" >&2
+                  exit 1
+                  ;;
+              esac
+              ;;
+          esac
+
+          echo "validation=$validation" >> "$GITHUB_OUTPUT"
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+          echo "publisher=$publisher" >> "$GITHUB_OUTPUT"
 
   validation:
-    name: Validation & Tests
     needs: [route]
-    if: ${{ needs.route.outputs.run_code_checks == 'true' }}
+    if: ${{ needs.route.outputs.validation == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
-        with:
-          go-version-file: go.mod
-      - run: go test ./...
-
-  maintenance:
-    name: Monthly Maintenance (Dependency Freshness)
-    needs: [route]
-    if: ${{ needs.route.outputs.run_maintenance == 'true' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
-        with:
-          go-version-file: go.mod
-      # Dependency update mechanics are ecosystem/repository-specific.
-      # E.g., for Go:
-      - run: go get -u ./... && go mod tidy
-      - name: Create Pull Request
-        if: ${{ github.event_name == 'schedule' || inputs.allow_prs != false }}
-        uses: peter-evans/create-pull-request@v7
-        with:
-          commit-message: "chore: monthly dependency update"
-          title: "chore: monthly dependency update"
-          branch: automation/maintenance
-          delete-branch: true
-
-  autofix:
-    name: Autofix Formatting
-    needs: [route]
-    if: ${{ needs.route.outputs.run_autofix == 'true' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
-        with:
-          go-version-file: go.mod
-      - run: go fmt ./...
-      - run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
-      - run: golangci-lint run --fix
-      - name: Create Pull Request
-        if: ${{ github.event_name == 'schedule' || inputs.allow_prs != false }}
-        uses: peter-evans/create-pull-request@v7
-        with:
-          commit-message: "style: auto-format code and lint fixes"
-          title: "style: auto-format code and lint fixes"
-          branch: automation/lint-fix
-          delete-branch: true
+      # Repository-specific validation modules go here.
 
   build:
-    name: Build Artifacts
     needs: [route, validation]
-    if: ${{ always() && needs.route.outputs.run_build == 'true' && (needs.validation.result == 'success' || needs.validation.result == 'skipped') }}
+    if: ${{ needs.route.outputs.build == 'true' && needs.validation.result == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
-        with:
-          go-version-file: go.mod
-      - run: go build -o myapp ./cmd/myapp
-      - uses: actions/upload-artifact@v7
-        with:
-          name: built-binary
-          path: myapp
-          retention-days: 1
+      # Repository-specific build/artifact modules go here.
 
   release-ready:
-    name: Release Quality Gates Passed
     needs: [route, validation, build]
-    if: always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
+    if: ${{ always() && needs.route.outputs.publisher == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - run: echo "All release quality gates passed."
-
-  prepare-release-tag:
-    name: Prepare Release Tag
-    needs: [route, release-ready]
-    if: ${{ needs.route.outputs.run_release == 'true' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      actions: write
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-go@v7
-        with:
-          go-version-file: go.mod
-          # If no go.mod exists, specify a current major version instead
-      - name: Install git-tag-inc
-        run: go install github.com/arran4/git-tag-inc/cmd/git-tag-inc@v1.0.0
-      - name: Verify Exact Origin Branch
-        run: |
-          set -euo pipefail
-
-          # Safely extract the branch name from GITHUB_REF (e.g., refs/heads/main -> main)
-          AUTHORITATIVE_BRANCH="${GITHUB_REF#refs/heads/}"
-
-          if [[ "$AUTHORITATIVE_BRANCH" != "main" && "$AUTHORITATIVE_BRANCH" != "master" ]]; then
-            echo "Error: Manual release preparation must run on main or master, got $AUTHORITATIVE_BRANCH"
-            sh -c "exit 1"
-          fi
-
-          # Explicitly export so subsequent steps can use it for race guards
-          echo "AUTHORITATIVE_BRANCH=$AUTHORITATIVE_BRANCH" >> "$GITHUB_ENV"
-
-          git fetch origin "$AUTHORITATIVE_BRANCH"
-          ORIGIN_SHA=$(git rev-parse "origin/$AUTHORITATIVE_BRANCH")
-          if [[ "$ORIGIN_SHA" != "$GITHUB_SHA" ]]; then
-            echo "Error: Requested release against $GITHUB_SHA but origin/$AUTHORITATIVE_BRANCH is at $ORIGIN_SHA"
-            sh -c "exit 1"
-          fi
-      - name: Calculate or explicitly set version
+      - name: Require release gates
         env:
-          RELEASE_MODE: ${{ inputs.mode }}
-          RELEASE_VERSION_OVERRIDE: ${{ inputs.release_version_override }}
+          VALIDATION_RESULT: ${{ needs.validation.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
         run: |
           set -euo pipefail
-          export PATH="$(go env GOPATH)/bin:$PATH"
-          if [[ -n "$RELEASE_VERSION_OVERRIDE" ]]; then
-             # Normalize optional leading v
-             TAG="${RELEASE_VERSION_OVERRIDE#v}"
-             TAG="v${TAG}"
-             echo "Using manual version override: $TAG"
-             # Validate shape
-             if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
-                echo "Error: Override $TAG is not a valid release tag shape."
-                sh -c "exit 1"
-             fi
-          else
-             echo "Using arran4/git-tag-inc..."
-             # Use git-tag-inc safe version calculation
-             case "$RELEASE_MODE" in
-               release-major) level="major"; suffix="" ;;
-               release-minor) level="minor"; suffix="" ;;
-               release-patch) level="patch"; suffix="" ;;
-               release-test)  level="patch"; suffix="test" ;;
-               release-rc)    level="patch"; suffix="rc" ;;
-               release-alpha) level="patch"; suffix="alpha" ;;
-               *) echo "Unsupported release mode: $RELEASE_MODE" >&2; sh -c "exit 1" ;;
-             esac
-             args=(--print-version-only "$level")
-             [[ -n "$suffix" ]] && args+=("$suffix")
-             TAG="$(git-tag-inc "${args[@]}")"
-          fi
-          echo "Calculated TAG=$TAG"
-          echo "TAG=$TAG" >> "$GITHUB_ENV"
-      - name: Tag and push (Idempotent)
-        run: |
-          set -euo pipefail
-          # Check remote state for idempotency/retry
-          REMOTE_SHA=$(git ls-remote --tags origin "refs/tags/$TAG" | grep -v '{}$' | awk '{print $1}' || true)
-          # Also check peeled annotated tag if it exists
-          PEELED_SHA=$(git ls-remote --tags origin "refs/tags/$TAG^{}" | awk '{print $1}' || true)
-          if [[ -n "$PEELED_SHA" ]]; then
-              REMOTE_SHA="$PEELED_SHA"
-          fi
-
-          if [[ -n "$REMOTE_SHA" ]]; then
-             if [[ "$REMOTE_SHA" == "$GITHUB_SHA" ]]; then
-                echo "Tag $TAG already exists on origin and points to correct SHA ($GITHUB_SHA). Safely retrying publish."
-             else
-                echo "Error: Tag $TAG already exists on origin but points to $REMOTE_SHA, not expected $GITHUB_SHA."
-                sh -c "exit 1"
-             fi
-          else
-             # Final race guard: verify origin/$AUTHORITATIVE_BRANCH is STILL exactly GITHUB_SHA right before tagging
-             git fetch origin "$AUTHORITATIVE_BRANCH"
-             CURRENT_ORIGIN_SHA=$(git rev-parse "origin/$AUTHORITATIVE_BRANCH")
-             if [[ "$CURRENT_ORIGIN_SHA" != "$GITHUB_SHA" ]]; then
-                echo "Race condition: origin/$AUTHORITATIVE_BRANCH advanced to $CURRENT_ORIGIN_SHA before tagging"
-                sh -c "exit 1"
-             fi
-
-             # If local tag exists but wasn't pushed, delete to recreate fresh
-             git tag -d "$TAG" 2>/dev/null || true
-
-             # Create and push the tag
-             git tag "$TAG"
-             git push origin "$TAG" || {
-                # Race safe remote verification
-                REMOTE_SHA=$(git ls-remote --tags origin "$TAG" | awk '{print $1}')
-                if [[ "$REMOTE_SHA" != "$GITHUB_SHA" ]]; then
-                   echo "Race condition: tag pushed remotely with different SHA ($REMOTE_SHA)"
-                   sh -c "exit 1"
-                fi
-             }
-          fi
-      - name: Dispatch Publisher
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh workflow run ci.yml --ref "$TAG" -f mode=publish-tag
+          [[ "$VALIDATION_RESULT" == "success" ]]
+          [[ "$BUILD_RESULT" == "success" ]]
 
   publisher:
-    name: Release Publisher
     needs: [route, release-ready]
-    if: ${{ needs.route.outputs.run_publisher == 'true' }}
+    if: ${{ needs.route.outputs.publisher == 'true' && needs.release-ready.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-go@v7
-        with:
-          go-version-file: go.mod
-      - name: Determine GoReleaser Args
-        id: args
-        env:
-          GITHUB_REF: ${{ github.ref }}
-        run: |
-          set -euo pipefail
-          if [[ "$GITHUB_REF" == refs/tags/*-test* || "$GITHUB_REF" == refs/tags/test-* ]]; then
-             echo "args=release --snapshot --clean" >> "$GITHUB_OUTPUT"
-          else
-             echo "args=release --clean" >> "$GITHUB_OUTPUT"
-          fi
-      - name: Run GoReleaser (Sole Release Owner)
-        uses: goreleaser/goreleaser-action@v7
-        with:
-          distribution: goreleaser
-          version: latest
-          args: ${{ steps.args.outputs.args }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Exactly one repository-specific publisher goes here.
 ```
 
-## 30. Generation acceptance checklist
+For a versioned repository, extend `workflow_dispatch` with only the release/prerelease/recovery modes it actually supports. For a non-release library or configuration repository, do not add release controls merely because the larger reference discusses them.
 
-Before opening a CI PR, ensure:
-- repository inspected before generation;
-- maintained repositories normally have periodic CI verification;
-- private repositories use the monthly baseline;
-- public repositories may run more frequently when justified;
-- canonical monthly timing is `0 19 1 * *` (2nd at 05:00 AEST, ignoring DST);
-- scheduled runs execute meaningful normal validation/build work;
-- scheduled failures are intentionally useful health/drift signals;
-- schedules cannot release;
-- dependency freshness is tested where applicable (mechanics are ecosystem-specific);
-- checked-in dependency verification and latest-dependency compatibility are conceptually distinct;
-- CI simplification considers support-file count and avoids unnecessary helper files;
-- remaining helper code fits the project's normal language/structure/style;
-- existing release safety remains intact;
-- selected capability matrix documented;
-- obsolete workflows removed;
-- event routes mutually coherent;
-- PR checks visible;
-- no accidental duplicate push/PR work beyond intended behavior;
-- permissions minimized;
-- user inputs safely passed via environment variables;
-- tests/lint/build selected correctly;
-- release validation happens before permanent tag;
-- manual release only operates against the correct authoritative branch;
-- release concurrency protects tag calculation;
-- shared `git-tag-inc` used rather than local SemVer arithmetic;
-- recovery is exact-tag/exact-SHA;
-- exactly one release publisher exists;
-- GoReleaser ownership is not duplicated;
-- test/snapshot/prerelease semantics are correct;
-- external human-created `v*` tag publication still behaves as intended where supported;
-- validate the actual `Run workflow` UX and routing, not just the presence of `workflow_dispatch:`;
-- if manual dispatch genuinely has no practical role, a documented capability-based exception exists;
-- intended manual inputs exist;
-- at least one ordinary manual mode, such as build, actually routes to useful validation/build jobs;
-- applicable manual release modes route to their validation/preparation jobs;
-- no `if:` expression makes the manual route dead;
-- consolidation did not remove the repository’s “Run workflow” capability;
-- scheduled jobs cannot release;
-- CI syntax validated;
-- repository-native tests pass;
-- generated workflow carries the canonical article pointer;
-- PR description explains any deviations/exceptions.
+PR cancellation, release serialization, generation checks, integration matrices and artifact smoke jobs are added from the applicable capability sections rather than embedded into every generated skeleton.
 
-## 31. Migration notes from the superseded posts
+## 27. Existing-workflow migration procedure
 
-- **028 (Breadth):** The comprehensive capability lane structures were recovered from 028 to prevent agents from creating underspecified CI.
-- **041/042 (Release Safety):** The exact tag recovery, exact-SHA matching, manual explicit dispatch at tag ref, and single-owner release rules were carried forward unchanged.
-- **git-tag-inc:** Semantic versioning must reside in `arran4/git-tag-inc` or `arran4/git-tag-inc-action` rather than fallback inline awk/sed scripts.
+When modernising an existing repository:
+
+1. inventory every workflow and job;
+2. inventory project capabilities and declared support;
+3. identify generated content, examples and their source of truth;
+4. identify unit/integration/E2E/system tests;
+5. identify duplicate triggers and validation;
+6. identify every release owner;
+7. design the target single-file dependency graph;
+8. map useful existing behavior into that graph;
+9. fold compatible workflow files into the central workflow;
+10. retain only concretely justified separate workflows;
+11. delete superseded/dead workflow files;
+12. validate generated outputs and generated examples;
+13. validate workflow YAML;
+14. verify every manual mode reaches useful work;
+15. verify scheduled paths perform useful work and cannot release;
+16. verify artifact smoke checks and release gates;
+17. document remaining exceptions and newly introduced external CI dependencies.
+
+This is a semantic migration, not a YAML rearrangement.
+
+## 28. Anti-patterns
+
+Do not generate:
+
+- feature-branch `push` plus PR validation that runs the same commit twice without a reason;
+- `pull_request: closed` rerunning the normal validation graph after a merge push;
+- a broad concurrency rule that cancels main/tag/release runs;
+- multiple GitHub Release owners;
+- tag creation before release validation;
+- release recovery that silently calculates a newer version;
+- assumptions that a `GITHUB_TOKEN` tag push automatically triggers another workflow;
+- `release: published` feeding back into publication;
+- broad workflow-global write permissions for convenience;
+- reserved `GITHUB_*` variables redefined in `env:`;
+- user-controlled `${{ inputs.* }}` inserted directly into shell source;
+- unnecessary new external Actions dependencies without PR documentation;
+- heavyweight security lanes in repositories that have not selected that risk posture;
+- generator drift checks without validating the generated artifact;
+- normal CI which silently rewrites/commits generated expectations;
+- separate compatibility workflows that could be ordinary jobs in the main graph;
+- runtime discovery of repository structure that the generation agent already knew;
+- irrelevant platform/language jobs copied from a generic template;
+- a minimalist workflow that silently omits an obvious repository capability;
+- dead legacy workflow files left beside the new workflow;
+- tiny CI helper scripts whose only purpose is to move understandable YAML elsewhere.
+
+## 29. Generation acceptance checklist
+
+Before opening a CI PR, verify:
+
+- repository capabilities were discovered at generation time;
+- the resulting workflow is bespoke rather than runtime-generic;
+- one central workflow is used unless each exception is explained;
+- obsolete workflow files are removed;
+- default-branch pushes run;
+- PR opening and PR updates run without duplicate feature-branch push validation;
+- tag publication runs only for eligible tags;
+- `pull_request: closed` is absent unless it has a concrete cheap lifecycle job;
+- scheduled verification performs meaningful work and cannot release;
+- manual inputs all route to useful jobs;
+- irrelevant events/jobs exit cheaply;
+- concurrency cancels only genuinely superseded/conflicting work;
+- permissions are minimal;
+- newly introduced external CI dependencies are listed and justified;
+- reserved GitHub environment variables are not overridden;
+- user input crosses into shell safely;
+- generated committed output is regenerated and drift-checked where applicable;
+- generated artifacts/examples are independently validated;
+- examples/sample configuration are exercised where practical;
+- unit/integration/E2E layers match the project rather than a generic template;
+- compatibility matrices correspond to real support claims;
+- workflows themselves are validated where appropriate;
+- release artifacts are smoke-tested where applicable;
+- release validation precedes permanent tagging;
+- the authoritative branch SHA is checked before tag creation;
+- release recovery is exact-tag/exact-SHA;
+- exactly one publisher exists;
+- GoReleaser publication is not duplicated;
+- external/human-created eligible tags behave as intended where supported;
+- repository-native tests and documentation/site checks pass.
+
+## 30. Migration notes from superseded guidance
+
+The earlier posts remain useful as historical rationale, but their strongest applicable rules are incorporated here:
+
+- broad project-type coverage remains available as selectable modules rather than one giant generic workflow;
+- the release-safe single-owner and exact-tag recovery rules remain mandatory;
+- the one-file target is restored as the normative architecture rather than merely "fewest files";
+- periodic verification remains a baseline for maintained repositories;
+- repository-specific behavior is discovered by the generation agent and encoded explicitly rather than rediscovered at runtime.
