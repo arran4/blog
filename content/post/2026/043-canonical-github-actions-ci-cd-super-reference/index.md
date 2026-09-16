@@ -6,13 +6,15 @@ tags: ["github-actions", "ci", "cd", "release", "automation", "goreleaser", "can
 categories: ["devops", "reference", "automation"]
 ---
 
-<!-- cspell:words actionlint AppImage Buildx GOPATH GoReleaser jurplel mvcommon myapp nFPM prerelease qmake semver stefanzweifel todate TXTAR zizmor -->
+<!-- cspell:words actionlint AppImage Buildx DBUILD Dockerfiles GOPATH GoReleaser jurplel mvcommon myapp nFPM prerelease qmake semver stefanzweifel todate TXTAR typecheck zizmor -->
 
 This is the canonical GitHub Actions CI/CD generation reference.
 
 It supersedes `006`, `011`, `028`, `041` and `042` where they conflict. Older posts remain useful as rationale, but an agent should normally need only this article plus the target repository to create or modernise its CI.
 
 The goal is consistency without generic bloat: the agent discovers what the repository actually contains, selects the applicable capabilities here, and writes a bespoke workflow that already knows what it is responsible for. The checked-in workflow should not rediscover the project on every run.
+
+The examples in this article are not merely illustrative. Where a repository selects a capability described by a canonical module, the generated workflow should normally preserve that module's dependency shape, safety properties, permissions and event semantics while substituting repository-specific commands and names. This is how different agents should arrive at recognisably consistent workflows without copying irrelevant jobs into every repository.
 
 ## 1. Purpose and design objective
 
@@ -24,7 +26,8 @@ A generated workflow should be:
 - **repository-specific:** include only languages, platforms, generators, services, packaging and release mechanisms that exist in the repository;
 - **release-safe:** validation precedes permanent tagging and publication;
 - **self-verifying:** generated files, examples, workflows and built release artifacts are checked when those capabilities exist;
-- **maintainable:** avoid unnecessary helper files and duplicated policy.
+- **maintainable:** avoid unnecessary helper files and duplicated policy;
+- **predictable:** selected capabilities use the canonical module shapes below unless the repository has a concrete reason to differ.
 
 The canonical shape is a specification for generation, not a universal workflow to paste unchanged into every project.
 
@@ -102,6 +105,8 @@ Classify discovered capabilities before writing jobs:
 - **Exception requiring explanation:** additional workflow files, bespoke version arithmetic, unusual release ownership, or unusually broad permissions.
 
 Do not add a lane merely because this article contains an example. Do not omit an obvious lane merely to keep YAML short.
+
+After capability selection, use the canonical modules in this article as the default implementation vocabulary. A repository may change commands, matrices and package names, but should not casually invent a different routing/release topology for a capability that already has a canonical shape here.
 
 ## 5. Trigger model: run when information changes, avoid duplicate runs
 
@@ -184,7 +189,17 @@ Good default uses:
 
 Avoid one broad workflow-level concurrency group that accidentally cancels tag publication, main-branch validation or manual release work.
 
-If using workflow-level PR cancellation, make non-PR runs unique rather than placing unrelated events into one shared group. Release-critical jobs may instead use their own job-level concurrency group with `cancel-in-progress: false`.
+If the repository wants PR supersession cancellation, the canonical workflow-level form is:
+
+```yaml
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('{0}-pr-{1}', github.workflow, github.event.pull_request.number) || format('{0}-run-{1}', github.workflow, github.run_id) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+```
+
+This deliberately gives every non-PR run a unique group while grouping all attempts for one PR together.
+
+Release preparation uses its own non-cancelling serialization module later in this article.
 
 ## 8. Permissions, dependencies and security posture
 
@@ -324,6 +339,30 @@ For Go, `go generate ./...` followed by a clean-tree check is a common implement
 
 Normal CI must not silently accept and commit regenerated output. An optional automation lane may regenerate and open a focused PR, but that does not replace the validation check.
 
+Canonical Go generation job:
+
+```yaml
+  generated-go:
+    name: Generated Go Is Current
+    needs: [route]
+    if: ${{ needs.route.outputs.validation == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: Regenerate
+        run: go generate ./...
+      - name: Require clean generated output
+        run: |
+          set -euo pipefail
+          git status --short
+          git diff --exit-code
+```
+
+If the repository has a narrower deterministic generator, replace only the `Regenerate` command; keep the clean-tree assertion.
+
 ## 13. Validate generated artifacts, not only drift
 
 "Up to date" and "valid" are separate assertions.
@@ -337,6 +376,30 @@ After regeneration and drift checking, validate the generated artifact with the 
 - generated man pages/docs -> regenerate -> perform the repository's structural/build validation.
 
 Generated workflow examples are particularly important: a generator can deterministically reproduce invalid YAML. Drift checking alone will not detect that.
+
+Canonical generated-workflow job shape:
+
+```yaml
+  generated-workflows:
+    name: Generated Workflows Are Current And Valid
+    needs: [route]
+    if: ${{ needs.route.outputs.validation == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # Add the repository-specific toolchain/setup required by the generator.
+      - name: Regenerate workflow examples
+        run: ./path/to/repository-generator
+      - name: Require clean generated examples
+        run: |
+          set -euo pipefail
+          git status --short
+          git diff --exit-code -- examples/
+      - name: Validate generated workflows
+        run: go run github.com/rhysd/actionlint/cmd/actionlint@latest examples/.github/workflows/*
+```
+
+`actionlint` is an external dependency. If it is newly introduced to a repository, list and justify it in the CI PR as required by the dependency-provenance rule.
 
 ## 14. Runnable examples and documentation smoke tests
 
@@ -353,59 +416,127 @@ Where practical:
 
 Do not execute examples with destructive or external side effects merely for coverage.
 
+A normal example job should be explicit rather than discovering example types at runtime:
+
+```yaml
+  examples:
+    name: Examples
+    needs: [route]
+    if: ${{ needs.route.outputs.validation == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # Add only the setup the checked-in examples actually require.
+      - name: Build examples
+        run: ./repository-specific-example-build
+      - name: Smoke representative example
+        run: ./repository-specific-example-smoke
+```
+
 ## 15. Language and ecosystem modules
 
-These are selectable modules, not mandatory blocks.
+These are selectable modules, not mandatory blocks. Prefer full jobs with stable names and dependency edges rather than scattering language setup across unrelated jobs.
 
 ### Go
 
-Typical checks:
+Canonical baseline:
 
 ```yaml
-- uses: actions/setup-go@v7
-  with:
-    go-version-file: go.mod
-- run: go test ./...
-- run: go vet ./...
+  go-test:
+    name: Go Test
+    needs: [route]
+    if: ${{ needs.route.outputs.validation == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - run: go test ./...
+      - run: go vet ./...
 ```
 
 Use `gofmt`/`golangci-lint` where the repository already uses them or where adding them is justified. Test minimum supported Go versions when the project makes such a compatibility claim.
 
-### Node / JavaScript / TypeScript
-
-Typical checks:
+A cross-platform compatibility job should remain separate from the fast ordinary Go validation job:
 
 ```yaml
-- uses: actions/setup-node@v7
-  with:
-    node-version: '20'
-    cache: npm
-- run: npm ci
-- run: npm test
+  go-compat:
+    name: Go Compatibility (${{ matrix.os }})
+    needs: [route]
+    if: ${{ needs.route.outputs.validation == 'true' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - run: go test ./...
+```
+
+Only select this matrix when cross-platform support is actually claimed.
+
+### Node / JavaScript / TypeScript
+
+Canonical baseline:
+
+```yaml
+  node-test:
+    name: Node Test
+    needs: [route]
+    if: ${{ needs.route.outputs.validation == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npm test
 ```
 
 Add the repository's actual lint/typecheck/build commands (`eslint`, `prettier`, `tsc`, bundling) rather than assuming names.
 
 ### Dart / Flutter
 
-Typical validation:
+Canonical validation shape:
 
 ```yaml
-- run: flutter pub get
-- run: dart analyze
-- run: flutter test
+  flutter-test:
+    name: Flutter Test
+    needs: [route]
+    if: ${{ needs.route.outputs.validation == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # Use the repository's established Flutter setup action/tooling.
+      - run: flutter pub get
+      - run: dart analyze
+      - run: flutter test
 ```
 
 Desktop applications may require platform-specific Linux/Windows/macOS build jobs. Only add those platforms when the project claims or releases support for them.
 
 ### C / C++ / CMake / Qt / KDE
 
-Use the repository's actual CMake/qmake/Ninja conventions. A representative CMake shape is:
+Canonical CMake shape:
 
 ```yaml
-- run: cmake -S . -B build -DBUILD_TESTING=ON
-- run: cmake --build build --parallel
-- run: ctest --test-dir build --output-on-failure
+  cmake-test:
+    name: CMake Build And Test
+    needs: [route]
+    if: ${{ needs.route.outputs.validation == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: cmake -S . -B build -DBUILD_TESTING=ON
+      - run: cmake --build build --parallel
+      - run: ctest --test-dir build --output-on-failure
 ```
 
 Qt/KDE projects may require additional package installation or an existing project bootstrap/container. Preserve those project-native environment contracts rather than replacing them with a generic Qt action if that loses necessary dependencies.
@@ -414,9 +545,47 @@ Qt/KDE projects may require additional package installation or an existing proje
 
 Build containers when the repository actually ships or relies on them. Prefer a build-and-smoke path before publication. If GoReleaser owns the image, do not add a second image publisher for the same tags.
 
+A dependency-light container smoke module is:
+
+```yaml
+  container-smoke:
+    name: Container Build And Smoke
+    needs: [route]
+    if: ${{ needs.route.outputs.build == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build image
+        run: docker build -t ci-image:local .
+      - name: Smoke image
+        run: docker run --rm ci-image:local --version
+```
+
+Replace `--version` with the repository's cheapest meaningful container smoke command.
+
 ### Native/package-manager packaging
 
 Debian, RPM, Flatpak, AppImage, Gentoo metadata or other packaging is selected only when the project supports it. Package builds should be treated as artifacts that can themselves need smoke/install validation.
+
+Use a stable artifact handoff shape:
+
+```yaml
+  package:
+    name: Package
+    needs: [route, validation]
+    if: ${{ needs.route.outputs.build == 'true' && needs.validation.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build repository packages
+        run: ./repository-specific-package-command
+      - uses: actions/upload-artifact@v7
+        with:
+          name: packages
+          path: dist/**
+          if-no-files-found: error
+          retention-days: 1
+```
 
 ## 16. Compatibility matrices are evidence-driven
 
@@ -454,11 +623,58 @@ A MySQL/MariaDB/PostgreSQL/version compatibility check is normally a job/matrix 
 
 Keep CI credentials ephemeral and local where possible. Do not expose production secrets to untrusted pull-request code.
 
+Canonical service-container shape:
+
+```yaml
+  integration-db:
+    name: Database Integration
+    needs: [route]
+    if: ${{ needs.route.outputs.validation == 'true' }}
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: repository-required-database-image
+        env:
+          DATABASE_NAME: test
+          DATABASE_USER: test
+          DATABASE_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "repository-specific-health-command"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: repository-specific-local-test-url
+    steps:
+      - uses: actions/checkout@v7
+      # Add only the repository's language/toolchain setup.
+      - run: ./repository-specific-integration-test-command
+```
+
+When multiple supported engines or versions matter, convert the image/version into a matrix rather than cloning the job into separate workflow files.
+
 ## 18. Workflow validation
 
 GitHub Actions YAML is code.
 
 Where viable, repositories containing Actions workflows should run `actionlint`, particularly when workflows are generated or heavily templated.
+
+Canonical job:
+
+```yaml
+  workflow-validation:
+    name: Validate GitHub Actions
+    needs: [route]
+    if: ${{ needs.route.outputs.validation == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: go run github.com/rhysd/actionlint/cmd/actionlint@latest
+```
+
+If `actionlint` is newly introduced, document it as an external CI dependency.
 
 When the repository's security posture warrants it, also consider:
 
@@ -501,6 +717,59 @@ Scheduled verification should run meaningful normal validation and optionally re
 
 Do not add a nightly job merely because an old template had one.
 
+Canonical autofix shape:
+
+```yaml
+  autofix:
+    name: Autofix
+    needs: [route]
+    if: ${{ needs.route.outputs.autofix == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+      # Add repository-specific setup.
+      - name: Apply deterministic fixes
+        run: ./repository-specific-autofix-command
+      - name: Detect changes
+        id: changes
+        run: |
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git diff --check
+          fi
+      - name: Open focused autofix PR
+        if: ${{ steps.changes.outputs.changed == 'true' }}
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "style: automated fixes"
+          title: "style: automated fixes"
+          branch: automation/autofix
+          delete-branch: true
+```
+
+`peter-evans/create-pull-request` is an external action. Reuse it where already established; if newly introduced, list and justify it in the PR. A repository that deliberately avoids this dependency may implement the same focused-PR contract with its existing repository-native automation.
+
+Canonical monthly-maintenance shape:
+
+```yaml
+  maintenance:
+    name: Monthly Maintenance
+    needs: [route]
+    if: ${{ needs.route.outputs.maintenance == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # Run the repository's normal validation/freshness checks here.
+      - run: ./repository-specific-freshness-check
+```
+
+Do not give maintenance write permissions unless it actually creates or mutates repository state.
+
 ## 20. Build artifacts and smoke verification
 
 Build jobs should produce the artifacts that the project actually promises.
@@ -519,6 +788,42 @@ Before publication, test actual candidate artifacts where relevant:
 - confirm platform/architecture artifacts match their names and targets.
 
 Source tests do not prove a release artifact works after packaging, linking or metadata injection.
+
+Canonical build/artifact/smoke chain:
+
+```yaml
+  build:
+    name: Build Artifacts
+    needs: [route, validation]
+    if: ${{ needs.route.outputs.build == 'true' && needs.validation.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # Add repository-specific setup.
+      - name: Build candidate artifacts
+        run: ./repository-specific-build-command
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-candidates
+          path: dist/**
+          if-no-files-found: error
+          retention-days: 1
+
+  artifact-smoke:
+    name: Smoke Candidate Artifacts
+    needs: [route, build]
+    if: ${{ needs.route.outputs.build == 'true' && needs.build.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: release-candidates
+          path: release-candidates
+      - name: Smoke candidate artifacts
+        run: ./repository-specific-artifact-smoke-command release-candidates
+```
+
+The smoke command must test the built artifact, not rebuild the project from source.
 
 ## 21. Release version planning
 
@@ -614,7 +919,7 @@ For workflow-created tags, remember that events produced using ordinary `GITHUB_
 
 ## 26. Generic orchestration skeleton
 
-The skeleton is intentionally ecosystem-neutral. The generation agent replaces the comments with only the modules that the repository actually needs.
+The skeleton is intentionally ecosystem-neutral. The generation agent replaces the comments with only the modules that the repository actually needs. It is a wiring template; the canonical modules in the next section provide the implementation details that should be composed into it.
 
 ```yaml
 # Generated using:
@@ -648,7 +953,10 @@ jobs:
     outputs:
       validation: ${{ steps.route.outputs.validation }}
       build: ${{ steps.route.outputs.build }}
+      release: ${{ steps.route.outputs.release }}
       publisher: ${{ steps.route.outputs.publisher }}
+      autofix: ${{ steps.route.outputs.autofix }}
+      maintenance: ${{ steps.route.outputs.maintenance }}
     steps:
       - id: route
         shell: bash
@@ -661,7 +969,10 @@ jobs:
 
           validation=false
           build=false
+          release=false
           publisher=false
+          autofix=false
+          maintenance=false
 
           case "$EVENT_NAME" in
             pull_request)
@@ -669,18 +980,16 @@ jobs:
               build=true
               ;;
             push)
+              validation=true
+              build=true
               if [[ "$REF_TYPE" == "tag" ]]; then
-                validation=true
-                build=true
                 publisher=true
-              else
-                validation=true
-                build=true
               fi
               ;;
             schedule)
               validation=true
               build=true
+              maintenance=true
               ;;
             workflow_dispatch)
               case "$INPUT_MODE" in
@@ -698,54 +1007,433 @@ jobs:
 
           echo "validation=$validation" >> "$GITHUB_OUTPUT"
           echo "build=$build" >> "$GITHUB_OUTPUT"
+          echo "release=$release" >> "$GITHUB_OUTPUT"
           echo "publisher=$publisher" >> "$GITHUB_OUTPUT"
+          echo "autofix=$autofix" >> "$GITHUB_OUTPUT"
+          echo "maintenance=$maintenance" >> "$GITHUB_OUTPUT"
 
   validation:
+    name: Validation Aggregate
     needs: [route]
     if: ${{ needs.route.outputs.validation == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      # Repository-specific validation modules go here.
+      - run: echo "Replace this aggregate with the selected validation modules and their needs edges."
 
   build:
+    name: Build Aggregate
     needs: [route, validation]
     if: ${{ needs.route.outputs.build == 'true' && needs.validation.result == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      # Repository-specific build/artifact modules go here.
+      - run: echo "Replace this aggregate with the selected build/artifact modules."
+```
 
+Do not ship placeholder aggregate jobs in a generated repository. Replace them with the selected modules below and make aggregate `needs:` lists explicit.
+
+## 27. Canonical selectable modules
+
+The modules below restore the concrete implementation constraints which would otherwise be lost by using only an ecosystem-neutral skeleton. Select only the modules the repository needs, but once selected preserve their important semantics.
+
+### 27.1 Versioned repository dispatch and routing
+
+For a versioned repository using manual release preparation, replace the baseline `workflow_dispatch` inputs and router with this shape, deleting unsupported prerelease modes rather than leaving dead options:
+
+```yaml
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        required: true
+        default: build
+        options:
+          - build
+          - lint-fix
+          - monthly-maintenance
+          - release-major
+          - release-minor
+          - release-patch
+          - release-test
+          - release-rc
+          - release-alpha
+          - publish-tag
+      release_version_override:
+        type: string
+        required: false
+        default: ''
+      allow_prs:
+        type: boolean
+        required: false
+        default: true
+```
+
+Router:
+
+```yaml
+  route:
+    name: Route Event
+    runs-on: ubuntu-latest
+    outputs:
+      validation: ${{ steps.route.outputs.validation }}
+      build: ${{ steps.route.outputs.build }}
+      release: ${{ steps.route.outputs.release }}
+      publisher: ${{ steps.route.outputs.publisher }}
+      autofix: ${{ steps.route.outputs.autofix }}
+      maintenance: ${{ steps.route.outputs.maintenance }}
+    steps:
+      - id: route
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          INPUT_MODE: ${{ inputs.mode }}
+        run: |
+          set -euo pipefail
+
+          validation=false
+          build=false
+          release=false
+          publisher=false
+          autofix=false
+          maintenance=false
+
+          case "$EVENT_NAME" in
+            pull_request)
+              validation=true
+              build=true
+              ;;
+            push)
+              validation=true
+              build=true
+              if [[ "$REF_TYPE" == "tag" ]]; then
+                publisher=true
+              fi
+              ;;
+            schedule)
+              validation=true
+              build=true
+              maintenance=true
+              ;;
+            workflow_dispatch)
+              case "$INPUT_MODE" in
+                build)
+                  validation=true
+                  build=true
+                  ;;
+                lint-fix)
+                  autofix=true
+                  ;;
+                monthly-maintenance)
+                  validation=true
+                  build=true
+                  maintenance=true
+                  ;;
+                release-major|release-minor|release-patch|release-test|release-rc|release-alpha)
+                  validation=true
+                  build=true
+                  release=true
+                  ;;
+                publish-tag)
+                  if [[ "$REF_TYPE" != "tag" || "$GITHUB_REF" != refs/tags/v* ]]; then
+                    echo "publish-tag requires a v* tag ref; got $GITHUB_REF" >&2
+                    exit 1
+                  fi
+                  validation=true
+                  build=true
+                  publisher=true
+                  ;;
+                *)
+                  echo "Unsupported manual mode: $INPUT_MODE" >&2
+                  exit 1
+                  ;;
+              esac
+              ;;
+            *)
+              echo "Unsupported event: $EVENT_NAME" >&2
+              exit 1
+              ;;
+          esac
+
+          echo "validation=$validation" >> "$GITHUB_OUTPUT"
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+          echo "release=$release" >> "$GITHUB_OUTPUT"
+          echo "publisher=$publisher" >> "$GITHUB_OUTPUT"
+          echo "autofix=$autofix" >> "$GITHUB_OUTPUT"
+          echo "maintenance=$maintenance" >> "$GITHUB_OUTPUT"
+```
+
+Do not copy a release/prerelease mode the repository does not actually support.
+
+### 27.2 Validation aggregate
+
+Run selected validation jobs in parallel after `route`, then add one explicit aggregate. The generation agent must list the selected jobs; do not create runtime optional job discovery.
+
+Example with three selected checks:
+
+```yaml
+  validation:
+    name: Validation Aggregate
+    needs: [route, workflow-validation, go-test, generated-go]
+    if: ${{ always() && needs.route.outputs.validation == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require selected validation jobs
+        env:
+          WORKFLOW_RESULT: ${{ needs.workflow-validation.result }}
+          TEST_RESULT: ${{ needs.go-test.result }}
+          GENERATED_RESULT: ${{ needs.generated-go.result }}
+        run: |
+          set -euo pipefail
+          [[ "$WORKFLOW_RESULT" == "success" ]]
+          [[ "$TEST_RESULT" == "success" ]]
+          [[ "$GENERATED_RESULT" == "success" ]]
+```
+
+If a selected capability is release-critical, include it here or in the release aggregate below. Do not accept `skipped` for a job that should have run for the current route.
+
+### 27.3 Build and artifact-smoke aggregate
+
+The build job should consume successful validation and produce artifacts once. The smoke job consumes those exact artifacts. The generation agent may have multiple platform build jobs, but publication must consume the already-tested candidates rather than silently rebuilding different binaries.
+
+The canonical two-stage shape is the `build` + `artifact-smoke` module in section 20.
+
+### 27.4 Release-validation aggregate
+
+For a repository with release preparation or publication, define one explicit release gate containing every required release-critical selected job:
+
+```yaml
   release-ready:
-    needs: [route, validation, build]
-    if: ${{ always() && needs.route.outputs.publisher == 'true' }}
+    name: Release Quality Gates Passed
+    needs: [route, validation, build, artifact-smoke]
+    if: ${{ always() && (needs.route.outputs.release == 'true' || needs.route.outputs.publisher == 'true') }}
     runs-on: ubuntu-latest
     steps:
       - name: Require release gates
         env:
           VALIDATION_RESULT: ${{ needs.validation.result }}
           BUILD_RESULT: ${{ needs.build.result }}
+          SMOKE_RESULT: ${{ needs.artifact-smoke.result }}
         run: |
           set -euo pipefail
           [[ "$VALIDATION_RESULT" == "success" ]]
           [[ "$BUILD_RESULT" == "success" ]]
+          [[ "$SMOKE_RESULT" == "success" ]]
+```
 
+If integration, compatibility, generated-output or package-install verification is part of the release promise, add it explicitly to `needs` and the result assertions. The gate should make the repository's release contract obvious by inspection.
+
+### 27.5 Manual release/tag preparation
+
+Use non-cancelling serialization for the release-critical mutation path:
+
+```yaml
+  prepare-release-tag:
+    name: Prepare Release Tag
+    needs: [route, release-ready]
+    if: ${{ needs.route.outputs.release == 'true' && needs.release-ready.result == 'success' }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-release-preparation
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: Install git-tag-inc
+        run: go install github.com/arran4/git-tag-inc/cmd/git-tag-inc@v1.0.0
+      - name: Verify exact authoritative branch
+        run: |
+          set -euo pipefail
+
+          AUTHORITATIVE_BRANCH="${GITHUB_REF#refs/heads/}"
+          case "$AUTHORITATIVE_BRANCH" in
+            main|master) ;;
+            *)
+              echo "Release preparation must run on main or master; got $AUTHORITATIVE_BRANCH" >&2
+              exit 1
+              ;;
+          esac
+
+          echo "AUTHORITATIVE_BRANCH=$AUTHORITATIVE_BRANCH" >> "$GITHUB_ENV"
+          git fetch origin "$AUTHORITATIVE_BRANCH"
+          ORIGIN_SHA="$(git rev-parse "origin/$AUTHORITATIVE_BRANCH")"
+
+          if [[ "$ORIGIN_SHA" != "$GITHUB_SHA" ]]; then
+            echo "Requested release at $GITHUB_SHA but origin/$AUTHORITATIVE_BRANCH is $ORIGIN_SHA" >&2
+            exit 1
+          fi
+      - name: Calculate or select release tag
+        env:
+          RELEASE_MODE: ${{ inputs.mode }}
+          RELEASE_VERSION_OVERRIDE: ${{ inputs.release_version_override }}
+        run: |
+          set -euo pipefail
+          export PATH="$(go env GOPATH)/bin:$PATH"
+
+          if [[ -n "$RELEASE_VERSION_OVERRIDE" ]]; then
+            TAG="v${RELEASE_VERSION_OVERRIDE#v}"
+            if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.]+)?$ ]]; then
+              echo "Invalid release tag: $TAG" >&2
+              exit 1
+            fi
+          else
+            case "$RELEASE_MODE" in
+              release-major) level="major"; suffix="" ;;
+              release-minor) level="minor"; suffix="" ;;
+              release-patch) level="patch"; suffix="" ;;
+              release-test)  level="patch"; suffix="test" ;;
+              release-rc)    level="patch"; suffix="rc" ;;
+              release-alpha) level="patch"; suffix="alpha" ;;
+              *)
+                echo "Unsupported release mode: $RELEASE_MODE" >&2
+                exit 1
+                ;;
+            esac
+
+            args=(--print-version-only "$level")
+            [[ -n "$suffix" ]] && args+=("$suffix")
+            TAG="$(git-tag-inc "${args[@]}")"
+          fi
+
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+      - name: Create tag idempotently
+        run: |
+          set -euo pipefail
+
+          REMOTE_SHA="$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}' || true)"
+          PEELED_SHA="$(git ls-remote --tags origin "refs/tags/$TAG^{}" | awk '{print $1}' || true)"
+          [[ -n "$PEELED_SHA" ]] && REMOTE_SHA="$PEELED_SHA"
+
+          if [[ -n "$REMOTE_SHA" ]]; then
+            if [[ "$REMOTE_SHA" != "$GITHUB_SHA" ]]; then
+              echo "Tag $TAG exists at $REMOTE_SHA, expected $GITHUB_SHA" >&2
+              exit 1
+            fi
+            echo "Tag $TAG already points to the validated commit; continuing recovery."
+            exit 0
+          fi
+
+          git fetch origin "$AUTHORITATIVE_BRANCH"
+          CURRENT_ORIGIN_SHA="$(git rev-parse "origin/$AUTHORITATIVE_BRANCH")"
+          if [[ "$CURRENT_ORIGIN_SHA" != "$GITHUB_SHA" ]]; then
+            echo "origin/$AUTHORITATIVE_BRANCH advanced to $CURRENT_ORIGIN_SHA before tagging" >&2
+            exit 1
+          fi
+
+          git tag -d "$TAG" 2>/dev/null || true
+          git tag "$TAG"
+          if ! git push origin "$TAG"; then
+            REMOTE_SHA="$(git ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}' || true)"
+            if [[ "$REMOTE_SHA" != "$GITHUB_SHA" ]]; then
+              echo "Concurrent tag creation did not resolve to $GITHUB_SHA" >&2
+              exit 1
+            fi
+          fi
+      - name: Dispatch immutable tag publisher
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run ci.yml --ref "$TAG" -f mode=publish-tag
+```
+
+If the repository has no `go.mod`, use its established way of installing the current pinned `git-tag-inc` CLI. The important contract is shared version arithmetic plus the exact-origin/idempotent-tag/race-guard flow.
+
+### 27.6 Generic GitHub Release publisher
+
+For repositories not using GoReleaser as the release owner, prefer a single publisher. This variant uses the GitHub CLI already present on GitHub-hosted runners rather than introducing another release action:
+
+```yaml
   publisher:
+    name: Publish GitHub Release
     needs: [route, release-ready]
     if: ${{ needs.route.outputs.publisher == 'true' && needs.release-ready.result == 'success' }}
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-publish-${{ github.ref }}
+      cancel-in-progress: false
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v7
-      # Exactly one repository-specific publisher goes here.
+      - uses: actions/download-artifact@v8
+        with:
+          name: release-candidates
+          path: release-candidates
+      - name: Publish release exactly once
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release create "$GITHUB_REF_NAME" release-candidates/** --verify-tag --generate-notes
 ```
 
-For a versioned repository, extend `workflow_dispatch` with only the release/prerelease/recovery modes it actually supports. For a non-release library or configuration repository, do not add release controls merely because the larger reference discusses them.
+If recovery must support an already-created release, make that behavior explicit and idempotent. Do not hide an ownership conflict with `|| true`.
 
-PR cancellation, release serialization, generation checks, integration matrices and artifact smoke jobs are added from the applicable capability sections rather than embedded into every generated skeleton.
+### 27.7 GoReleaser publisher
 
-## 27. Existing-workflow migration procedure
+When GoReleaser owns GitHub Release creation, do not also run the generic publisher:
+
+```yaml
+  publisher:
+    name: Publish With GoReleaser
+    needs: [route, release-ready]
+    if: ${{ needs.route.outputs.publisher == 'true' && needs.release-ready.result == 'success' }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-publish-${{ github.ref }}
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: goreleaser/goreleaser-action@v7
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+If `goreleaser/goreleaser-action` is a new external CI dependency for that repository, document it. If the project already uses it, preserve the established dependency unless there is a reason to change it.
+
+### 27.8 Artifact publication ownership
+
+A publisher must consume artifacts produced by the selected build jobs or intentionally let the sole release tool build them. Do not do both accidentally.
+
+Choose one of these coherent models:
+
+1. **CI builds candidates -> CI smoke-tests them -> generic publisher uploads those same candidates.**
+2. **GoReleaser is the sole release builder/publisher -> release validation proves the source/configuration before GoReleaser runs.**
+
+Do not build one set of binaries for smoke testing and silently publish a different independently built set unless the repository's release tool necessarily owns the final build and that distinction is explicit.
+
+### 27.9 Selective long-running verification
+
+Race, fuzz, conformance and expensive E2E jobs should still use normal job modules with explicit routes. A common scheduled/manual-only form is:
+
+```yaml
+  extended-verification:
+    name: Extended Verification
+    needs: [route]
+    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'extended') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # Add repository-specific setup.
+      - run: ./repository-specific-extended-verification
+```
+
+If a check is release-critical, do not leave it scheduled-only; include it in `release-ready`.
+
+## 28. Existing-workflow migration procedure
 
 When modernising an existing repository:
 
@@ -756,20 +1444,23 @@ When modernising an existing repository:
 5. identify duplicate triggers and validation;
 6. identify every release owner;
 7. design the target single-file dependency graph;
-8. map useful existing behavior into that graph;
-9. fold compatible workflow files into the central workflow;
-10. retain only concretely justified separate workflows;
-11. delete superseded/dead workflow files;
-12. validate generated outputs and generated examples;
-13. validate workflow YAML;
-14. verify every manual mode reaches useful work;
-15. verify scheduled paths perform useful work and cannot release;
-16. verify artifact smoke checks and release gates;
-17. document remaining exceptions and newly introduced external CI dependencies.
+8. select the applicable canonical modules from this article;
+9. map useful existing behavior into those modules;
+10. fold compatible workflow files into the central workflow;
+11. retain only concretely justified separate workflows;
+12. delete superseded/dead workflow files;
+13. validate generated outputs and generated examples;
+14. validate workflow YAML;
+15. verify every manual mode reaches useful work;
+16. verify scheduled paths perform useful work and cannot release;
+17. verify artifact smoke checks and release gates;
+18. document remaining exceptions and newly introduced external CI dependencies.
 
 This is a semantic migration, not a YAML rearrangement.
 
-## 28. Anti-patterns
+The generation agent should prefer the canonical modules over inventing equivalent one-off wiring. Deviate when repository reality requires it, and explain the deviation in the PR.
+
+## 29. Anti-patterns
 
 Do not generate:
 
@@ -791,11 +1482,13 @@ Do not generate:
 - separate compatibility workflows that could be ordinary jobs in the main graph;
 - runtime discovery of repository structure that the generation agent already knew;
 - irrelevant platform/language jobs copied from a generic template;
+- placeholder aggregate jobs left in the generated workflow;
+- hand-wavy comments such as "repository-specific checks go here" where a selected canonical module should have been instantiated;
 - a minimalist workflow that silently omits an obvious repository capability;
 - dead legacy workflow files left beside the new workflow;
 - tiny CI helper scripts whose only purpose is to move understandable YAML elsewhere.
 
-## 29. Generation acceptance checklist
+## 30. Generation acceptance checklist
 
 Before opening a CI PR, verify:
 
@@ -823,19 +1516,24 @@ Before opening a CI PR, verify:
 - workflows themselves are validated where appropriate;
 - release artifacts are smoke-tested where applicable;
 - release validation precedes permanent tagging;
-- the authoritative branch SHA is checked before tag creation;
+- the authoritative branch SHA is checked before tag creation and immediately before a new tag is pushed;
 - release recovery is exact-tag/exact-SHA;
+- manual release preparation is non-cancelling and serialized where version races are possible;
 - exactly one publisher exists;
 - GoReleaser publication is not duplicated;
 - external/human-created eligible tags behave as intended where supported;
+- selected canonical modules were instantiated rather than replaced with vague placeholders;
+- the release gate explicitly names every selected release-critical job;
 - repository-native tests and documentation/site checks pass.
 
-## 30. Migration notes from superseded guidance
+## 31. Migration notes from superseded guidance
 
 The earlier posts remain useful as historical rationale, but their strongest applicable rules are incorporated here:
 
 - broad project-type coverage remains available as selectable modules rather than one giant generic workflow;
+- concrete YAML remains part of the generation specification where it constrains routing, validation, generation, artifacts or release safety;
 - the release-safe single-owner and exact-tag recovery rules remain mandatory;
 - the one-file target is restored as the normative architecture rather than merely "fewest files";
 - periodic verification remains a baseline for maintained repositories;
-- repository-specific behavior is discovered by the generation agent and encoded explicitly rather than rediscovered at runtime.
+- repository-specific behavior is discovered by the generation agent and encoded explicitly rather than rediscovered at runtime;
+- ecosystem-neutral orchestration does not mean implementation-free prose: selected capabilities should use the canonical module library so separate agents converge on the same structure.
