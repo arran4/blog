@@ -11,6 +11,7 @@
   ],
   "words": [
     "AEST",
+    "Caelestia",
     "DBUILD",
     "DCMAKE",
     "DirFS",
@@ -25,6 +26,7 @@
     "MapFS",
     "OSFS",
     "OUTDIR",
+    "Quickshell",
     "RPMS",
     "SRPMS",
     "Sprintf",
@@ -34,6 +36,7 @@
     "Werror",
     "approvable",
     "archlinux",
+    "arrans",
     "autofix",
     "autosetup",
     "behavior",
@@ -76,6 +79,7 @@
     "homebrew",
     "idempotently",
     "ineffassign",
+    "inspectable",
     "isready",
     "joobq",
     "kagura",
@@ -116,6 +120,9 @@
     "txtar",
     "typecheck",
     "uncategorized",
-    "vars"
+    "unmerged",
+    "vars",
+    "worktree",
+    "writable"
   ]
 }
