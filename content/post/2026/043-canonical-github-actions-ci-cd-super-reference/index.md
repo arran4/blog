@@ -59,41 +59,48 @@ Inventory:
 
 Also classify the repository itself. Archived forks and upstream-tracking forks normally should not be rewritten merely to impose this architecture unless they are intentionally maintained as independent projects.
 
+The checked-in workflow should be bespoke to that repository. The canonical document describes selectable modules; the generated repository workflow contains only the modules that apply.
+
 The result of discovery is a tailored checked-in workflow. Runtime capability discovery is a fallback only for facts that genuinely vary during a run. Do not build a giant `discover` job which re-detects known project structure on every invocation.
 
 ## 3. One self-contained workflow is the normative target
 
-The normal result is exactly one coherent `.github/workflows/ci.yml` or `.github/workflows/ci.yaml` containing validation, build, maintenance and release orchestration.
+The normal target is explicitly `.github/workflows/ci.yml` or `.github/workflows/ci.yaml` containing the repository's complete coherent CI/CD graph.
 
 When upgrading an existing repository, actively attempt to fold these into that workflow:
 
+- lint;
+- unit tests;
+- integration tests;
+- generated-file verification;
+- example verification;
 - workflow validation;
-- generated-output and generated-example verification;
-- lint/static analysis;
-- unit/component tests;
-- integration/service compatibility tests;
-- selective end-to-end/system smoke tests;
-- build and package jobs;
-- artifact smoke verification;
+- compatibility matrices;
+- builds;
+- artifact generation;
 - release gates;
-- tag preparation;
+- tagging;
 - publication;
 - scheduled verification;
-- ordinary maintenance and autofix.
+- ordinary maintenance.
 
-Use native `needs:` edges so the dependency graph is visible in one place. Delete superseded workflow files after consolidation. Do not keep disabled wrappers or legacy compatibility YAML simply because it already exists.
+Use native `needs:` edges so the dependency graph is visible in one place. Delete superseded workflow files after consolidation. Do not use the weaker idea that keeping several existing workflow files is acceptable merely because they are already separated.
 
 A second workflow needs a concrete reason. Valid exceptions include:
 
 - a genuine reusable `workflow_call` interface;
-- a materially different secret or trust boundary;
+- a materially different secrets/trust boundary;
 - a GitHub event/platform limitation that prevents coherent consolidation;
 - genuinely independent administrative automation;
 - a large family of independently scheduled generated maintenance workflows where forcing every schedule into one monolithic file would materially reduce readability or maintainability.
 
-Historical structure is not an exception. If more than one workflow remains, the PR should explain why each additional workflow cannot reasonably be a job in the central graph.
+Historical structure by itself is not an exception. If more than one workflow remains, the PR should explain why each additional workflow cannot reasonably be a job in the central graph.
 
-The same principle applies to support files. Keep small routing and shell logic inline. Do not create helper scripts merely to make YAML look smaller. Preserve or introduce helper code when it is substantial, naturally belongs to the repository's implementation language, is shared with production logic, or materially improves direct testing.
+Support files follow the same principle:
+
+- keep small CI routing and shell logic inline;
+- do not create helper scripts merely to make the YAML look smaller;
+- preserve or introduce helper code only when it is substantial, naturally belongs to the repository's implementation language, is shared with production logic, or materially improves direct testing.
 
 ## 4. Capability selection
 
@@ -268,7 +275,7 @@ Capabilities that do not exist disappear from the graph:
 ```text
 route
   |
-  +-- workflow/dependency validation
+  +-- workflow/security validation
   |
   +-- generated-output/example verification
   |
@@ -284,26 +291,38 @@ route
   |
   +-- built-artifact smoke verification
   |
-  +-- release-validation aggregate
+  +-- release-validation gate
   |
-  +-- immutable tag/release context
+  +-- immutable release/tag context
   |
   +-- exactly one publisher
   |
   +-- post-release work
 ```
 
-Independent checks should run in parallel when they can. Release publication should depend on one clear aggregate release gate rather than each repository reinventing complicated skipped-job expressions.
+Independent checks should run in parallel when they can. Unsupported or non-applicable capabilities disappear from the graph.
+
+A single release-validation aggregate job provides the publisher with one clear gate, rather than each repository inventing complex `always()`/`skipped` logic.
 
 ## 11. Testing hierarchy
 
-Use the cheapest useful test at each layer:
+The canonical testing model follows this hierarchy, using the cheapest useful test at each layer:
 
 - many unit/component tests with controlled dependencies;
-- fewer integration tests against real filesystem/process/database/network/service boundaries;
-- a small number of end-to-end/system tests where they provide confidence that cheaper tests cannot.
+- fewer integration tests exercising real boundaries;
+- a small number of end-to-end/system tests where they materially improve confidence.
 
-Do not require browser automation simply because a repository has a web UI. Prefer programmable rendering or handler seams when they prove the behavior more cheaply and deterministically.
+Real boundaries include:
+
+- filesystem;
+- subprocess;
+- network;
+- database;
+- local service;
+- container;
+- browser/UI where genuinely necessary.
+
+Do not require E2E tests merely because the repository is an application. Prefer a cheaper programmable seam when it proves the same behavior.
 
 Use E2E/system tests when the actual assembled system matters, for example:
 
@@ -315,32 +334,32 @@ Use E2E/system tests when the actual assembled system matters, for example:
 - exercise browser-level behavior that genuinely depends on the browser;
 - install a package and run a smoke command.
 
-Expensive, non-release-critical E2E, fuzz or compatibility tests may run on a schedule or manual mode. Anything required to claim a release is valid must gate publication.
+Expensive integration, E2E, conformance, or fuzz work may be scheduled or manually triggered when it is not required for release confidence. Anything required to claim that a release is valid must gate publication.
 
 ## 12. Generated outputs are a first-class capability
 
-Classify generated content as:
+Repositories with generated content must verify it as a first-class capability. Distinguish between:
 
 1. **Committed generated output** — must remain synchronized with its source;
 2. **Generated examples/documentation/fixtures** — must remain synchronized and should be validated as artifacts;
 3. **Ephemeral build/test output** — should normally remain uncommitted.
 
-For committed generated output, the normal validation pattern is:
+For committed generated output, the standard CI validation pattern is:
 
 ```text
-run authoritative generator
+run the authoritative generator
         |
         v
-check working tree/diff
+compare the working tree
         |
         +-- clean -> continue
         |
         +-- changed -> fail and show the diff
 ```
 
-For Go, `go generate ./...` followed by a clean-tree check is a common implementation, but use the repository's authoritative deterministic generator when `go generate ./...` is too broad or inappropriate.
+For Go, `go generate ./...` followed by a clean-tree check is a common implementation, but do not make the rule Go-specific. Use the repository's authoritative deterministic generator where `go generate ./...` is too broad or inappropriate.
 
-Normal CI must not silently accept and commit regenerated output. An optional automation lane may regenerate and open a focused PR, but that does not replace the validation check.
+Normal validation must not silently accept and commit regenerated output. An optional automation lane may regenerate and open a focused PR, but that does not replace the drift check.
 
 Canonical Go generation job:
 
@@ -368,15 +387,17 @@ If the repository has a narrower deterministic generator, replace only the `Rege
 
 ## 13. Validate generated artifacts, not only drift
 
-"Up to date" and "valid" are separate assertions.
+Proving that generated output is up to date is not the same as proving that generated output is valid.
 
-After regeneration and drift checking, validate the generated artifact with the normal validator/compiler/parser for that artifact:
+After regeneration and drift checking, validate generated artifacts using the normal validator/compiler/parser for that artifact. This validation forms an explicit selectable CI lane.
 
-- generated GitHub Actions YAML -> regenerate -> diff check -> `actionlint`;
-- generated Go source -> regenerate -> diff check -> compile/test;
-- generated configuration -> regenerate -> load with the production parser;
-- generated examples -> regenerate -> diff check -> compile or run representative examples;
-- generated man pages/docs -> regenerate -> perform the repository's structural/build validation.
+Canonical validation examples include:
+
+- generated GitHub Actions YAML: regenerate -> diff check -> `actionlint`;
+- generated Go code: regenerate -> diff check -> compile/test;
+- generated configuration: regenerate -> parse/load using the production parser;
+- generated examples: regenerate -> compile/run representative examples where practical;
+- generated documentation/man pages: regenerate and perform appropriate structural/build validation where practical.
 
 Generated workflow examples are particularly important: a generator can deterministically reproduce invalid YAML. Drift checking alone will not detect that.
 
@@ -406,16 +427,16 @@ Canonical generated-workflow job shape:
 
 ## 14. Runnable examples and documentation smoke tests
 
-Inspect `examples/`, demos, sample configuration and documented commands.
+Repositories often contain `examples/`, sample configs, demos, or documentation snippets which ordinary package tests do not necessarily exercise.
 
-Where practical:
+CI pipelines must inspect these assets. Where practical:
 
 - compile examples;
-- run cheap examples;
-- parse sample configs;
-- exercise CLI `--help` and `--version`;
-- verify documented representative commands still parse/run;
-- validate generated example output.
+- execute cheap examples;
+- parse example configurations;
+- smoke-test documented commands;
+- test CLI `--help` and `--version`;
+- verify example-generated output where appropriate.
 
 Do not execute examples with destructive or external side effects merely for coverage.
 
@@ -592,29 +613,29 @@ Use a stable artifact handoff shape:
 
 ## 16. Compatibility matrices are evidence-driven
 
-Do not create matrices merely because they look comprehensive.
+Compatibility matrices must be evidence-driven. Do not add Windows/macOS/old toolchain versions because a generic template happens to contain them.
 
-Use a matrix to prove a support claim or materially different behavior:
+Use matrix entries to validate an actual support claim. For example:
 
-- a library's minimum supported language/toolchain version;
-- Linux/macOS/Windows behavior where those systems are supported;
+- if a library claims a minimum supported language version, test that minimum where practical;
+- if released binaries claim Windows/macOS/Linux support, ensure those platform builds are appropriately tested or smoke-tested;
 - architecture-specific release builds;
 - database engine/version compatibility;
 - GUI/headless variants where the project genuinely supports them.
 
-Separate:
+Do not repeat expensive static analysis on every matrix entry unless doing so provides actual value.
 
-- the fast ordinary PR test;
-- compatibility coverage;
-- the release artifact matrix.
+Distinguish between:
 
-Expensive static analysis normally needs one representative/current toolchain, not every matrix entry.
+- compatibility matrix;
+- fast normal PR testing;
+- release artifact matrix.
 
 ## 17. Integration and service compatibility
 
-Projects using databases, queues or local services should normally keep compatibility/integration jobs in the central workflow.
+Projects depending on databases, queues, or local services should normally keep compatibility and integration jobs inside the central workflow.
 
-Prefer:
+Prefer these local isolation mechanisms inside `ci.yml`:
 
 - GitHub Actions service containers;
 - disposable local processes;
@@ -622,9 +643,9 @@ Prefer:
 - deterministic fixtures;
 - repository-provided Compose environments.
 
-A MySQL/MariaDB/PostgreSQL/version compatibility check is normally a job/matrix in `ci.yml`, not automatically a reason for another workflow file.
+Database-engine/version compatibility should normally be a matrix/job inside the central workflow rather than automatically justifying another workflow file.
 
-Keep CI credentials ephemeral and local where possible. Do not expose production secrets to untrusted pull-request code.
+Keep CI credentials ephemeral and local where possible. Respect PR/fork trust boundaries and do not expose production secrets merely to make integration tests work.
 
 Canonical service-container shape, using PostgreSQL only as a structural example:
 
@@ -660,9 +681,7 @@ Use the repository's actual supported engine/version rather than copying Postgre
 
 ## 18. Workflow validation
 
-GitHub Actions YAML is code.
-
-Where viable, repositories containing Actions workflows should run `actionlint`, particularly when workflows are generated or heavily templated.
+GitHub Actions workflow validation is a first-class concern. Where viable, repositories containing Actions workflows should run `actionlint`. Generated workflows must also be validated after generation.
 
 Canonical job:
 
@@ -679,23 +698,23 @@ Canonical job:
 
 If `actionlint` is newly introduced, document it as an external CI dependency.
 
-When the repository's security posture warrants it, also consider:
+When the repository's security posture warrants it, additional tools should be considered as capability/risk-based additions, rather than mandatory jobs for every repository:
 
 - `zizmor`;
 - dependency review;
 - secret scanning;
 - ecosystem vulnerability scanners.
 
-A CI change should be reasoned through for:
+Agents authoring CI must reason through the logic for:
 
 - every `needs:` edge;
-- every referenced output;
+- referenced outputs;
+- skipped jobs;
 - event-specific contexts;
-- skipped-job behavior;
 - permissions;
 - concurrency;
-- release recursion assumptions;
-- manual-dispatch routes.
+- release recursion limitations;
+- manual-dispatch paths.
 
 Successful YAML parsing alone is insufficient.
 
@@ -775,22 +794,23 @@ Do not give maintenance write permissions unless it actually creates or mutates 
 
 ## 20. Build artifacts and smoke verification
 
-Build jobs should produce the artifacts that the project actually promises.
+A release/build verification stage must execute between artifact construction and publication.
+
+Source tests alone do not prove that release artifacts work, especially where packaging, linking, or embedding version data occurs during release builds. Build jobs must produce the artifacts that the project promises.
+
+Where applicable, test the actual candidate artifact before publication by:
+
+- executing the candidate CLI with `--version`;
+- checking expected version, commit, and/or build-date metadata;
+- exercising one representative command;
+- checking that expected binaries/files exist;
+- inspecting archive/package contents;
+- installing and smoke-testing native packages where practical;
+- starting built container images and testing a command or health endpoint.
 
 Use short Actions-artifact retention for transient handoff artifacts; one day is a good default when publication consumes them immediately.
 
-Before publication, test actual candidate artifacts where relevant:
-
-- run a CLI candidate with `--version`;
-- verify injected version/commit/date metadata;
-- execute a representative command;
-- verify all expected binaries are present;
-- inspect archive/package contents;
-- install and smoke-test a package where practical;
-- start a built container and probe a command/health endpoint;
-- confirm platform/architecture artifacts match their names and targets.
-
-Source tests do not prove a release artifact works after packaging, linking or metadata injection.
+Publication must explicitly depend on successful candidate-artifact verification where this capability applies.
 
 Canonical build/artifact/smoke chain:
 
@@ -1442,30 +1462,44 @@ Race, fuzz, conformance and expensive E2E jobs should still use normal job modul
 
 If a check is release-critical, do not leave it scheduled-only; include it in `release-ready`.
 
+### 27.10 Special verification classes
+
+The following are additional capability-selected patterns:
+
+- race detector;
+- fuzz testing;
+- golden/TXTAR fixtures;
+- conformance suites;
+- generated compatibility matrices;
+- database compatibility;
+- GUI/headless tests;
+- container smoke tests;
+- package installation smoke tests;
+- minimum-supported-version tests.
+
+Not every check is mandatory. For golden/generated fixtures, normal CI should detect drift rather than automatically accepting new expected output.
+
 ## 28. Existing-workflow migration procedure
 
-When modernising an existing repository:
+When modernising an existing repository, follow this concrete procedure:
 
-1. inventory every workflow and job;
-2. inventory project capabilities and declared support;
-3. identify generated content, examples and their source of truth;
-4. identify unit/integration/E2E/system tests;
-5. identify duplicate triggers and validation;
-6. identify every release owner;
-7. design the target single-file dependency graph;
-8. select the applicable canonical modules from this article;
-9. map useful existing behavior into those modules;
-10. fold compatible workflow files into the central workflow;
-11. retain only concretely justified separate workflows;
-12. delete superseded/dead workflow files;
-13. validate generated outputs and generated examples;
-14. validate workflow YAML;
-15. verify every manual mode reaches useful work;
-16. verify scheduled paths perform useful work and cannot release;
-17. verify artifact smoke checks and release gates;
-18. document remaining exceptions and newly introduced external CI dependencies.
+1. inventory workflows and jobs;
+2. inventory repository capabilities and declared support;
+3. identify generated content/examples;
+4. identify unit/integration/E2E capabilities;
+5. identify duplicate validation and duplicate release ownership;
+6. design the target single-file graph;
+7. move compatible jobs into the central workflow;
+8. retain only technically justified separate workflows;
+9. delete superseded workflow files;
+10. validate generated content;
+11. validate generated examples;
+12. validate workflow YAML;
+13. verify every manual mode reaches useful work;
+14. verify scheduled paths;
+15. verify artifact smoke tests and release gates.
 
-This is a semantic migration, not a YAML rearrangement.
+This is a semantic migration, not merely a YAML rearrangement.
 
 The generation agent should prefer the canonical modules over inventing equivalent one-off wiring. Deviate when repository reality requires it, and explain the deviation in the PR.
 
