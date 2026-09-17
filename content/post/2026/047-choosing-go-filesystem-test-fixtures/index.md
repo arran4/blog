@@ -220,6 +220,43 @@ Once there are many cases, use `go:embed` plus `fs.WalkDir` or `fs.Glob`, sort d
 
 That guidance is already covered in detail in the existing txtar posts, but it is worth retaining as the scaling boundary: once a test has become a corpus, **case-local failures and deterministic discovery are more important than clever fixture compactness**.
 
+### `go:embed` does not make `**` recursive
+
+A subtle trap in fixture examples is writing a shell-style recursive pattern such as:
+
+```go
+//go:embed testdata/templates/**/*.txtar
+var fixtures embed.FS
+```
+
+`go:embed` patterns follow Go `path.Match`-style semantics; `**` is not a special recursive wildcard. For a nested fixture tree, embed the directory and walk/filter it explicitly:
+
+```go
+//go:embed testdata/templates
+var fixtures embed.FS
+
+err := fs.WalkDir(fixtures, "testdata/templates", func(name string, entry fs.DirEntry, err error) error {
+    // select the .txtar files needed by the test
+    return err
+})
+```
+
+This also keeps recursive discovery behaviour explicit and testable.
+
+### Clean and validate projected archive paths
+
+When code manually strips prefixes such as `input/` or `expected/` and creates `fstest.MapFS` keys, do not insert the raw remainder blindly. Clean it and reject empty/root or otherwise invalid paths:
+
+```go
+name := path.Clean(strings.TrimPrefix(f.Name, "input/"))
+if name == "." || !fs.ValidPath(name) {
+    return fmt.Errorf("invalid fixture path %q", f.Name)
+}
+input[name] = &fstest.MapFile{Data: append([]byte(nil), f.Data...)}
+```
+
+This avoids malformed keys such as a bare namespace root and makes manual projection consistent with the filesystem contract. Using `fs.Sub` where possible avoids duplicating much of this namespace handling in the first place.
+
 ## A compact decision rule for agents
 
 When adding filesystem-oriented tests:
@@ -234,5 +271,7 @@ When adding filesystem-oriented tests:
 8. Make expectations descriptive, deterministic, and easy to diff.
 9. Normalise line endings only when line-ending differences are intentionally outside the behaviour being tested.
 10. Prefer the standard txtar package unless a concrete need justifies a richer implementation.
+11. For nested embedded fixture trees, embed the directory rather than relying on `**` recursion.
+12. Clean and validate archive-derived paths before projecting them into a virtual filesystem.
 
 The fixture representation should be able to grow with the test without becoming the architecture of the product itself.
