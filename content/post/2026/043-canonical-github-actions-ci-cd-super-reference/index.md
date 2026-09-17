@@ -31,8 +31,6 @@ A generated workflow should be:
 
 The canonical shape is a specification for generation, not a universal workflow to paste unchanged into every project.
 
-
-
 ## 2. Discovery happens when the workflow is generated
 
 Before editing CI, the agent must inspect the repository and make the design decisions once.
@@ -91,7 +89,7 @@ Use native `needs:` edges so the dependency graph is visible in one place. Delet
 A second workflow needs a concrete reason. Valid exceptions include:
 
 - a genuine reusable `workflow_call` interface;
-- a materially different secrets or trust boundary;
+- a materially different secrets/trust boundary;
 - a GitHub event/platform limitation that prevents coherent consolidation;
 - genuinely independent administrative automation;
 - a large family of independently scheduled generated maintenance workflows where forcing every schedule into one monolithic file would materially reduce readability or maintainability.
@@ -99,11 +97,10 @@ A second workflow needs a concrete reason. Valid exceptions include:
 Historical structure by itself is not an exception. If more than one workflow remains, the PR should explain why each additional workflow cannot reasonably be a job in the central graph.
 
 Support files follow the same principle:
-- keep small CI routing/shell logic inline;
-- do not create helper scripts merely to make the YAML look smaller;
-- keep helper code where it is substantial, genuinely testable, or shared with production code.
 
-The same principle applies to support files. Keep small routing and shell logic inline. Do not create helper scripts merely to make YAML look smaller. Preserve or introduce helper code when it is substantial, naturally belongs to the repository's implementation language, is shared with production logic, or materially improves direct testing.
+- keep small CI routing and shell logic inline;
+- do not create helper scripts merely to make the YAML look smaller;
+- preserve or introduce helper code only when it is substantial, naturally belongs to the repository's implementation language, is shared with production logic, or materially improves direct testing.
 
 ## 4. Capability selection
 
