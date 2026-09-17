@@ -15,7 +15,7 @@ categories:
   - Software Development
 ---
 
-<!-- cspell:words autocrlf -->
+<!-- cspell:words autocrlf proc validationerrors writable -->
 
 I already have broader references for [txtar fixture systems](/blog/post/2026/004-Txtar-Patterns-for-Agents/), [scaling txtar suites](/blog/post/2026/018-txtar-patterns-for-agents-v2/), and [testing filesystem-heavy Go code](/blog/post/2026/033-testing-fs-with-mapfs-mockfs/). The missing piece is a smaller decision guide: **when should a test use a plain embedded file, `fstest.MapFS`, or a txtar scenario?**
 
