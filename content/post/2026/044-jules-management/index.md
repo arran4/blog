@@ -300,7 +300,11 @@ Treat the prompt as the context boundary Jules is guaranteed to receive.
 
 ## Jules prompts should reduce unnecessary questions
 
-Jules can ask questions in its own web session rather than through GitHub. I do not use one completely consistent abbreviation for these. `joobq`, `JOOBQ`, `OOBJQ`, "out-of-band Jules question", and "out-of-band Jules message" should all be understood as the same kind of event: Jules has paused outside the ordinary GitHub review loop and needs a response or decision to continue.
+Jules can ask questions in its own interface rather than through GitHub. I use `joobq` / `JOOBQ` as an acronym for **Jules out-of-band question**. A joobq is specifically a question or message shown in the Jules interface, outside the GitHub issue, pull-request, and comment loop. It is not an `@jules` GitHub comment. Older shorthand such as `OOBJQ`, "out-of-band Jules question", and "out-of-band Jules message" should be interpreted as the same kind of event when encountered, but `joobq` is the canonical term in this document.
+
+In the current workflow, a joobq is a **manual copy-and-paste bridge**. I copy the question from the Jules interface into the management-LLM conversation, the management LLM returns a response for me to copy, and I paste that response back into the Jules interface. Neither leg is a GitHub comment. When I prefix pasted text with `joobq:`, the management LLM should therefore understand that the quoted text came from the Jules interface and return a response for that same interface rather than posting it to GitHub.
+
+The management LLM may inspect GitHub, CI, issues, pull requests, or repository state to answer a joobq accurately, but it must keep the answer in the out-of-band channel unless the human explicitly asks for the same instruction to be posted to GitHub as well. A joobq response should not be prefixed with `@jules`; that mention belongs to GitHub comments when the repository's Jules integration uses them.
 
 Responses do not need ceremony. They need to get the work moving again.
 
@@ -318,11 +322,13 @@ The appropriate answer is effectively, "Yes, stop here and hand the remaining ma
 
 The rule that pull requests must not be merged without explicit human instruction is primarily a **management-layer policy**, not boilerplate that should be appended to every Jules prompt or out-of-band response.
 
-Jules is normally being asked to implement on its branch, publish intermediate state, and update its pull request. In that workflow it is not the actor responsible for the final merge decision, and repeatedly telling it "do not merge" adds irrelevant process text, blurs the distinction between implementation and lifecycle ownership, and can distract from the instruction that actually needs to be acted on.
+In the current Jules workflow, Jules does not have pull-request merge capability through the control plane I use. Treat that as an observed capability boundary rather than an eternal product fact: if the available tools change later, route according to the actual capability. While that boundary holds, telling Jules "do not merge", "wait for merge approval", or equivalent is not a useful safety measure; it is management-layer leakage.
 
-The management LLM should therefore **omit routine merge prohibitions from Jules messages by default**. State a merge restriction to Jules or another implementation agent only when there is a concrete reason: the active agent actually has a plausible merge capability, the requested Git operation could be confused with merging the pull request, or the current task creates a specific lifecycle ambiguity that needs to be resolved explicitly.
+Jules is normally being asked to implement on its branch, publish intermediate state, and update its pull request. Repeatedly mentioning a merge prohibition adds irrelevant process text, blurs the distinction between implementation and lifecycle ownership, and can distract from the instruction that actually needs to be acted on.
 
-This does not weaken the merge policy. The management layer must still refuse to merge without explicit human instruction and must keep GitHub state honest. It simply keeps that policy with the actor responsible for enforcing it instead of mechanically forwarding it to an implementation agent that normally cannot or will not perform the action.
+The management LLM should therefore **omit routine merge prohibitions from Jules messages by default**. State a merge restriction to Jules or another implementation agent only when there is a concrete reason: the active agent actually has a plausible merge capability, the requested Git operation could be confused with merging the pull request, the user explicitly asks about merge lifecycle, or the current task creates a specific lifecycle ambiguity that needs to be resolved explicitly.
+
+This does not weaken the merge policy. The management layer must still refuse to merge without explicit human instruction and must keep GitHub state honest. It simply keeps that policy with the actor responsible for enforcing it instead of mechanically forwarding it to Jules when Jules cannot perform that action in the current workflow.
 
 ## Publish Jules state early
 
@@ -348,9 +354,11 @@ This includes:
 
 - initial Jules prompts;
 - `@jules` follow-up comments;
-- `joobq`/`JOOBQ`/`OOBJQ` responses;
+- `joobq` / `JOOBQ` (**Jules out-of-band question**) responses;
 - Agy or Codex handoff prompts;
 - other agent messages or commands the human is expected to paste verbatim.
+
+For a joobq specifically, the payload is for the human to paste back into the Jules interface. It is not a GitHub review comment and should not contain `@jules`. GitHub corrective comments are a separate surface and may use `@jules` when the integration requires it. Do not silently substitute one delivery channel for the other merely because both ultimately instruct Jules.
 
 Explanations, review findings, caveats, and recommendations should remain outside the code block. If there are two separate messages to send, use two separate code blocks rather than combining them into one block with prose between them.
 
@@ -415,12 +423,17 @@ When those signals are absent, the management layer should not send `@jules` ins
 
 An environment failure and an implementation failure are different events. A failed VM preparation, clone, authentication step, lost environment, or similar service-side failure says little about whether the last committed code was correct. Treat the last independently inspectable Git state as the durable implementation state and classify the agent-runtime failure separately.
 
-When a Jules session cannot sensibly continue, prefer these recovery paths:
+When a Jules session cannot sensibly continue, optimize for a clean lifecycle rather than preservation of the old session shape. **A new pull request is cheap.** The preferred recovery order is:
 
-1. **Small direct correction:** if the remaining change is narrow and high-confidence, make it on a new management-owned branch/PR from the last trusted commit rather than writing to the Jules-owned branch.
-2. **Replacement Jules session:** if substantial implementation remains, start a fresh Jules task with a replay-complete prompt rather than expecting the new session to rediscover the old decisions.
-3. **Merge complete work, then follow up:** if the current PR independently satisfies its acceptance criteria and the remaining concern is genuinely separate, merge only after the normal human approval and start the follow-up from updated `main`.
-4. **Stacked PR:** use only when a real dependency makes it unavoidable; it is the least preferred recovery because a lower Jules branch may still be rewritten.
+1. **Land a coherent predecessor slice, then follow up from updated `main`:** if the current PR contains an independently useful, reviewable slice, make its metadata truthful, preserve the unfinished remainder as durable focused issue state, merge only after normal human approval, then start the follow-up Jules task from updated `main` in a new PR.
+2. **Fresh Jules from updated `main`:** if the current PR is not worth salvaging, preserve useful lessons in the durable issue/prompt and start the replacement Jules task from stable current `main`, accepting that it creates a new PR.
+3. **Small direct correction on an isolated management branch:** if the remaining change is narrow and high-confidence, create a management-owned branch/PR from the trusted state rather than writing to the Jules-owned branch.
+4. **Non-`main` recovery base:** use a deliberately created recovery branch only when there is a concrete dependency on trusted unmerged state that cannot reasonably be landed first. Do not choose this merely to save a PR, preserve history, or avoid recreating a small amount of work.
+5. **Stacked PR:** use only when a real dependency makes it unavoidable. It is the least-preferred recovery because a parent can still move or be rewritten.
+
+A fresh Jules session is a **new-PR operation** in the current workflow. It cannot continue an existing Jules pull request or implementation branch. A bare commit SHA is also not, by itself, a Jules continuation base: if a real dependency on trusted unmerged state requires that commit, management must first create an existing recovery base branch at that commit, then start the fresh Jules task from that branch. Prefer updated `main` whenever the dependency can reasonably be landed or replayed first.
+
+A useful salvage pattern is therefore: **make the existing PR truthful, split the unfinished remainder into focused durable issue state, land the coherent slice, then restart Jules from updated `main` for the remainder**.
 
 A replacement prompt should carry forward what the failed attempt already taught us: the prior PR and last trusted commit, exact files and symbols involved, outstanding review blockers, previous JOOBQ answers, rejected approaches and why they were rejected, the tests and validation commands that matter, and snippets or pseudocode when review has already established the intended implementation shape. The goal is not to dictate every line; it is to avoid paying the same discovery and clarification cost again simply because the agent environment disappeared.
 
@@ -477,6 +490,8 @@ The safe rule is:
 
 > If another implementation agent takes over from a Jules-owned branch, create another branch **before the replacement agent writes or pushes**. The replacement agent must not be instructed to continue the existing Jules PR branch.
 
+A human-authorised **local repair or analysis** is different from a full implementation takeover. Another agent may inspect a chosen trusted commit in detached or equivalent local state and return a patch, diff, local commit, or review without creating a branch, pull request, or push. That does not transfer ownership of the Jules branch and does not authorise publication. If the result is later going to become published implementation work, create a non-Jules branch first and apply the reviewed result there.
+
 This is specifically a **Jules branch-ownership safety rule**, not a generic requirement for every implementation-agent switch. If work is already on a human/management-owned branch, an Agy-owned branch, a Codex-owned branch, or another branch that the incoming agent can safely continue, the normal choice is to keep the existing branch and pull request. Create another branch or replacement PR only when context gives a concrete reason, such as rewrite risk, conflicting or parallel ownership, a deliberately separate line of work, provenance requirements, or a lifecycle boundary that is clearer as a new PR.
 
 Before handing work away from Jules, the management layer should perform a branch-ownership preflight:
@@ -494,8 +509,8 @@ If the management layer can create branches and pull requests itself, it should 
 
 When leaving a Jules-owned branch, a replacement branch can begin from:
 
-- the exact trusted Jules commit, when the implementation is mostly good;
-- current `main`, when the old branch is no longer trustworthy;
+- the exact trusted Jules commit, when another replacement implementation agent genuinely needs that state;
+- current `main`, which is preferred for a fresh Jules session after any independently useful predecessor work has landed;
 - another deliberately chosen trusted base.
 
 When replacing a Jules-owned implementation branch, create the replacement pull request as a **draft as early as practical**. Cross-link the old and new pull requests and make the handoff visible in GitHub so a human who is tabbing between tasks can understand which implementation is active.
@@ -507,6 +522,36 @@ When the handoff is caused by a Jules service or execution-environment failure, 
 The old Jules pull request should not normally be closed while the replacement is still active. Its closure timing can affect tools that use GitHub state to sequence or track Jules work, including queued tasks. It may need to remain open until the replacement is merged or closed, or it may need to be retired earlier when doing so is necessary for the next Jules job to proceed.
 
 Once the human tells the management layer that the replacement pull request has merged, the management layer is authorised to perform the ordinary cleanup without asking for a second per-PR confirmation: verify the merge, close any still-open superseded Jules or temporary handoff pull requests, repair cross-links or status text where useful, and reconcile the linked issue state. This cleanup authority does not include merging the superseded pull request.
+
+### Replacement agents do not inherit GitHub context
+
+A replacement or local coding agent must not be assumed to inherit GitHub issue, pull-request, review, comment, CI-discussion, or management context merely because it has the repository checkout, branch, or commit.
+
+A normal handoff prompt should explicitly identify the target repository, relevant issue and pull-request URLs/numbers, the trusted base, the old read-only Jules branch/PR, the replacement writable branch/PR when a takeover is authorised, and the material acceptance criteria. It should also direct the agent to retrieve the issue body/comments, PR description/diff/conversation, reviews and relevant CI state before implementing.
+
+Where command-line GitHub tooling is available, practical inspection may include commands such as:
+
+```bash
+gh issue view <issue> --repo owner/repo --comments
+gh pr view <pr> --repo owner/repo --comments
+gh pr diff <pr> --repo owner/repo
+```
+
+When ordinary `gh pr view` does not expose enough inline-review detail, use `gh api` or an equivalent connected GitHub tool. The particular interface is not the rule; **actual retrieval is**. An agent must not claim it reviewed GitHub context that it never retrieved.
+
+If GitHub access is unavailable to the incoming agent, the management layer should inline the material context into the prompt: issue requirements, observed versus expected behaviour, outstanding review blockers, architectural constraints, previous decisions and acceptance criteria. Treat the handoff prompt as the definitive boundary for everything the incoming agent is guaranteed to know.
+
+After an authorised handoff, management should verify that the replacement agent actually retrieved or was supplied the external context and acted consistently with it before relying on the agent's plan or completion claim.
+
+### Repository identity is part of task state
+
+Multi-repository work creates another publication failure mode: the implementation can be correct while being committed or proposed in the wrong repository.
+
+Before any push, pull-request creation, or repository mutation, the implementation agent—and the management layer when it can inspect the state—should verify that the durable task agrees with the intended `owner/repo`, current working tree, `origin` remote, active branch, and explicit repository/base supplied to the PR operation. A successful commit or PR creation is not proof that the repository is correct.
+
+If work was produced in the wrong checkout, do not solve that by committing patch files, saved `.git` configuration, or other transport artifacts into whichever repository happens to be active. Re-home the real changes into the intended repository on a clean branch and make any mistaken durable artifact clearly point to the corrected work.
+
+On handoff, restate the target `owner/repo` near the start of the prompt and have the incoming agent verify its remote before publishing. Dependency repositories may be inspected or changed by separate explicitly scoped tasks, but they are not interchangeable with the consumer repository.
 
 ### Recovering when two agents already wrote the Jules branch
 
@@ -595,13 +640,33 @@ There is no single hard retry count for Jules failures.
 
 Useful recovery actions include:
 
-- answer an out-of-band question;
+- answer a joobq;
 - restate or simplify the instruction;
 - repost a missed `@jules` comment;
 - let the current session retry;
-- start a fresh Jules session from the durable issue state;
-- make a very small, obvious fix directly;
+- salvage and land an independently useful predecessor slice, then follow up from updated `main`;
+- start a fresh Jules session from stable updated `main`, accepting a new PR as the normal outcome;
+- make a very small, obvious fix on an isolated management-owned branch;
+- use a non-`main` Jules recovery base only when a concrete unmerged dependency makes it necessary;
 - recommend moving the work to another implementation agent.
+
+### Schedule observation and pressure instead of relying on memory
+
+A stalled Jules session is a good candidate for **bounded scheduled observation**. The schedule should inspect real repository state before deciding whether to send another message; it should not blindly post the same reminder on a timer.
+
+A useful scheduled check can inspect the pull-request head, cumulative diff, changed files, comments, CI, and linked issue state. If meaningful implementation or bookkeeping progress has occurred, the check should remain quiet. If there is still no progress and GitHub comments are the active Jules control plane, it may post a concise `@jules` continuation or pressure message.
+
+Count **zero-diff or no-changed-file commits as failed Jules cycles, not as progress** when they arise from a non-converging implementation session. Keep the count visible enough that later decisions are based on evidence rather than reassuring commit messages. Do not count a tool-induced no-op created solely by a submit/metadata wrapper as implementation progress or automatically as implementation failure; classify it according to the underlying state.
+
+Time and failed attempts are different signals. A practical heuristic is to require both a reasonable wall-clock window and several failed cycles before recreating a session when the only evidence is lack of progress. Around a day plus roughly three failed pressure/message cycles can be a useful default, but this is a heuristic rather than an SLA.
+
+The polling cadence should match the likely failure mode and should be capped. When credits or transient service capacity are likely constraints, checks every few hours may be enough. When active recovery is wanted, an hourly conditional check for a bounded period can be reasonable. An old session should not receive indefinite automated pressure.
+
+Every scheduled retry should carry the **current** task facts rather than merely saying "try again". Preserve decisions already answered, name work already complete, state what remains, and prohibit known failure loops such as manufacturing placeholder commits. If the session eventually needs replacement, build the new prompt from current `main`, current durable issue state, answered questions, and useful evidence from the failed attempt.
+
+Pressure should stop early when Jules reports a concrete capability blocker that repeated comments cannot fix. At that point another empty commit is not a useful retry. Record the blocker accurately, stop the pressure schedule, and either let the management layer perform authorised bookkeeping when it has the required capability or prepare a human-authorised handoff/restart that can materially change the capability.
+
+Scheduled recovery does not change lifecycle authority. It must not merge, launch another implementation agent, create unapproved backlog items, or otherwise turn a retry timer into autonomous project management. Its job is to observe, nudge, count failure cycles, stop when pressure cannot help, and prepare a clean restart when the bounded recovery window is exhausted.
 
 ### Record Jules failures and handoffs durably
 
@@ -633,7 +698,7 @@ Do not ask Jules to create an empty commit merely to:
 
 If there is no repository change to make, there should normally be no commit.
 
-That is a heuristic, not a magic threshold. If only one or two small fixes remain, a direct management patch may be simpler and safer.
+That is a heuristic, not a magic threshold. If only one or two small fixes remain, a direct management patch may be simpler and safer—but it should still be made on an isolated management-owned branch rather than turning the Jules branch into a shared workspace.
 
 ## When the management LLM may patch directly
 
@@ -647,7 +712,7 @@ A direct fix is more reasonable when:
 - the risk of hidden behavioural coupling is low;
 - CI can verify the important consequences;
 - no special local environment or interactive test is required;
-- the change does not involve continuing implementation on a Jules-owned branch that Jules may later overwrite.
+- the change is made on an isolated management-owned branch rather than continuing implementation on a Jules-owned branch.
 
 If the change requires substantial testing that CI cannot perform, broad architectural judgement, or extended implementation work, use a real implementation agent instead.
 
@@ -732,25 +797,28 @@ If this article is being used to bootstrap a new management session, the followi
 7. Keep actionable discoveries durable, but do not create new issues autonomously. Search existing issues first, consolidate or enrich an appropriate existing issue when warranted, and present genuinely new candidate issues to the human for confirmation. Create them only after an explicit yes, then return their URLs.
 8. Respect third-party humans. Do not impersonate the operator in human-to-human issue or review conversations.
 9. Encourage Jules to publish a branch and **draft PR** with meaningful intermediate state early. Treat draft as the normal initial state for Jules-created PRs, not as an exceptional failure state. When Jules has made changes and then needs to ask a question, prefer that it submit the current inspectable state before pausing, where practical.
-10. Treat `joobq`, `JOOBQ`, `OOBJQ`, "out-of-band Jules question", and "out-of-band Jules message" as equivalent labels for a Jules question/message outside the normal GitHub review loop.
-11. Put every Jules message and every other copy/paste payload in its **own fenced code block**. Keep explanation outside the block and do not combine distinct messages into one copy-and-paste block.
+10. Treat `joobq` / `JOOBQ` as the acronym for **Jules out-of-band question**: a question copied from the Jules interface into the management-LLM conversation, outside the normal GitHub review loop. Return the answer as a copy/paste payload for the Jules interface; do not post it to GitHub or add `@jules` unless the human explicitly asks for GitHub delivery too. Interpret older `OOBJQ` wording as the same event when encountered.
+11. Put every Jules message and every other copy/paste payload in its **own fenced code block**. Keep explanation outside the block and do not combine distinct messages into one copy-and-paste block. Preserve the intended destination: joobq responses go back to the Jules interface; GitHub review-loop corrections go to GitHub.
 12. On Jules-managed work, inspect each meaningful checkpoint. When correction is needed and Jules can reasonably perform it, post a **new** `@jules` comment automatically rather than waiting for the human to ask. Use `@jules` only when that is how the repository's integration is configured.
 13. For Agy, Codex CLI, Claude Code, or another local/non-web agent, return the corrective prompt to the human for copy/paste instead of trying to invoke the agent through GitHub. Never use `@codex` for Codex CLI. Treat Codex Web as a separate hosted product and use `@codex` only when the human explicitly says Codex Web is the active agent and GitHub-comment delivery is intended.
 14. Do not edit an existing Jules instruction as the way to change course. Post a new follow-up comment containing the correction, because Jules does not reliably detect comment edits.
 15. Verify important Jules instructions were acknowledged or acted upon. Repost when necessary rather than assuming comments form a reliable queue.
-16. Treat Jules branches as Jules-owned for as long as Jules may still be able to publish to them. If another implementation agent takes over from Jules, **do not generate a prompt that targets the existing Jules PR branch**. First create a new branch from the last trusted commit or other deliberately chosen trusted base and preferably open an early draft replacement PR; only then generate the replacement-agent prompt and name that new branch/PR as the writable target. A failed VM/session/authentication attempt does not release Jules ownership. Record the last trusted commit and add reciprocal cross-links between the old and new PRs. If the ownership rule is violated, recover from the last reviewed good commit on a new branch and salvage later Jules changes only selectively.
+16. Treat Jules branches as Jules-owned for as long as Jules may still be able to publish to them. If another implementation agent takes over from Jules, **do not generate a prompt that targets the existing Jules PR branch**. First create a new branch from the last trusted commit or other deliberately chosen trusted base and preferably open an early draft replacement PR; only then generate the replacement-agent prompt and name that new branch/PR as the writable target. A failed VM/session/authentication attempt does not release Jules ownership. A human-authorised detached/local repair may inspect a trusted commit and return a patch/diff without publishing, but it must not mutate the Jules branch.
 17. Preserve Jules provenance/task links in Jules-created PR descriptions when updating metadata.
 18. Own PR metadata, resolving relationships, and draft/ready-for-review state. If Jules explicitly reports it cannot perform an administrative capability, treat that as a routing signal, not a retry loop. Perform the administration directly when authorised, or report the exact remaining action to the human. Keep or return unfinished work to draft. When delegated technical review passes, **approval includes marking the PR ready-for-review before asking the human to review it**. If that GitHub mutation fails or is not permitted, disclose the failure and say that the PR remains draft instead of implying that approval state was fully applied.
-19. Use direct patches only for small, high-confidence work that can be adequately verified. Otherwise recommend an implementation agent.
-20. Repeated empty Jules commits, stale context, clobbered changes, lack of convergence, or clear Jules environment/access failures are reasons to consider a fresh Jules session or a human-authorised handoff. However, do not trigger this heuristic for tool-induced no-op commits. Never ask Jules to create an empty/no-op commit merely to acknowledge feedback, signal completion, or simulate a state transition. Attribute environment or service failures as such rather than blaming the implementation, and sanitize internal failure details before placing them in public GitHub comments.
+19. Use direct patches only for small, high-confidence work that can be adequately verified, and publish them on isolated management-owned branches rather than treating a Jules branch as shared. Otherwise recommend an implementation agent.
+20. Repeated empty Jules commits, stale context, clobbered changes, lack of convergence, or clear Jules environment/access failures are reasons to consider a fresh Jules session or a human-authorised handoff. For a fresh Jules session, prefer a new PR from updated `main`; use a non-`main` recovery base only for a concrete dependency on trusted unmerged state, and remember that a bare commit SHA must first be made an existing base branch. Do not trigger this heuristic for tool-induced no-op commits. Never ask Jules to create an empty/no-op commit merely to acknowledge feedback, signal completion, or simulate a state transition.
 21. Avoid non-first-layer Jules PR stacks. Jules is safest when working from a stable base that does not depend on later external commits.
 22. When delegated review passes, first mark the PR ready-for-review, then say explicitly: **"Management review: APPROVED — ready for human review."** If the state transition cannot be performed, say that technical review passed but the PR remains draft and needs the human's **Ready for review** action; do not claim the transition succeeded.
 23. If blockers remain or reappear, the PR should be draft and management approval should not be presented as current. The management LLM may move PRs in either direction between draft and ready without asking first.
-24. Do not merge without explicit human instruction. Do not close active PRs without explicit instruction unless a specific lifecycle rule has been delegated. Once the human confirms that a replacement PR merged, closing its superseded temporary/handoff PRs and reconciling linked issue state is delegated cleanup and does not require another per-PR confirmation.
+24. Do not merge without explicit human instruction. This is a management-layer rule for actors that actually have merge authority; do **not** mechanically copy "do not merge" or equivalent into Jules prompts or joobq responses when Jules lacks merge capability in the current control plane. Do not close active PRs without explicit instruction unless a specific lifecycle rule has been delegated. Once the human confirms that a replacement PR merged, closing its superseded temporary/handoff PRs and reconciling linked issue state is delegated cleanup and does not require another per-PR confirmation.
 25. After a confirmed merge, perform cleanup first: verify issue resolution, close superseded temporary PRs, preserve cross-links, and surface genuinely new follow-up issues for human confirmation before creating them. Then clearly **suggest** a plausible next Jules session prompt rather than launching it automatically.
 26. Keep management communication explicit. State what you inspected, what you changed in GitHub, what remains uncertain, and what action you are proposing so the human can safely supervise multiple tasks without guessing.
 27. Whenever GitHub work is reviewed or changed, include direct URLs to the pull request or pull requests and issue or issues materially affected. If a new issue was proposed but not yet approved, say that explicitly rather than inventing a URL.
 28. When Agy/Codex/local-agent credit is exhausted, classify the current work before changing agents. Prefer landing a reviewed green PR plus a focused follow-up, or parking it durably and using Jules on independent queued issues. If urgency genuinely requires Jules to take over unfinished work, give Jules a new isolated branch from a trusted commit; do not share the local agent's branch, and treat a Jules PR stacked behind an unmerged non-Jules parent as a last resort.
+29. For stalled Jules sessions, use bounded scheduled condition checks rather than blind repeated comments. Inspect repository state before each nudge, count zero-diff/no-changed-file implementation cycles as failed cycles, stop early on real progress or an explicit capability blocker, and cap the recovery window. When both a reasonable wall-clock interval and several failed cycles have elapsed without progress, regenerate a fresh prompt from current durable state rather than indefinitely pressuring the old session.
+30. Never assume a local or replacement agent has read an issue, PR, comment, review thread or CI discussion merely because it has the Git checkout. Explicitly require retrieval of that GitHub context or inline the material context when access is unavailable, and verify the agent actually acted from it.
+31. Before any push, PR creation, or repository mutation, verify the intended `owner/repo`, working tree, `origin`, active branch and explicit PR destination all agree. A valid PR in the wrong repository is still a publication failure; re-home the real changes instead of committing transport artifacts into the accidental repository.
 
 ## Let the workflow teach the workflow
 
