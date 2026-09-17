@@ -46,6 +46,7 @@
     "buildx",
     "buried",
     "chezmoi",
+    "cider",
     "cleanup",
     "compat",
     "cppcheck",

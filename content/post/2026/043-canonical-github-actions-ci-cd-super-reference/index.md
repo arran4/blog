@@ -6,7 +6,7 @@ tags: ["github-actions", "ci", "cd", "release", "automation", "goreleaser", "can
 categories: ["devops", "reference", "automation"]
 ---
 
-<!-- cspell:words actionlint AppImage Buildx DBUILD Dockerfiles GOPATH GoReleaser jurplel mvcommon myapp nFPM prerelease qmake semver stefanzweifel todate TXTAR typecheck zizmor -->
+<!-- cspell:words actionlint cider pubspec AppImage Buildx DBUILD Dockerfiles GOPATH GoReleaser jurplel mvcommon myapp nFPM prerelease qmake semver stefanzweifel todate TXTAR typecheck zizmor -->
 
 This is the canonical GitHub Actions CI/CD generation reference.
 
@@ -1431,6 +1431,15 @@ When GoReleaser owns GitHub Release creation, do not also run the generic publis
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
+**Prerelease classification:** If the repository accepts SemVer prerelease tags (e.g. `v1.2.3-rc.1`, `v1.2.3-beta.2`, `v1.2.3-alpha.1`, or deliberate `-test` releases), its `.goreleaser.yaml` configuration must explicitly preserve prerelease classification. The canonical form is:
+
+```yaml
+release:
+  prerelease: auto
+```
+
+Accepting a prerelease tag pattern in GitHub Actions is not sufficient if GoReleaser subsequently publishes it as an ordinary stable release. You must keep stable tags, SemVer prerelease tags, snapshot/test builds (which should not publish GitHub Releases), and manual recovery paths explicitly distinct. Do not introduce a second generic release publisher merely to manipulate the prerelease state of a GoReleaser-owned release.
+
 If `goreleaser/goreleaser-action` is a new external CI dependency for that repository, document it. If the project already uses it, preserve the established dependency unless there is a reason to change it.
 
 ### 27.8 Artifact publication ownership
@@ -1478,6 +1487,74 @@ The following are additional capability-selected patterns:
 - minimum-supported-version tests.
 
 Not every check is mandatory. For golden/generated fixtures, normal CI should detect drift rather than automatically accepting new expected output.
+
+### 27.11 Dart/Flutter version arithmetic
+
+Repositories using Dart/Flutter usually define versions as `major.minor.patch+build` inside `pubspec.yaml`. The SemVer release intent and the monotonically advancing application or package build number must be handled correctly.
+
+Cover at least these transitions:
+
+```text
+1.2.3+41 --patch--> 1.2.4+42
+1.2.3+41 --minor--> 1.3.0+42
+1.2.3+41 --major--> 2.0.0+42
+1.2.3+41 --build--> 1.2.3+42
+```
+
+The canonical sequence should make version identity deterministic:
+
+```text
+release intent
+    -> read current pubspec version
+    -> determine SemVer/build change
+    -> write resulting pubspec.yaml version
+    -> validate/test
+    -> build candidate artifacts
+    -> smoke-test candidate artifacts
+    -> establish immutable release/tag context
+    -> publish exactly once
+```
+
+Do not use `github.run_number` directly as a blind replacement for the package build number, as this breaks across repository forks, migrations, and workflow resets.
+
+Instead, the generated workflow should split the versioning calculation into a deterministic path (e.g., using `cider`). A release intent should explicitly increment the semantic version, but *always* advance the build number. A build-only release advances just the build number.
+
+Example canonical Dart versioning implementation for `prepare-release-tag`:
+
+```yaml
+      - name: Install cider
+        run: dart pub global activate cider
+      - name: Calculate version and bump pubspec.yaml
+        env:
+          RELEASE_MODE: ${{ inputs.mode }}
+          RELEASE_VERSION_OVERRIDE: ${{ inputs.release_version_override }}
+        run: |
+          set -euo pipefail
+
+          if [[ -n "$RELEASE_VERSION_OVERRIDE" ]]; then
+             # Human overrides must conform to expected format
+             # and should manually include the build number if needed.
+             cider version "$RELEASE_VERSION_OVERRIDE"
+          else
+            case "$RELEASE_MODE" in
+              release-major) cider bump major --bump-build ;;
+              release-minor) cider bump minor --bump-build ;;
+              release-patch) cider bump patch --bump-build ;;
+              release-build) cider bump build ;;
+              *)
+                echo "Unsupported release mode: $RELEASE_MODE" >&2
+                exit 1
+                ;;
+            esac
+          fi
+
+          NEW_VERSION="$(cider version)"
+          echo "TAG=v$NEW_VERSION" >> "$GITHUB_ENV"
+```
+
+**Tagging policy:** When build-only releases are supported, always tag the full version including the build number (e.g., `v1.2.4+42` instead of `v1.2.4`). Stripping the build number causes tagging ambiguity or collision if a subsequent build `v1.2.4+43` is created. Do not prescribe one tag policy universally; state the consequences and require the repository's generated workflow to choose the policy deliberately based on whether build-only published releases are required.
+
+Ensure the workflow commits the modified `pubspec.yaml` (if the project tracks versions in git) before finalizing the tag, and that all subsequent artifact generation steps within the release pipeline utilize this updated source file. The artifact must contain the same version/build identity that the release process claims.
 
 ## 28. Existing-workflow migration procedure
 
