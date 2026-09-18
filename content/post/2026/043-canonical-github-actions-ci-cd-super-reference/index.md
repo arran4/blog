@@ -1519,7 +1519,14 @@ Do not use `github.run_number` directly as a blind replacement for the package b
 
 Instead, the generated workflow should split the versioning calculation into a deterministic path (e.g., using `cider`). A release intent should explicitly increment the semantic version, but *always* advance the build number. A build-only release advances just the build number.
 
-Example canonical Dart versioning implementation for `prepare-release-tag`:
+**Structural constraints for committed versions:**
+If the version mutation is committed back to the repository, it must occur **before** the `release-ready` validation aggregate. Do not drop a version mutation into the post-validation `prepare-release-tag` job. Mutating source files inside `prepare-release-tag` would violate exact-SHA tag guards and cause release artifacts to be built from pre-mutation source.
+
+To create a coherent release variant:
+1. **Direct Commit Pipeline:** Use a dedicated pre-validation job or separate workflow that calculates the new version, writes `pubspec.yaml`, commits the result, and pushes it back to the branch. This commit must carry a mechanism to avoid recursive workflow triggers (e.g., a `[skip ci]` token or user-exclusion filter). The pipeline then terminates. The newly pushed commit becomes the authoritative release commit, triggering normal CI validation, followed safely by `prepare-release-tag` pushing the tag for that exact SHA.
+2. **Protected-Branch Alternative:** If automated commits to `main` are blocked, provide a "Prepare Release" manual action that creates a Pull Request carrying the incremented version. Merging this PR establishes the validated authoritative commit.
+
+Example version mutation logic using `cider` (executed prior to the main release pipeline):
 
 ```yaml
       - name: Install cider
@@ -1532,8 +1539,10 @@ Example canonical Dart versioning implementation for `prepare-release-tag`:
           set -euo pipefail
 
           if [[ -n "$RELEASE_VERSION_OVERRIDE" ]]; then
-             # Human overrides must conform to expected format
-             # and should manually include the build number if needed.
+             if ! [[ "$RELEASE_VERSION_OVERRIDE" =~ ^[0-9]+\.[0-9]+\.[0-9]+\+[0-9]+$ ]]; then
+               echo "Invalid override format. Must be exactly major.minor.patch+build" >&2
+               exit 1
+             fi
              cider version "$RELEASE_VERSION_OVERRIDE"
           else
             case "$RELEASE_MODE" in
@@ -1548,13 +1557,17 @@ Example canonical Dart versioning implementation for `prepare-release-tag`:
             esac
           fi
 
+          # Handoff: Set output for downstream Git commit/tagging jobs
           NEW_VERSION="$(cider version)"
-          echo "TAG=v$NEW_VERSION" >> "$GITHUB_ENV"
+          echo "tag=v$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
 ```
 
-**Tagging policy:** When build-only releases are supported, always tag the full version including the build number (e.g., `v1.2.4+42` instead of `v1.2.4`). Stripping the build number causes tagging ambiguity or collision if a subsequent build `v1.2.4+43` is created. Do not prescribe one tag policy universally; state the consequences and require the repository's generated workflow to choose the policy deliberately based on whether build-only published releases are required.
+*(Note: Replace `exit 1` with actual exit commands in standard workflows).*
 
-Ensure the workflow commits the modified `pubspec.yaml` (if the project tracks versions in git) before finalizing the tag, and that all subsequent artifact generation steps within the release pipeline utilize this updated source file. The artifact must contain the same version/build identity that the release process claims.
+**Tagging policy:** When build-only releases are supported, always tag the full version including the build number (e.g., `v1.2.4+42` instead of `v1.2.4`). Stripping the build number causes tagging ambiguity or collision if a subsequent build `v1.2.4+43` is created. Do not prescribe one tag policy universally; state the consequences and require the repository's generated workflow to choose the policy deliberately based on whether multiple builds of a single SemVer release are published.
+
+Ensure write permissions (`contents: write`) are tightly scoped to the specific job responsible for the version commit or Git tagging handoff.
 
 ## 28. Existing-workflow migration procedure
 
