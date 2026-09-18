@@ -1523,10 +1523,10 @@ Instead, the generated workflow should split the versioning calculation into a d
 If the version mutation is committed back to the repository, it must occur **before** the `release-ready` validation aggregate. Do not drop a version mutation into the post-validation `prepare-release-tag` job. Mutating source files inside `prepare-release-tag` would violate exact-SHA tag guards and cause release artifacts to be built from pre-mutation source.
 
 To create a coherent release variant:
-1. **Direct Commit Pipeline:** Use a dedicated pre-validation job or separate workflow that calculates the new version, writes `pubspec.yaml`, commits the result, and pushes it back to the branch. This commit must carry a mechanism to avoid recursive workflow triggers (e.g., a `[skip ci]` token or user-exclusion filter). The pipeline then terminates. The newly pushed commit becomes the authoritative release commit, triggering normal CI validation, followed safely by `prepare-release-tag` pushing the tag for that exact SHA.
-2. **Protected-Branch Alternative:** If automated commits to `main` are blocked, provide a "Prepare Release" manual action that creates a Pull Request carrying the incremented version. Merging this PR establishes the validated authoritative commit.
+1. **Direct Commit Pipeline:** Use a dedicated pre-validation job or separate workflow that calculates the new version, writes `pubspec.yaml`, commits the result, and pushes it using `GITHUB_TOKEN`. Because a `GITHUB_TOKEN` push naturally prevents recursive workflow runs, explicitly dispatch the CI/release workflow at the new SHA after pushing. That dispatched run then verifies it is executing on the exact new authoritative SHA before proceeding to validation, build, and tagging.
+2. **Protected-Branch Alternative:** If automated commits to `main` are blocked, provide a "Prepare Release" manual action that creates a Pull Request carrying the incremented version. Merging this PR establishes the validated authoritative commit and naturally triggers ordinary CI.
 
-Example version mutation logic using `cider` (executed prior to the main release pipeline):
+Example version mutation logic using `cider` (executed in the dedicated pre-validation pipeline):
 
 ```yaml
       - name: Install cider
@@ -1543,6 +1543,16 @@ Example version mutation logic using `cider` (executed prior to the main release
                echo "Invalid override format. Must be exactly major.minor.patch+build" >&2
                exit 1
              fi
+
+             CURRENT_VER="$(cider version)"
+             CURRENT_BUILD="${CURRENT_VER#*+}"
+             OVERRIDE_BUILD="${RELEASE_VERSION_OVERRIDE#*+}"
+
+             if [[ "$OVERRIDE_BUILD" -le "$CURRENT_BUILD" ]]; then
+               echo "Override build number ($OVERRIDE_BUILD) must be strictly greater than current ($CURRENT_BUILD)." >&2
+               exit 1
+             fi
+
              cider version "$RELEASE_VERSION_OVERRIDE"
           else
             case "$RELEASE_MODE" in
@@ -1557,15 +1567,22 @@ Example version mutation logic using `cider` (executed prior to the main release
             esac
           fi
 
-          # Handoff: Set output for downstream Git commit/tagging jobs
-          NEW_VERSION="$(cider version)"
-          echo "tag=v$NEW_VERSION" >> "$GITHUB_OUTPUT"
-          echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          # Handoff: commit pubspec.yaml, push it, and explicitly dispatch downstream workflow.
 ```
 
-*(Note: Replace `exit 1` with actual exit commands in standard workflows).*
+**Tagging policy and handoff:**
+For committed versions, the durable cross-run handoff is the `pubspec.yaml` file itself. When the main release pipeline reaches the `prepare-release-tag` job (after validation and artifact builds succeed), it does not calculate an auto-increment. Instead, it reads the full version directly from the already-validated commit:
 
-**Tagging policy:** When build-only releases are supported, always tag the full version including the build number (e.g., `v1.2.4+42` instead of `v1.2.4`). Stripping the build number causes tagging ambiguity or collision if a subsequent build `v1.2.4+43` is created. Do not prescribe one tag policy universally; state the consequences and require the repository's generated workflow to choose the policy deliberately based on whether multiple builds of a single SemVer release are published.
+```yaml
+      - name: Derive exact tag from pubspec
+        run: |
+          TAG="v$(cider version)"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+```
+
+The job then proceeds to tag exactly `GITHUB_SHA` using the same remote-tag, idempotency, and race checks outlined in §27.5.
+
+When build-only releases are supported, always tag the full version including the build number (e.g., `v1.2.4+42` instead of `v1.2.4`). Stripping the build number causes tagging ambiguity or collision if a subsequent build `v1.2.4+43` is created. Do not prescribe one tag policy universally; state the consequences and require the repository's generated workflow to choose the policy deliberately based on whether multiple builds of a single SemVer release are published.
 
 Ensure write permissions (`contents: write`) are tightly scoped to the specific job responsible for the version commit or Git tagging handoff.
 
