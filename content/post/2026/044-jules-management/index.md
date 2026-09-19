@@ -316,9 +316,9 @@ The goal is not to eliminate every question. The goal is to avoid making the hum
 
 ### Successful capability handoffs
 
-If Jules asks an out-of-band question indicating that there are no code changes left to make, but it cannot perform the remaining GitHub administration (such as updating pull-request metadata, resolving issues, or closing a PR), the management LLM should normally treat that as a **successful implementation handoff**.
+If Jules has submitted its PR and asks an out-of-band question indicating that no implementation changes remain, but it cannot perform the remaining GitHub administration (such as updating pull-request metadata, resolving issues, or closing a PR), the management LLM should normally treat that as a **successful implementation handoff**.
 
-The appropriate answer is effectively, "Yes, stop here and hand the remaining management actions back to the management layer." Do not send Jules back to retry an operation it has just established it cannot perform.
+The appropriate answer is effectively, "The work is submitted; hand the remaining management actions back to the management layer." Do not send Jules back to retry an operation it has just established it cannot perform. If the PR itself has not been submitted because of a demonstrated capability failure, management must ensure the work becomes a submitted, inspectable PR before treating the task as handed off.
 
 ### Keep merge policy at the management layer
 
@@ -337,6 +337,14 @@ This does not weaken the merge policy. The management layer must still refuse to
 ## Publish Jules state early
 
 Visibility is much better when Jules publishes a pull request and intermediate state early rather than doing a large amount of work invisibly and only exposing it at the end.
+
+### Submission is a required outcome
+
+Every Jules task must end with an **inspectable pull request submitted for management review**. Give the implementation agent one positive, unambiguous instruction: complete the scoped work, commit and push the deliverable, and submit or update the PR. A local report, uncommitted files, a local commit, or a pushed branch without a submitted PR is not a completed submission. The same requirement applies to implementation, audits, documentation, verification, test hardening, and issue reconciliation. If an audit finds no production-code defect, checked-in evidence or a focused documentation update can still be its reviewable deliverable; do not invent unrelated code changes.
+
+The management prompt should state the required end state rather than adding conditional alternatives such as "no PR is necessary if no code changes are warranted" or "report the findings instead of submitting a PR". Those alternatives can cause the agent to stop with work that management cannot review. If the task already has a PR, update and push that PR; otherwise submit the task PR. A genuine submission failure must be described with the exact error, branch, commit, and remaining action so management can complete authorised administration. This exception is for an observed capability failure, not a default alternative ending in the task prompt.
+
+For example, the submission instruction can be: **"Complete the scoped work, record the evidence and remaining limitations, commit and push the deliverable, submit the pull request for management review, and return its URL and exact head commit."** Submission does not imply technical approval, a ready-for-review transition, issue closure, or a merge. Those remain separate management and human decisions described below.
 
 Jules-created pull requests should normally be opened as **drafts**. The draft state is a useful operational signal: implementation is still in progress, delegated review has not yet passed, or the human should not spend attention on the pull request yet. The management LLM should strongly prefer prompts and follow-up instructions that encourage Jules to establish the branch and draft PR early once it has a coherent foothold. If Jules encounters a blocker or needs to ask an out-of-band question after making changes, it should, where practical, commit/push or otherwise submit the current meaningful state **before** pausing for the question.
 
@@ -422,6 +430,10 @@ Do not classify a pull request as Jules-managed merely because it discusses Jule
 In my current setup, the practical positive signals are that **the Jules bot has responded on the pull request** and **the PR description contains the Jules task/session link**. Those two pieces of provenance make Jules ownership visible from GitHub without relying on conversational memory.
 
 When those signals are absent, the management layer should not send `@jules` instructions or treat the branch as Jules-owned unless some other concrete evidence establishes that Jules is the active implementation agent. A management-owned PR should be edited directly when the requested change is within the management layer's capabilities.
+
+**A mention is not participation.** A human or management LLM posting `@jules` in a comment does not make a PR Jules-managed. Inspect the PR author, description, task/session link, and whether the Jules bot actually responded or published work. In particular, a PR created by the management LLM with no Jules task/session link and no Jules bot involvement is management-owned even if its subject is Jules or someone has addressed a comment to `@jules`. Do not delegate such a PR back to Jules by habit. The management LLM should commit the requested change directly to its existing branch when it has write access and the human has authorised the edit.
+
+The converse also matters: a bot comment or task link is evidence to investigate, not a substitute for checking actual branch ownership and the active implementation agent. Where provenance is ambiguous, inspect the linked session and branch history before routing corrective work.
 
 ### Recovery choices after a Jules environment or session failure
 
