@@ -1532,7 +1532,6 @@ Example version mutation logic using `cider` (executed in the dedicated pre-vali
   prepare-version-commit:
     name: Prepare Version Commit
     needs: [route]
-    # For the committed variant, ensure version_mutation replaces the default 'validation' router path
     if: ${{ needs.route.outputs.version_mutation == 'true' && inputs.mode != 'release-validate' }}
     runs-on: ubuntu-latest
     permissions:
@@ -1542,6 +1541,7 @@ Example version mutation logic using `cider` (executed in the dedicated pre-vali
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+      - uses: dart-lang/setup-dart@v1
       - name: Install cider
         run: dart pub global activate cider
       - name: Calculate version and bump pubspec.yaml
@@ -1601,46 +1601,114 @@ Example version mutation logic using `cider` (executed in the dedicated pre-vali
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-The downstream released-validate workflow must then enforce:
+**Router adaptations for the committed variant:**
+When selecting the Dart committed-version variant, the baseline router in §27.1 must be updated so that the initial mutation run terminates safely and forwards to the internal validation continuation:
 
 ```yaml
-      - name: Verify exact authoritative commit
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        required: true
+        default: build
+        options:
+          - build
+          - lint-fix
+          - monthly-maintenance
+          - release-major
+          - release-minor
+          - release-patch
+          - release-build
+          - release-validate
+          - publish-tag
+      release_version_override:
+        type: string
+        required: false
+        default: ''
+      expected_release_sha:
+        type: string
+        required: false
+        default: ''
+      allow_prs:
+        type: boolean
+        required: false
+        default: true
+```
+
+The router logic explicitly handles `version_mutation` termination and strict `release-validate` continuation:
+
+```yaml
+  route:
+    name: Route Event
+    runs-on: ubuntu-latest
+    outputs:
+      validation: ${{ steps.route.outputs.validation }}
+      build: ${{ steps.route.outputs.build }}
+      release: ${{ steps.route.outputs.release }}
+      publisher: ${{ steps.route.outputs.publisher }}
+      autofix: ${{ steps.route.outputs.autofix }}
+      maintenance: ${{ steps.route.outputs.maintenance }}
+      version_mutation: ${{ steps.route.outputs.version_mutation }}
+    steps:
+      - id: route
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          INPUT_MODE: ${{ inputs.mode }}
+          INPUT_EXPECTED_RELEASE_SHA: ${{ inputs.expected_release_sha }}
         run: |
           set -euo pipefail
-          EXPECTED="${{ inputs.expected_release_sha }}"
 
-          AUTHORITATIVE_BRANCH="${GITHUB_REF#refs/heads/}"
-          git fetch origin "$AUTHORITATIVE_BRANCH"
-          ORIGIN_SHA="$(git rev-parse "origin/$AUTHORITATIVE_BRANCH")"
+          validation=false
+          build=false
+          release=false
+          publisher=false
+          autofix=false
+          maintenance=false
+          version_mutation=false
 
-          if [[ "$GITHUB_SHA" != "$EXPECTED" ]] || [[ "$ORIGIN_SHA" != "$EXPECTED" ]]; then
-            echo "Race condition detected: GITHUB_SHA/origin does not match expected_release_sha ($EXPECTED)." >&2
-            exit 1
-          fi
+          case "$EVENT_NAME" in
+            # ... standard push/pr/schedule cases remain the same ...
+            workflow_dispatch)
+              case "$INPUT_MODE" in
+                release-major|release-minor|release-patch|release-build)
+                  # Version mutation terminates after dispatching the downstream validation run
+                  version_mutation=true
+                  ;;
+                release-validate)
+                  if ! [[ "${INPUT_EXPECTED_RELEASE_SHA:-}" =~ ^[0-9a-f]{40}$ ]]; then
+                    echo "release-validate requires a full 40-character expected_release_sha" >&2
+                    exit 1
+                  fi
+                  validation=true
+                  build=true
+                  release=true
+                  ;;
+                publish-tag)
+                  if [[ "$REF_TYPE" != "tag" || "$GITHUB_REF" != refs/tags/v* ]]; then
+                    echo "publish-tag requires a v* tag ref; got $GITHUB_REF" >&2
+                    exit 1
+                  fi
+                  validation=true
+                  build=true
+                  publisher=true
+                  ;;
+                *)
+                  # ... remaining standard cases ...
+                  ;;
+              esac
+              ;;
+          esac
+
+          echo "validation=$validation" >> "$GITHUB_OUTPUT"
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+          echo "release=$release" >> "$GITHUB_OUTPUT"
+          echo "publisher=$publisher" >> "$GITHUB_OUTPUT"
+          echo "autofix=$autofix" >> "$GITHUB_OUTPUT"
+          echo "maintenance=$maintenance" >> "$GITHUB_OUTPUT"
+          echo "version_mutation=$version_mutation" >> "$GITHUB_OUTPUT"
 ```
-
-**Tagging policy and handoff:**
-For committed versions, the durable cross-run handoff is the `pubspec.yaml` file itself. When the main release pipeline reaches the `prepare-release-tag` job (after validation and artifact builds succeed), it does not calculate an auto-increment. Instead, it reads the full version directly from the already-validated commit:
-
-```yaml
-      - name: Derive exact tag from pubspec
-        run: |
-          TAG="v$(cider version)"
-          echo "TAG=$TAG" >> "$GITHUB_ENV"
-```
-
-The job then proceeds to tag exactly `GITHUB_SHA` using the same remote-tag, idempotency, and race checks outlined in §27.5.
-
-When build-only releases are supported, always tag the full version including the build number (e.g., `v1.2.4+42` instead of `v1.2.4`). Stripping the build number causes tagging ambiguity or collision if a subsequent build `v1.2.4+43` is created. Do not prescribe one tag policy universally; state the consequences and require the repository's generated workflow to choose the policy deliberately based on whether multiple builds of a single SemVer release are published.
-
-Ensure write permissions (`contents: write`) are tightly scoped to the specific job responsible for the version commit or Git tagging handoff.
-
-**Router adaptations for the committed variant:**
-When selecting the Dart committed-version variant, the baseline router in §27.1 must be updated to securely handle the two-stage execution:
-1. Add `release-build` and `release-validate` to `workflow_dispatch.inputs.mode.options`, and declare `expected_release_sha`.
-2. Add `INPUT_EXPECTED_RELEASE_SHA: ${{ inputs.expected_release_sha }}` to the router's environment context.
-3. Change the generic `release-major|release-minor...` case to output only a dedicated property like `version_mutation=true` instead of immediately outputting validation and build.
-4. Add a dedicated `release-validate` router case that ensures the explicit SHA matches exactly before enabling `validation=true`, `build=true`, and `release=true`. This preserves the generic pipeline for all other repositories while scoping the mutation logic.
 
 
 
