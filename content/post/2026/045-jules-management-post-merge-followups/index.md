@@ -15,6 +15,8 @@ categories:
   - Automation
 ---
 
+<!-- cspell:words closeout -->
+
 This is a focused amendment to [Managing Jules with a Management LLM](/blog/post/2026/044-jules-management/). It clarifies that article's post-merge closeout and next-prompt selection rules. For post-merge continuation, use the rules here where the earlier article is less specific; its other ownership, issue-management, review and human-authorisation rules remain in force.
 
 ## Start with the repository that just merged
