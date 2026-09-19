@@ -1431,6 +1431,15 @@ When GoReleaser owns GitHub Release creation, do not also run the generic publis
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
+**Prerelease classification:** If the repository accepts SemVer prerelease tags (e.g. `v1.2.3-rc.1`, `v1.2.3-beta.2`, `v1.2.3-alpha.1`, or deliberate `-test` releases), its `.goreleaser.yaml` configuration must explicitly preserve prerelease classification. The canonical form is:
+
+```yaml
+release:
+  prerelease: auto
+```
+
+Accepting a prerelease tag pattern in GitHub Actions is not sufficient if GoReleaser subsequently publishes it as an ordinary stable release. You must keep stable tags, SemVer prerelease tags, snapshot/test builds (which should not publish GitHub Releases), and manual recovery paths explicitly distinct. Do not introduce a second generic release publisher merely to manipulate the prerelease state of a GoReleaser-owned release.
+
 If `goreleaser/goreleaser-action` is a new external CI dependency for that repository, document it. If the project already uses it, preserve the established dependency unless there is a reason to change it.
 
 ### 27.8 Artifact publication ownership
@@ -1478,6 +1487,339 @@ The following are additional capability-selected patterns:
 - minimum-supported-version tests.
 
 Not every check is mandatory. For golden/generated fixtures, normal CI should detect drift rather than automatically accepting new expected output.
+
+### 27.11 Dart/Flutter version arithmetic
+
+Repositories using Dart/Flutter usually define versions as `major.minor.patch+build` inside `pubspec.yaml`. The SemVer release intent and the monotonically advancing application or package build number must be handled correctly.
+
+Cover at least these transitions:
+
+```text
+1.2.3+41 --patch--> 1.2.4+42
+1.2.3+41 --minor--> 1.3.0+42
+1.2.3+41 --major--> 2.0.0+42
+1.2.3+41 --build--> 1.2.3+42
+```
+
+The canonical sequence should make version identity deterministic:
+
+```text
+release intent
+    -> read current pubspec version
+    -> determine SemVer/build change
+    -> write resulting pubspec.yaml version
+    -> validate/test
+    -> build candidate artifacts
+    -> smoke-test candidate artifacts
+    -> establish immutable release/tag context
+    -> publish exactly once
+```
+
+Do not use `github.run_number` directly as a blind replacement for the package build number, as this breaks across repository forks, migrations, and workflow resets.
+
+Instead, the generated workflow should split the versioning calculation into a deterministic path (e.g., using `cider`). A release intent should explicitly increment the semantic version, but *always* advance the build number. A build-only release advances just the build number.
+
+**Structural constraints for committed versions:**
+If the version mutation is committed back to the repository, it must occur **before** the `release-ready` validation aggregate. Do not drop a version mutation into the post-validation `prepare-release-tag` job. Mutating source files inside `prepare-release-tag` would violate exact-SHA tag guards and cause release artifacts to be built from pre-mutation source.
+
+To create a coherent release variant:
+1. **Direct Commit Pipeline:** Use a dedicated pre-validation job or separate workflow that calculates the new version, writes `pubspec.yaml`, commits the result, and pushes it using `GITHUB_TOKEN`. Because a `GITHUB_TOKEN` push naturally prevents recursive workflow runs, explicitly dispatch the CI/release workflow. GitHub Actions requires dispatching against a branch or tag name, so dispatch against the authoritative branch and pass the exact pushed commit SHA as a parameter (e.g., `expected_release_sha`). At the very start of the dispatched pipeline, verify `GITHUB_SHA == expected_release_sha` and `origin/$AUTHORITATIVE_BRANCH == expected_release_sha` before running validation.
+2. **Protected-Branch Alternative:** If automated commits to `main` are blocked, provide a "Prepare Release" manual action that creates a Pull Request carrying the incremented version. Merging this PR establishes the validated authoritative commit and naturally triggers ordinary CI.
+
+Example version mutation logic using `cider` (executed in the dedicated pre-validation pipeline):
+
+```yaml
+  prepare-version-commit:
+    name: Prepare Version Commit
+    needs: [route]
+    if: ${{ needs.route.outputs.version_mutation == 'true' && inputs.mode != 'release-validate' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: dart-lang/setup-dart@v1
+      - name: Install cider
+        run: dart pub global activate cider
+      - name: Calculate version and bump pubspec.yaml
+        env:
+          RELEASE_MODE: ${{ inputs.mode }}
+          RELEASE_VERSION_OVERRIDE: ${{ inputs.release_version_override }}
+        run: |
+          set -euo pipefail
+
+          if [[ -n "$RELEASE_VERSION_OVERRIDE" ]]; then
+             if ! [[ "$RELEASE_VERSION_OVERRIDE" =~ ^[0-9]+\.[0-9]+\.[0-9]+\+[0-9]+$ ]]; then
+               echo "Invalid override format. Must be exactly major.minor.patch+build" >&2
+               exit 1
+             fi
+
+             CURRENT_VER="$(cider version)"
+             CURRENT_BUILD="${CURRENT_VER#*+}"
+             OVERRIDE_BUILD="${RELEASE_VERSION_OVERRIDE#*+}"
+
+             if [[ "$OVERRIDE_BUILD" -le "$CURRENT_BUILD" ]]; then
+               echo "Override build number ($OVERRIDE_BUILD) must be strictly greater than current ($CURRENT_BUILD)." >&2
+               exit 1
+             fi
+
+             # Note: Exact-version overrides may intentionally roll back the SemVer component
+             # (e.g. returning to a prior release branch). Only the +build number is enforced
+             # to be monotonically increasing.
+             cider version "$RELEASE_VERSION_OVERRIDE"
+          else
+            case "$RELEASE_MODE" in
+              release-major) cider bump major --bump-build ;;
+              release-minor) cider bump minor --bump-build ;;
+              release-patch) cider bump patch --bump-build ;;
+              release-build) cider bump build ;;
+              *)
+                echo "Unsupported release mode: $RELEASE_MODE" >&2
+                exit 1
+                ;;
+            esac
+          fi
+
+          AUTHORITATIVE_BRANCH="${GITHUB_REF#refs/heads/}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore(release): prepare v$(cider version)"
+
+          # Push the commit using GITHUB_TOKEN to naturally suppress recursive push events
+          git push origin "HEAD:refs/heads/$AUTHORITATIVE_BRANCH"
+
+          VERSION_SHA="$(git rev-parse HEAD)"
+
+          # Handoff: explicitly dispatch downstream workflow on the branch ref,
+          # passing the exact expected SHA to avoid race conditions.
+          gh workflow run ci.yml --ref "$AUTHORITATIVE_BRANCH" -f mode=release-validate -f expected_release_sha="$VERSION_SHA"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+**Router adaptations for the committed variant:**
+When selecting the Dart committed-version variant, the baseline router in §27.1 must be updated so that the initial mutation run terminates safely and forwards to the internal validation continuation:
+
+```yaml
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        required: true
+        default: build
+        options:
+          - build
+          - lint-fix
+          - monthly-maintenance
+          - release-major
+          - release-minor
+          - release-patch
+          - release-build
+          - release-validate
+          - publish-tag
+      release_version_override:
+        type: string
+        required: false
+        default: ''
+      expected_release_sha:
+        type: string
+        required: false
+        default: ''
+      allow_prs:
+        type: boolean
+        required: false
+        default: true
+```
+
+The router logic explicitly handles `version_mutation` termination and strict `release-validate` continuation without removing normal event support. Replace the canonical router with this complete variant:
+
+```yaml
+  route:
+    name: Route Event
+    runs-on: ubuntu-latest
+    outputs:
+      validation: ${{ steps.route.outputs.validation }}
+      build: ${{ steps.route.outputs.build }}
+      release: ${{ steps.route.outputs.release }}
+      publisher: ${{ steps.route.outputs.publisher }}
+      autofix: ${{ steps.route.outputs.autofix }}
+      maintenance: ${{ steps.route.outputs.maintenance }}
+      version_mutation: ${{ steps.route.outputs.version_mutation }}
+    steps:
+      - id: route
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          INPUT_MODE: ${{ inputs.mode }}
+          INPUT_EXPECTED_RELEASE_SHA: ${{ inputs.expected_release_sha }}
+        run: |
+          set -euo pipefail
+
+          validation=false
+          build=false
+          release=false
+          publisher=false
+          autofix=false
+          maintenance=false
+          version_mutation=false
+
+          case "$EVENT_NAME" in
+            pull_request)
+              validation=true
+              build=true
+              ;;
+            push)
+              validation=true
+              build=true
+              if [[ "$REF_TYPE" == "tag" ]]; then
+                publisher=true
+              fi
+              ;;
+            schedule)
+              validation=true
+              build=true
+              maintenance=true
+              ;;
+            workflow_dispatch)
+              case "$INPUT_MODE" in
+                build)
+                  validation=true
+                  build=true
+                  ;;
+                lint-fix)
+                  autofix=true
+                  ;;
+                monthly-maintenance)
+                  validation=true
+                  build=true
+                  maintenance=true
+                  ;;
+                release-major|release-minor|release-patch|release-build)
+                  # Version mutation terminates after dispatching the downstream validation run
+                  version_mutation=true
+                  ;;
+                release-validate)
+                  if ! [[ "${INPUT_EXPECTED_RELEASE_SHA:-}" =~ ^[0-9a-f]{40}$ ]]; then
+                    echo "release-validate requires a full 40-character expected_release_sha" >&2
+                    exit 1
+                  fi
+                  validation=true
+                  build=true
+                  release=true
+                  ;;
+                publish-tag)
+                  if [[ "$REF_TYPE" != "tag" || "$GITHUB_REF" != refs/tags/v* ]]; then
+                    echo "publish-tag requires a v* tag ref; got $GITHUB_REF" >&2
+                    exit 1
+                  fi
+                  validation=true
+                  build=true
+                  publisher=true
+                  ;;
+                *)
+                  echo "Unsupported manual mode: $INPUT_MODE" >&2
+                  exit 1
+                  ;;
+              esac
+              ;;
+            *)
+              echo "Unsupported event: $EVENT_NAME" >&2
+              exit 1
+              ;;
+          esac
+
+          echo "validation=$validation" >> "$GITHUB_OUTPUT"
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+          echo "release=$release" >> "$GITHUB_OUTPUT"
+          echo "publisher=$publisher" >> "$GITHUB_OUTPUT"
+          echo "autofix=$autofix" >> "$GITHUB_OUTPUT"
+          echo "maintenance=$maintenance" >> "$GITHUB_OUTPUT"
+          echo "version_mutation=$version_mutation" >> "$GITHUB_OUTPUT"
+```
+
+Because the `release-validate` payload operates on the exact pushed SHA rather than blindly trusting the branch tip, the downstream workflow must verify the target SHA before commencing any expensive operations:
+
+```yaml
+  release-origin-guard:
+    name: Verify Release Origin
+    needs: [route]
+    if: ${{ needs.route.outputs.validation == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+      - name: Verify exact authoritative commit
+        env:
+          INPUT_MODE: ${{ inputs.mode }}
+          EXPECTED: ${{ inputs.expected_release_sha }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$INPUT_MODE" != "release-validate" ]]; then
+            echo "Not release-validate mode. Skipping SHA check."
+            exit 0
+          fi
+
+          AUTHORITATIVE_BRANCH="${GITHUB_REF#refs/heads/}"
+
+          # Fetch the tip of the authoritative branch explicitly into a tracking ref
+          git fetch origin "$AUTHORITATIVE_BRANCH:refs/remotes/origin/$AUTHORITATIVE_BRANCH" --depth=1
+          ORIGIN_SHA="$(git rev-parse "origin/$AUTHORITATIVE_BRANCH")"
+
+          if [[ "$GITHUB_SHA" != "$EXPECTED" ]] || [[ "$ORIGIN_SHA" != "$EXPECTED" ]]; then
+            echo "Race condition detected: GITHUB_SHA ($GITHUB_SHA) or origin ($ORIGIN_SHA) does not match expected_release_sha ($EXPECTED)." >&2
+            exit 1
+          fi
+```
+
+To guarantee the guard runs before expensive work, **all selected validation jobs** must explicitly declare it in their `needs` array. For example:
+
+```yaml
+  flutter-test:
+    name: Flutter Test
+    needs: [route, release-origin-guard]
+    if: ${{ !failure() && !cancelled() && needs.route.outputs.validation == 'true' && needs.release-origin-guard.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      # ... checkout, install, test ...
+```
+
+The `validation` aggregate then depends on the router, the guard, and only the concrete validation jobs (do not include `build` here):
+
+```yaml
+  validation:
+    name: Validation Aggregate
+    needs: [route, release-origin-guard, flutter-test] # Add your other selected validation jobs here
+    if: ${{ always() && needs.route.outputs.validation == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          # Aggregate failure checks...
+```
+
+The rest of the pipeline (`build`, `release-ready`) remains downstream of the successful validation aggregate as in the canonical topology.
+
+**Tagging policy and handoff:**
+For committed versions, the durable cross-run handoff is the `pubspec.yaml` file itself. When the main release pipeline reaches the `prepare-release-tag` job (after validation and artifact builds succeed), it does not calculate an auto-increment. Instead, it reads the full version directly from the already-validated commit:
+
+```yaml
+      - name: Derive exact tag from pubspec
+        run: |
+          TAG="v$(cider version)"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+```
+
+The job then proceeds to tag exactly `GITHUB_SHA` using the same remote-tag, idempotency, and race checks outlined in §27.5.
+
+When build-only releases are supported, always tag the full version including the build number (e.g., `v1.2.4+42` instead of `v1.2.4`). Stripping the build number causes tagging ambiguity or collision if a subsequent build `v1.2.4+43` is created. Do not prescribe one tag policy universally; state the consequences and require the repository's generated workflow to choose the policy deliberately based on whether multiple builds of a single SemVer release are published.
+
+Ensure write permissions (`contents: write`) are tightly scoped to the specific job responsible for the version commit or Git tagging handoff.
 
 ## 28. Existing-workflow migration procedure
 

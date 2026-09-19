@@ -302,6 +302,13 @@ Ensure the explicitly dispatched publisher has the correct tag context. Because 
           GORELEASER_CURRENT_TAG: ${{ needs.release-context.outputs.release_tag }}
 ```
 
+**Prerelease classification:** If the repository accepts SemVer prerelease tags (e.g. `v1.2.3-rc.1`, `v1.2.3-beta.2`), its `.goreleaser.yaml` configuration must explicitly preserve prerelease classification. Ensure your `.goreleaser.yaml` contains:
+
+```yaml
+release:
+  prerelease: auto
+```
+
 Do not add `softprops/action-gh-release`, `gh release create`, or a second release-producing `release: published` lane around it.
 
 ## `release: published` is downstream
