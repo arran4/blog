@@ -664,6 +664,411 @@ Canonical service-container shape, using PostgreSQL only as a structural example
           POSTGRES_PASSWORD: test
         ports:
           - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://test:test@127.0.0.1:5432/test
+    steps:
+      - uses: actions/checkout@v7
+      # Add only the repository's language/toolchain setup.
+      - run: ./repository-specific-integration-test-command
+```
+
+Use the repository's actual supported engine/version rather than copying PostgreSQL into unrelated projects. When multiple supported engines or versions matter, convert the image/version into a matrix rather than cloning the job into separate workflow files.
+
+## 18. Workflow validation
+
+GitHub Actions workflow validation is a first-class concern. Where viable, repositories containing Actions workflows should run `actionlint`. Generated workflows must also be validated after generation.
+
+Canonical job:
+
+```yaml
+  workflow-validation:
+    name: Validate GitHub Actions
+    needs: [route]
+    if: ${{ needs.route.outputs.validation == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: go run github.com/rhysd/actionlint/cmd/actionlint@latest
+```
+
+If `actionlint` is newly introduced, document it as an external CI dependency.
+
+When the repository's security posture warrants it, additional tools should be considered as capability/risk-based additions, rather than mandatory jobs for every repository:
+
+- `zizmor`;
+- dependency review;
+- secret scanning;
+- ecosystem vulnerability scanners.
+
+Agents authoring CI must reason through the logic for:
+
+- every `needs:` edge;
+- referenced outputs;
+- skipped jobs;
+- event-specific contexts;
+- permissions;
+- concurrency;
+- release recursion limitations;
+- manual-dispatch paths.
+
+Successful YAML parsing alone is insufficient.
+
+## 19. Autofix and maintenance
+
+Autofix is optional and should:
+
+- perform deterministic mechanical changes only;
+- produce no PR when the tree remains clean;
+- create a focused automation PR when allowed;
+- avoid mixing unrelated dependency or semantic changes;
+- never publish a release.
+
+Maintained repositories should normally have periodic verification even when quiet. The baseline private-repository cadence is the second day of each month around 05:00 AEST, represented as:
+
+```yaml
+schedule:
+  - cron: '0 19 1 * *'
+```
+
+Scheduled verification should run meaningful normal validation and optionally repository-appropriate dependency-freshness checks. A schedule must not publish a release.
+
+Do not add a nightly job merely because an old template had one.
+
+Canonical autofix shape:
+
+```yaml
+  autofix:
+    name: Autofix
+    needs: [route]
+    if: ${{ needs.route.outputs.autofix == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+      # Add repository-specific setup.
+      - name: Apply deterministic fixes
+        run: ./repository-specific-autofix-command
+      - name: Detect changes
+        id: changes
+        run: |
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git diff --check
+          fi
+      - name: Open focused autofix PR
+        if: ${{ steps.changes.outputs.changed == 'true' && (github.event_name != 'workflow_dispatch' || inputs.allow_prs) }}
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "style: automated fixes"
+          title: "style: automated fixes"
+          branch: automation/autofix
+          delete-branch: true
+```
+
+`allow_prs: false` therefore permits a manually requested fix/check run without creating a PR. `peter-evans/create-pull-request` is an external action. Reuse it where already established; if newly introduced, list and justify it in the PR. A repository that deliberately avoids this dependency may implement the same focused-PR contract with its existing repository-native automation.
+
+Canonical monthly-maintenance shape:
+
+```yaml
+  maintenance:
+    name: Monthly Maintenance
+    needs: [route]
+    if: ${{ needs.route.outputs.maintenance == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # Run the repository's normal validation/freshness checks here.
+      - run: ./repository-specific-freshness-check
+```
+
+Do not give maintenance write permissions unless it actually creates or mutates repository state.
+
+## 20. Build artifacts and smoke verification
+
+A release/build verification stage must execute between artifact construction and publication.
+
+Source tests alone do not prove that release artifacts work, especially where packaging, linking, or embedding version data occurs during release builds. Build jobs must produce the artifacts that the project promises.
+
+Where applicable, test the actual candidate artifact before publication by:
+
+- executing the candidate CLI with `--version`;
+- checking expected version, commit, and/or build-date metadata;
+- exercising one representative command;
+- checking that expected binaries/files exist;
+- inspecting archive/package contents;
+- installing and smoke-testing native packages where practical;
+- starting built container images and testing a command or health endpoint.
+
+Use short Actions-artifact retention for transient handoff artifacts; one day is a good default when publication consumes them immediately.
+
+Publication must explicitly depend on successful candidate-artifact verification where this capability applies.
+
+Canonical build/artifact/smoke chain:
+
+```yaml
+  build:
+    name: Build Artifacts
+    needs: [route, validation]
+    if: ${{ needs.route.outputs.build == 'true' && needs.validation.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # Add repository-specific setup.
+      - name: Build candidate artifacts
+        run: ./repository-specific-build-command
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-candidates
+          path: dist/**
+          if-no-files-found: error
+          retention-days: 1
+
+  artifact-smoke:
+    name: Smoke Candidate Artifacts
+    needs: [route, build]
+    if: ${{ needs.route.outputs.build == 'true' && needs.build.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: release-candidates
+          path: release-candidates
+      - name: Smoke candidate artifacts
+        run: ./repository-specific-artifact-smoke-command release-candidates
+```
+
+The smoke command must test the built artifact, not rebuild the project from source.
+
+## 21. Release version planning
+
+`arran4/git-tag-inc` is the default shared semantic-version tool for repositories using this release model. Do not duplicate SemVer arithmetic in shell.
+
+Owner-controlled tooling may be used directly. Choose the interface according to its actual safety characteristics:
+
+- fixed trusted inputs to an owner-controlled action can be acceptable;
+- user-controlled strings must not be interpolated unsafely into shell;
+- where an action interface cannot safely carry the required input, install/use the CLI and pass values through environment variables.
+
+For example:
+
+```yaml
+- name: Install git-tag-inc
+  run: go install github.com/arran4/git-tag-inc/cmd/git-tag-inc@v1.0.0
+```
+
+Use the current appropriate version when generating/upgrading the repository. Do not treat the example version as forever canonical.
+
+## 22. Manual release preparation and immutable tags
+
+Manual release preparation must:
+
+1. run the repository's required release-validation gate;
+2. operate only against the authoritative release branch;
+3. checkout/fetch enough history and tags;
+4. verify the selected commit still equals current `origin/<authoritative-branch>`;
+5. calculate or explicitly select the intended tag;
+6. if the tag already exists, verify it resolves to the exact validated commit;
+7. create/push the immutable tag only after validation;
+8. route publication using the tag as immutable context.
+
+Use GitHub's existing shell environment variables directly:
+
+```bash
+set -euo pipefail
+
+AUTHORITATIVE_BRANCH="${GITHUB_REF#refs/heads/}"
+
+case "$AUTHORITATIVE_BRANCH" in
+  main|master) ;;
+  *)
+    echo "Release preparation must run on main or master" >&2
+    exit 1
+    ;;
+esac
+
+git fetch origin "$AUTHORITATIVE_BRANCH"
+ORIGIN_SHA="$(git rev-parse "origin/$AUTHORITATIVE_BRANCH")"
+
+if [[ "$ORIGIN_SHA" != "$GITHUB_SHA" ]]; then
+  echo "origin/$AUTHORITATIVE_BRANCH advanced; refusing to tag" >&2
+  exit 1
+fi
+```
+
+Repeat the origin check immediately before creating a new tag to close the race window.
+
+Never silently move an existing release tag.
+
+## 23. Recovery and manual version overrides
+
+`release_version_override` may explicitly choose a version instead of calculating a new one.
+
+Normalize an optional leading `v`, validate the resulting shape, and pass it through the same idempotent tag verification.
+
+A failed publication after a tag has already been pushed must recover the **same** intended tag. Do not rerun auto-increment logic and silently advance to another release version.
+
+`publish-tag` is the immutable tag-context publication/recovery path. It must not calculate or move a version.
+
+Annotated tags must be dereferenced appropriately when verifying the commit.
+
+## 24. Exactly one release owner
+
+For one tag, exactly one job or tool owns creation/publication of the GitHub Release.
+
+- If GoReleaser publishes the GitHub Release, GoReleaser is the sole owner.
+- Otherwise one generic publisher owns it.
+- `release: published` is downstream state, not another release creator.
+- Do not create a second draft release merely to collect artifacts.
+- Do not hide duplicate release creation with `|| true`.
+
+The publisher consumes artifacts only after the release-validation aggregate succeeds.
+
+## 25. External tags and manual dispatch
+
+Repositories may support human/external `v*` tag pushes as a direct publication path.
+
+That tag-context run should validate whatever is required for publication and should not try to recalculate or move the tag.
+
+For workflow-created tags, remember that events produced using ordinary `GITHUB_TOKEN` are subject to recursion suppression. Do not assume pushing a tag with `GITHUB_TOKEN` will start another workflow automatically. Either keep publication in the same workflow run or explicitly dispatch the tag-context publisher when the repository's design requires a separate run.
+
+## 26. Generic orchestration skeleton
+
+The skeleton is intentionally ecosystem-neutral. The generation agent replaces the comments with only the modules that the repository actually needs. It is a wiring template; the canonical modules in the next section provide the implementation details that should be composed into it.
+
+```yaml
+# Generated using:
+# https://arran4.github.io/blog/post/2026/043-canonical-github-actions-ci-cd-super-reference/
+
+name: CI/CD
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  pull_request:
+    types: [opened, synchronize]
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        required: true
+        default: build
+        options: [build]
+  schedule:
+    - cron: '0 19 1 * *'
+
+permissions:
+  contents: read
+
+jobs:
+  route:
+    runs-on: ubuntu-latest
+    outputs:
+      validation: ${{ steps.route.outputs.validation }}
+      build: ${{ steps.route.outputs.build }}
+      release: ${{ steps.route.outputs.release }}
+      publisher: ${{ steps.route.outputs.publisher }}
+      autofix: ${{ steps.route.outputs.autofix }}
+      maintenance: ${{ steps.route.outputs.maintenance }}
+    steps:
+      - id: route
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          INPUT_MODE: ${{ inputs.mode }}
+        run: |
+          set -euo pipefail
+
+          validation=false
+          build=false
+          release=false
+          publisher=false
+          autofix=false
+          maintenance=false
+
+          case "$EVENT_NAME" in
+            pull_request)
+              validation=true
+              build=true
+              ;;
+            push)
+              validation=true
+              build=true
+              if [[ "$REF_TYPE" == "tag" ]]; then
+                publisher=true
+              fi
+              ;;
+            schedule)
+              validation=true
+              build=true
+              maintenance=true
+              ;;
+            workflow_dispatch)
+              case "$INPUT_MODE" in
+                build)
+                  validation=true
+                  build=true
+                  ;;
+                *)
+                  echo "Unsupported manual mode: $INPUT_MODE" >&2
+                  exit 1
+                  ;;
+              esac
+              ;;
+          esac
+
+          echo "validation=$validation" >> "$GITHUB_OUTPUT"
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+          echo "release=$release" >> "$GITHUB_OUTPUT"
+          echo "publisher=$publisher" >> "$GITHUB_OUTPUT"
+          echo "autofix=$autofix" >> "$GITHUB_OUTPUT"
+          echo "maintenance=$maintenance" >> "$GITHUB_OUTPUT"
+
+  validation:
+    name: Validation Aggregate
+    needs: [route]
+    if: ${{ needs.route.outputs.validation == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Replace this aggregate with the selected validation modules and their needs edges."
+
+  build:
+    name: Build Aggregate
+    needs: [route, validation]
+    if: ${{ needs.route.outputs.build == 'true' && needs.validation.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Replace this aggregate with the selected build/artifact modules."
+```
+
+Do not ship placeholder aggregate jobs in a generated repository. Replace them with the selected modules below and make aggregate `needs:` lists explicit.
+
+## 27. Canonical selectable modules
+
+The modules below restore the concrete implementation constraints which would otherwise be lost by using only an ecosystem-neutral skeleton. Select only the modules the repository needs, but once selected preserve their important semantics.
+
+### 27.1 Versioned repository dispatch and routing
+
+For a versioned repository using manual release preparation, replace the baseline `workflow_dispatch` inputs and router with this shape, deleting unsupported prerelease modes rather than leaving dead options:
+
+```yaml
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        required: true
+        default: build
         options:
           - build
           - lint-fix
@@ -671,17 +1076,11 @@ Canonical service-container shape, using PostgreSQL only as a structural example
           - release-major
           - release-minor
           - release-patch
-          - release-build
           - release-test
           - release-rc
           - release-alpha
-          - release-validate
           - publish-tag
       release_version_override:
-        type: string
-        required: false
-        default: ''
-      expected_release_sha:
         type: string
         required: false
         default: ''
@@ -711,7 +1110,6 @@ Router:
           EVENT_NAME: ${{ github.event_name }}
           REF_TYPE: ${{ github.ref_type }}
           INPUT_MODE: ${{ inputs.mode }}
-          INPUT_EXPECTED_RELEASE_SHA: ${{ inputs.expected_release_sha }}
         run: |
           set -euo pipefail
 
@@ -753,15 +1151,7 @@ Router:
                   build=true
                   maintenance=true
                   ;;
-                release-major|release-minor|release-patch|release-build|release-test|release-rc|release-alpha)
-                  # Version mutation terminates after dispatching the downstream validation run
-                  release=true
-                  ;;
-                release-validate)
-                  if ! [[ "${INPUT_EXPECTED_RELEASE_SHA:-}" =~ ^[0-9a-f]{40}$ ]]; then
-                    echo "release-validate requires a full 40-character expected_release_sha" >&2
-                    exit 1
-                  fi
+                release-major|release-minor|release-patch|release-test|release-rc|release-alpha)
                   validation=true
                   build=true
                   release=true
@@ -1142,7 +1532,8 @@ Example version mutation logic using `cider` (executed in the dedicated pre-vali
   prepare-version-commit:
     name: Prepare Version Commit
     needs: [route]
-    if: ${{ needs.route.outputs.release == 'true' && inputs.mode != 'release-validate' }}
+    # For the committed variant, ensure version_mutation replaces the default 'validation' router path
+    if: ${{ needs.route.outputs.version_mutation == 'true' && inputs.mode != 'release-validate' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -1243,6 +1634,15 @@ The job then proceeds to tag exactly `GITHUB_SHA` using the same remote-tag, ide
 When build-only releases are supported, always tag the full version including the build number (e.g., `v1.2.4+42` instead of `v1.2.4`). Stripping the build number causes tagging ambiguity or collision if a subsequent build `v1.2.4+43` is created. Do not prescribe one tag policy universally; state the consequences and require the repository's generated workflow to choose the policy deliberately based on whether multiple builds of a single SemVer release are published.
 
 Ensure write permissions (`contents: write`) are tightly scoped to the specific job responsible for the version commit or Git tagging handoff.
+
+**Router adaptations for the committed variant:**
+When selecting the Dart committed-version variant, the baseline router in §27.1 must be updated to securely handle the two-stage execution:
+1. Add `release-build` and `release-validate` to `workflow_dispatch.inputs.mode.options`, and declare `expected_release_sha`.
+2. Add `INPUT_EXPECTED_RELEASE_SHA: ${{ inputs.expected_release_sha }}` to the router's environment context.
+3. Change the generic `release-major|release-minor...` case to output only a dedicated property like `version_mutation=true` instead of immediately outputting validation and build.
+4. Add a dedicated `release-validate` router case that ensures the explicit SHA matches exactly before enabling `validation=true`, `build=true`, and `release=true`. This preserves the generic pipeline for all other repositories while scoping the mutation logic.
+
+
 
 ## 28. Existing-workflow migration procedure
 

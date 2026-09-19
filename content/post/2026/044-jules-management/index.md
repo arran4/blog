@@ -170,7 +170,7 @@ The workflow is easier to reason about when the roles are explicit.
 
 The human owns intent, judgement, final review, and consequential lifecycle decisions. The human can redirect the work at any review point, choose a different implementation agent, decide that an issue has become too broad, or decide that the current result should not continue at all.
 
-The management LLM can prepare and perform a large amount of work, but it should not merge without explicit instruction. Closing pull requests also normally remains a human decision, except for clearly delegated lifecycle cleanup such as closing superseded temporary pull requests after the human confirms that their replacement has merged. Draft versus ready-for-review state is ordinary workflow management rather than a consequential merge decision, so the management layer should manage it actively. A Jules-created pull request should normally remain a draft while implementation or delegated technical review is incomplete, may be returned to draft if a blocker appears, and should be marked ready-for-review before the management layer hands an approved result to the human. In this workflow, approval includes that draft-to-ready transition: if the pull request is still a draft, management has not completed the approval handoff yet.
+The management LLM can prepare and perform a large amount of work, but it should not merge without explicit instruction. Closing pull requests also normally remains a human decision, except for clearly delegated lifecycle cleanup such as closing superseded temporary pull requests after the human confirms that their replacement has merged. Draft versus ready-for-review state is ordinary workflow management rather than a consequential merge decision, so the management layer should manage it actively. A Jules-created pull request should normally remain a draft while implementation or delegated technical review is incomplete, may be returned to draft if a blocker appears, and should be marked ready-for-review before the management layer hands an approved result to the human. In this workflow, approval includes that draft-to-ready transition: if the pull request is still a draft, management has not completed the approval handoff yet. When the management layer itself reaches the conclusion that delegated technical review has passed and it has the capability to change draft state, it should perform the **Ready for review** transition immediately as part of that same review result. It should not wait for a separate human request merely to undraft a PR it has already concluded is ready.
 
 ### Management LLM
 
@@ -199,6 +199,8 @@ The management LLM is not merely a prompt generator. It is reviewer, state track
 The implementation agent writes and tests code. Jules is often the first implementation agent, but Agy, Codex, or another coding agent may take over later.
 
 The implementation agent should not be treated as the authoritative source of truth about whether its own work exists or is correct. The management layer should inspect Git and CI independently.
+
+A mismatch between completion prose and repository evidence is itself a review finding. If a commit message or pull-request description claims that a production path, file or behaviour was changed, but the changed-file list and cumulative diff do not contain the corresponding implementation, treat the claimed work as incomplete until repository evidence proves otherwise. Do not downgrade that to a documentation discrepancy simply because tests or summaries sound reassuring.
 
 ### Third-party humans
 
@@ -326,7 +328,9 @@ In the current Jules workflow, Jules does not have pull-request merge capability
 
 Jules is normally being asked to implement on its branch, publish intermediate state, and update its pull request. Repeatedly mentioning a merge prohibition adds irrelevant process text, blurs the distinction between implementation and lifecycle ownership, and can distract from the instruction that actually needs to be acted on.
 
-The management LLM should therefore **omit routine merge prohibitions from Jules messages by default**. State a merge restriction to Jules or another implementation agent only when there is a concrete reason: the active agent actually has a plausible merge capability, the requested Git operation could be confused with merging the pull request, the user explicitly asks about merge lifecycle, or the current task creates a specific lifecycle ambiguity that needs to be resolved explicitly.
+While the current Jules control plane has no pull-request merge capability, the management LLM should **not include routine "do not merge", "wait for merge approval", or equivalent merge prohibitions in Jules prompts or joobq responses at all**. They cannot constrain an action Jules cannot perform and only consume instruction attention. Reintroduce a merge restriction in a Jules message only if the available Jules capabilities materially change or a concrete Git operation creates a real ambiguity about what action is being requested.
+
+For other implementation agents, state a merge restriction only when that agent actually has a plausible merge capability, the requested Git operation could be confused with merging the pull request, the user explicitly asks about merge lifecycle, or the current task creates a specific lifecycle ambiguity that needs to be resolved explicitly.
 
 This does not weaken the merge policy. The management layer must still refuse to merge without explicit human instruction and must keep GitHub state honest. It simply keeps that policy with the actor responsible for enforcing it instead of mechanically forwarding it to Jules when Jules cannot perform that action in the current workflow.
 
@@ -421,7 +425,9 @@ When those signals are absent, the management layer should not send `@jules` ins
 
 ### Recovery choices after a Jules environment or session failure
 
-An environment failure and an implementation failure are different events. A failed VM preparation, clone, authentication step, lost environment, or similar service-side failure says little about whether the last committed code was correct. Treat the last independently inspectable Git state as the durable implementation state and classify the agent-runtime failure separately.
+An environment failure and an implementation failure are different events. In particular, a failure during VM preparation, authentication, repository cloning, or other setup **before a usable checkout exists** is a pre-execution control-plane/infrastructure failure, not an implementation cycle. It says nothing about whether the prompt was good, whether Jules could have solved the task, or whether repository code is correct. Do not increment non-convergence/zero-diff implementation counters for a session that never reached a working checkout.
+
+A lost environment or later service-side failure after implementation began is also distinct from code failure, but may have useful inspectable Git state to preserve. In all cases, treat the last independently inspectable Git state as the durable implementation state and classify the agent-runtime failure separately.
 
 When a Jules session cannot sensibly continue, optimize for a clean lifecycle rather than preservation of the old session shape. **A new pull request is cheap.** The preferred recovery order is:
 
@@ -525,6 +531,10 @@ Once the human tells the management layer that the replacement pull request has 
 
 ### Replacement agents do not inherit GitHub context
 
+Before giving Agy, Codex, or another replacement/local agent branch mechanics and recovery history, state the **goal of the handoff clearly near the start of the prompt**. The incoming agent should be able to tell from the first few lines whether it is being asked to finish an issue, repair a specific PR, salvage a safe subset, perform an audit, produce a patch without publishing, or deliberately reduce scope and leave the remainder durable. State the desired end state as well: for example, a reviewable replacement PR, a bounded fix with tests, or an evidence-backed assessment with no repository mutation.
+
+This goal statement is management information, not motivational prose. It prevents a replacement agent from spending scarce interactive-agent credit reconstructing whether it is supposed to preserve the old implementation, replace it, merely review it, or chase the entire original issue. Branch ownership, trusted commits, review findings and detailed constraints should follow the goal rather than obscuring it.
+
 A replacement or local coding agent must not be assumed to inherit GitHub issue, pull-request, review, comment, CI-discussion, or management context merely because it has the repository checkout, branch, or commit.
 
 A normal handoff prompt should explicitly identify the target repository, relevant issue and pull-request URLs/numbers, the trusted base, the old read-only Jules branch/PR, the replacement writable branch/PR when a takeover is authorised, and the material acceptance criteria. It should also direct the agent to retrieve the issue body/comments, PR description/diff/conversation, reviews and relevant CI state before implementing.
@@ -571,9 +581,13 @@ Instead:
 
 A later Jules commit can contain a good isolated fix while still being destructive overall. Salvage that fix by reimplementing it or cherry-picking only the proven-safe piece; do not accept the contaminated commit wholesale.
 
-### When local-agent credits run out
+### When local-agent credits are scarce or run out
 
-Running out of Agy, Codex, or another local-agent credit is a scheduling constraint, not evidence that the current issue should automatically be restarted or handed back to Jules.
+Scarce Agy, Codex, or other interactive/local-agent credit is a scheduling constraint and a routing input, not evidence that the current issue should automatically be restarted or handed back to Jules. Management should consider marginal value before the credit reaches zero.
+
+When Jules remains viable, prefer spending its larger asynchronous quota on substantial bounded implementation and preserve scarcer interactive-agent credit for work where it buys more: branch recovery, difficult debugging, security-sensitive protocol review, resolving a small set of concrete blockers, or getting an otherwise sound pull request across the line. Do not send an expensive replacement agent through broad discovery that Jules can reasonably perform later simply because Jules is temporarily unavailable.
+
+Running out of Agy, Codex, or another local-agent credit is therefore the strongest version of the same scheduling constraint, not a special signal about code correctness.
 
 The management layer should first classify the current work:
 
@@ -655,6 +669,8 @@ Useful recovery actions include:
 A stalled Jules session is a good candidate for **bounded scheduled observation**. The schedule should inspect real repository state before deciding whether to send another message; it should not blindly post the same reminder on a timer.
 
 A useful scheduled check can inspect the pull-request head, cumulative diff, changed files, comments, CI, and linked issue state. If meaningful implementation or bookkeeping progress has occurred, the check should remain quiet. If there is still no progress and GitHub comments are the active Jules control plane, it may post a concise `@jules` continuation or pressure message.
+
+An acknowledgement is not execution. A reaction or other indication that Jules saw an instruction proves only that the control plane received it; it does not prove capacity was allocated, a VM started, the repository cloned successfully, or implementation began. Use workspace/repository evidence—such as a successful checkout, branch/commit movement, changed files, or an explicit runtime state—to distinguish "instruction acknowledged" from "task actually executing".
 
 Count **zero-diff or no-changed-file commits as failed Jules cycles, not as progress** when they arise from a non-converging implementation session. Keep the count visible enough that later decisions are based on evidence rather than reassuring commit messages. Do not count a tool-induced no-op created solely by a submit/metadata wrapper as implementation progress or automatically as implementation failure; classify it according to the underlying state.
 
@@ -749,7 +765,7 @@ The strong default is simple:
 - Jules-created pull requests should normally start as drafts so unfinished agent work does not present itself as waiting for human review;
 - the management LLM is authorised to move pull requests between draft and ready-for-review proactively as the review state changes;
 - keep or return a PR to draft while substantive blockers, requested corrections, or unresolved delegated-review concerns remain;
-- when management review passes, mark the PR ready-for-review **before** telling the human that it is approved and ready to inspect; approval in this workflow includes that undraft transition;
+- when management review passes, **immediately** mark the PR ready-for-review before telling the human that it is approved and ready to inspect; approval in this workflow includes that undraft transition, and no additional human confirmation is required solely for the draft-to-ready action;
 - if the ready-for-review mutation is unavailable or denied, report that the technical review passed but the PR remains draft, and tell the human that the manual **Ready for review** action is still required;
 - if new evidence invalidates an earlier approval, return the PR to draft and explicitly revoke or qualify that management approval until the blocker is resolved;
 - when replacing a Jules-owned implementation branch, create the replacement PR as a draft early enough that the transition is visible;
@@ -809,16 +825,20 @@ If this article is being used to bootstrap a new management session, the followi
 19. Use direct patches only for small, high-confidence work that can be adequately verified, and publish them on isolated management-owned branches rather than treating a Jules branch as shared. Otherwise recommend an implementation agent.
 20. Repeated empty Jules commits, stale context, clobbered changes, lack of convergence, or clear Jules environment/access failures are reasons to consider a fresh Jules session or a human-authorised handoff. For a fresh Jules session, prefer a new PR from updated `main`; use a non-`main` recovery base only for a concrete dependency on trusted unmerged state, and remember that a bare commit SHA must first be made an existing base branch. Do not trigger this heuristic for tool-induced no-op commits. Never ask Jules to create an empty/no-op commit merely to acknowledge feedback, signal completion, or simulate a state transition.
 21. Avoid non-first-layer Jules PR stacks. Jules is safest when working from a stable base that does not depend on later external commits.
-22. When delegated review passes, first mark the PR ready-for-review, then say explicitly: **"Management review: APPROVED — ready for human review."** If the state transition cannot be performed, say that technical review passed but the PR remains draft and needs the human's **Ready for review** action; do not claim the transition succeeded.
+22. When delegated review passes, first mark the PR ready-for-review **immediately in the same review turn**, then say explicitly: **"Management review: APPROVED — ready for human review."** Do not merely recommend moving the PR out of draft or wait for a separate confirmation when management already has authority and capability to perform the transition. If the state transition cannot be performed, say that technical review passed but the PR remains draft and needs the human's **Ready for review** action; do not claim the transition succeeded.
 23. If blockers remain or reappear, the PR should be draft and management approval should not be presented as current. The management LLM may move PRs in either direction between draft and ready without asking first.
 24. Do not merge without explicit human instruction. This is a management-layer rule for actors that actually have merge authority; do **not** mechanically copy "do not merge" or equivalent into Jules prompts or joobq responses when Jules lacks merge capability in the current control plane. Do not close active PRs without explicit instruction unless a specific lifecycle rule has been delegated. Once the human confirms that a replacement PR merged, closing its superseded temporary/handoff PRs and reconciling linked issue state is delegated cleanup and does not require another per-PR confirmation.
 25. After a confirmed merge, perform cleanup first: verify issue resolution, close superseded temporary PRs, preserve cross-links, and surface genuinely new follow-up issues for human confirmation before creating them. Then clearly **suggest** a plausible next Jules session prompt rather than launching it automatically.
 26. Keep management communication explicit. State what you inspected, what you changed in GitHub, what remains uncertain, and what action you are proposing so the human can safely supervise multiple tasks without guessing.
 27. Whenever GitHub work is reviewed or changed, include direct URLs to the pull request or pull requests and issue or issues materially affected. If a new issue was proposed but not yet approved, say that explicitly rather than inventing a URL.
-28. When Agy/Codex/local-agent credit is exhausted, classify the current work before changing agents. Prefer landing a reviewed green PR plus a focused follow-up, or parking it durably and using Jules on independent queued issues. If urgency genuinely requires Jules to take over unfinished work, give Jules a new isolated branch from a trusted commit; do not share the local agent's branch, and treat a Jules PR stacked behind an unmerged non-Jules parent as a last resort.
+28. When Agy/Codex/local-agent credit is scarce or exhausted, classify the current work before changing agents and spend the remaining interactive-agent budget where its marginal value is highest. Prefer Jules for substantial bounded asynchronous implementation when it remains viable, and reserve scarcer interactive-agent credit for bounded repair, difficult debugging, security-sensitive review, or getting an otherwise sound PR across the line. Prefer landing a reviewed green PR plus a focused follow-up, or parking it durably and using Jules on independent queued issues. If urgency genuinely requires Jules to take over unfinished work, give Jules a new isolated branch from a trusted commit; do not share the local agent's branch, and treat a Jules PR stacked behind an unmerged non-Jules parent as a last resort.
 29. For stalled Jules sessions, use bounded scheduled condition checks rather than blind repeated comments. Inspect repository state before each nudge, count zero-diff/no-changed-file implementation cycles as failed cycles, stop early on real progress or an explicit capability blocker, and cap the recovery window. When both a reasonable wall-clock interval and several failed cycles have elapsed without progress, regenerate a fresh prompt from current durable state rather than indefinitely pressuring the old session.
 30. Never assume a local or replacement agent has read an issue, PR, comment, review thread or CI discussion merely because it has the Git checkout. Explicitly require retrieval of that GitHub context or inline the material context when access is unavailable, and verify the agent actually acted from it.
 31. Before any push, PR creation, or repository mutation, verify the intended `owner/repo`, working tree, `origin`, active branch and explicit PR destination all agree. A valid PR in the wrong repository is still a publication failure; re-home the real changes instead of committing transport artifacts into the accidental repository.
+32. Classify Jules failures by execution stage. VM provisioning, authentication, clone, or other setup failure before a usable checkout is a pre-execution infrastructure/control-plane failure, not an implementation cycle. Do not count it as non-convergence or infer anything about the implementation approach from it.
+33. Distinguish acknowledgement from execution. A reaction or acknowledgement proves an instruction reached the Jules control plane; verify workspace startup or repository progress before treating the task as running.
+34. When generating an Agy/Codex/replacement-agent management prompt, state the **implementation goal and desired end state near the start**, before branch mechanics and historical detail. Make explicit whether the agent is auditing, repairing, finishing, salvaging a safe subset, reducing scope, or producing a non-publishing patch, and what successful completion should leave behind.
+35. When agent completion prose claims a file, production path or behaviour changed, verify that claim against the changed-file list and cumulative diff. If the implementation evidence is absent, treat the claimed work as incomplete rather than merely correcting the summary.
 
 ## Let the workflow teach the workflow
 
