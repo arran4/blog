@@ -1523,7 +1523,7 @@ Instead, the generated workflow should split the versioning calculation into a d
 If the version mutation is committed back to the repository, it must occur **before** the `release-ready` validation aggregate. Do not drop a version mutation into the post-validation `prepare-release-tag` job. Mutating source files inside `prepare-release-tag` would violate exact-SHA tag guards and cause release artifacts to be built from pre-mutation source.
 
 To create a coherent release variant:
-1. **Direct Commit Pipeline:** Use a dedicated pre-validation job or separate workflow that calculates the new version, writes `pubspec.yaml`, commits the result, and pushes it using `GITHUB_TOKEN`. Because a `GITHUB_TOKEN` push naturally prevents recursive workflow runs, explicitly dispatch the CI/release workflow at the new SHA after pushing. That dispatched run then verifies it is executing on the exact new authoritative SHA before proceeding to validation, build, and tagging.
+1. **Direct Commit Pipeline:** Use a dedicated pre-validation job or separate workflow that calculates the new version, writes `pubspec.yaml`, commits the result, and pushes it using `GITHUB_TOKEN`. Because a `GITHUB_TOKEN` push naturally prevents recursive workflow runs, explicitly dispatch the CI/release workflow. GitHub Actions requires dispatching against a branch or tag name, so dispatch against the authoritative branch and pass the exact pushed commit SHA as a parameter (e.g., `expected_release_sha`). At the very start of the dispatched pipeline, verify `GITHUB_SHA == expected_release_sha` and `origin/$AUTHORITATIVE_BRANCH == expected_release_sha` before running validation.
 2. **Protected-Branch Alternative:** If automated commits to `main` are blocked, provide a "Prepare Release" manual action that creates a Pull Request carrying the incremented version. Merging this PR establishes the validated authoritative commit and naturally triggers ordinary CI.
 
 Example version mutation logic using `cider` (executed in the dedicated pre-validation pipeline):
@@ -1553,6 +1553,9 @@ Example version mutation logic using `cider` (executed in the dedicated pre-vali
                exit 1
              fi
 
+             # Note: Exact-version overrides may intentionally roll back the SemVer component
+             # (e.g. returning to a prior release branch). Only the +build number is enforced
+             # to be monotonically increasing.
              cider version "$RELEASE_VERSION_OVERRIDE"
           else
             case "$RELEASE_MODE" in
@@ -1567,7 +1570,34 @@ Example version mutation logic using `cider` (executed in the dedicated pre-vali
             esac
           fi
 
-          # Handoff: commit pubspec.yaml, push it, and explicitly dispatch downstream workflow.
+          git commit -am "chore(release): prepare v$(cider version)"
+          # Push the commit using GITHUB_TOKEN
+          git push origin HEAD
+
+          VERSION_SHA="$(git rev-parse HEAD)"
+          AUTHORITATIVE_BRANCH="${GITHUB_REF#refs/heads/}"
+
+          # Handoff: explicitly dispatch downstream workflow on the branch ref,
+          # passing the exact expected SHA to avoid race conditions.
+          gh workflow run ci.yml --ref "$AUTHORITATIVE_BRANCH" -f mode=release-validate -f expected_release_sha="$VERSION_SHA"
+```
+
+The downstream released-validate workflow must then enforce:
+
+```yaml
+      - name: Verify exact authoritative commit
+        run: |
+          set -euo pipefail
+          EXPECTED="${{ inputs.expected_release_sha }}"
+
+          AUTHORITATIVE_BRANCH="${GITHUB_REF#refs/heads/}"
+          git fetch origin "$AUTHORITATIVE_BRANCH"
+          ORIGIN_SHA="$(git rev-parse "origin/$AUTHORITATIVE_BRANCH")"
+
+          if [[ "$GITHUB_SHA" != "$EXPECTED" ]] || [[ "$ORIGIN_SHA" != "$EXPECTED" ]]; then
+            echo "Race condition detected: GITHUB_SHA/origin does not match expected_release_sha ($EXPECTED)." >&2
+            exit 1
+          fi
 ```
 
 **Tagging policy and handoff:**
