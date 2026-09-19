@@ -769,6 +769,13 @@ Run GoReleaser as the sole publisher in the unified release lane:
           GORELEASER_CURRENT_TAG: ${{ needs.release-context.outputs.release_tag }}
 ```
 
+**Prerelease classification:** If the repository accepts SemVer prerelease tags (e.g. `v1.2.3-rc.1`, `v1.2.3-beta.2`), its `.goreleaser.yaml` configuration must explicitly preserve prerelease classification. Ensure your `.goreleaser.yaml` contains:
+
+```yaml
+release:
+  prerelease: auto
+```
+
 If GoReleaser needs Homebrew, package registries, signing credentials, or another repository token, inject those secrets into this owner job/config as appropriate.
 
 **Do not add another `softprops/action-gh-release` publisher after GoReleaser.**
