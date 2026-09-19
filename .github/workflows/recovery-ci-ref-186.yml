@@ -1,0 +1,94 @@
+name: One-shot recovery of CI reference examples
+
+on:
+  push:
+    branches:
+      - management/ci-reference-101-128-recovery
+    paths:
+      - .github/workflows/recovery-ci-ref-186.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply-fix:
+    if: github.repository == 'arran4/blog' && github.ref == 'refs/heads/management/ci-reference-101-128-recovery'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: management/ci-reference-101-128-recovery
+          persist-credentials: true
+      - name: Apply and validate the scoped documentation repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('content/post/2026/043-canonical-github-actions-ci-cd-super-reference/index.md')
+          text = path.read_text()
+          old_test = '''    runs-on: ubuntu-latest
+              steps:
+                # ... checkout, install, test ...'''
+          # The actual example is at job indentation, not nested under the workflow step.
+          old_test = '''    runs-on: ubuntu-latest
+              steps:
+                # ... checkout, install, test ...'''.replace('              steps:', '    steps:').replace('                # ...', '      # ...')
+          new_test = '''    runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v7
+                - uses: subosito/flutter-action@v2
+                - run: flutter pub get
+                - run: dart analyze
+                - run: flutter test'''.replace('              steps:', '    steps:').replace('                - ', '      - ')
+          assert text.count(old_test) == 1, 'Expected the one Dart flutter-test placeholder'
+          text = text.replace(old_test, new_test, 1)
+
+          old_aggregate = '''  validation:
+              name: Validation Aggregate
+              needs: [route, release-origin-guard, flutter-test] # Add your other selected validation jobs here
+              if: @@OPEN@@ always() && needs.route.outputs.validation == 'true' }}
+              runs-on: ubuntu-latest
+              steps:
+                - run: |
+                    # Aggregate failure checks...'''.replace('              ', '    ').replace('                - ', '      - ').replace('                    #', '          #')
+          new_aggregate = '''  validation:
+              name: Validation Aggregate
+              needs: [route, release-origin-guard, flutter-test]
+              if: @@OPEN@@ always() && needs.route.outputs.validation == 'true' }}
+              runs-on: ubuntu-latest
+              steps:
+                - name: Require selected validation jobs
+                  env:
+                    GUARD_RESULT: @@OPEN@@ needs.release-origin-guard.result }}
+                    FLUTTER_RESULT: @@OPEN@@ needs.flutter-test.result }}
+                  run: |
+                    set -euo pipefail
+                    [[ "$GUARD_RESULT" == "success" ]]
+                    [[ "$FLUTTER_RESULT" == "success" ]]'''
+          old_aggregate = old_aggregate.replace('              ', '    ').replace('                - ', '      - ').replace('                    ', '          ')
+          new_aggregate = new_aggregate.replace('              ', '    ').replace('                - ', '      - ').replace('                  ', '        ').replace('                    ', '          ')
+          expression_open = '$' + '{{'
+          old_aggregate = old_aggregate.replace('@@OPEN@@', expression_open)
+          new_aggregate = new_aggregate.replace('@@OPEN@@', expression_open)
+          assert text.count(old_aggregate) == 1, 'Expected the one incomplete Dart validation aggregate'
+          text = text.replace(old_aggregate, new_aggregate, 1)
+          old_note = 'The rest of the pipeline (`build`, `release-ready`) remains downstream of the successful validation aggregate as in the canonical topology.'
+          new_note = 'When composing additional selected validation jobs, add each job to `validation.needs` and explicitly assert its successful result alongside the guard and Flutter test. Do not accept failed, cancelled or unexpectedly skipped validation jobs. The rest of the pipeline (`build`, `release-ready`) remains downstream of the successful validation aggregate as in the canonical topology.'
+          assert text.count(old_note) == 1
+          text = text.replace(old_note, new_note, 1)
+          assert '# Aggregate failure checks...' not in text
+          assert '# ... checkout, install, test ...' not in text
+          assert text.count('GUARD_RESULT: ' + expression_open + ' needs.release-origin-guard.result }}') == 1
+          path.write_text(text)
+          PY
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add content/post/2026/043-canonical-github-actions-ci-cd-super-reference/index.md
+          git rm .github/workflows/recovery-ci-ref-186.yml
+          git diff --cached --check
+          git diff --cached --stat
+          git commit -m 'docs: gate Flutter validation on exact release origin and assert check results'
+          git push origin HEAD:refs/heads/management/ci-reference-101-128-recovery
