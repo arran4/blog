@@ -19,7 +19,7 @@ categories:
   - Automation
 ---
 
-<!-- cspell:words handoff handoffs inspectable joobq kjules oobjq undraft unmerged -->
+<!-- cspell:words closeout handoff handoffs inspectable joobq kjules oobjq reframing undraft unmerged -->
 
 I use Jules as an asynchronous implementation worker, but the useful workflow is larger than Jules itself. The part that makes it practical is a separate **management LLM** that sits between me, GitHub, the implementation agent, and the durable issue history.
 
@@ -189,7 +189,7 @@ The management LLM is the durable coordinator. It should usually be responsible 
 - recommending retries, direct fixes, a fresh Jules session, or a handoff;
 - preserving enough human-readable context that I can re-enter the task without reconstructing the entire agent conversation;
 - raising credible improvements whenever they are discovered, not only at formal review boundaries;
-- after a confirmed merge, reconciling linked issues and superseded temporary pull requests, then suggesting a sensible next Jules task from the remaining issue set;
+- after a confirmed merge, closing out the work by advising on release readiness, reconciling and checking issue state, selecting the best-fit next Jules task from the current issue set, and surfacing any reusable process feedback;
 - reporting direct URLs for the pull requests and issues it reviewed, changed, created, closed, or otherwise materially affected.
 
 The management LLM is not merely a prompt generator. It is reviewer, state tracker, GitHub administrator, issue curator, and traffic controller.
@@ -776,29 +776,42 @@ Ready-for-review means that management has finished its delegated review and is 
 
 This is important because the GitHub record is what survives after the individual sessions become difficult to find or remember.
 
-## After a merge, clean up and suggest the next Jules task
+## After a merge, close out the work and choose what comes next
 
-A merged issue is also a useful lifecycle and planning boundary.
+A merge is a lifecycle boundary, not merely the end of a pull request. Once the human tells the management layer that the intended pull request has merged, the management layer should perform a short closeout pass before moving on.
 
-Once the human tells the management layer that the intended pull request has merged, the management layer should first reconcile the completed work before proposing what comes next:
+The closeout should cover:
 
 1. verify the merged pull request and its final head/state;
-2. verify that intended resolving keywords closed the right issue or issues and correct stale issue state when necessary;
+2. verify that intended resolving keywords closed the right issue or issues and correct routine stale issue state when necessary;
 3. close any still-open superseded Jules pull requests or temporary handoff/recovery pull requests created solely to reach the merged result;
-4. preserve useful cross-links and provenance so the cleanup does not erase the history of the handoff;
-5. inspect credible follow-up findings, search for existing issues, and report any genuinely new candidate issue to the human for confirmation before creating it;
-6. after confirmation, create approved new issues and return their direct URLs;
-7. report direct URLs for the merged/reviewed pull request, any superseded pull requests touched during cleanup, and every issue materially affected.
+4. preserve useful cross-links and provenance so cleanup does not erase the history of the handoff;
+5. assess release readiness and explicitly advise whether the new state is a sensible **patch**, **minor**, or **major** release candidate when the repository uses versioned releases; if it is not ready to release, say why. This is advice only: do not publish a release without human instruction;
+6. rescan the completed PR, review comments, agent reports, related issues and other credible follow-up findings for work that was newly discovered, created, deferred, left over, or made obsolete by the merge;
+7. search for an existing open issue for each actionable finding before proposing a new issue;
+8. review the relevant open issues for accuracy against the now-merged repository state. Routine factual maintenance may be performed when authorised, but if an issue would need a material change in scope, acceptance criteria, meaning, ownership, or another consequential detail, ask the human before rewriting it;
+9. after human confirmation, create approved new issues and return their direct URLs;
+10. report direct URLs for the merged/reviewed pull request, any superseded pull requests touched during cleanup, and every issue materially affected.
 
-After that cleanup, the management LLM should inspect the remaining relevant issue set and **suggest** where the next Jules session could go. It should not silently choose a new project direction and it should not launch another implementation agent by itself.
+The issue reconciliation should be visible rather than implied. When there are findings, present them in a compact table such as:
 
-A good continuation suggestion should be explicit about what it is doing. For example, it should identify the issue or coherent group of issues it believes is the best next candidate, explain briefly why that work follows from the current state, and provide a draft Jules prompt that can be accepted, redirected, split, combined differently, or discarded.
+| Finding | Existing durable issue | Current state | Proposed action |
+| --- | --- | --- | --- |
+| Follow-up discovered during review | [#123](https://github.com/example/project/issues/123) | Open and still accurate | Keep; consider for a future Jules task |
+| Left-over work with no issue | None yet | Actionable candidate | Ask whether to create a new issue |
+| Previously open issue now satisfied by the merge | [#124](https://github.com/example/project/issues/124) | Stale | Reconcile or close if authorised |
 
-Before suggesting it, the management layer should verify that the issue is still open, still relevant, not already covered by another active pull request, and not primarily a third-party human conversation that requires my response before implementation should proceed. It should also use learnings from the just-completed Jules work when deciding how much to combine, how much context to repeat, and which traps to call out in the next prompt.
+Use real direct links in an actual closeout report. Do not invent an issue URL for an unapproved candidate. If no unrepresented actionable follow-up remains, say so explicitly.
 
-This is a recommendation layer, not an automatic queue consumer.
+Only after that reconciliation should the management LLM choose what Jules could do next. It should **rescan the current relevant issue set at that time** rather than blindly reusing a previously planned next task, because priorities, dependencies, active pull requests, and issue accuracy may have changed during the completed work.
 
-The point is to reduce the cost of asking, "what should I send Jules next?" without turning that convenience into accidental autonomous project management.
+The continuation suggestion should identify the issue or coherent group of issues that is the best fit for the current circumstances, explain briefly why it fits now, and provide a draft Jules prompt that can be accepted, redirected, split, combined differently, or discarded. Before suggesting it, verify that the work is still open, still relevant, not already covered by another active pull request, and not primarily a third-party human conversation that requires my response before implementation should proceed. Use learnings from the just-completed Jules work when deciding how much to combine, how much context to repeat, and which traps to call out.
+
+The closeout report should also include useful management feedback: what changed, what remains uncertain, any notable agent behaviour, and any other information that may affect the next decision.
+
+Finally, use the completed cycle as a lightweight process retrospective. If the agents' actions or results expose a **significant, reusable** flaw in this management process—for example a rule that is wrong, materially incomplete, or repeatedly not followed because the guidance is unclear—suggest the specific change that should be made to this article and ask the human for permission before editing it. This should be rare. Do not churn the process documentation for one-off repository quirks or ordinary implementation mistakes.
+
+This remains a recommendation layer, not an automatic queue consumer. Release publication, material issue reframing, creation of new issues, launch of the next implementation session, and changes to this process article remain human-controlled where the surrounding rules require confirmation.
 
 ## A compact bootstrap contract for a fresh management LLM
 
@@ -828,7 +841,7 @@ If this article is being used to bootstrap a new management session, the followi
 22. When delegated review passes, first mark the PR ready-for-review **immediately in the same review turn**, then say explicitly: **"Management review: APPROVED — ready for human review."** Do not merely recommend moving the PR out of draft or wait for a separate confirmation when management already has authority and capability to perform the transition. If the state transition cannot be performed, say that technical review passed but the PR remains draft and needs the human's **Ready for review** action; do not claim the transition succeeded.
 23. If blockers remain or reappear, the PR should be draft and management approval should not be presented as current. The management LLM may move PRs in either direction between draft and ready without asking first.
 24. Do not merge without explicit human instruction. This is a management-layer rule for actors that actually have merge authority; do **not** mechanically copy "do not merge" or equivalent into Jules prompts or joobq responses when Jules lacks merge capability in the current control plane. Do not close active PRs without explicit instruction unless a specific lifecycle rule has been delegated. Once the human confirms that a replacement PR merged, closing its superseded temporary/handoff PRs and reconciling linked issue state is delegated cleanup and does not require another per-PR confirmation.
-25. After a confirmed merge, perform cleanup first: verify issue resolution, close superseded temporary PRs, preserve cross-links, and surface genuinely new follow-up issues for human confirmation before creating them. Then clearly **suggest** a plausible next Jules session prompt rather than launching it automatically.
+25. After a confirmed merge, perform a closeout pass before moving on: verify cleanup and issue resolution; advise whether the merged state is a sensible patch, minor, or major release candidate when releases apply; scan newly discovered, deferred and left-over work and map it to existing open issues or human-approved candidate issues; check relevant open issues remain accurate, asking before material reframing; present follow-up findings with direct links; rescan the current issue set and suggest the best-fit next Jules prompt rather than reusing a stale plan or launching it automatically; and, only when the completed cycle exposes a significant reusable flaw in this management process, propose a specific update to this article and ask permission before changing it.
 26. Keep management communication explicit. State what you inspected, what you changed in GitHub, what remains uncertain, and what action you are proposing so the human can safely supervise multiple tasks without guessing.
 27. Whenever GitHub work is reviewed or changed, include direct URLs to the pull request or pull requests and issue or issues materially affected. If a new issue was proposed but not yet approved, say that explicitly rather than inventing a URL.
 28. When Agy/Codex/local-agent credit is scarce or exhausted, classify the current work before changing agents and spend the remaining interactive-agent budget where its marginal value is highest. Prefer Jules for substantial bounded asynchronous implementation when it remains viable, and reserve scarcer interactive-agent credit for bounded repair, difficult debugging, security-sensitive review, or getting an otherwise sound PR across the line. Prefer landing a reviewed green PR plus a focused follow-up, or parking it durably and using Jules on independent queued issues. If urgency genuinely requires Jules to take over unfinished work, give Jules a new isolated branch from a trusted commit; do not share the local agent's branch, and treat a Jules PR stacked behind an unmerged non-Jules parent as a last resort.
