@@ -1787,7 +1787,11 @@ To guarantee the guard runs before expensive work, **all selected validation job
     if: ${{ !failure() && !cancelled() && needs.route.outputs.validation == 'true' && needs.release-origin-guard.result == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      # ... checkout, install, test ...
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+      - run: flutter pub get
+      - run: dart analyze
+      - run: flutter test
 ```
 
 The `validation` aggregate then depends on the router, the guard, and only the concrete validation jobs (do not include `build` here):
@@ -1795,15 +1799,21 @@ The `validation` aggregate then depends on the router, the guard, and only the c
 ```yaml
   validation:
     name: Validation Aggregate
-    needs: [route, release-origin-guard, flutter-test] # Add your other selected validation jobs here
+    needs: [route, release-origin-guard, flutter-test]
     if: ${{ always() && needs.route.outputs.validation == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          # Aggregate failure checks...
+      - name: Require selected validation jobs
+        env:
+          GUARD_RESULT: ${{ needs.release-origin-guard.result }}
+          FLUTTER_RESULT: ${{ needs.flutter-test.result }}
+        run: |
+          set -euo pipefail
+          [[ "$GUARD_RESULT" == "success" ]]
+          [[ "$FLUTTER_RESULT" == "success" ]]
 ```
 
-The rest of the pipeline (`build`, `release-ready`) remains downstream of the successful validation aggregate as in the canonical topology.
+When composing additional selected validation jobs, add each job to `validation.needs` and explicitly assert its successful result alongside the guard and Flutter test. Do not accept failed, cancelled or unexpectedly skipped validation jobs. The rest of the pipeline (`build`, `release-ready`) remains downstream of the successful validation aggregate as in the canonical topology.
 
 **Tagging policy and handoff:**
 For committed versions, the durable cross-run handoff is the `pubspec.yaml` file itself. When the main release pipeline reaches the `prepare-release-tag` job (after validation and artifact builds succeed), it does not calculate an auto-increment. Instead, it reads the full version directly from the already-validated commit:
