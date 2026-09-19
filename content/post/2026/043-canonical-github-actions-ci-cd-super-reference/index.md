@@ -1748,20 +1748,29 @@ Because the `release-validate` payload operates on the exact pushed SHA rather t
   release-origin-guard:
     name: Verify Release Origin
     needs: [route]
-    if: ${{ needs.route.outputs.release == 'true' && inputs.mode == 'release-validate' }}
+    if: ${{ needs.route.outputs.validation == 'true' }}
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
       - name: Verify exact authoritative commit
         env:
+          INPUT_MODE: ${{ inputs.mode }}
           EXPECTED: ${{ inputs.expected_release_sha }}
         run: |
           set -euo pipefail
 
+          if [[ "$INPUT_MODE" != "release-validate" ]]; then
+            echo "Not release-validate mode. Skipping SHA check."
+            exit 0
+          fi
+
           AUTHORITATIVE_BRANCH="${GITHUB_REF#refs/heads/}"
 
-          # Cheap remote check before full checkout
+          # Fetch just the tip of the authoritative branch
           git fetch origin "$AUTHORITATIVE_BRANCH" --depth=1
-          ORIGIN_SHA="$(git ls-remote origin "refs/heads/$AUTHORITATIVE_BRANCH" | awk '{print $1}')"
+          ORIGIN_SHA="$(git rev-parse "origin/$AUTHORITATIVE_BRANCH")"
 
           if [[ "$GITHUB_SHA" != "$EXPECTED" ]] || [[ "$ORIGIN_SHA" != "$EXPECTED" ]]; then
             echo "Race condition detected: GITHUB_SHA ($GITHUB_SHA) or origin ($ORIGIN_SHA) does not match expected_release_sha ($EXPECTED)." >&2
@@ -1769,7 +1778,14 @@ Because the `release-validate` payload operates on the exact pushed SHA rather t
           fi
 ```
 
-The rest of the pipeline (`validation`, `build`, `release-ready`) must naturally depend on `release-origin-guard` when executing a `release-validate` continuation.
+The rest of the pipeline must explicitly depend on this guard before executing expensive work:
+
+```yaml
+  validation:
+    name: Validation Aggregate
+    needs: [route, release-origin-guard, build, unit-tests] # ... other validation jobs
+    if: ${{ always() && needs.route.outputs.validation == 'true' }}
+```
 
 **Tagging policy and handoff:**
 For committed versions, the durable cross-run handoff is the `pubspec.yaml` file itself. When the main release pipeline reaches the `prepare-release-tag` job (after validation and artifact builds succeed), it does not calculate an auto-increment. Instead, it reads the full version directly from the already-validated commit:
