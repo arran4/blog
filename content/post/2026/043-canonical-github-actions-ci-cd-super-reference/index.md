@@ -1768,8 +1768,8 @@ Because the `release-validate` payload operates on the exact pushed SHA rather t
 
           AUTHORITATIVE_BRANCH="${GITHUB_REF#refs/heads/}"
 
-          # Fetch just the tip of the authoritative branch
-          git fetch origin "$AUTHORITATIVE_BRANCH" --depth=1
+          # Fetch the tip of the authoritative branch explicitly into a tracking ref
+          git fetch origin "$AUTHORITATIVE_BRANCH:refs/remotes/origin/$AUTHORITATIVE_BRANCH" --depth=1
           ORIGIN_SHA="$(git rev-parse "origin/$AUTHORITATIVE_BRANCH")"
 
           if [[ "$GITHUB_SHA" != "$EXPECTED" ]] || [[ "$ORIGIN_SHA" != "$EXPECTED" ]]; then
@@ -1778,14 +1778,32 @@ Because the `release-validate` payload operates on the exact pushed SHA rather t
           fi
 ```
 
-The rest of the pipeline must explicitly depend on this guard before executing expensive work:
+To guarantee the guard runs before expensive work, **all selected validation jobs** must explicitly declare it in their `needs` array. For example:
+
+```yaml
+  flutter-test:
+    name: Flutter Test
+    needs: [route, release-origin-guard]
+    if: ${{ !failure() && !cancelled() && needs.route.outputs.validation == 'true' && needs.release-origin-guard.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      # ... checkout, install, test ...
+```
+
+The `validation` aggregate then depends on the router, the guard, and only the concrete validation jobs (do not include `build` here):
 
 ```yaml
   validation:
     name: Validation Aggregate
-    needs: [route, release-origin-guard, build, unit-tests] # ... other validation jobs
+    needs: [route, release-origin-guard, flutter-test] # Add your other selected validation jobs here
     if: ${{ always() && needs.route.outputs.validation == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          # Aggregate failure checks...
 ```
+
+The rest of the pipeline (`build`, `release-ready`) remains downstream of the successful validation aggregate as in the canonical topology.
 
 **Tagging policy and handoff:**
 For committed versions, the durable cross-run handoff is the `pubspec.yaml` file itself. When the main release pipeline reaches the `prepare-release-tag` job (after validation and artifact builds succeed), it does not calculate an auto-increment. Instead, it reads the full version directly from the already-validated commit:
