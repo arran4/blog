@@ -1,5 +1,5 @@
 ---
-title: "Verification Views"
+title: "The Scenario-Backed Middle Tier: Bridging Isolated Rendering and Full-Stack Verification"
 date: 2026-09-20T07:42:01Z
 draft: false
 tags:
@@ -13,87 +13,94 @@ categories:
   - Testing
 ---
 
-Testing the user-visible output of an application is notoriously difficult. Unit tests assert logic but ignore presentation. End-to-end browser tests exercise presentation but are slow, flaky, and require booting massive amounts of infrastructure.
+While isolated, direct fixture rendering solves many presentation testing problems (as discussed in [Testing UI at the Seam: Programmable Verification Without the Full Stack]({{< ref "040-programmable-ui-verification-seams" >}})), it can become brittle when templates rely on numerous data-access functions or complex view-model construction logic. If you find yourself mocking dozens of repository methods just to render a template, you've lost the benefit of cheap verification.
 
-A **verification view** sits between these extremes. It is a cheap, fast way to exercise one real application representation—usually a real template, view, or widget—against a deliberate, known state without booting unrelated infrastructure.
+On the other hand, booting a full HTTP server, authenticating, and navigating via browser automation is often too heavy.
 
-## Three Levels of Verification
+There is a powerful middle ground: **Scenario-Backed Verification**.
 
-Verification views complement rather than replace one another across three distinct levels of isolation.
+## The Scenario-Backed Middle Tier
 
-### 1. Direct Isolated Rendering
+This tier introduces an explicit middle step between isolated template rendering and disposable full-server integration. It leverages the deterministic state definition of a scenario (described in [Scenarios as Executable Application State]({{< ref "046-scenarios-as-executable-application-state" >}})) to populate an in-memory repository or temporary database.
 
-At the narrowest level, you render a view directly by supplying explicit view data or narrowly overriding specific dependencies (like template functions). This is surgical template testing. It is perfect for exercising deliberately impossible, incomplete, or component-specific states that are difficult to induce through normal application flow.
+Instead of supplying isolated JSON data directly to the view, you:
 
-### 2. Scenario-Backed Verification
+1.  **Define a Scenario:** Use an executable state definition (e.g., `TXTAR` operations like `user.create`, `forum.post`) to represent domain intent.
+2.  **Apply to Ephemeral Storage:** The scenario runner applies these operations to an in-memory repository or a disposable SQLite database.
+3.  **Construct the Real View Model:** The real application logic queries this ephemeral storage to construct the complex view model.
+4.  **Render the View:** The real template renders the view model.
 
-If numerous data-access functions must be replaced to render a view, mock-heavy isolated rendering becomes brittle. Instead, populate an in-memory repository or temporary database using a [scenario]({{< ref "050-scenarios-as-executable-application-state" >}}), and use the normal view-construction path. The real functions query the in-memory implementation. This provides stronger behavioural verification without the overhead of HTTP.
+### When to Choose the Middle Tier
 
-### 3. Disposable Full Server
+Use this tier when:
+*   The view relies heavily on application state that is tedious to construct via raw JSON fixtures.
+*   The template executes domain-specific template functions (e.g., `{{ user_has_permission .User .Post }}`) that require a functional persistence layer.
+*   You want stronger behavioural verification than isolated rendering, but without the overhead of HTTP routing and authentication middleware.
 
-When HTTP routing, authentication middleware, or session behaviour actually matters for the view being inspected, you boot a disposable full application server populated from the same scenario. The output is inspected, and the server is immediately torn down.
-
-## Keep the Inspected Artifact Real
-
-The core principle of a verification view is that the thing being inspected must remain real.
-
-In a server-rendered application (like Go templates), this means using the real template tree, real partials and layouts, real template functions (where practical), and real view-model construction. Embedded templates should be the default, with external user-provided template directories acting as overlays. Prefer one template-loader architecture shared by the normal application and verification commands instead of divergent compilation paths.
-
-If a rendering API requires a request context, providing a synthetic request or context is entirely acceptable. You do not need a complete HTTP server when HTTP itself is not under test.
-
-## Named Cases as Shared Vocabulary
-
-Verification views thrive on named cases: `empty`, `default`, `dense`, `edit`, `permissions`, `long-text`, `unicode`.
-
-These named states become a powerful shared vocabulary for humans, continuous integration, and coding agents. A developer can quickly ask to see the `dense` state of the dashboard without manually clicking through a UI to generate dozens of records. Both built-in cases (compiled into the tool) and external input (via JSON files or scenario scripts) should be supported.
-
-## Deterministic Output
-
-For a verification view to be useful in automated testing, its output must be completely deterministic. Every run must produce identical bytes given identical input.
-
-This requires controlling:
-* **Clocks:** Time must be frozen or deterministically injected.
-* **IDs:** Randomly generated IDs (UUIDs) must be replaced with sequential or seeded generators.
-* **Sort Order:** Maps and database queries must return results in a guaranteed order.
-* **Environment:** Locale, timezone, and volatile request data must be strictly controlled.
-
-## Output Surfaces and Assertions
-
-A verification command should support multiple output surfaces to serve different needs:
-
-1. **Stdout / File Output:** Emitting the raw HTML or text artifact is fast and allows for trivial diffing in CI. HTML artifacts are useful CI outputs even without screenshots.
-2. **Tiny Localhost Server:** Serving the view over a local port with static assets enables immediate human inspection and visual debugging.
-3. **Headless Browser Screenshots:** Generating screenshots using a headless browser.
-
-Crucially, **screenshots should sit above the verification mechanism** rather than forcing the harness itself to become browser automation. The verification view emits HTML; a separate, optional layer takes a picture of it.
-
-When automating assertions against these outputs, prefer structural or semantic assertions (e.g., "does the DOM contain an element with this ID and text?") over brittle whole-document snapshot tests that fail whenever a CSS class changes.
+If the view is a pure presentation component (e.g., a simple button or a card displaying literal text), stick to isolated rendering. If you must verify authentication cookies or session lifecycles, move up to a disposable full server.
 
 ## Composing Scenarios and Verification
 
-Scenarios and verification views compose beautifully into a powerful pipeline:
+Scenarios and verification views compose beautifully into a deterministic pipeline:
 
-`scenario -> domain operations -> memory persistence -> normal query/view construction -> real renderer -> inspectable artifact`
+`scenario -> domain operations -> ephemeral storage -> normal query/view construction -> real renderer -> inspectable artifact`
 
-You feed a known, deterministic scenario into the system, execute real application logic, and verify the resulting real view.
+Because the scenario explicitly defines time and sequential actions without relying on a full network stack, the output is highly deterministic. This allows you to assert against the output structure or use it as a reliable target for headless browser screenshots.
 
-## Generalising Beyond the Web
+### Example: A Worked Middle-Tier Verification
 
-This concept is not limited to server-rendered web applications.
-* In a **Flutter or desktop** application, a verification view is a real widget or screen mounted against seeded state in an isolated test harness.
-* In a **terminal** application, it is a deterministic text screen dump.
-* In a **report generator**, it is a PDF or document output.
+Imagine verifying a forum topic view that relies on nested threads, user roles, and read-receipt logic. Creating a JSON fixture for this entire graph is error-prone. Instead, we use a scenario:
 
-The principle remains: expose one real representation of deliberate application state.
+```text
+-- scenario.meta --
+Format: forum-scenario/v1
+Name: dense-topic
 
-## LLM and CI Workflows
+-- 01-topic.event --
+Op: topic.create
+Ref: general-discussion
+Name: General Discussion
 
-This architecture profoundly improves LLM-assisted development.
+-- 02-user.event --
+Op: user.create
+Ref: alice
+Role: moderator
 
-By documenting these tools in an `AGENTS.md` file or generating a custom skill, you can tell an agent exactly which named scenarios and verification views exist, how to render them, and which commands produce inspectable artifacts. An agent can modify a template, run the verification view command, and immediately read back the HTML or snapshot to confirm the change worked.
+-- 03-post.event --
+Op: post.create
+Ref: first-post
+Topic: general-discussion
+Author: alice
+Body: Welcome to the forum.
+```
 
-However, these exact same commands must be useful to humans. Do not invent an LLM-only parallel application; standardise on tools that benefit everyone.
+The verification command then loads this scenario, initializes the ephemeral storage, executes the real `GetTopicViewModel` logic, and renders the result:
 
-## The Role of End-to-End Tests
+```go
+// Command-line or test runner executes this flow:
+func VerifyTopicView(scenarioPath string, topicRef string) ([]byte, error) {
+    // 1. Initialize ephemeral storage and scenario runner
+    db := memorydb.New()
+    runner := scenario.NewRunner(db)
 
-Implementing fast, isolated verification views changes the appropriate role of end-to-end browser tests. E2E tests no longer need to exhaustively assert visual states or render every possible combination of data. Instead, leave HTTP and browser tests responsible for routing, cookies, authentication flows, form submissions, and genuine cross-layer behaviour. Let verification views handle the cheap, rapid rendering of rich states.
+    // 2. Load and apply the scenario
+    sc, _ := scenario.ParseFile(scenarioPath)
+    runner.Apply(context.Background(), sc)
+
+    // 3. Resolve the target entity
+    topicID := runner.ResolveRef("topic", topicRef)
+
+    // 4. Use real application logic to build the view model
+    viewModel, err := app.GetTopicViewModel(context.Background(), db, topicID)
+    if err != nil {
+        return nil, err
+    }
+
+    // 5. Render the real template
+    var buf bytes.Buffer
+    err = templates.ExecuteTemplate(&buf, "topic_view.html", viewModel)
+    return buf.Bytes(), err
+}
+```
+
+This output can then be asserted structurally ("does it contain the moderator badge?") or fed into a screenshot tool, providing robust verification without a full HTTP stack.
