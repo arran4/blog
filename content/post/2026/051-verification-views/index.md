@@ -37,7 +37,7 @@ Use this tier when:
 *   The template executes domain-specific template functions (e.g., `{{ user_has_permission .User .Post }}`) that require a functional persistence layer.
 *   You want stronger behavioural verification than isolated rendering, but without the overhead of HTTP routing and authentication middleware.
 
-If the view is a pure presentation component (e.g., a simple button or a card displaying literal text), stick to isolated rendering. If you must verify authentication cookies or session lifecycles, move up to a disposable full server.
+As established in [Testing UI at the Seam]({{< ref "040-programmable-ui-verification-seams" >}}), the principle is to choose the smallest verification surface that actually proves the requirement. If the view is a pure presentation component (e.g., a simple button or a card displaying literal text), stick to isolated rendering. However, do not imply a browser or HTTP test is inherently unnecessary when layout, JS, routing, cookie, or middleware behaviour is exactly what needs proving. The middle tier handles complex view models; the full server handles the network and browser layer.
 
 ## Composing Scenarios and Verification
 
@@ -49,7 +49,7 @@ Because the scenario explicitly defines time and sequential actions without rely
 
 ### Example: A Worked Middle-Tier Verification
 
-Imagine verifying a forum topic view that relies on nested threads, user roles, and read-receipt logic. Creating a JSON fixture for this entire graph is error-prone. Instead, we use a scenario:
+Imagine verifying a forum topic view that relies on user roles. Creating a complex JSON fixture for the graph is error-prone. Instead, we use a scenario with fixed times to guarantee deterministic output:
 
 ```text
 -- scenario.meta --
@@ -60,11 +60,13 @@ Name: dense-topic
 Op: topic.create
 Ref: general-discussion
 Name: General Discussion
+At: 2026-09-01T10:00:00Z
 
 -- 02-user.event --
 Op: user.create
 Ref: alice
 Role: moderator
+At: 2026-09-01T10:05:00Z
 
 -- 03-post.event --
 Op: post.create
@@ -72,35 +74,63 @@ Ref: first-post
 Topic: general-discussion
 Author: alice
 Body: Welcome to the forum.
+At: 2026-09-01T10:10:00Z
 ```
 
 The verification command then loads this scenario, initializes the ephemeral storage, executes the real `GetTopicViewModel` logic, and renders the result:
 
 ```go
-// Command-line or test runner executes this flow:
+// Illustrative pseudocode: initializing a scenario runner and rendering a view
 func VerifyTopicView(scenarioPath string, topicRef string) ([]byte, error) {
     // 1. Initialize ephemeral storage and scenario runner
-    db := memorydb.New()
+    // cspell:disable-next-line
+    db := datastore.NewInMem()
     runner := scenario.NewRunner(db)
 
     // 2. Load and apply the scenario
-    sc, _ := scenario.ParseFile(scenarioPath)
-    runner.Apply(context.Background(), sc)
+    sc, err := scenario.ParseFile(scenarioPath)
+    if err != nil {
+        return nil, fmt.Errorf("parse scenario: %w", err)
+    }
 
-    // 3. Resolve the target entity
-    topicID := runner.ResolveRef("topic", topicRef)
+    if _, err := runner.Apply(context.Background(), sc); err != nil {
+        return nil, fmt.Errorf("apply scenario: %w", err)
+    }
+
+    // 3. Resolve the target entity (assuming the API returns an error if missing)
+    topicID, err := runner.ResolveRef("topic", topicRef)
+    if err != nil {
+        return nil, fmt.Errorf("resolve topic ref: %w", err)
+    }
 
     // 4. Use real application logic to build the view model
     viewModel, err := app.GetTopicViewModel(context.Background(), db, topicID)
     if err != nil {
-        return nil, err
+        return nil, fmt.Errorf("get view model: %w", err)
     }
 
     // 5. Render the real template
     var buf bytes.Buffer
     err = templates.ExecuteTemplate(&buf, "topic_view.html", viewModel)
-    return buf.Bytes(), err
+    if err != nil {
+        return nil, fmt.Errorf("execute template: %w", err)
+    }
+
+    return buf.Bytes(), nil
 }
 ```
 
-This output can then be asserted structurally ("does it contain the moderator badge?") or fed into a screenshot tool, providing robust verification without a full HTTP stack.
+This output can then be asserted structurally in a test:
+```go
+// Example mechanical assertion
+output, err := VerifyTopicView("testdata/dense-topic.txtar", "general-discussion")
+if err != nil {
+    t.Fatal(err)
+}
+
+if !bytes.Contains(output, []byte(`<span class="badge">Moderator</span>`)) {
+    t.Error("expected moderator badge to be rendered")
+}
+```
+
+This provides robust verification without a full HTTP stack.
