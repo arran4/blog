@@ -49,12 +49,12 @@ Because the scenario explicitly defines time and sequential actions without rely
 
 ### Example: A Worked Middle-Tier Verification
 
-Imagine verifying a forum topic view that relies on user roles. Creating a complex JSON fixture for the graph is error-prone. Instead, we use a scenario with fixed times to guarantee deterministic output:
+Imagine verifying a forum topic view that relies on user roles. Creating a complex JSON fixture for the graph is error-prone. Instead, we use a scenario with fixed times to help produce deterministic output (provided the application logic also controls IDs, sort order, and random generation):
 
 ```text
 -- scenario.meta --
 Format: forum-scenario/v1
-Name: dense-topic
+Name: simple-topic
 
 -- 01-topic.event --
 Op: topic.create
@@ -120,10 +120,10 @@ func VerifyTopicView(scenarioPath string, topicRef string) ([]byte, error) {
 }
 ```
 
-This output can then be asserted structurally in a test:
+This output can then be checked with a simple text-level smoke assertion in a test, which differs from parser-backed structural checks but provides rapid feedback:
 ```go
-// Example mechanical assertion
-output, err := VerifyTopicView("testdata/dense-topic.txtar", "general-discussion")
+// Example text-level smoke assertion
+output, err := VerifyTopicView("testdata/simple-topic.txtar", "general-discussion")
 if err != nil {
     t.Fatal(err)
 }
