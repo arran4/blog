@@ -34,9 +34,7 @@ For some tests that is exactly what should happen.
 
 For every test, it is wasteful.
 
-A useful companion to application scenarios is what I call a **verification
-view**
-.
+A useful companion to application scenarios is what I call a **verification view**.
 
 A verification view creates one deliberate, inspectable presentation of
 application behaviour using the real rendering code but without requiring the
@@ -86,6 +84,7 @@ It helps to think of this as a spectrum rather than one testing technique.
 |Isolated template verification|Explicit supplied data|Real template|Template development, malformed-state checks, LLM inspection|
 |Scenario-backed verification|In-memory or temporary scenario state|Real view construction and template|Feature/UI verification|
 |Disposable application|Temporary migrated database plus scenario|Normal HTTP application|Routing, auth, integrated behaviour and interactive demos|
+
 The fastest level should be used whenever it answers the question.
 
 Escalate only when the lower level stops exercising something relevant.
@@ -181,9 +180,11 @@ The distinction is useful.
 Raw view data says:
 
 > Render this template with these values.
+
 A scenario says:
 
 > Construct this application state normally, then render the view of it.
+
 Both are legitimate.
 
 The latter provides stronger behavioural coverage.
