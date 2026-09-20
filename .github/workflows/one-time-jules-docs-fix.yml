@@ -1,0 +1,38 @@
+name: One-time Jules documentation review corrections
+on:
+  push:
+    branches: [docs/jules-task-managed-checkout-20260920]
+    paths: [.github/workflows/one-time-jules-docs-fix.yml]
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: docs/jules-task-managed-checkout-20260920
+          persist-credentials: true
+      - name: Fix wording and spelling
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('content/post/2026/044-jules-management/index.md')
+          s = p.read_text(encoding='utf-8')
+          corrections = [
+              ('manage worktrees, change remotes', 'manage additional working trees, change remotes'),
+              ('or manage worktrees; use supported', 'or manage additional working trees; use supported'),
+              ('commit/push or otherwise submit the current meaningful state', 'publish the current meaningful state through the supported task workflow'),
+          ]
+          for old, new in corrections:
+              if s.count(old) != 1:
+                  raise SystemExit(f'Expected one occurrence: {old!r}; found {s.count(old)}')
+              s = s.replace(old, new, 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add content/post/2026/044-jules-management/index.md
+          git commit -m 'docs: clarify early publication and correct spelling'
+          git push origin HEAD:docs/jules-task-managed-checkout-20260920
