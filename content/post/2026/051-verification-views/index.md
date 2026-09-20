@@ -27,7 +27,7 @@ At the narrowest level, you render a view directly by supplying explicit view da
 
 ### 2. Scenario-Backed Verification
 
-If numerous data-access functions must be replaced to render a view, mock-heavy isolated rendering becomes brittle. Instead, populate an in-memory repository or temporary database using a [scenario]({{< ref "048-scenarios-as-executable-application-state" >}}), and use the normal view-construction path. The real functions query the in-memory implementation. This provides stronger behavioural verification without the overhead of HTTP.
+If numerous data-access functions must be replaced to render a view, mock-heavy isolated rendering becomes brittle. Instead, populate an in-memory repository or temporary database using a [scenario]({{< ref "050-scenarios-as-executable-application-state" >}}), and use the normal view-construction path. The real functions query the in-memory implementation. This provides stronger behavioural verification without the overhead of HTTP.
 
 ### 3. Disposable Full Server
 

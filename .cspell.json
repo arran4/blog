@@ -122,6 +122,7 @@
     "temurin",
     "termux",
     "testdata",
+    "timezone",
     "tolower",
     "topdir",
     "tsobjectutils",
