@@ -1,0 +1,80 @@
+name: One-time Jules management documentation edit
+
+on:
+  push:
+    branches:
+      - docs/jules-task-managed-checkout-20260920
+    paths:
+      - .github/workflows/one-time-jules-docs-edit.yml
+
+permissions:
+  contents: write
+
+jobs:
+  edit-article:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: docs/jules-task-managed-checkout-20260920
+          persist-credentials: true
+      - name: Integrate task-managed Jules guidance into existing article
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('content/post/2026/044-jules-management/index.md')
+          text = path.read_text(encoding='utf-8')
+
+          def replace_once(before, after):
+              global text
+              count = text.count(before)
+              if count != 1:
+                  raise SystemExit(f'Expected one occurrence, found {count}: {before[:100]!r}')
+              text = text.replace(before, after, 1)
+
+          section = '''### Jules is task-managed, not a general-purpose Git agent
+
+          Jules runs in a task environment that controls repository preparation, checkout and implementation-branch selection, task lifecycle, and the supported publication workflow. The management LLM must not mistake its own GitHub or Git capabilities for operations Jules can perform inside an already-started task.
+
+          **Starting a new task:** Select the repository and intended base branch through the supported Jules task-creation interface or control plane. State the desired starting state in the task specification, but do not ask Jules to select or reconstruct that state after the environment has been assigned. If a task depends on trusted unmerged code, the management layer must arrange an accessible recovery base *before* task creation, where supported. A bare commit SHA in a prompt cannot make an unavailable checkout available.
+
+          **Continuing an existing task:** Jules should use the checkout and implementation branch assigned to that task. Do not tell it to switch or create branches, reset to or pull the latest `main`, rebase, cherry-pick, manage worktrees, change remotes, force-push, or repair the task's Git setup as a prerequisite to implementation. These are task-control and checkout-management instructions, not ordinary code work. Repository inspection and supported Git operations within the assigned checkout remain appropriate. If the assigned baseline is wrong and the work cannot continue safely, the management layer should choose the recovery path and, when necessary, start a replacement task with the correct base instead of repeatedly asking Jules to reconstruct its environment.
+
+          **Publishing the result:** Require an inspectable pull request as an explicit outcome, but use Jules's supported task-publication workflow rather than prescribing `git push`, `gh pr create`, branch creation, or other command-line control-plane mechanics. For an existing task with a PR, ask Jules to update that task's work and PR, not to manufacture an unrelated branch or replacement PR. If Jules completes implementation but a supported publication action genuinely fails, it should provide the exact available commit, branch, error, and remaining action so the management layer can complete authorised administration. A local report or commit alone is not a submitted PR.
+
+          **Agent-specific prompts:** Instructions for manually managed Git work, Codex CLI, Agy, or another replacement agent do not automatically apply to Jules. The management layer owns base selection, branch isolation for handoffs, and GitHub lifecycle operations; Jules owns implementation and verification inside the checkout its task assigned. Do not copy a local-agent recovery sequence into a Jules prompt merely because both agents work on GitHub repositories.
+
+          '''
+          section = '\n'.join(line[10:] if line.startswith('          ') else line for line in section.splitlines()) + '\n'
+          replace_once('## Jules prompts should reduce unnecessary questions\n', section + '## Jules prompts should reduce unnecessary questions\n')
+
+          replace_once(
+              'Give the implementation agent one positive, unambiguous instruction: complete the scoped work, commit and push the deliverable, and submit or update the PR.',
+              'Give the implementation agent one positive, unambiguous instruction: complete the scoped work, publish the deliverable through the supported Jules task workflow, and submit or update the task PR. Do not prescribe unsupported Git commands as the means of publication.'
+          )
+          replace_once(
+              'If the task already has a PR, update and push that PR; otherwise submit the task PR.',
+              'If the task already has a PR, update and publish work through that task; otherwise submit the task PR through the supported workflow.'
+          )
+          replace_once(
+              'For example, the submission instruction can be: **"Complete the scoped work, record the evidence and remaining limitations, commit and push the deliverable, submit the pull request for management review, and return its URL and exact head commit."**',
+              'For example, the submission instruction can be: **"Complete the scoped work within your assigned task environment, record the evidence and remaining limitations, publish the deliverable and submit the task pull request through the supported Jules workflow, and return its URL and exact head commit."**'
+          )
+          replace_once(
+              'The management LLM should strongly prefer prompts and follow-up instructions that encourage Jules to establish the branch and draft PR early once it has a coherent foothold.',
+              'The management LLM should strongly prefer prompts and follow-up instructions that encourage Jules to publish meaningful task state and establish its draft PR early once it has a coherent foothold; branch creation and selection remain with the task environment.'
+          )
+          replace_once(
+              'Jules should be given light Git instructions. It is best treated as staying on its own branch and making implementation commits there.',
+              'Jules should receive outcome-oriented publication instructions and stay within the checkout and implementation branch assigned by its task environment. The management layer must not instruct it to create, switch, reset, or rebase branches or manage worktrees; use supported Jules publication actions for its task PR and keep branch-recovery mechanics outside the in-task prompt.'
+          )
+          path.write_text(text, encoding='utf-8')
+          PY
+          git diff --check
+          git diff -- content/post/2026/044-jules-management/index.md
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add content/post/2026/044-jules-management/index.md
+          git commit -m 'docs: clarify Jules task-managed checkout and submission'
+          git push origin HEAD:docs/jules-task-managed-checkout-20260920
