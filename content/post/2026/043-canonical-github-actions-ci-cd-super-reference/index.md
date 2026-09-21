@@ -1831,6 +1831,25 @@ When build-only releases are supported, always tag the full version including th
 
 Ensure write permissions (`contents: write`) are tightly scoped to the specific job responsible for the version commit or Git tagging handoff.
 
+
+### 27.8 Regression Prevention
+
+Even when generated from canonical guidance, the actual implementation must be verified against regressions. Explicitly verify the following properties (e.g., using a dry-run `workflow_dispatch` test or static analysis), distinguishing between an intentionally disabled capability and a required capability that was unexpectedly skipped:
+
+1. **Tag Routing:** A normal version-tag push and manual `publish-tag` request must enable all required validation and build stages alongside publication.
+2. **Release-Critical Scope:** Every release-critical check explicitly executes for the relevant release route.
+3. **Strict Gates:** Failed or unexpectedly skipped required checks must cause `release-ready` to fail. Ensure `release-ready` uses `if: always()` and asserts the explicit `success` of its dependencies.
+4. **Downstream Enforcement:** Tag preparation and publication must explicitly require `needs.release-ready.result == 'success'` to proceed.
+5. **Manual Paths:** Manual release preparation and tag-context publication must both follow the same required release contract and race protections (such as explicit commit origin verification).
+
+**Lightweight Verification Matrix:**
+Verify these scenarios via routing/condition tests or by intentionally failing a mock job on a test branch:
+- *Successful Publication:* Normal `v*` tag push -> Validation passes -> Build passes -> `release-ready` passes -> Publication succeeds.
+- *Skipped Required Check:* Job skipped unexpectedly -> `release-ready` runs but fails success assertion -> Publication skips.
+- *Failed Validation/Build:* Job fails -> `release-ready` runs but fails success assertion -> Publication skips.
+- *Manual Publication:* `workflow_dispatch` with `mode=publish-tag` -> Validates/builds run -> `release-ready` enforces success -> Publication succeeds.
+- *Manual Preparation:* `workflow_dispatch` with `mode=release-major` -> Validates/builds run -> `release-ready` enforces success -> Tag preparation succeeds after origin race checks.
+
 ## 28. Existing-workflow migration procedure
 
 When modernising an existing repository, follow this concrete procedure:
