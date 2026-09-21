@@ -48,6 +48,7 @@
     "chezmoi",
     "cider",
     "cleanup",
+    "closeout",
     "compat",
     "cppcheck",
     "ctest",
@@ -123,6 +124,7 @@
     "uncategorized",
     "unmerged",
     "vars",
+    "workstream",
     "worktree",
     "writable"
   ]
