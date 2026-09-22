@@ -271,6 +271,83 @@ Dependencies{
 
 A good testing seam often emerges naturally from good dependency boundaries.
 
+
+## When Direct Fixtures Become Unwieldy: Scenario-Backed View Construction
+
+While isolated, direct fixture rendering solves many presentation testing problems, it can become brittle when view-model building requires coherent, mutable domain state or many interacting repository methods. If you find yourself mocking dozens of repository methods just to render a template, you've lost the benefit of cheap verification.
+
+On the other hand, booting a full HTTP server, authenticating, and navigating via browser automation is often too heavy.
+
+There is a powerful middle ground: **Scenario-Backed Verification**.
+
+This tier leverages the deterministic state definition of a scenario (as described in [Scenarios as Executable Application State]({{< ref "046-scenarios-as-executable-application-state" >}})) to populate a disposable in-memory repository or temporary database.
+
+Instead of supplying isolated JSON data directly to the view, you:
+1. **Apply a Deterministic Scenario:** The scenario runner applies domain operations (e.g., `TXTAR` operations) to ephemeral storage.
+2. **Run Real View Construction:** The *real* application view-model query/construction logic runs against this ephemeral storage.
+3. **Render:** The real template renders the view model, entirely without routing, auth middleware, or a browser.
+
+### Illustrative Example
+
+Here is a compact example showing how a scenario feeds into normal view construction:
+
+```text
+-- scenario.meta --
+Format: forum-scenario/v1
+Name: simple-topic
+
+-- 01-topic.event --
+Op: topic.create
+Ref: general-discussion
+Name: General Discussion
+At: 2026-09-01T10:00:00Z
+
+-- 02-user.event --
+Op: user.create
+Ref: alice
+Role: moderator
+At: 2026-09-01T10:05:00Z
+```
+
+The verification command loads this scenario, initializes the ephemeral storage, executes the real logic, and renders the result:
+
+```go
+// Illustrative pseudocode: initializing a scenario runner and rendering a view
+func VerifyTopicView(scenarioPath string, topicRef string) ([]byte, error) {
+    // cspell:disable-next-line
+    db := datastore.NewInMem()
+    runner := scenario.NewRunner(db)
+
+    sc, err := scenario.ParseFile(scenarioPath)
+    if err != nil { return nil, err }
+    if _, err := runner.Apply(context.Background(), sc); err != nil { return nil, err }
+
+    topicID, err := runner.ResolveRef("topic", topicRef)
+    if err != nil { return nil, err }
+
+    viewModel, err := app.GetTopicViewModel(context.Background(), db, topicID)
+    if err != nil { return nil, err }
+
+    var buf bytes.Buffer
+    if err := templates.ExecuteTemplate(&buf, "topic_view.html", viewModel); err != nil {
+        return nil, err
+    }
+
+    return buf.Bytes(), nil
+}
+```
+
+This output can then be checked with a simple text-level smoke assertion:
+```go
+output, err := VerifyTopicView("testdata/simple-topic.txtar", "general-discussion")
+// ...
+if !bytes.Contains(output, []byte(`<span class="badge">Moderator</span>`)) {
+    t.Error("expected moderator badge")
+}
+```
+
+This is an alternative where it buys something, not a mandatory extra tier. Preserve the existing rule to choose the smallest surface that proves the requirement.
+
 ## Implementation Architectures
 
 A subcommand on the main binary (`myapp verify template`) isn't the only approach.
