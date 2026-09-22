@@ -307,6 +307,14 @@ Op: user.create
 Ref: alice
 Role: moderator
 At: 2026-09-01T10:05:00Z
+
+-- 03-post.event --
+Op: post.create
+Ref: first-post
+Topic: general-discussion
+Author: alice
+Body: Welcome to the forum.
+At: 2026-09-01T10:10:00Z
 ```
 
 The verification command loads this scenario, initializes the ephemeral storage, executes the real logic, and renders the result:
@@ -340,7 +348,10 @@ func VerifyTopicView(scenarioPath string, topicRef string) ([]byte, error) {
 This output can then be checked with a simple text-level smoke assertion:
 ```go
 output, err := VerifyTopicView("testdata/simple-topic.txtar", "general-discussion")
-// ...
+if err != nil {
+    t.Fatal(err)
+}
+
 if !bytes.Contains(output, []byte(`<span class="badge">Moderator</span>`)) {
     t.Error("expected moderator badge")
 }
