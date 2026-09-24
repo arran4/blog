@@ -17,7 +17,7 @@ jobs:
         with:
           ref: docs/jules-management-cross-references-20260924
           persist-credentials: true
-      - name: Insert references into the existing management article and remove this workflow
+      - name: Inline related posts into existing Jules management article
         shell: bash
         run: |
           set -euo pipefail
@@ -25,34 +25,27 @@ jobs:
           test "${GITHUB_REF_NAME}" = 'docs/jules-management-cross-references-20260924'
           python3 - <<'PY'
           from pathlib import Path
-          article = Path('content/post/2026/044-jules-management/index.md')
-          before = article.read_text(encoding='utf-8')
+          directory = Path('content/post/2026/044-jules-management')
+          original = directory / 'index.md'
+          appendix = directory / 'management-crossrefs-temp.md'
+          before = original.read_text(encoding='utf-8')
+          addition = appendix.read_text(encoding='utf-8').strip()
           anchor = '\n## Why I use Jules first\n'
-          assert before.count(anchor) == 1, 'Missing or ambiguous anchor; article unchanged'
           heading = '### Related implementation and testing references'
-          assert heading not in before, 'References already present; article unchanged'
-          addition = '''### Related implementation and testing references
-
-The management workflow is the coordination layer, not a substitute for repository-specific implementation and testing guidance. When preparing a Jules task or reviewing a pull request, consult the relevant companion posts below and link the applicable guidance in the task or review. Do not attach every article mechanically to every prompt; choose based on the actual code paths and risks, and prefer current repository instructions where they differ.
-
-- **Filesystem behaviour and safe tests:** [Testing File Systems with MockFS and MapFS](/blog/post/2026/033-testing-fs-with-mapfs-mockfs/) explains small filesystem interfaces, production adapters and in-memory test doubles. For code that writes files, prefer deterministic, isolated tests that assert resulting contents and prevent accidental writes to the real environment; retain a focused real-filesystem integration test where actual OS semantics matter. [Treat Side Effects as Dependencies](/blog/post/2026/007-Go-FSs-Everywhere/) gives the wider boundary-setting rationale.
-- **Fixtures and scenario evidence:** [Txtar Patterns for Agents](/blog/post/2026/004-txtar-patterns-for-agents/) describes readable input/expected-state archives and scenario fixtures. Use these where they make regressions and generated output reviewable; require assertions of real behaviour rather than accepting a fixture's existence or a passing no-op test as proof.
-- **Narrow testability changes:** [Optional Dependency Injection via Type-Switched Variadic Args](/blog/post/2026/020-optional-dependency-injection-via-type-switched-variadic-args/) shows one way to introduce test dependencies without breaking existing callers. Use the smallest suitable seam for the project; do not impose a general abstraction or change public signatures solely to satisfy a test.
-- **Agent ownership and recovery:** [ChatGPT-Orchestrated Jules to Agy or Codex](/blog/post/2026/038-jules-agy-codex-handoff/) supplies historical context on independent review and implementation handoffs. The branch-ownership, direct-fix and Ready for review rules in **this** article take precedence if the older account differs.
-
-The common review question is not whether an agent says that it tested a change, but whether the diff and repeatable tests demonstrate the requested input-to-output behaviour without unintended side effects. Ask for the narrowest relevant evidence, and distinguish real filesystem or network integration coverage from in-memory unit coverage instead of treating either as a universal replacement for the other.
-'''
-          updated = before.replace(anchor, '\n' + addition + anchor, 1)
-          assert updated.count(heading) == 1
-          assert updated.replace('\n' + addition + anchor, anchor, 1) == before
-          article.write_text(updated, encoding='utf-8')
-          print('Inserted cross-references into the existing management article.')
+          assert before.count(anchor) == 1, 'Missing or ambiguous insertion anchor'
+          assert heading not in before, 'References already present'
+          assert addition.startswith(heading), 'Unexpected appendix'
+          updated = before.replace(anchor, '\n' + addition + '\n' + anchor, 1)
+          assert updated.count(addition) == 1
+          assert updated.replace('\n' + addition + '\n', '', 1) == before
+          original.write_text(updated, encoding='utf-8')
+          print('Added cross-references directly to existing article.')
           PY
-          git rm -- .github/workflows/temporary-jules-crossrefs.yml
+          git rm -- content/post/2026/044-jules-management/management-crossrefs-temp.md .github/workflows/temporary-jules-crossrefs.yml
           git add -- content/post/2026/044-jules-management/index.md
           git diff --cached --check
           git diff --cached --stat
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'docs: link related implementation and testing posts from Jules management'
+          git commit -m 'docs: link practical testing and handoff posts in Jules management'
           git push origin HEAD:docs/jules-management-cross-references-20260924
