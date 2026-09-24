@@ -64,7 +64,7 @@
 
       <!-- Author Info -->
       {{ if and (.Site.Params.author.name | default .Site.Author.name) (.Params.showAuthorInfo | default .Site.Params.showAuthorInfo) }}
-        {{ partial "author_info.html" (dict "author" (.Site.Params.author.name | default .Site.Params.showAuthorInfo) "context" $) }}
+        {{ partial "author_info.html" (dict "author" (.Site.Params.author.name | default .Site.Author.name) "context" $) }}
       {{ end }}
 
       <!-- Comments -->
