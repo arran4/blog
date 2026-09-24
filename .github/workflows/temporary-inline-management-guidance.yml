@@ -37,7 +37,7 @@ jobs:
           assert addition.startswith('## Review-time routing: direct fixes, Jules continuation, or escalation'), 'Unexpected appendix'
           updated = existing.replace(heading, '\n' + addition + '\n' + heading, 1)
           assert updated.count(addition) == 1
-          assert updated.replace('\n' + addition + '\n', '\n', 1) == existing
+          assert updated.replace('\n' + addition + '\n', '', 1) == existing
           original.write_text(updated, encoding='utf-8')
           print('Inlined existing guidance into the original article without modifying other paragraphs.')
           PY
