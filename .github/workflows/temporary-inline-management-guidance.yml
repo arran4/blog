@@ -1,0 +1,51 @@
+name: One-time inline management guidance
+
+on:
+  push:
+    branches:
+      - docs/jules-review-direct-fixes-and-escalation-20260924
+
+permissions:
+  contents: write
+
+jobs:
+  inline:
+    if: github.repository == 'arran4/blog'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: docs/jules-review-direct-fixes-and-escalation-20260924
+          persist-credentials: true
+      - name: Inline review guidance in original article and remove temporary files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REPOSITORY}" = 'arran4/blog'
+          test "${GITHUB_REF_NAME}" = 'docs/jules-review-direct-fixes-and-escalation-20260924'
+          python3 - <<'PY'
+          from pathlib import Path
+
+          directory = Path('content/post/2026/044-jules-management')
+          original = directory / 'index.md'
+          appendix = directory / 'management-direct-fixes.md'
+          existing = original.read_text(encoding='utf-8')
+          addition = appendix.read_text(encoding='utf-8').strip()
+          heading = '\n## Why I use Jules first\n'
+          assert existing.count(heading) == 1, 'Missing/ambiguous insertion anchor; leaving source unchanged'
+          assert '## Review-time routing: direct fixes, Jules continuation, or escalation' not in existing, 'Guidance already in original article'
+          assert addition.startswith('## Review-time routing: direct fixes, Jules continuation, or escalation'), 'Unexpected appendix'
+          updated = existing.replace(heading, '\n' + addition + '\n' + heading, 1)
+          assert updated.count(addition) == 1
+          assert updated.replace('\n' + addition + '\n', '\n', 1) == existing
+          original.write_text(updated, encoding='utf-8')
+          print('Inlined existing guidance into the original article without modifying other paragraphs.')
+          PY
+          git rm -- content/post/2026/044-jules-management/management-direct-fixes.md layouts/_default/single.html .github/workflows/temporary-inline-management-guidance.yml
+          git add -- content/post/2026/044-jules-management/index.md
+          git diff --cached --check
+          git diff --cached --stat
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Inline review-time routing into original Jules management article'
+          git push origin HEAD:docs/jules-review-direct-fixes-and-escalation-20260924
