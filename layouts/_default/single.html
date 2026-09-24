@@ -45,7 +45,7 @@
                 <i class="iconfont">
                   {{ partial "svg/left.svg" }}
                 </i>
-                <span class="prev-text nav-default">{{ i18n "prev_post" }}</span>
+                <span class="prev-text nav-default">{{ .Title }}</span>
                 <span class="prev-text nav-mobile">{{ i18n "prev_post" }}</span>
               </a>
             {{- end }}
@@ -64,7 +64,7 @@
 
       <!-- Author Info -->
       {{ if and (.Site.Params.author.name | default .Site.Author.name) (.Params.showAuthorInfo | default .Site.Params.showAuthorInfo) }}
-        {{ partial "author_info.html" (dict "author" (.Site.Params.author.name | default .Site.Author.name) "context" $) }}
+        {{ partial "author_info.html" (dict "author" (.Site.Params.author.name | default .Site.Params.showAuthorInfo) "context" $) }}
       {{ end }}
 
       <!-- Comments -->
