@@ -508,6 +508,49 @@ A replacement prompt should carry forward what the failed attempt already taught
 
 CI automation also changes the risk calculation. If a Jules CI fixer or recovered session can still write the original branch, a manual recovery change on that same branch creates two writers. Prefer an isolated management-owned branch/PR instead of racing automation or assuming an apparently dead session has released ownership.
 
+
+### Failure reports are inputs, not questionnaires
+
+When the human reports that Jules failed, that report is already the failure intake. It may be as short as `JULES OUTCOME: FAILURE — container failed`, `JULES OUTCOME: FAILURE — repeated empty commits`, or a pasted Jules message, PR URL, log excerpt, or worktree artifact. **Do not ask the human what happened again unless a genuinely missing fact is necessary to choose or execute a consequential recovery action.** Recover what can be learned from the conversation, GitHub, Jules output, CI, commits, PRs, and supplied artifacts first.
+
+Investigation is management work, not a user-selectable recovery strategy. The management LLM should establish the last trusted implementation state, what work is usable, whether the current Jules session is still viable, and which concrete continuation paths are actually possible before asking the human to choose among them.
+
+The recovery question should therefore be **“Which recovery route would you like me to carry out?”**, populated with bespoke routes for the actual failure. Do not mechanically show a generic list. Each route should describe what it preserves, the trusted base, branch/PR ownership, which agent performs each implementation phase, prerequisites such as a predecessor merge, and what management will do after approval.
+
+Common route shapes include, only when actually viable:
+
+- **Retry the current Jules session** with a focused `@jules` correction when the session still has a usable checkout and can materially advance the work.
+- **Restart in a fresh Jules session** when the old session is no longer useful but Jules remains suitable. This is a new task and normally a new PR; carry forward the useful requirements, review findings, prior decisions, and failed approaches.
+- **Recover trusted work into an isolated recovery branch and PR, then continue with Jules.** Management first reconstructs or preserves the trusted state. If a new Jules task can be created from that recovery base, select that base at task creation and let Jules remain in its task-managed checkout. Otherwise make the recovery PR a coherent predecessor, obtain normal human review/merge, then start Jules from updated `main`.
+- **Recover trusted work into an isolated replacement branch and PR for Agy or Codex.** After human approval, management creates the branch and draft PR, leaves the Jules branch read-only to the replacement agent, cross-links the old and new work, and gives the incoming agent the recovered state plus remaining requirements.
+- **Use a staged combination of agents** when that reduces risk or repetition: for example, management salvages a predecessor, Codex or Agy repairs a bounded defect on its own branch, and Jules resumes later from the merged predecessor. Every phase needs a clear owner, branch/PR lifecycle, validation gate, and handoff point. Never have two implementation agents write the same branch concurrently.
+- **Complete or salvage the current PR** when it already contains a coherent reviewable result, including management-owned GitHub administration such as Ready for review when the readiness gate is met.
+- **Direct management repair or manual recovery** for a small independently verifiable fix or when tool access requires a concrete patch/worktree handoff.
+- **HOLD, CLOSE OUT, or No action** when continuing immediately is not justified.
+
+Repeated empty commits need special diagnosis. They can mean an implementation is stalled, but they can also mean useful implementation is already complete and Jules is cycling because it lacks the control-plane action needed to finish PR administration. Do not ask for another empty commit merely to acknowledge status, trigger a review, or manipulate draft state.
+
+When presenting recovery choices, omit impossible routes rather than displaying every agent and every generic option. If a route is blocked, explain the blocker and what would make it viable. Always include **No action** and **Other**, but the meaningful choices should be complete recovery sequences, not bare agent names.
+
+### Consolidated decision forms
+
+When several consequential choices require human input, use one consolidated interactive form rather than serial approval questions. The form must reflect the actual findings and available actions; do not turn known facts, investigation steps, or impossible operations into questions.
+
+For every decision:
+
+- explain what the selection authorises;
+- distinguish a recommendation from permission to execute;
+- preselect the recommended non-destructive option where appropriate;
+- include **No action**;
+- include **Other** with free text; and
+- keep independent mutations independently approvable, especially issue creation/update/closure, agent handoff, merge, and release publication.
+
+Every form must end with an always-visible unrestricted multiline field labelled **“Additional details, corrections, or my own instructions”**. It must remain available regardless of the selected option, including No action, and must not be hidden behind Other. Treat the selected answers and this free text as one decision; the human may qualify the proposed sequence, choose a combination of agents, or replace the suggested plan entirely.
+
+For post-merge closeout, the same form should cover the real outstanding choices in one submission: approved issue changes, CONTINUE/HOLD/CLOSE OUT, release timing and type, and which handoff prompt should be generated next. Release publication must never be the default or be inferred from accepting a recommendation. A useful release question distinguishes “accept the recommended release plan for consideration only” from explicit publication choices such as recommended/patch/minor/major release, prepare-only, defer, no release, no action, and Other where those choices fit the repository's release conventions.
+
+The next-prompt question should be bespoke to the tasks actually identified: recommended first task, second, third, another identified later task, all remaining worthwhile prompts, redo the last prompt with new information, no additional prompt, no action, or Other. The primary ready-to-paste Jules prompt should still be included immediately when it is viable and executable; the form controls additional, alternative, or revised prompts. Selecting a prompt does not itself launch an implementation agent.
+
 ## Pull-request metadata belongs mostly to the management layer
 
 Jules should receive outcome-oriented publication instructions and stay within the checkout and implementation branch assigned by its task environment. The management layer must not instruct it to create, switch, reset, or rebase branches or manage additional working trees; use supported Jules publication actions for its task PR and keep branch-recovery mechanics outside the in-task prompt.
