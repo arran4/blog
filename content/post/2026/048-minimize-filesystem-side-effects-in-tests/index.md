@@ -1,6 +1,6 @@
 ---
 title: "Minimize Filesystem Side Effects in Go Tests"
-date: 2026-10-02T11:55:00+10:00
+date: 2026-10-02T11:42:00+10:00
 draft: false
 tags:
   - go
@@ -21,9 +21,9 @@ My default for Go tests is now stronger: **unit tests should avoid the operating
 
 This tightens the guidance in [Go FSs Everywhere](/blog/post/2026/007-Go-FSs-Everywhere/), [Memory FS for Testing](/blog/post/2026/008-Memory-FS-for-Testing/), [Testing `fs.FS` with MapFS and MockFS](/blog/post/2026/033-testing-fs-with-mapfs-mockfs/), and [Choosing Go Filesystem Test Fixtures](/blog/post/2026/047-choosing-go-filesystem-test-fixtures/).
 
-## The default boundary is a filesystem capability
+## Filesystem interfaces can make a useful test boundary
 
-Read-only code should usually accept `fs.FS` or a similarly small standard interface:
+When code naturally operates over a filesystem abstraction, `fs.FS` or another small standard interface can provide a useful boundary without introducing a project-specific filesystem framework:
 
 ```go
 func LoadConfig(fsys fs.FS, name string) (Config, error) {
@@ -185,7 +185,7 @@ This keeps the refactor behavioural rather than architectural for its own sake.
 For Go code I maintain, the working standard is:
 
 - unit tests use in-memory data and injected capabilities by default;
-- read-only filesystem dependencies prefer standard `fs` interfaces;
+- when abstracting read-only filesystem access, standard `fs` interfaces are a useful starting point;
 - custom writable interfaces stay narrow and application-shaped;
 - `fstest.MapFS`, embedded data, and `txtar` are preferred over ad-hoc temporary directory setup when OS semantics are irrelevant;
 - real filesystem tests are retained for permissions, symlinks, atomic operations, subprocess/path compatibility, and other genuine OS contracts;
