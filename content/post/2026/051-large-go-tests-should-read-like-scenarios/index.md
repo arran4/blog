@@ -1,6 +1,6 @@
 ---
 title: "Large Go Tests Should Read Like Scenarios"
-date: 2026-10-02T10:08:35+10:00
+date: 2026-10-02T11:47:00+10:00
 draft: false
 tags:
   - go
