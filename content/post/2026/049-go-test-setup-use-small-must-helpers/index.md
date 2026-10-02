@@ -1,6 +1,6 @@
 ---
 title: "Go Test Setup: Use Small Must Helpers When Errors Add No Meaning"
-date: 2026-10-02T09:57:27+10:00
+date: 2026-10-02T10:08:35+10:00
 draft: false
 tags:
   - go

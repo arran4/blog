@@ -1,6 +1,6 @@
 ---
 title: "Large Go Tests Should Read Like Scenarios"
-date: 2026-10-02T09:57:27+10:00
+date: 2026-10-02T10:08:35+10:00
 draft: false
 tags:
   - go
@@ -12,7 +12,7 @@ categories:
   - Software Development
 ---
 
-<!-- cspell:words testdata -->
+<!-- cspell:words reviewability testdata -->
 
 A long test is not automatically a bad test. End-to-end and integration scenarios sometimes need substantial setup and several assertions.
 
