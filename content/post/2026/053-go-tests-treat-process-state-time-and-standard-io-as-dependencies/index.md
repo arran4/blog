@@ -1,6 +1,6 @@
 ---
 title: "Go Tests: Treat Process State, Time, and Standard I/O as Dependencies"
-date: 2026-10-02T11:47:00+10:00
+date: 2026-10-02T11:55:00+10:00
 draft: false
 tags:
   - go
@@ -12,7 +12,7 @@ categories:
   - Software Development
 ---
 
-<!-- cspell:words httptest Setenv -->
+<!-- cspell:words APIURL Chdir getenv httptest Setenv structs Unsetenv -->
 
 Filesystem access is only one form of hidden test dependency. The same problem appears when a unit test temporarily replaces process-wide state:
 
