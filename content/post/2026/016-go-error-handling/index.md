@@ -2,6 +2,7 @@
 title: "Effective Error Handling in Go: Wrapping, Sentinels, and Custom Types"
 date: 2026-07-10T13:32:59+10:00
 draft: false
+guidance: ["go-error-handling"]
 tags:
   - golang
   - error-handling

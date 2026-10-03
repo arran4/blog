@@ -2,6 +2,7 @@
 title: "Testing UI at the Seam: Programmable Verification Without the Full Stack"
 date: 2026-08-28T11:24:25Z
 draft: false
+guidance: ["ui-verification"]
 tags: ["testing", "ui", "automation", "architecture", "ai-agents"]
 categories: ["Software Engineering"]
 ---

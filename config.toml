@@ -7,6 +7,11 @@ paginate = 1000
 rssLimit = 100
 enableEmoji = true
 defaultContentLanguage = "en"
+[taxonomies]
+  tag = "tags"
+  category = "categories"
+  guidance = "guidance"
+
 [languages.en]
     languageCode = "en"
 [author]

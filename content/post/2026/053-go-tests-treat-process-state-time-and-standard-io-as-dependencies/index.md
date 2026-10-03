@@ -2,6 +2,7 @@
 title: "Go Tests: Treat Process State, Time, and Standard I/O as Dependencies"
 date: 2026-10-02T11:55:00+10:00
 draft: false
+guidance: ["go-testing"]
 tags:
   - go
   - testing

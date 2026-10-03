@@ -9,6 +9,16 @@ All markdown posts must have a valid hugo front matter header containing at leas
 - tags
 - categories
 
+### Guidance Taxonomy
+
+The `guidance` taxonomy is reserved for articles that are CURRENTLY RECOMMENDED guidance for a named concept (e.g., `ci-cd`, `go-testing`). It differs from `tags` (which describe what an article is about) and `categories` (broad organization).
+
+- A guidance term may contain one article or a complementary set of current articles.
+- Do not interpret the "newest article" as automatically authoritative.
+- **Supersession Rule:** When a future article supersedes an existing current article, the relevant `guidance` term should be removed from the superseded article and added to the replacement in the same change.
+- Older/superseded articles remain available through normal tags/categories and direct links; they simply cease to be members of the current guidance set.
+- Do not repurpose the existing `series` mechanism for this.
+
 You should check that all files have valid front matter headers. For example, using a simple grep command:
 ```bash
 find content/post -name "*.md" -not -name "_index.md" -print0 | while IFS= read -r -d '' file; do
@@ -70,4 +80,4 @@ When editing spelling exceptions:
 
 ## Post Dates
 
-When creating or modifying new articles (posts) in the blog, ensure that the `date` field in the frontmatter is updated to the current date/time on every commit. Continue to update this date on each commit until the article is first merged into the blog repository (i.e. to keep the published date matching the merge date). Once an article has been merged, its `date` should not be updated further.
+When creating or modifying new articles (posts) in the blog, ensure that the `date` field in the front matter is updated to the current date/time on every commit. Continue to update this date on each commit until the article is first merged into the blog repository (i.e. to keep the published date matching the merge date). Once an article has been merged, its `date` should not be updated further.

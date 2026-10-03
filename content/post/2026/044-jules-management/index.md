@@ -2,6 +2,7 @@
 title: "Managing Jules with a Management LLM"
 date: 2026-09-09T12:26:55+10:00
 draft: false
+guidance: ["agent-management"]
 tags:
   - llm
   - agents
