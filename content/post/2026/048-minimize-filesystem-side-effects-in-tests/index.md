@@ -2,6 +2,7 @@
 title: "Minimize Filesystem Side Effects in Go Tests"
 date: 2026-10-02T11:42:00+10:00
 draft: false
+guidance: ["go-testing"]
 tags:
   - go
   - testing

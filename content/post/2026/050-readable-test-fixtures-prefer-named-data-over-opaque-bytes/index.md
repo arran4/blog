@@ -2,6 +2,7 @@
 title: "Readable Test Fixtures: Prefer Named Data Over Opaque Bytes"
 date: 2026-10-02T11:55:00+10:00
 draft: false
+guidance: ["go-testing"]
 tags:
   - go
   - testing

@@ -2,6 +2,7 @@
 title: "Large Go Tests Should Read Like Scenarios"
 date: 2026-10-02T11:55:00+10:00
 draft: false
+guidance: ["go-testing"]
 tags:
   - go
   - testing
@@ -170,7 +171,7 @@ if err != nil {
 
 is usually better expressed through a small test helper when no extra diagnostic context is being added.
 
-See [Go Test Setup: Use Small Must Helpers When Errors Add No Meaning](/blog/post/2026/049-go-test-setup-use-small-must-helpers-when-errors-add-no-meaning/).
+See [Go Test Setup: Use Small Must Helpers When Errors Add No Meaning](/blog/post/2026/049-go-test-setup-use-small-must-helpers/).
 
 ## Preserve a small number of explicit integration tests
 

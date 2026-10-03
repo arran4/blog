@@ -2,6 +2,7 @@
 title: "Canonical GitHub Actions CI/CD Super-Reference"
 date: 2026-09-08T06:33:54Z
 draft: false
+guidance: ["ci-cd"]
 tags: ["github-actions", "ci", "cd", "release", "automation", "goreleaser", "canonical"]
 categories: ["devops", "reference", "automation"]
 ---

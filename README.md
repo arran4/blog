@@ -13,6 +13,10 @@ https://arran4.github.io/blog/
 Subscribe to new posts via RSS:
 https://arran4.github.io/blog/index.xml
 
+## Guidance
+
+The repository uses the `/guidance/` URL path (e.g., `/guidance/ci-cd/`) to provide stable, currently recommended reference links for human readers and agents, avoiding hard-coded links to specific older blog posts.
+
 ## Random notes / snippets
 
 ### Create a new post

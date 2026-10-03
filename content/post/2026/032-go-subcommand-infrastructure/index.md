@@ -2,6 +2,7 @@
 title: "Refactoring Go CLIs with go-subcommand and Agent Feedback Files"
 date: 2026-08-06T10:42:00Z
 draft: false
+guidance: ["go-cli-architecture"]
 tags: ["Go", "CLI", "Code Generation", "LLM", "Agents", "go-subcommand", "GoReleaser"]
 categories: ["Programming", "Artificial Intelligence"]
 ---

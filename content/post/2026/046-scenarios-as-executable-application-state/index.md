@@ -2,6 +2,7 @@
 title: "Scenarios as Executable Application State"
 date: 2026-09-15T17:35:48+10:00
 draft: false
+guidance: ["scenario-testing"]
 tags:
   - testing
   - architecture
