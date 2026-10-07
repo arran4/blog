@@ -6,6 +6,7 @@ tags: ["github-actions", "ci", "cd", "go", "node", "dart", "flutter", "qt", "c++
 categories: ["devops", "reference", "automation"]
 ---
 
+<!-- cspell:words Dgenerate Dnew Dskip mlocate Poms -->
 > **Note:** This article has been superseded. Use [/blog/post/2026/043-canonical-github-actions-ci-cd-super-reference/](/blog/post/2026/043-canonical-github-actions-ci-cd-super-reference/) to create or update this repository's CI.
 
 
