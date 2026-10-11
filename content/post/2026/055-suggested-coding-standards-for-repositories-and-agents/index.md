@@ -1,7 +1,7 @@
 ---
 title: "Suggested Coding Standards for My Repositories and Coding Agents"
-date: 2026-10-11T13:36:00+11:00
-draft: true
+date: 2026-10-11T02:41:48.635Z
+draft: false
 guidance: ["coding-standards"]
 tags: ["coding-standards", "go", "testing", "architecture", "ai-agents", "review"]
 categories: ["Software Development", "LLM Instructions"]
