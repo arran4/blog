@@ -46,6 +46,20 @@ For example, a download planner should not require a test to reconstruct a deskt
 
 Use the [fixture selection guide](/blog/post/2026/047-choosing-go-filesystem-test-fixtures/) and [Go FSs Everywhere](/blog/post/2026/007-Go-FSs-Everywhere/) to choose the lowest-cost interface. Not every dependency needs an interface; a typed value or a function is often enough.
 
+### Choose injection style with compatibility in mind
+
+An interface and an option are not competing strategies. The interface describes the capability; the API decides how it is passed. In an established Go codebase I commonly use **type-switched optional variadic arguments** (`opts ...any`) to add injectable dependencies without changing existing direct calls. This is documented in [The Type-Switched Variadic System](/blog/post/2026/001-Type-Switched-Variadic-System/) and [Optional Dependency Injection via Type-Switched Variadic Args](/blog/post/2026/020-optional-dependency-injection-via-type-switched-variadic-args/). The [XDG testing article](/blog/post/2026/054-stop-rebuilding-xdg-directories-in-go-tests/) discusses the associated environment, filesystem and token boundaries.
+
+| Situation | Prefer | Why |
+| --- | --- | --- |
+| New private helper with a single dependency | Explicit parameter or narrow interface | Strong typing and minimal indirection |
+| New component with several related settings | Typed configuration or constructor | A coherent discoverable contract |
+| Mature public function/constructor that already uses typed variadic options | Add an optional recognised type, retain the defaults | Ordinary existing call sites need no update |
+| Mature public function without options, and a compatible call-shaped extension is acceptable | Consider `opts ...any` with one type switch and documented option types | Additive direct-call compatibility without threading dependencies through every caller |
+| Function whose *exact function type*, interface method signature, or return values must remain compatible | Keep the original signature; expose a separately named configurable entry point | Variadic parameters preserve ordinary calls, not all type-level compatibility |
+
+The option interpreter should resolve values once into a typed internal configuration. Named wrappers disambiguate primitive values; narrow interfaces define the capabilities. Document repeated-option precedence, reject unsupported types according to the existing error contract, test defaults and overrides, and avoid typed-nil implementations. Do **not** put `...any` on every internal function or invent interfaces for simple values.
+
 **Review question:** is this dependency part of the behaviour, or merely the easiest existing route to it?
 
 ## 2. Preserve information before making it convenient
@@ -195,6 +209,9 @@ Here is a deliberately short **suggested** starting point, to trim for each proj
   and security contracts. Do not impose unrelated architectural conventions.
 - Resolve environment, time, I/O and filesystem dependencies at boundaries.
   Prefer explicit values and narrow capabilities in inner logic and unit tests.
+- For mature Go APIs, consider type-switched optional variadic dependencies to
+  preserve ordinary existing calls; keep exact signatures when function types
+  or interfaces require them. Resolve options once into typed dependencies.
 - Preserve the original representation when a format promises lossless round
   trips. Do not confuse canonical output with byte-for-byte reversibility.
 - Reject malformed or unauthorised external input at trust boundaries; check
