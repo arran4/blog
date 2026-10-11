@@ -1,13 +1,13 @@
 ---
 title: "Suggested Coding Standards for My Repositories and Coding Agents"
-date: 2026-10-11T02:41:48.635Z
+date: 2026-10-11T02:42:55.065Z
 draft: false
 guidance: ["coding-standards"]
 tags: ["coding-standards", "go", "testing", "architecture", "ai-agents", "review"]
 categories: ["Software Development", "LLM Instructions"]
 ---
 
-<!-- cspell:words XDG idempotency -->
+<!-- cspell:words Getenv idempotency lockfiles overengineering workstream XDG -->
 
 I maintain several repositories with different languages, maturity levels and constraints. I do not want them all to adopt a generic architecture or an enormous rules file. I do want repeated decisions to become easier to review, and I want coding agents to stop rediscovering the same standards from scratch.
 
