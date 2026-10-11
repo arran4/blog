@@ -114,6 +114,115 @@ Use an injectable transport to inspect the outgoing request without contacting a
 
 Avoid making the token path a globally mutable variable merely to replace it in tests. Prefer a constructor argument or an owned provider. That is a smaller, clearer seam.
 
+## Interfaces select what changes; optional arguments select how
+
+The examples above show a plain typed configuration value and a small `TokenSource` interface. There is another decision to make in an **existing** Go codebase: how do I add those dependencies without making every old caller supply them?
+
+I have an established pattern for this. [The type-switched variadic system](/blog/post/2026/001-Type-Switched-Variadic-System/) describes `opts ...any` as a set of *typed option values* interpreted by a single type switch. [Optional Dependency Injection via Type-Switched Variadic Args](/blog/post/2026/020-optional-dependency-injection-via-type-switched-variadic-args/) specifically applies that pattern to filesystem and other side-effect dependencies.
+
+The two ideas complement each other:
+
+- An **interface** states the capability to replace: a token source, a read-only filesystem, a writer, a transport, or a clock. Prefer `fs.FS` and other established small interfaces where they fit; use a project-specific one only for a capability that does not fit.
+- An **optional argument** specifies how an old public entry point accepts a replacement without forcing every caller to change.
+- A **named option type** distinguishes values that share the same underlying type, such as a state directory and a cache directory. Do not interpret arbitrary `string` options as paths by position or accident.
+- A **typed internal configuration** gives the implementation an ordinary, explicit set of dependencies after the options have been resolved. Internal functions need not repeatedly parse `...any`.
+
+### An additive seam for an existing constructor
+
+Suppose the existing API is `NewDownloader(downloadDir string) (*Downloader, error)`. Changing it to require an extra filesystem, token provider and HTTP client would ripple through existing callers. An additive type-switched option list can preserve ordinary calls:
+
+```go
+type DownloadDir string // a named override, not an arbitrary string option
+
+type Downloader struct {
+    dir       string
+    templates fs.FS
+    tokens    TokenSource
+}
+
+// The production adapter is intentionally OS-backed.
+type fileToken string
+
+func (p fileToken) Token(context.Context) (string, error) {
+    data, err := os.ReadFile(string(p))
+    if err != nil {
+        return "", err
+    }
+    return strings.TrimSpace(string(data)), nil
+}
+
+// Before: NewDownloader(downloadDir string) (*Downloader, error)
+// After:  old direct calls still compile without passing dependencies.
+func NewDownloader(downloadDir string, opts ...any) (*Downloader, error) {
+    cfg := Downloader{dir: downloadDir}
+
+    for _, raw := range opts {
+        switch opt := raw.(type) {
+        case DownloadDir:
+            cfg.dir = string(opt)
+        case fs.FS:
+            cfg.templates = opt
+        case TokenSource:
+            cfg.tokens = opt
+        default:
+            return nil, fmt.Errorf("unsupported downloader option %T", raw)
+        }
+    }
+
+    if cfg.dir == "" {
+        return nil, errors.New("download directory is required")
+    }
+    if cfg.templates == nil {
+        cfg.templates = os.DirFS(cfg.dir)
+    }
+    if cfg.tokens == nil {
+        cfg.tokens = fileToken(filepath.Join(cfg.dir, "torbox.token"))
+    }
+    return &cfg, nil
+}
+```
+
+The example uses `fs.FS` for **reading templates or metadata**. It is not a writable filesystem: if this downloader writes files, represent that separately through the smallest output capability that actually supports writes. The sample's filename is an application convention, not an XDG rule.
+
+With those optional dependencies, a unit test can construct the downloader without mutating environment variables or creating a fake home:
+
+```go
+d, err := NewDownloader("unused-on-disk",
+    DownloadDir("virtual-downloads"),
+    fstest.MapFS{
+        "settings.json": &fstest.MapFile{
+            Data: []byte(`{"enabled":true}`),
+        },
+    },
+    staticToken("fixture-only-token"),
+)
+if err != nil {
+    t.Fatal(err)
+}
+// Exercise d's real operation and assert its output and failure paths.
+```
+
+An actual unit test should assert the operation's observable behaviour, not merely that construction succeeded. A smaller integration test still proves that the default `fileToken` adapter reads a real credential and that the OS-backed filesystem is wired correctly.
+
+This is a **constructor boundary**, not an invitation to pass a bag of `any` arguments into every helper. Resolve once, then pass `cfg.templates`, `cfg.tokens` and the selected directory to internal functions as ordinary typed dependencies.
+
+### Compatibility and validation are still requirements
+
+The variadic approach preserves direct invocation such as `NewDownloader(path)`, but it does **not** preserve every aspect of the function's type. For example, assigning the new function to a variable of type `func(string) (*Downloader, error)`, or implementing an interface that requires the old method signature, may no longer compile. If those contracts exist, retain the exact old entry point and add a separately named options-aware constructor, then delegate both to the same private implementation.
+
+Do not change an existing return signature solely to report an unsupported option. Where the public API already returns `error`, reject unsupported options explicitly rather than silently ignoring them. When it does not, choose a compatible API shape or follow the project's documented programmer-error policy.
+
+Other guardrails matter:
+
+- **Defaults stay real and lazy.** Normal callers should continue to get the documented production adapters; a unit test that supplies a fake should not have to perform OS setup merely to construct the object.
+- **Name ambiguous values.** A raw `string` cannot tell the state path from the download directory. Prefer named wrappers, or a typed options struct when many related values belong together.
+- **Document repeated options.** If later options override earlier ones, say so and test the precedence. Likewise, choose explicit semantics for combinations of interfaces or wrapper types that could overlap.
+- **Validate injected values.** A typed nil pointer can satisfy a non-nil interface; an unchecked fake can still panic. Validate important contracts at construction without creating a reflection-heavy generic framework.
+- **Keep accepted types discoverable.** Include them in constructor documentation, examples and tests. The single type switch should not become a hidden global configuration language.
+- **Do not turn every function into `...any`.** For new, small internal code, an explicit argument, plain struct or typed constructor is often simpler and offers stronger compile-time checking.
+
+A useful decision rule is: **prefer a direct dependency when designing a new internal function; consider optional type-switched arguments when evolving an existing public call surface that already fits this style**. Interfaces express the interchangeable capability regardless of which entry-point style is selected.
+
 ## The three tests I actually want
 
 1. **Logic test:** construct typed paths, token providers, fake filesystems and transports directly; assert the intended behaviour. No environment mutation and no temp directory merely for setup.
