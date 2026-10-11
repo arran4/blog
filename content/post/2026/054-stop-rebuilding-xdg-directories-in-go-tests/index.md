@@ -1,13 +1,13 @@
 ---
 title: "Stop Rebuilding XDG Directories in Go Unit Tests"
-date: 2026-10-11T02:41:48.640Z
+date: 2026-10-11T02:42:55.064Z
 draft: false
 guidance: ["go-testing"]
 tags: ["go", "testing", "xdg", "dependency-injection", "filesystem", "environment"]
 categories: ["Testing", "Software Development"]
 ---
 
-<!-- cspell:words getenv XDG -->
+<!-- cspell:words getenv httptest torbox XDG -->
 
 A test that starts like this makes me ask whether we are testing application behaviour or rehearsing how a desktop session starts:
 
