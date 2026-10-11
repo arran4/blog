@@ -1,6 +1,6 @@
 ---
 title: "Suggested Coding Standards for My Repositories and Coding Agents"
-date: 2026-10-11T02:56:41.533Z
+date: 2026-10-11T02:42:55.065Z
 draft: false
 guidance: ["coding-standards"]
 tags: ["coding-standards", "go", "testing", "architecture", "ai-agents", "review"]
@@ -48,7 +48,7 @@ Use the [fixture selection guide](/blog/post/2026/047-choosing-go-filesystem-tes
 
 ### Choose injection style with compatibility in mind
 
-An interface and an option are not competing strategies. The interface describes the capability; the API decides how it is passed. In an established Go codebase I commonly use **type-switched optional variadic arguments** (`opts ...any`) to add injectable dependencies without changing existing direct calls. This is documented in [The Type-Switched Variadic System](/blog/post/2026/001-Type-Switched-Variadic-System/) and [Optional Dependency Injection via Type-Switched Variadic Args](/blog/post/2026/020-optional-dependency-injection-via-type-switched-variadic-args/). The [XDG testing article](/blog/post/2026/054-stop-rebuilding-xdg-directories-in-go-tests/) now demonstrates the interaction with token sources and read-only filesystem interfaces.
+An interface and an option are not competing strategies. The interface describes the capability; the API decides how it is passed. In an established Go codebase I commonly use **type-switched optional variadic arguments** (`opts ...any`) to add injectable dependencies without changing existing direct calls. This is documented in [The Type-Switched Variadic System](/blog/post/2026/001-Type-Switched-Variadic-System/) and [Optional Dependency Injection via Type-Switched Variadic Args](/blog/post/2026/020-optional-dependency-injection-via-type-switched-variadic-args/). The [XDG testing article](/blog/post/2026/054-stop-rebuilding-xdg-directories-in-go-tests/) discusses the associated environment, filesystem and token boundaries.
 
 | Situation | Prefer | Why |
 | --- | --- | --- |
