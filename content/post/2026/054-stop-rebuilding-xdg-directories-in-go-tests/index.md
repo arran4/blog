@@ -1,7 +1,7 @@
 ---
 title: "Stop Rebuilding XDG Directories in Go Unit Tests"
-date: 2026-10-11T13:36:00+11:00
-draft: true
+date: 2026-10-11T02:41:48.640Z
+draft: false
 guidance: ["go-testing"]
 tags: ["go", "testing", "xdg", "dependency-injection", "filesystem", "environment"]
 categories: ["Testing", "Software Development"]
