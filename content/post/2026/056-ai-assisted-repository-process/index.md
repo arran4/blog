@@ -43,7 +43,7 @@ The diagrams use **Graphviz DOT** as human-editable source and checked-in **SVG*
 
 [Full-size CI and recovery diagram](ci-recovery.svg) · [DOT source](ci-recovery.dot). A quota failure and a failing test are different signals. Neither is a passing test.
 
-To regenerate all SVGs after editing DOT sources, run `./render-diagrams.sh` from this page bundle with Graphviz installed. Commit both the edited DOT source and resulting SVG in the same PR. Avoid hand-editing the generated SVG; the DOT files are authoritative. Static SVGs render without Mermaid JavaScript or external image generation services. SVG `<a>` links also work when the diagram is opened as a standalone file; normal embedded-image rendering may not expose individual node clicks, so the node catalogue below provides explicit navigable links.
+To regenerate all SVGs after editing DOT sources, run `bash render-diagrams.sh` from this page bundle with Graphviz installed. Commit both the edited DOT source and resulting SVG in the same PR. Avoid hand-editing the generated SVG; the DOT files are authoritative. Static SVGs render without Mermaid JavaScript or external image generation services. SVG `<a>` links also work when the diagram is opened as a standalone file; normal embedded-image rendering may not expose individual node clicks, so the node catalogue below provides explicit navigable links.
 
 ## Starting points and scope
 
