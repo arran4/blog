@@ -1,0 +1,65 @@
+digraph Workflow {
+  graph [rankdir=TB, bgcolor="white", label="Implementation and management review | alternative workers", labelloc=t, fontsize=22, fontname="DejaVu Sans", fontcolor="#172638", pad="0.45", nodesep="0.38", ranksep="0.70", splines=polyline, compound=true, newrank=true];
+  node [fontname="DejaVu Sans", fontsize=11, color="#24374C", penwidth=1.1, margin="0.16,0.10"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#455A6B", arrowsize=0.7, penwidth=1.15];
+  subgraph cluster_human {
+    label="Human"; fontname="DejaVu Sans"; fontsize=14; fontcolor="#AF8300"; color="#AF8300"; fillcolor="#FFF1BE"; style="rounded,filled"; penwidth=1.0; margin=14;
+    I03 [shape=box, style="rounded,filled", fillcolor="white", color="#AF8300", label=< <FONT POINT-SIZE="9" COLOR="#516273">I03</FONT><BR/><B>Authorize new handoff</B><BR/><FONT POINT-SIZE="9">Required for changing implementation agent</FONT> >, URL="./#node-i03", tooltip="Authorize new handoff"];
+    I18 [shape=box, style="rounded,filled", fillcolor="white", color="#AF8300", label=< <FONT POINT-SIZE="9" COLOR="#516273">I18</FONT><BR/><B>Review and authorise merge</B><BR/><FONT POINT-SIZE="9">Human-owned decision</FONT> >, URL="./#node-i18", tooltip="Review and authorise merge"];
+  }
+  subgraph cluster_chat {
+    label="Chat agent"; fontname="DejaVu Sans"; fontsize=14; fontcolor="#3176B8"; color="#3176B8"; fillcolor="#DEEDFF"; style="rounded,filled"; penwidth=1.0; margin=14;
+    I01 [shape=box, style="rounded,filled", fillcolor="white", color="#3176B8", label=< <FONT POINT-SIZE="9" COLOR="#516273">I01</FONT><BR/><B>Prepare implementation brief</B><BR/><FONT POINT-SIZE="9">Current head, acceptance and test plan</FONT> >, URL="./#node-i01", tooltip="Prepare implementation brief"];
+    I02 [shape=diamond, style="filled", fillcolor="#FFF3CE", color="#3176B8", label="I02  Choose worker?\nExclusive primary implementation path", URL="./#node-i02", tooltip="Choose worker?"];
+    I11 [shape=box, style="rounded,filled", fillcolor="white", color="#3176B8", label=< <FONT POINT-SIZE="9" COLOR="#516273">I11</FONT><BR/><B>Classify CI signal</B><BR/><FONT POINT-SIZE="9">See separate CI subprocess</FONT> >, URL="./#node-i11", tooltip="Classify CI signal"];
+    I12 [shape=box, style="rounded,filled", fillcolor="white", color="#3176B8", label=< <FONT POINT-SIZE="9" COLOR="#516273">I12</FONT><BR/><B>Independently review work</B><BR/><FONT POINT-SIZE="9">Cumulative diff, tests and requirements</FONT> >, URL="./#node-i12", tooltip="Independently review work"];
+    I13 [shape=diamond, style="filled", fillcolor="#FFF3CE", color="#3176B8", label="I13  Work remaining?\nDefect, administration or complete", URL="./#node-i13", tooltip="Work remaining?"];
+    I14 [shape=box, style="rounded,filled", fillcolor="white", color="#3176B8", label=< <FONT POINT-SIZE="9" COLOR="#516273">I14</FONT><BR/><B>Issue focused correction</B><BR/><FONT POINT-SIZE="9">Fresh @jules comment where appropriate</FONT> >, URL="./#node-i14", tooltip="Issue focused correction"];
+    I15 [shape=box, style="rounded,filled", fillcolor="white", color="#3176B8", label=< <FONT POINT-SIZE="9" COLOR="#516273">I15</FONT><BR/><B>Manage PR metadata</B><BR/><FONT POINT-SIZE="9">Description, links, labels and draft state</FONT> >, URL="./#node-i15", tooltip="Manage PR metadata"];
+    I16 [shape=box, style="rounded,filled", fillcolor="white", color="#3176B8", label=< <FONT POINT-SIZE="9" COLOR="#516273">I16</FONT><BR/><B>Ready gate</B><BR/><FONT POINT-SIZE="9">Latest head verified; disclose CI gaps</FONT> >, URL="./#node-i16", tooltip="Ready gate"];
+    I20 [shape=box, style="rounded,filled", fillcolor="white", color="#3176B8", label=< <FONT POINT-SIZE="9" COLOR="#516273">I20</FONT><BR/><B>Post-merge reconciliation</B><BR/><FONT POINT-SIZE="9">Issues, follow-ups and next task</FONT> >, URL="./#node-i20", tooltip="Post-merge reconciliation"];
+  }
+  subgraph cluster_jules {
+    label="Jules"; fontname="DejaVu Sans"; fontsize=14; fontcolor="#39834A"; color="#39834A"; fillcolor="#DDF4DE"; style="rounded,filled"; penwidth=1.0; margin=14;
+    I04 [shape=box, style="rounded,filled", fillcolor="white", color="#39834A", label=< <FONT POINT-SIZE="9" COLOR="#516273">I04</FONT><BR/><B>Receive focused task</B><BR/><FONT POINT-SIZE="9">Concrete, bounded chunk</FONT> >, URL="./#node-i04", tooltip="Receive focused task"];
+    I05 [shape=box, style="rounded,filled", fillcolor="white", color="#39834A", label=< <FONT POINT-SIZE="9" COLOR="#516273">I05</FONT><BR/><B>Implement and test</B><BR/><FONT POINT-SIZE="9">Asynchronous coding, limited admin</FONT> >, URL="./#node-i05", tooltip="Implement and test"];
+    I06 [shape=box, style="rounded,filled", fillcolor="white", color="#39834A", label=< <FONT POINT-SIZE="9" COLOR="#516273">I06</FONT><BR/><B>Publish commit or PR</B><BR/><FONT POINT-SIZE="9">Observable GitHub changes</FONT> >, URL="./#node-i06", tooltip="Publish commit or PR"];
+  }
+  subgraph cluster_codex {
+    label="Codex / Agy"; fontname="DejaVu Sans"; fontsize=14; fontcolor="#8453BA"; color="#8453BA"; fillcolor="#EEE2FF"; style="rounded,filled"; penwidth=1.0; margin=14;
+    I07 [shape=box, style="rounded,filled", fillcolor="white", color="#8453BA", label=< <FONT POINT-SIZE="9" COLOR="#516273">I07</FONT><BR/><B>Receive implementation task</B><BR/><FONT POINT-SIZE="9">Writable branch and relevant context</FONT> >, URL="./#node-i07", tooltip="Receive implementation task"];
+    I08 [shape=box, style="rounded,filled", fillcolor="white", color="#8453BA", label=< <FONT POINT-SIZE="9" COLOR="#516273">I08</FONT><BR/><B>Implement and test</B><BR/><FONT POINT-SIZE="9">Larger change or deeper debugging</FONT> >, URL="./#node-i08", tooltip="Implement and test"];
+    I09 [shape=box, style="rounded,filled", fillcolor="white", color="#8453BA", label=< <FONT POINT-SIZE="9" COLOR="#516273">I09</FONT><BR/><B>Publish commit or PR</B><BR/><FONT POINT-SIZE="9">Independent branch or safe current PR</FONT> >, URL="./#node-i09", tooltip="Publish commit or PR"];
+  }
+  subgraph cluster_github {
+    label="GitHub / CI"; fontname="DejaVu Sans"; fontsize=14; fontcolor="#8E7474"; color="#8E7474"; fillcolor="#F0EBEB"; style="rounded,filled"; penwidth=1.0; margin=14;
+    I10 [shape=box, style="rounded,filled", fillcolor="white", color="#8E7474", label=< <FONT POINT-SIZE="9" COLOR="#516273">I10</FONT><BR/><B>Observe current revision</B><BR/><FONT POINT-SIZE="9">Head SHA, diff, comments and checks</FONT> >, URL="./#node-i10", tooltip="Observe current revision"];
+    I17 [shape=box, style="rounded,filled", fillcolor="white", color="#8E7474", label=< <FONT POINT-SIZE="9" COLOR="#516273">I17</FONT><BR/><B>Set Ready for review</B><BR/><FONT POINT-SIZE="9">Confirm actual draft-to-ready transition</FONT> >, URL="./#node-i17", tooltip="Set Ready for review"];
+    I19 [shape=box, style="rounded,filled", fillcolor="white", color="#8E7474", label=< <FONT POINT-SIZE="9" COLOR="#516273">I19</FONT><BR/><B>Merge authorised work</B><BR/><FONT POINT-SIZE="9">Never infer approval from CI</FONT> >, URL="./#node-i19", tooltip="Merge authorised work"];
+  }
+  I01 -> I02 [];
+  I02 -> I04 [label="Jules"];
+  I02 -> I07 [label="Codex/Agy"];
+  I02 -> I15 [label="admin only"];
+  I04 -> I05 [];
+  I05 -> I06 [];
+  I07 -> I08 [];
+  I08 -> I09 [];
+  I06 -> I10 [];
+  I09 -> I10 [];
+  I10 -> I11 [];
+  I11 -> I12 [label="actionable or recorded"];
+  I12 -> I13 [];
+  I13 -> I14 [label="another Jules chunk"];
+  I14 -> I05 [label="new instruction"];
+  I13 -> I08 [label="Codex/Agy correction"];
+  I13 -> I15 [label="no code changes"];
+  I15 -> I16 [];
+  I16 -> I12 [label="blocking evidence"];
+  I16 -> I17 [label="verified ready"];
+  I17 -> I18 [label="state confirmed"];
+  I18 -> I12 [label="changes requested"];
+  I18 -> I19 [label="explicit approval"];
+  I19 -> I20 [label="merged"];
+  I20 -> I01 [label="next selected task", constraint="false"];
+}
