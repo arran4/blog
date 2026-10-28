@@ -1,6 +1,6 @@
 ---
 title: "Building a Developer Information Portal with Hugo Book and GitHub Pages"
-date: 2026-10-28T19:20:00+11:00
+date: 2026-10-28T19:22:00+11:00
 draft: false
 guidance: ["documentation", "ci-cd"]
 tags: ["documentation", "developer-experience", "hugo", "hugo-book", "github-pages", "github-actions", "go", "open-source"]
@@ -97,7 +97,8 @@ docs/
         ├── _index.md             # Documentation landing page
         ├── getting-started.md
         ├── tutorials/
-        │   └── _index.md
+        │   ├── _index.md
+        │   └── first-workflow.md
         ├── how-to/
         │   ├── _index.md
         │   └── diagnosing-a-failure.md
@@ -264,6 +265,63 @@ Use this when [a specific observable failure] occurs.
 ~~~
 
 This is more useful than an agent-created `diagnosis-spec.md` that merely names a hoped-for logging feature. Every line should help someone troubleshoot a real version, and the page should grow as actual failure modes become known.
+
+### Tutorials teach, rather than merely solve a task
+
+Create `docs/content/docs/tutorials/_index.md`:
+
+~~~markdown
+---
+title: "Tutorials"
+weight: 20
+---
+
+Follow these exercises in order if you want to learn the workflow
+rather than simply look up a single operation.
+~~~
+
+For `docs/content/docs/tutorials/first-workflow.md`, show a complete learning journey:
+
+~~~markdown
+---
+title: "Your first workflow"
+weight: 10
+---
+
+# Your first workflow
+
+**You'll learn:** [Which ideas the exercise demonstrates.]
+
+## Starting point
+
+[Required installation, input fixture, and expected initial state.]
+
+## Step 1: Prepare an input
+
+[Provide a small reproducible sample, not an unexplained download.]
+
+**Check:** [What the input should contain.]
+
+## Step 2: Run the workflow
+
+[Show an actual command or API interaction and explain its arguments.]
+
+**Check:** [A specific expected output or change of state.]
+
+## Step 3: Change one thing
+
+[Ask the reader to try a safe variation and predict the outcome.]
+
+**Check:** [How to verify the variation and recover from errors.]
+
+## What you learned
+
+[Connect the exercise to the concepts it demonstrates.]
+
+**Continue with:** [A focused how-to guide, then deeper explanation.]
+~~~
+
+A tutorial earns its length by helping readers form a mental model. A how-to guide should stay shorter and goal-oriented: a person who already knows the system can find the required steps quickly.
 
 ### Concepts and architecture are explanations, not symbol inventories
 
