@@ -85,7 +85,6 @@ jobs:
           print("Inspected", len(discussions), "existing discussions", flush=True)
           PY
       - name: Reuse existing discussions, create missing ones and record actual links
-        if: false # Temporarily disabled for read-only ambiguity audit
         env:
           GH_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}

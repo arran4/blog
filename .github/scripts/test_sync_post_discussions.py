@@ -20,6 +20,23 @@ class SyncDiscussionTests(unittest.TestCase):
             if url:
                 self.assertRegex(url, sync.DISCUSSION_URL)
 
+    def test_canonical_titled_discussion_wins_over_legacy_blank_title(self):
+        post = {"title": "Managing Jules with a Management LLM", "path": "post/index.md"}
+        correct = {"title": "Managing Jules with a Management LLM - /blog/post/2026/044-jules-management/",
+                   "url": "https://github.com/arran4/blog/discussions/135"}
+        blank = {"title": "- /blog/post/2026/044-jules-management/",
+                 "url": "https://github.com/arran4/blog/discussions/146"}
+        self.assertIs(sync.choose_discussion(post, [blank, correct]), correct)
+
+    def test_multiple_correctly_titled_discussions_remain_ambiguous(self):
+        post = {"title": "Same Title", "path": "post/index.md"}
+        first = {"title": "Same Title - /blog/post/2026/001-path/",
+                 "url": "https://github.com/arran4/blog/discussions/1"}
+        second = {"title": "Same Title - /blog/post/2026/001-path/",
+                  "url": "https://github.com/arran4/blog/discussions/2"}
+        with self.assertRaisesRegex(RuntimeError, "Ambiguous"):
+            sync.choose_discussion(post, [first, second])
+
     def test_normalizes_legacy_paths_and_encoded_spaces(self):
         self.assertEqual(sync.key("2022", "005-Synology Office Encryption"),
                          sync.key("2022", "005-synology%20office-encryption"))

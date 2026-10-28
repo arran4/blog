@@ -92,6 +92,21 @@ def paths(d):
         result.update(key(*match.groups()) for match in POST_PATH.finditer(value))
     return result
 
+def choose_discussion(post, matches):
+    """Prefer the correctly titled post discussion over legacy blank-title duplicates.
+
+    Fail rather than guessing when multiple matching, correctly titled
+    discussions exist, or when the candidates cannot be distinguished.
+    """
+    unique = {d["url"]: d for d in matches}
+    if len(unique) > 1:
+        titled = [d for d in unique.values()
+                  if d["title"].split(" - /blog/post/", 1)[0].strip() == post["title"]]
+        if len(titled) == 1:
+            return titled[0]
+        raise RuntimeError(f"Ambiguous discussions for {post['path']}: {list(unique)}")
+    return next(iter(unique.values()), None)
+
 def insert_link(post, url):
     if not DISCUSSION_URL.fullmatch(url):
         raise RuntimeError(f"Unexpected discussion URL: {url}")
@@ -133,10 +148,7 @@ def main():
         matches = by_path.get(post["key"],[])
         if not matches and title_counts[post["title"]]==1:
             matches = by_title.get(post["title"],[])
-        unique = {d["url"]:d for d in matches}
-        if len(unique)>1:
-            raise RuntimeError(f"Ambiguous discussions for {post['path']}: {list(unique)}")
-        candidate = next(iter(unique.values()),None)
+        candidate = choose_discussion(post, matches)
         if old:
             if not DISCUSSION_URL.fullmatch(old):
                 raise RuntimeError(f"Invalid discussion URL for {post['path']}: {old}")
