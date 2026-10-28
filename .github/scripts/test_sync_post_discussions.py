@@ -10,6 +10,16 @@ import sync_post_discussions as sync
 
 
 class SyncDiscussionTests(unittest.TestCase):
+    def test_repository_posts_are_parseable_and_unambiguous(self):
+        entries = list(sync.posts())
+        self.assertGreater(len(entries), 0, "No blog posts discovered")
+        keys = [post["key"] for post in entries]
+        self.assertEqual(len(keys), len(set(keys)), "Ambiguous post paths")
+        for post in entries:
+            url = post["discussion"]
+            if url:
+                self.assertRegex(url, sync.DISCUSSION_URL)
+
     def test_normalizes_legacy_paths_and_encoded_spaces(self):
         self.assertEqual(sync.key("2022", "005-Synology Office Encryption"),
                          sync.key("2022", "005-synology%20office-encryption"))
