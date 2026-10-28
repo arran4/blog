@@ -1,0 +1,43 @@
+digraph Workflow {
+  graph [rankdir=TB, bgcolor="white", label="Planning, issue intake and release intent", labelloc=t, fontsize=22, fontname="DejaVu Sans", fontcolor="#172638", pad="0.45", nodesep="0.38", ranksep="0.70", splines=polyline, compound=true, newrank=true];
+  node [fontname="DejaVu Sans", fontsize=11, color="#24374C", penwidth=1.1, margin="0.16,0.10"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#455A6B", arrowsize=0.7, penwidth=1.15];
+  subgraph cluster_human {
+    label="Human"; fontname="DejaVu Sans"; fontsize=14; fontcolor="#AF8300"; color="#AF8300"; fillcolor="#FFF1BE"; style="rounded,filled"; penwidth=1.0; margin=14;
+    P01 [shape=box, style="rounded,filled", fillcolor="white", color="#AF8300", label=< <FONT POINT-SIZE="9" COLOR="#516273">P01</FONT><BR/><B>Identify entry point</B><BR/><FONT POINT-SIZE="9">Initial, major, minor, fix, automation</FONT> >, URL="./#node-p01", tooltip="Identify entry point"];
+    P05 [shape=box, style="rounded,filled", fillcolor="white", color="#AF8300", label=< <FONT POINT-SIZE="9" COLOR="#516273">P05</FONT><BR/><B>Clarify requirements</B><BR/><FONT POINT-SIZE="9">Collaborative questions and direction</FONT> >, URL="./#node-p05", tooltip="Clarify requirements"];
+    P07 [shape=diamond, style="filled", fillcolor="#FFF3CE", color="#AF8300", label="P07  Approve roadmap?\nDirection / costs / non-goals", URL="./#node-p07", tooltip="Approve roadmap?"];
+    P09 [shape=diamond, style="filled", fillcolor="#FFF3CE", color="#AF8300", label="P09  Create new issues?\nExplicit approval for new records", URL="./#node-p09", tooltip="Create new issues?"];
+    P13 [shape=box, style="rounded,filled", fillcolor="white", color="#AF8300", label=< <FONT POINT-SIZE="9" COLOR="#516273">P13</FONT><BR/><B>Authorize execution</B><BR/><FONT POINT-SIZE="9">Agent handoff when required</FONT> >, URL="./#node-p13", tooltip="Authorize execution"];
+  }
+  subgraph cluster_chat {
+    label="Chat agent"; fontname="DejaVu Sans"; fontsize=14; fontcolor="#3176B8"; color="#3176B8"; fillcolor="#DEEDFF"; style="rounded,filled"; penwidth=1.0; margin=14;
+    P02 [shape=box, style="rounded,filled", fillcolor="white", color="#3176B8", label=< <FONT POINT-SIZE="9" COLOR="#516273">P02</FONT><BR/><B>Establish workstream</B><BR/><FONT POINT-SIZE="9">One chat per workstream, parallel chats OK</FONT> >, URL="./#node-p02", tooltip="Establish workstream"];
+    P03 [shape=box, style="rounded,filled", fillcolor="white", color="#3176B8", label=< <FONT POINT-SIZE="9" COLOR="#516273">P03</FONT><BR/><B>Discover baseline</B><BR/><FONT POINT-SIZE="9">Source, open issues, PRs, CI, releases</FONT> >, URL="./#node-p03", tooltip="Discover baseline"];
+    P04 [shape=box, style="rounded,filled", fillcolor="white", color="#3176B8", label=< <FONT POINT-SIZE="9" COLOR="#516273">P04</FONT><BR/><B>Research alternatives</B><BR/><FONT POINT-SIZE="9">Trade-offs, compatibility and risks</FONT> >, URL="./#node-p04", tooltip="Research alternatives"];
+    P06 [shape=box, style="rounded,filled", fillcolor="white", color="#3176B8", label=< <FONT POINT-SIZE="9" COLOR="#516273">P06</FONT><BR/><B>Build roadmap</B><BR/><FONT POINT-SIZE="9">Dependencies, stages and release intent</FONT> >, URL="./#node-p06", tooltip="Build roadmap"];
+    P08 [shape=box, style="rounded,filled", fillcolor="white", color="#3176B8", label=< <FONT POINT-SIZE="9" COLOR="#516273">P08</FONT><BR/><B>Reconcile issue register</B><BR/><FONT POINT-SIZE="9">Deduplicate, refine and draft candidates</FONT> >, URL="./#node-p08", tooltip="Reconcile issue register"];
+    P11 [shape=box, style="rounded,filled", fillcolor="white", color="#3176B8", label=< <FONT POINT-SIZE="9" COLOR="#516273">P11</FONT><BR/><B>Choose implementation unit</B><BR/><FONT POINT-SIZE="9">Cluster related issues, scope PRs</FONT> >, URL="./#node-p11", tooltip="Choose implementation unit"];
+    P12 [shape=box, style="rounded,filled", fillcolor="white", color="#3176B8", label=< <FONT POINT-SIZE="9" COLOR="#516273">P12</FONT><BR/><B>Set acceptance evidence</B><BR/><FONT POINT-SIZE="9">Tests, CI, documentation and rollback</FONT> >, URL="./#node-p12", tooltip="Set acceptance evidence"];
+  }
+  subgraph cluster_github {
+    label="GitHub / CI"; fontname="DejaVu Sans"; fontsize=14; fontcolor="#8E7474"; color="#8E7474"; fillcolor="#F0EBEB"; style="rounded,filled"; penwidth=1.0; margin=14;
+    P10 [shape=box, style="rounded,filled", fillcolor="white", color="#8E7474", label=< <FONT POINT-SIZE="9" COLOR="#516273">P10</FONT><BR/><B>Record durable issues</B><BR/><FONT POINT-SIZE="9">Create only approved; update existing</FONT> >, URL="./#node-p10", tooltip="Record durable issues"];
+  }
+  P01 -> P02 [];
+  P02 -> P03 [];
+  P03 -> P04 [];
+  P04 -> P05 [];
+  P05 -> P04 [label="refine"];
+  P05 -> P06 [label="aligned"];
+  P06 -> P07 [];
+  P07 -> P04 [label="rework"];
+  P07 -> P08 [label="accepted"];
+  P08 -> P09 [label="new issues found"];
+  P09 -> P10 [label="yes"];
+  P09 -> P11 [label="no / existing"];
+  P10 -> P11 [];
+  P11 -> P12 [];
+  P12 -> P13 [];
+  P13 -> P02 [label="restart as new workstream", constraint="false"];
+}
