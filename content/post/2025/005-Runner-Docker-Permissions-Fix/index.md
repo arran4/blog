@@ -5,6 +5,7 @@ draft: false
 tags: ["github-actions", "docker", "devops"]
 categories: ["devops"]
 author: "Arran Ubels"
+discussion: "https://github.com/arran4/blog/discussions/253"
 ---
 <!-- cspell:words libcurl libicu usermod -->
 While testing the multi-runner setup I discovered containers started by the `runner` user could not invoke Docker. The base image lacked the `docker.io` package and the user was missing membership of the `docker` group.

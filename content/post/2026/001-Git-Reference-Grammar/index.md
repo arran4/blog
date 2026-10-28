@@ -4,6 +4,7 @@ date: 2026-01-06T12:20:32+11:00
 draft: false
 tags: ["git", "refspec", "references"]
 categories: ["reference"]
+discussion: "https://github.com/arran4/blog/discussions/257"
 ---
 
 <!-- cspell:words globbing objid reflog refpath refspec Refspecs symref Symrefs worktrees -->

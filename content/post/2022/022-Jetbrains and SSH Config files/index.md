@@ -4,6 +4,7 @@ date: 2022-09-25T14:03:15+10:00
 draft: false
 tags: ["complaints"]
 categories: ["complaints"]
+discussion: "https://github.com/arran4/blog/discussions/237"
 ---
 
 <!-- cspell:words gitdir gitemail organisation -->

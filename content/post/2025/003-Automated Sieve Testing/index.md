@@ -4,6 +4,7 @@ date: 2025-06-18T13:36:23+10:00
 draft: false
 tags: ["sieve", "rust", "testing"]
 categories: ["tutorial"]
+discussion: "https://github.com/arran4/blog/discussions/251"
 ---
 
 <!-- cspell:words dmarc fileinto serde serde_json -->

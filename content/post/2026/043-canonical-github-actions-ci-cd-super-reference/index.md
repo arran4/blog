@@ -5,6 +5,7 @@ draft: false
 guidance: ["ci-cd"]
 tags: ["github-actions", "ci", "cd", "release", "automation", "goreleaser", "canonical"]
 categories: ["devops", "reference", "automation"]
+discussion: "https://github.com/arran4/blog/discussions/132"
 ---
 
 <!-- cspell:words actionlint AppImage Buildx DBUILD Dockerfiles GOPATH GoReleaser jurplel mvcommon myapp nFPM prerelease qmake semver stefanzweifel todate TXTAR typecheck zizmor -->

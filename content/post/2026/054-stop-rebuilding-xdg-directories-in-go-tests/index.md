@@ -5,6 +5,7 @@ draft: false
 guidance: ["go-testing"]
 tags: ["go", "testing", "xdg", "dependency-injection", "filesystem", "environment"]
 categories: ["Testing", "Software Development"]
+discussion: "https://github.com/arran4/blog/discussions/207"
 ---
 
 <!-- cspell:words getenv httptest torbox XDG -->

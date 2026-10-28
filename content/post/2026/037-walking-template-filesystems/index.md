@@ -4,6 +4,7 @@ date: 2026-08-16T14:32:00+10:00
 draft: false
 tags: ["go", "templates", "filesystem", "architecture", "embed"]
 categories: ["engineering-process", "reference"]
+discussion: "https://github.com/arran4/blog/discussions/109"
 ---
 
 <!-- cspell:words AddParseTree AddPrefix DAG ExecuteTemplate FuncMap funcs Funcs gohtml gotemplate imagetemplates linktemplates ParseFS templatefs ValidPath walkfs walkmultifs -->

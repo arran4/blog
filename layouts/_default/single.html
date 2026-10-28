@@ -38,6 +38,12 @@
             </div>
           {{- end }}
 
+          {{ with .Params.discussion }}
+            <div class="post-discussion">
+              <a href="{{ . | safeURL }}" rel="noopener noreferrer">Discuss this post on GitHub</a>
+            </div>
+          {{ end }}
+
           <!-- Post Pagination -->
           <nav class="post-nav">
             {{ with .NextInSection }}
@@ -66,9 +72,6 @@
       {{ if and (.Site.Params.author.name | default .Site.Author.name) (.Params.showAuthorInfo | default .Site.Params.showAuthorInfo) }}
         {{ partial "author_info.html" (dict "author" (.Site.Params.author.name | default .Site.Author.name) "context" $) }}
       {{ end }}
-
-      <!-- Comments -->
-      {{ partial "comments.html" . }}
     </div>
 
     <!-- TOC -->

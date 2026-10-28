@@ -4,6 +4,7 @@ date: 2022-08-14T01:15:58+10:00
 draft: false
 tags: ["bugs"]
 categories: ["kde"]
+discussion: "https://github.com/arran4/blog/discussions/228"
 ---
 
 <!-- cspell:words ksplashqml -->

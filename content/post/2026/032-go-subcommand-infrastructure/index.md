@@ -5,6 +5,7 @@ draft: false
 guidance: ["go-cli-architecture"]
 tags: ["Go", "CLI", "Code Generation", "LLM", "Agents", "go-subcommand", "GoReleaser"]
 categories: ["Programming", "Artificial Intelligence"]
+discussion: "https://github.com/arran4/blog/discussions/92"
 ---
 
 <!-- cspell:words featurerequest gosubc infractl zstd -->

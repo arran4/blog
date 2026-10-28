@@ -12,6 +12,7 @@ tags:
 categories:
   - LLM Instructions
   - DevOps
+discussion: "https://github.com/arran4/blog/discussions/81"
 ---
 
 <!-- cspell:words GOPATH -->

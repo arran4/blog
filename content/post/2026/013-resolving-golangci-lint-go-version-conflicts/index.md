@@ -4,6 +4,7 @@ date: 2026-07-07T21:49:40+10:00
 draft: false
 tags: ["go", "golangci-lint", "github-actions", "ci", "linting", "automation"]
 categories: ["devops", "reference", "go"]
+discussion: "https://github.com/arran4/blog/discussions/267"
 ---
 
 If you have encountered a build failure in your Go project's GitHub Actions pipeline, you might see an error output similar to this:

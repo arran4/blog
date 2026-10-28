@@ -10,6 +10,7 @@ tags:
 categories:
   - Agent Instructions
   - DevOps
+discussion: "https://github.com/arran4/blog/discussions/56"
 ---
 
 <!-- cspell:words mdtohtml -->

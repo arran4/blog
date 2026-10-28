@@ -5,6 +5,7 @@ draft: false
 guidance: ["documentation"]
 tags: ["documentation", "architecture", "code-review", "ai-agents", "github", "maintainability"]
 categories: ["Software Development", "LLM Instructions"]
+discussion: "https://github.com/arran4/blog/discussions/214"
 ---
 
 <!-- cspell:words KLookup -->

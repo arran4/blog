@@ -4,6 +4,7 @@ date: 2026-09-03T21:20:00+10:00
 draft: false
 tags: ["github-actions", "ci", "cd", "go", "node", "dart", "flutter", "qt", "c++", "docker", "goreleaser", "packaging", "release"]
 categories: ["devops", "reference", "automation"]
+discussion: "https://github.com/arran4/blog/discussions/120"
 ---
 
 <!-- cspell:words AEST distro golint redispatch zizmor -->

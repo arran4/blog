@@ -4,6 +4,7 @@ date: 2026-02-18T19:00:01+11:00
 draft: false
 tags: ["go", "testing", "txtar", "embed", "golden-files", "agents"]
 categories: ["reference", "testing"]
+discussion: "https://github.com/arran4/blog/discussions/260"
 ---
 <!-- cspell:words Deprojected fixturefs mypkg writable -->
 I use `txtar` as a practical test and fixture format across multiple repositories.

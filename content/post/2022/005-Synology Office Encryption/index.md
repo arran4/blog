@@ -4,6 +4,7 @@ date: 2022-05-19T12:57:07+10:00
 draft: false
 tags: ["complaints", "bugs", "synology"]
 categories: ["bugs"]
+discussion: "https://github.com/arran4/blog/discussions/220"
 ---
 
 The login process and decryption/password-protected document workflow with Synology Office is not great. Probably needs to be

@@ -4,6 +4,7 @@ date: 2022-08-20T18:25:29+10:00
 draft: false
 tags: ["lastpass"]
 categories: ["UI"]
+discussion: "https://github.com/arran4/blog/discussions/233"
 ---
 
 <!-- cspell:words lastpass -->

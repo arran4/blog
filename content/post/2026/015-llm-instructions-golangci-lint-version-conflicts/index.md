@@ -11,6 +11,7 @@ tags:
 categories:
   - LLM Instructions
   - DevOps
+discussion: "https://github.com/arran4/blog/discussions/269"
 ---
 
 <!-- cspell:words mdtohtml repoless -->

@@ -4,6 +4,7 @@ date: 2022-06-02T21:45:02+10:00
 draft: false
 tags: ["ubuntu", "issues"]
 categories: ["tech-issue"]
+discussion: "https://github.com/arran4/blog/discussions/222"
 ---
 
 <!-- cspell:words dkms enroll Iwlwifi secureboot -->

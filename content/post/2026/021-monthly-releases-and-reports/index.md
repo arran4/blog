@@ -4,6 +4,7 @@ date: 2026-07-12T16:20:36+10:00
 draft: false
 tags: ["github-actions", "automation", "reporting", "static-sites", "seo"]
 categories: ["automation", "best-practices"]
+discussion: "https://github.com/arran4/blog/discussions/64"
 ---
 <!-- cspell:words EPUBs oneline Pandoc reimplementing texlive timeframe wkhtmltopdf xelatex xetex -->
 For "link and article" style pages, as well as data-defined content repositories, generating monthly releases is a powerful way to keep your audience engaged. People often subscribe to "releases" on GitHub repositories, and providing them with a magazine-style "issue" gives them tangible updates without needing to dig through commit logs.

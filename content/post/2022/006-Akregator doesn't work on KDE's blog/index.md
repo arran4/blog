@@ -4,6 +4,7 @@ date: 2022-06-01T23:43:26+10:00
 draft: false
 tags: ["kde", "issues"]
 categories: ["gripes"]
+discussion: "https://github.com/arran4/blog/discussions/221"
 ---
 
 <!-- cspell:words Akregator Miniflux -->
