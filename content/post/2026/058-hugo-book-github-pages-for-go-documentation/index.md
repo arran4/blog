@@ -1,6 +1,6 @@
 ---
 title: "Building a Developer Information Portal with Hugo Book and GitHub Pages"
-date: 2026-10-28T19:15:00+11:00
+date: 2026-10-28T19:20:00+11:00
 draft: false
 guidance: ["documentation", "ci-cd"]
 tags: ["documentation", "developer-experience", "hugo", "hugo-book", "github-pages", "github-actions", "go", "open-source"]
@@ -461,7 +461,7 @@ An agent-produced guide is still a draft until it has passed human review and re
 
 The difficult part is maintenance, not Hugo configuration. I use a short documentation review checklist on each relevant PR:
 
-- **Findability:** Can the intended reader find the page from a task-oriented heading or navigation link?
+- **Navigation:** Can the intended reader find the page from a task-oriented heading or navigation link?
 - **Truthfulness:** Does the page describe merged, usable behaviour? Are experimental or future behaviours visibly marked?
 - **Verifiability:** Were commands executed or outputs checked against a real build? Does a clean environment work?
 - **Boundaries:** Does the guide explain an outcome or concept rather than duplicate GoDoc, generated CLI help, or source comments?
