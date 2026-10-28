@@ -20,7 +20,7 @@ The repository uses the `/guidance/` URL path (e.g., `/guidance/ci-cd/`) to prov
 ## GitHub Discussions
 
 Posts link to their own GitHub Discussions using the discussion URL in YAML
-front matter. The footer shows this link conditionally; Giscus is not embedded.
+front matter. The footer shows this link conditionally; No comments widget is embedded.
 
 The discussion sync workflow runs on main-branch post changes and can also be
 dispatched manually. It reuses existing discussions, creates missing ones, and
