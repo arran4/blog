@@ -64,7 +64,28 @@ jobs:
         with:
           ref: feature/explicit-post-discussions
           persist-credentials: true
+      - name: Audit existing discussion matches before reconciliation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import sys
+          sys.path.insert(0, ".github/scripts")
+          import sync_post_discussions as sync
+          _repo, discussions = sync.discussions()
+          for post in sync.posts():
+              candidates = [d for d in discussions if post["key"] in sync.paths(d)]
+              if len(candidates) > 1:
+                  print("AMBIGUOUS", post["path"], json.dumps([
+                      {"id": d["id"], "url": d["url"], "title": d["title"],
+                       "body": (d.get("body") or "")[:250]} for d in candidates
+                  ]), flush=True)
+          print("Inspected", len(discussions), "existing discussions", flush=True)
+          PY
       - name: Reuse existing discussions, create missing ones and record actual links
+        if: false # Temporarily disabled for read-only ambiguity audit
         env:
           GH_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
