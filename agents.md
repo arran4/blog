@@ -29,6 +29,20 @@ find content/post -name "*.md" -not -name "_index.md" -print0 | while IFS= read 
 done
 ```
 
+## Post Discussions
+
+Each published post should have a direct discussion URL in its YAML front matter,
+in a field named discussion. The single-page footer renders it when available.
+Do not use Giscus or GitHub search links in place of this URL.
+
+The Sync blog post discussions workflow runs on changes to published posts and
+on manual dispatch. It matches legacy discussions by post path or an unambiguous
+title, creates genuinely missing discussions in Announcements, and opens a draft
+PR recording the real URLs. Review and merge this generated PR. Do not invent
+discussion IDs in new posts. Preserve the original published post dates.
+
+The repository's Actions settings must allow workflows to create pull requests.
+
 ## Nested Directories
 
 Hugo requires `_index.md` files in nested content directories (like `content/post/<year>/`) to render category listing pages correctly. If you create a new year directory or any nested directory, you must also create an `_index.md` file within it containing basic front matter (e.g., `title: <Year> Posts`). You can easily create this using a one-liner like:
