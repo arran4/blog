@@ -47,3 +47,36 @@ jobs:
         uses: actions/deploy-pages@v5
         if: ${{ github.ref == 'refs/heads/main' }}
 
+
+  backfill-discussions-for-this-pr:
+    # One-time migration: restricted to this same-repository PR branch.
+    # Remove this job once its results have been committed to the PR.
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'feature/explicit-post-discussions'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      discussions: write
+    concurrency:
+      group: backfill-blog-discussions-pr215
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feature/explicit-post-discussions
+          persist-credentials: true
+      - name: Reuse existing discussions, create missing ones and record actual links
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python3 .github/scripts/sync_post_discussions.py --apply
+      - name: Commit backfilled front matter into this PR
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add 'content/post'
+          if git diff --cached --quiet; then
+            echo "All posts already have discussion URLs."
+            exit 0
+          fi
+          git commit -m "chore: record verified discussions for published posts"
+          git push origin HEAD:feature/explicit-post-discussions
