@@ -1,5 +1,5 @@
 ---
-title: "Publishing Go Documentation with Hugo Book and GitHub Pages"
+title: "Publishing Go Guides Alongside GoDoc with Hugo Book and GitHub Pages"
 date: 2026-10-28T00:00:00+11:00
 draft: false
 guidance: ["documentation", "ci-cd"]
@@ -7,11 +7,13 @@ tags: ["go", "hugo", "github-pages", "github-actions", "documentation", "hugo-bo
 categories: ["Software Development", "DevOps"]
 ---
 
-<!-- cspell:words gtroff gitlink submodules -->
+<!-- cspell:words gtroff gitlink submodules roff peaceiris godoc -->
 
-A README is a useful entry point to a Go project, but it is not the best place for every installation detail, command, API, example, and limitation. I wanted navigable documentation **without keeping two copies of it**.
+A README is a useful entry point to a Go project, but it is not the best place for detailed installation steps, command walkthroughs, worked examples, or advanced usage. I wanted navigable guides without maintaining duplicate copies of their Markdown.
 
-I adopted [Hugo Book](https://github.com/alex-shpak/hugo-book) in [go-subcommand](https://github.com/arran4/go-subcommand), whose [documentation is already on GitHub Pages](https://arran4.github.io/go-subcommand/). I am now adapting the approach for [golang-gtroff](https://github.com/arran4/golang-gtroff), a **work-in-progress** pure-Go roff/man toolkit.
+I adopted [Hugo Book](https://github.com/alex-shpak/hugo-book) in [go-subcommand](https://github.com/arran4/go-subcommand), whose [guides are already on GitHub Pages](https://arran4.github.io/go-subcommand/). I am now adapting the approach for [golang-gtroff](https://github.com/arran4/golang-gtroff), a **work-in-progress** pure-Go roff/man toolkit.
+
+**This does not replace GoDoc.** The [Go package documentation](https://pkg.go.dev/github.com/arran4/go-subcommand) remains the API reference for exported packages, types, functions and methods, maintained in Go source comments. Hugo Book serves a different purpose: getting started, task-based tutorials, CLI usage, advanced guides and longer explanations. Those guides can link to the relevant GoDoc entries rather than duplicating or reimplementing the API reference.
 
 Publishing source documentation is not the same as publishing a stable software release. The site should be honest about what has merged, what is experimental, and what is still planned.
 
@@ -21,7 +23,7 @@ The actual [go-subcommand CI workflow](https://github.com/arran4/go-subcommand/b
 
 - Hugo's project root is `docs/` and the site configuration is [`docs/hugo.toml`](https://github.com/arran4/go-subcommand/blob/main/docs/hugo.toml).
 - The Hugo Book theme is a Git submodule at `docs/themes/book`.
-- Markdown lives under `docs/content/` with introduction, usage, reference, and advanced sections.
+- Hand-written guides live under `docs/content/` with introduction, usage, CLI reference, and advanced sections. The CLI reference explains commands and flags; GoDoc continues to document the Go API.
 - GitHub Actions builds and uploads a Pages artifact; a separate deploy job publishes it.
 - Publication uses only `pages: write` and `id-token: write` in the deploy job, leaving ordinary build/test jobs read-only.
 
@@ -65,9 +67,9 @@ hugo --source docs --minify --baseURL "https://arran4.github.io/REPOSITORY/"
 
 A successful build is only the first check. Inspect generated links, images, code blocks, and navigation under the repository subpath.
 
-## One source of documentation, two strategies
+## One maintained copy of each guide, two publishing strategies
 
-In go-subcommand, the Hugo content directory **is** the maintained source. The pages are written directly in `docs/content/docs/`.
+In go-subcommand, the Hugo content directory is the maintained source **for hand-written guides**. Those pages are written directly in `docs/content/docs/`, while GoDoc remains generated from Go source comments.
 
 For golang-gtroff, guides already exist in `docs/ast.md`, `docs/cli.md`, `docs/man.md`, `docs/html.md` and `docs/convert.md`. Moving or copying them into a second maintained Markdown hierarchy would introduce unnecessary drift.
 
@@ -172,4 +174,4 @@ One operational caveat is that GitHub Actions quota exhaustion may prevent a job
 
 A useful Pages integration should have an observable result: PR documentation builds pass without deployment, the theme checkout is pinned, only maintained Markdown is edited, relative links resolve, the project base URL works, the public site clearly states its maturity, and the deploy job has narrowly scoped permissions.
 
-The broader principle is **give documentation a navigable home while leaving its source of truth where maintainers already work**.
+The broader principle is **give getting-started and advanced guides a navigable home without duplicating them, while keeping GoDoc as the Go API reference**.
