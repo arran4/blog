@@ -1,0 +1,61 @@
+digraph Workflow {
+  graph [rankdir=TB, bgcolor="white", label="CI classification, quota exceptions and agent recovery", labelloc=t, fontsize=22, fontname="DejaVu Sans", fontcolor="#172638", pad="0.45", nodesep="0.38", ranksep="0.70", splines=polyline, compound=true, newrank=true];
+  node [fontname="DejaVu Sans", fontsize=11, color="#24374C", penwidth=1.1, margin="0.16,0.10"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#455A6B", arrowsize=0.7, penwidth=1.15];
+  subgraph cluster_human {
+    label="Human"; fontname="DejaVu Sans"; fontsize=14; fontcolor="#AF8300"; color="#AF8300"; fillcolor="#FFF1BE"; style="rounded,filled"; penwidth=1.0; margin=14;
+    C13 [shape=diamond, style="filled", fillcolor="#FFF3CE", color="#AF8300", label="C13  Approve worker handoff?\nJules -&gt; Codex/Agy only if authorised", URL="./#node-c13", tooltip="Approve worker handoff?"];
+  }
+  subgraph cluster_chat {
+    label="Chat agent"; fontname="DejaVu Sans"; fontsize=14; fontcolor="#3176B8"; color="#3176B8"; fillcolor="#DEEDFF"; style="rounded,filled"; penwidth=1.0; margin=14;
+    C02 [shape=box, style="rounded,filled", fillcolor="white", color="#3176B8", label=< <FONT POINT-SIZE="9" COLOR="#516273">C02</FONT><BR/><B>Classify signal</B><BR/><FONT POINT-SIZE="9">Required? relevant? current head?</FONT> >, URL="./#node-c02", tooltip="Classify signal"];
+    C03 [shape=diamond, style="filled", fillcolor="#FFF3CE", color="#3176B8", label="C03  Result category?\nPass / fail / pending / quota", URL="./#node-c03", tooltip="Result category?"];
+    C05 [shape=box, style="rounded,filled", fillcolor="white", color="#3176B8", label=< <FONT POINT-SIZE="9" COLOR="#516273">C05</FONT><BR/><B>Inspect failed job</B><BR/><FONT POINT-SIZE="9">Distinguish code defect and infrastructure</FONT> >, URL="./#node-c05", tooltip="Inspect failed job"];
+    C06 [shape=box, style="rounded,filled", fillcolor="white", color="#3176B8", label=< <FONT POINT-SIZE="9" COLOR="#516273">C06</FONT><BR/><B>Pending check</B><BR/><FONT POINT-SIZE="9">Wait for observable result; do not assume</FONT> >, URL="./#node-c06", tooltip="Pending check"];
+    C07 [shape=box, style="rounded,filled", fillcolor="white", color="#3176B8", label=< <FONT POINT-SIZE="9" COLOR="#516273">C07</FONT><BR/><B>Quota-limited or unavailable</B><BR/><FONT POINT-SIZE="9">Identify repo policy and check criticality</FONT> >, URL="./#node-c07", tooltip="Quota-limited or unavailable"];
+    C08 [shape=diamond, style="filled", fillcolor="#FFF3CE", color="#3176B8", label="C08  Required verification?\nCannot waive branch protection", URL="./#node-c08", tooltip="Required verification?"];
+    C09 [shape=box, style="rounded,filled", fillcolor="white", color="#3176B8", label=< <FONT POINT-SIZE="9" COLOR="#516273">C09</FONT><BR/><B>Record documented exception</B><BR/><FONT POINT-SIZE="9">No claim of CI pass; manual evidence</FONT> >, URL="./#node-c09", tooltip="Record documented exception"];
+    C10 [shape=box, style="rounded,filled", fillcolor="white", color="#3176B8", label=< <FONT POINT-SIZE="9" COLOR="#516273">C10</FONT><BR/><B>Block or request alternate proof</B><BR/><FONT POINT-SIZE="9">Rerun, local tests or human decision</FONT> >, URL="./#node-c10", tooltip="Block or request alternate proof"];
+    C11 [shape=diamond, style="filled", fillcolor="#FFF3CE", color="#3176B8", label="C11  Code correction?\nRoute to current suitable worker", URL="./#node-c11", tooltip="Code correction?"];
+    C14 [shape=box, style="rounded,filled", fillcolor="white", color="#3176B8", label=< <FONT POINT-SIZE="9" COLOR="#516273">C14</FONT><BR/><B>Create replacement branch</B><BR/><FONT POINT-SIZE="9">Never modify Jules-owned branch</FONT> >, URL="./#node-c14", tooltip="Create replacement branch"];
+    C17 [shape=box, style="rounded,filled", fillcolor="white", color="#3176B8", label=< <FONT POINT-SIZE="9" COLOR="#516273">C17</FONT><BR/><B>Re-review current head</B><BR/><FONT POINT-SIZE="9">Diff, CI state, issues and readiness</FONT> >, URL="./#node-c17", tooltip="Re-review current head"];
+  }
+  subgraph cluster_jules {
+    label="Jules"; fontname="DejaVu Sans"; fontsize=14; fontcolor="#39834A"; color="#39834A"; fillcolor="#DDF4DE"; style="rounded,filled"; penwidth=1.0; margin=14;
+    C12 [shape=box, style="rounded,filled", fillcolor="white", color="#39834A", label=< <FONT POINT-SIZE="9" COLOR="#516273">C12</FONT><BR/><B>Focused corrective chunk</B><BR/><FONT POINT-SIZE="9">Only if session healthy and converging</FONT> >, URL="./#node-c12", tooltip="Focused corrective chunk"];
+  }
+  subgraph cluster_codex {
+    label="Codex / Agy"; fontname="DejaVu Sans"; fontsize=14; fontcolor="#8453BA"; color="#8453BA"; fillcolor="#EEE2FF"; style="rounded,filled"; penwidth=1.0; margin=14;
+    C16 [shape=box, style="rounded,filled", fillcolor="white", color="#8453BA", label=< <FONT POINT-SIZE="9" COLOR="#516273">C16</FONT><BR/><B>Continue on new branch</B><BR/><FONT POINT-SIZE="9">Use old Jules work as read-only context</FONT> >, URL="./#node-c16", tooltip="Continue on new branch"];
+  }
+  subgraph cluster_github {
+    label="GitHub / CI"; fontname="DejaVu Sans"; fontsize=14; fontcolor="#8E7474"; color="#8E7474"; fillcolor="#F0EBEB"; style="rounded,filled"; penwidth=1.0; margin=14;
+    C01 [shape=box, style="rounded,filled", fillcolor="white", color="#8E7474", label=< <FONT POINT-SIZE="9" COLOR="#516273">C01</FONT><BR/><B>CI event</B><BR/><FONT POINT-SIZE="9">Push, PR, dispatch or scheduled run</FONT> >, URL="./#node-c01", tooltip="CI event"];
+    C04 [shape=box, style="rounded,filled", fillcolor="white", color="#8E7474", label=< <FONT POINT-SIZE="9" COLOR="#516273">C04</FONT><BR/><B>Checks passed</B><BR/><FONT POINT-SIZE="9">Evidence only for tested revision</FONT> >, URL="./#node-c04", tooltip="Checks passed"];
+    C15 [shape=box, style="rounded,filled", fillcolor="white", color="#8E7474", label=< <FONT POINT-SIZE="9" COLOR="#516273">C15</FONT><BR/><B>Open replacement draft PR</B><BR/><FONT POINT-SIZE="9">Cross-link provenance and dependencies</FONT> >, URL="./#node-c15", tooltip="Open replacement draft PR"];
+  }
+  C01 -> C02 [];
+  C02 -> C03 [];
+  C03 -> C04 [label="pass"];
+  C03 -> C05 [label="failure"];
+  C03 -> C06 [label="pending"];
+  C03 -> C07 [label="quota / infra"];
+  C04 -> C17 [];
+  C05 -> C11 [label="real code defect"];
+  C05 -> C09 [label="unrelated infra"];
+  C06 -> C02 [label="result available"];
+  C07 -> C08 [];
+  C08 -> C09 [label="non-required"];
+  C08 -> C10 [label="required"];
+  C09 -> C17 [label="disclosed"];
+  C10 -> C17 [label="after evidence"];
+  C11 -> C12 [label="Jules suited"];
+  C11 -> C13 [label="handoff advised"];
+  C12 -> C01 [label="new commit"];
+  C13 -> C14 [label="yes / Jules-owned"];
+  C13 -> C11 [label="no / retry or hold"];
+  C14 -> C15 [];
+  C15 -> C16 [label="new writable target"];
+  C16 -> C01 [label="new commit"];
+  C17 -> C02 [label="new CI event", constraint="false"];
+}
