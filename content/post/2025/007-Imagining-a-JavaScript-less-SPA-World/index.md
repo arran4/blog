@@ -5,6 +5,7 @@ draft: false
 tags: ["javascript", "webdev", "standards"]
 categories: ["notes"]
 author: "Arran Ubels"
+discussion: "https://github.com/arran4/blog/discussions/255"
 ---
 
 <!-- cspell:words Hotwire htmx iframes toolkits webdev -->

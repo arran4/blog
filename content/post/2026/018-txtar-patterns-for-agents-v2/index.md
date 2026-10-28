@@ -5,6 +5,7 @@ draft: false
 guidance: ["txtar-testing"]
 tags: ["go", "testing", "txtar", "embed", "golden-files", "agents"]
 categories: ["reference", "testing"]
+discussion: "https://github.com/arran4/blog/discussions/58"
 ---
 <!-- cspell:words Deprojected fixturefs nnodev nodev proc sysfs tproc tsquashfs tsysfs ttmpfs tvfat validationerrors writable -->
 I use `txtar` as a practical test and fixture format across multiple repositories.

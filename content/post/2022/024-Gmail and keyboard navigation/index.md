@@ -4,6 +4,7 @@ date: 2022-10-01T14:17:58+10:00
 draft: false
 tags: ["suggestions", "gmail", "keyboard"]
 categories: ["suggestions"]
+discussion: "https://github.com/arran4/blog/discussions/239"
 ---
 
 I use the keyboard shortcuts `[` and `]` a lot in gmail. 

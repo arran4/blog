@@ -18,6 +18,7 @@ categories:
   - Software Development
   - LLM Instructions
   - Automation
+discussion: "https://github.com/arran4/blog/discussions/135"
 ---
 
 <!-- cspell:words closeout handoff handoffs inspectable joobq kjules oobjq reframing undraft unmerged workdir -->

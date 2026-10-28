@@ -11,6 +11,7 @@ tags:
 categories:
   - llms
   - engineering
+discussion: "https://github.com/arran4/blog/discussions/67"
 ---
 <!-- cspell:words Leet regexes -->
 When generating code, Large Language Models (LLMs) often default to using Regular Expressions (regex) for string parsing and validation tasks. While regex is a powerful tool for human developers aiming for concise code, it is rarely the optimal choice for LLMs writing production-grade software.

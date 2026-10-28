@@ -4,6 +4,7 @@ date: 2026-08-06T09:57:57Z
 draft: false
 tags: ["LLM", "AI", "Prompting", "Workflow", "gap.md", "Project Management"]
 categories: ["Artificial Intelligence"]
+discussion: "https://github.com/arran4/blog/discussions/90"
 ---
 
 <!-- cspell:words featurerequest -->

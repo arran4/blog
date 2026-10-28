@@ -4,6 +4,7 @@ date: 2022-08-14T00:27:28+10:00
 draft: false
 tags: ["hassle"]
 categories: ["hassle", "bug report"]
+discussion: "https://github.com/arran4/blog/discussions/227"
 ---
 
 Ugh..

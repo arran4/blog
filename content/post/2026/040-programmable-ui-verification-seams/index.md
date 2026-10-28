@@ -5,6 +5,7 @@ draft: false
 guidance: ["ui-verification"]
 tags: ["testing", "ui", "automation", "architecture", "ai-agents"]
 categories: ["Software Engineering"]
+discussion: "https://github.com/arran4/blog/discussions/115"
 ---
 
 <!-- cspell:words myapp omitempty timezone -->

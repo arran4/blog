@@ -4,6 +4,7 @@ date: 2022-08-21T08:52:13+10:00
 draft: false
 tags: ["synology"]
 categories: ["ui"]
+discussion: "https://github.com/arran4/blog/discussions/236"
 ---
 
 <!-- cspell:words Cloudsync -->

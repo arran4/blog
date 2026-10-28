@@ -4,6 +4,7 @@ date: 2022-08-20T17:55:04+10:00
 draft: false
 tags: ["kde"]
 categories: ["UI", "KDE"]
+discussion: "https://github.com/arran4/blog/discussions/231"
 ---
 
 <!-- cspell:words Akonadi emdedded FOSS interms Klient Kmail Kontact kopete listviews SDDM tabber Unshade -->

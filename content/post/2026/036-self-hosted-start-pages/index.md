@@ -4,6 +4,7 @@ date: 2026-08-16T10:13:59+10:00
 draft: false
 tags: ["self-hosted", "start-page", "dashboard", "bookmarks", "homepage", "configuration"]
 categories: ["self-hosting", "software-comparison"]
+discussion: "https://github.com/arran4/blog/discussions/104"
 ---
 
 <!-- cspell:words Dashy gobookmarks Heimdall Homarr Jellyfin organisation tradeoffs -->

@@ -4,6 +4,7 @@ date: 2024-05-31T14:11:38+10:00
 draft: false
 tags: ["beeper"]
 categories: ["complaints"]
+discussion: "https://github.com/arran4/blog/discussions/247"
 ---
 
 <!-- cspell:words arranfour Backscrolling distro favourite Favourites Flatpaks gnulinux travelling Webclient webportal -->

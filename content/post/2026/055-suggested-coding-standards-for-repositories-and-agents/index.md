@@ -5,6 +5,7 @@ draft: false
 guidance: ["coding-standards"]
 tags: ["coding-standards", "go", "testing", "architecture", "ai-agents", "review"]
 categories: ["Software Development", "LLM Instructions"]
+discussion: "https://github.com/arran4/blog/discussions/208"
 ---
 
 <!-- cspell:words Getenv idempotency lockfiles overengineering workstream XDG -->

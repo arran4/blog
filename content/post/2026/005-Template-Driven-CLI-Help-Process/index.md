@@ -4,6 +4,7 @@ date: 2026-02-27T14:12:39+11:00
 draft: false
 tags: ["go", "cli", "templates", "process", "agents"]
 categories: ["reference", "engineering-process"]
+discussion: "https://github.com/arran4/blog/discussions/261"
 ---
 
 <!-- cspell:words Fprintf gotmpl playbook -->

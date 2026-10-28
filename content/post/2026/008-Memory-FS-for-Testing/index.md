@@ -4,6 +4,7 @@ date: 2026-04-02T16:59:23+11:00
 draft: false
 tags: ["go", "testing", "architecture", "patterns", "memory-fs"]
 categories: ["engineering-process", "reference"]
+discussion: "https://github.com/arran4/blog/discussions/264"
 ---
 
 <!-- cspell:words dialer dialers httptest -->

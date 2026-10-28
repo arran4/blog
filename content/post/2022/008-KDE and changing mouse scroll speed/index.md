@@ -4,6 +4,7 @@ date: 2022-06-02T22:10:53+10:00
 draft: false
 tags: ["kde", "gripe"]
 categories: ["kde"]
+discussion: "https://github.com/arran4/blog/discussions/223"
 ---
 
 So.. Turns out the control panel mess that exists on Windows is

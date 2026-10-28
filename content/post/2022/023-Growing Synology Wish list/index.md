@@ -4,6 +4,7 @@ date: 2022-09-25T15:39:05+10:00
 draft: false
 tags: ["wish list"]
 categories: ["wish list", "synology"]
+discussion: "https://github.com/arran4/blog/discussions/238"
 ---
 
 <!-- cspell:words favourite Kmail Kmails onedrive sandboxed scriptability sinced Takeout takeouts Webstation -->

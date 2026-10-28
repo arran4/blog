@@ -4,6 +4,7 @@ date: 2022-06-14T10:10:52+10:00
 draft: false
 tags: ["windows", "issues", "IntelliJ", "WSL", "git"]
 categories: ["complaints"]
+discussion: "https://github.com/arran4/blog/discussions/226"
 ---
 
 <!-- cspell:words Gitbash IntelliJ Intellj Microsofts -->

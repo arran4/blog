@@ -12,6 +12,7 @@ tags:
 categories:
   - Software Development
   - LLM Instructions
+discussion: "https://github.com/arran4/blog/discussions/268"
 ---
 
 <!-- cspell:words sqflite timezone xanzy -->

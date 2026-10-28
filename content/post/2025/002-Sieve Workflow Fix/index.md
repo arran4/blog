@@ -4,6 +4,7 @@ date: 2025-06-13T23:54:19+10:00
 draft: false
 tags: ["sieve", "jmap", "stalwart"]
 categories: ["tutorial"]
+discussion: "https://github.com/arran4/blog/discussions/250"
 ---
 <!-- cspell:words jmap resp -->
 In the previous post on deploying Sieve filters to Stalwart using JMAP the workflow always created a new script. After some testing I realised it should update the existing script when one already exists. Below is the corrected workflow.

@@ -4,6 +4,7 @@ date: 2022-11-04T08:52:41+11:00
 draft: false
 tags: ["synology"]
 categories: ["bugs"]
+discussion: "https://github.com/arran4/blog/discussions/240"
 ---
 
 Why!? Synology Mail Pro is decent and all. It feels like a management layer on a bunch of open source mail tools. Plus 

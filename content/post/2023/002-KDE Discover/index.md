@@ -4,6 +4,7 @@ date: 2023-02-15T11:03:28+11:00
 draft: false
 tags: ["KDE", "complaint"]
 categories: ["KDE"]
+discussion: "https://github.com/arran4/blog/discussions/243"
 ---
 
 <!-- cspell:words autoremove killall -->

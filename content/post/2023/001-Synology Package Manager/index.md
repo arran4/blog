@@ -4,6 +4,7 @@ date: 2023-02-15T09:53:49+11:00
 draft: false
 tags: ["complaint", "synology"]
 categories: ["synology"]
+discussion: "https://github.com/arran4/blog/discussions/242"
 ---
 
 <!-- cspell:words corporates Shockwave unclickable unselectable -->
