@@ -1,0 +1,93 @@
+# Editable D2 source. Linked node IDs correspond to article headings.
+direction: right
+classes: {
+  human: { style: { fill: "#FFF0C8"; stroke: "#AE791B"; font-color: "#533A09" } }
+  chat: { style: { fill: "#DCEEFF"; stroke: "#2874AD"; font-color: "#163D5E" } }
+  jules: { style: { fill: "#DEF6E2"; stroke: "#348B51"; font-color: "#17522B" } }
+  codex: { style: { fill: "#EDE3FC"; stroke: "#784BAF"; font-color: "#402469" } }
+  system: { style: { fill: "#F1F3F5"; stroke: "#6C7785"; font-color: "#303D4C" } }
+}
+
+IR01: "IR01 · Initial project idea" {
+  class: human
+  
+  link: "../#node-ir01"
+  tooltip: "Decide purpose and ownership"
+}
+
+IR02: "IR02 · Research structure and licence" {
+  class: chat
+  
+  link: "../#node-ir02"
+  tooltip: "Consider repository, product and publishing requirements"
+}
+
+IR03: "IR03 · Approve initial scope?" {
+  class: human
+  shape: diamond
+  link: "../#node-ir03"
+  tooltip: "Revise plan if constraints are unresolved"
+}
+
+IR04: "IR04 · Create repository and initial issues" {
+  class: chat
+  
+  link: "../#node-ir04"
+  tooltip: "With authorisation: repository setup, CI, documentation and durable issues"
+}
+
+IR05: "IR05 · Choose implementation worker" {
+  class: chat
+  shape: diamond
+  link: "../#node-ir05"
+  tooltip: "Jules or Codex/Agy; never both writing same branch"
+}
+
+IR06: "IR06 · Implement foundation" {
+  class: jules
+  
+  link: "../#node-ir06"
+  tooltip: "Small chunks; alternative Codex/Agy for broader changes"
+}
+
+IR07: "IR07 · Implement wider foundation" {
+  class: codex
+  
+  link: "../#node-ir07"
+  tooltip: "Alternative worker for deeper foundation or setup"
+}
+
+IR08: "IR08 · Publish PR, verify tests and CI" {
+  class: system
+  
+  link: "../#node-ir08"
+  tooltip: "Real code and evidence in GitHub, not agent prose"
+}
+
+IR09: "IR09 · Review, correct, approve merge?" {
+  class: human
+  shape: diamond
+  link: "../#node-ir09"
+  tooltip: "Chat manages review and corrections; human owns merge"
+}
+
+IR10: "IR10 · First release approved?" {
+  class: human
+  shape: diamond
+  link: "../#node-ir10"
+  tooltip: "Release is distinct from merge; explicit human decision"
+}
+
+IR01 -> IR02
+IR02 -> IR03
+IR03 -> IR02: "revise"
+IR03 -> IR04: "approved"
+IR04 -> IR05
+IR05 -> IR06: "Jules"
+IR05 -> IR07: "Codex / Agy"
+IR06 -> IR08
+IR07 -> IR08
+IR08 -> IR09
+IR09 -> IR06: "correction to selected worker"
+IR09 -> IR10: "merge approved"
+IR10 -> IR02: "release deferred / follow-up"
