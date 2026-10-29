@@ -1,0 +1,41 @@
+name: Render D2 process diagrams
+
+on:
+  pull_request:
+    paths:
+      - 'content/post/2026/059-ai-assisted-repository-process/**'
+      - '.github/workflows/render-d2-process.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    # Only push back to a branch in this repository, never a fork.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          persist-credentials: true
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.25.x'
+      - name: Install pinned D2 CLI
+        run: go install oss.terrastruct.com/d2@v0.9.0
+      - name: Render diagrams from source
+        run: |
+          export PATH="$(go env GOPATH)/bin:$PATH"
+          bash content/post/2026/059-ai-assisted-repository-process/render-diagrams.sh
+      - name: Commit generated SVG files
+        run: |
+          git add -- 'content/post/2026/059-ai-assisted-repository-process/*.svg' 'content/post/2026/059-ai-assisted-repository-process/paths/*.svg'
+          if git diff --cached --quiet; then
+            echo 'Generated diagrams are unchanged'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -c commit.gpgsign=false commit -m 'docs: render D2 process diagrams'
+          git push origin HEAD:"${{ github.event.pull_request.head.ref }}"
