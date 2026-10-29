@@ -1,0 +1,93 @@
+# Editable D2 source. Linked node IDs correspond to article headings.
+direction: right
+classes: {
+  human: { style: { fill: "#FFF0C8"; stroke: "#AE791B"; font-color: "#533A09" } }
+  chat: { style: { fill: "#DCEEFF"; stroke: "#2874AD"; font-color: "#163D5E" } }
+  jules: { style: { fill: "#DEF6E2"; stroke: "#348B51"; font-color: "#17522B" } }
+  codex: { style: { fill: "#EDE3FC"; stroke: "#784BAF"; font-color: "#402469" } }
+  system: { style: { fill: "#F1F3F5"; stroke: "#6C7785"; font-color: "#303D4C" } }
+}
+
+FE01: "FE01 · Feature request" {
+  class: human
+  
+  link: "../#node-fe01"
+  tooltip: "Describe new capability and value"
+}
+
+FE02: "FE02 · Find existing issues and comparable behaviour" {
+  class: chat
+  
+  link: "../#node-fe02"
+  tooltip: "Identify users, edge cases, documentation"
+}
+
+FE03: "FE03 · Clarify acceptance examples" {
+  class: chat
+  
+  link: "../#node-fe03"
+  tooltip: "Scenarios and testable outcomes"
+}
+
+FE04: "FE04 · Approve issue/scope?" {
+  class: human
+  shape: diamond
+  link: "../#node-fe04"
+  tooltip: "Ask before creating new issue or major reframing"
+}
+
+FE05: "FE05 · Pick worker" {
+  class: chat
+  shape: diamond
+  link: "../#node-fe05"
+  tooltip: "Bounded Jules or alternative Codex/Agy"
+}
+
+FE06: "FE06 · Implement feature increment" {
+  class: jules
+  
+  link: "../#node-fe06"
+  tooltip: "Code and tests in short chunks"
+}
+
+FE07: "FE07 · Implement complex feature increment" {
+  class: codex
+  
+  link: "../#node-fe07"
+  tooltip: "Alternative worker, not a simultaneous editor"
+}
+
+FE08: "FE08 · Publish code and CI evidence" {
+  class: system
+  
+  link: "../#node-fe08"
+  tooltip: "PR, checks, review threads"
+}
+
+FE09: "FE09 · Review and corrections" {
+  class: chat
+  
+  link: "../#node-fe09"
+  tooltip: "Independent cumulative-diff review; maintain PR metadata"
+}
+
+FE10: "FE10 · Approve merge?" {
+  class: human
+  shape: diamond
+  link: "../#node-fe10"
+  tooltip: "Decide final merge; release optional"
+}
+
+FE01 -> FE02
+FE02 -> FE03
+FE03 -> FE04
+FE04 -> FE03: "refine"
+FE04 -> FE05: "approved"
+FE05 -> FE06: "Jules"
+FE05 -> FE07: "Codex / Agy"
+FE06 -> FE08
+FE07 -> FE08
+FE08 -> FE09
+FE09 -> FE06: "focused correction"
+FE09 -> FE10: "ready"
+FE10 -> FE02: "defer / follow-up"
