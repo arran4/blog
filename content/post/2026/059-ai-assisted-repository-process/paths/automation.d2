@@ -1,0 +1,94 @@
+# Editable D2 source. Linked node IDs correspond to article headings.
+direction: right
+classes: {
+  human: { style: { fill: "#FFF0C8"; stroke: "#AE791B"; font-color: "#533A09" } }
+  chat: { style: { fill: "#DCEEFF"; stroke: "#2874AD"; font-color: "#163D5E" } }
+  jules: { style: { fill: "#DEF6E2"; stroke: "#348B51"; font-color: "#17522B" } }
+  codex: { style: { fill: "#EDE3FC"; stroke: "#784BAF"; font-color: "#402469" } }
+  system: { style: { fill: "#F1F3F5"; stroke: "#6C7785"; font-color: "#303D4C" } }
+}
+
+AU01: "AU01 · Automated bump, alert or audit" {
+  class: system
+  
+  link: "../#node-au01"
+  tooltip: "Dependabot/tooling/CI audit event"
+}
+
+AU02: "AU02 · Classify relevance and risk" {
+  class: chat
+  
+  link: "../#node-au02"
+  tooltip: "Assess affected dependencies, security, compatibility"
+}
+
+AU03: "AU03 · Review issue and PR provenance" {
+  class: chat
+  
+  link: "../#node-au03"
+  tooltip: "Check agent versus third-party ownership"
+}
+
+AU04: "AU04 · Human authorisation needed?" {
+  class: chat
+  shape: diamond
+  link: "../#node-au04"
+  tooltip: "New issues/major changes or sensitive decisions"
+}
+
+AU05: "AU05 · Approve material change?" {
+  class: human
+  shape: diamond
+  link: "../#node-au05"
+  tooltip: "Human retains consequential scope decisions"
+}
+
+AU06: "AU06 · Choose corrective worker" {
+  class: chat
+  shape: diamond
+  link: "../#node-au06"
+  tooltip: "Automated update may already have a PR"
+}
+
+AU07: "AU07 · Narrow corrective chunk" {
+  class: jules
+  
+  link: "../#node-au07"
+  tooltip: "Implement if the bot update needs small fixes"
+}
+
+AU08: "AU08 · Interactive migration / correction" {
+  class: codex
+  
+  link: "../#node-au08"
+  tooltip: "Alternative for broader failures"
+}
+
+AU09: "AU09 · Verify updated PR and CI" {
+  class: system
+  
+  link: "../#node-au09"
+  tooltip: "Do not regard quota-limited CI as passed"
+}
+
+AU10: "AU10 · Merge / release decision" {
+  class: human
+  shape: diamond
+  link: "../#node-au10"
+  tooltip: "No auto-merge merely because tool generated update"
+}
+
+AU01 -> AU02
+AU02 -> AU03
+AU03 -> AU04
+AU04 -> AU06: "routine authorised"
+AU04 -> AU05: "approval required"
+AU05 -> AU06: "approved"
+AU05 -> AU02: "declined"
+AU06 -> AU07: "Jules"
+AU06 -> AU08: "Codex / Agy"
+AU06 -> AU09: "no coding needed"
+AU07 -> AU09
+AU08 -> AU09
+AU09 -> AU10
+AU09 -> AU07: "correction"
