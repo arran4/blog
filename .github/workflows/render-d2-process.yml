@@ -3,7 +3,9 @@ name: Render D2 process diagrams
 on:
   pull_request:
     paths:
-      - 'content/post/2026/059-ai-assisted-repository-process/**'
+      - 'content/post/2026/059-ai-assisted-repository-process/*.d2'
+      - 'content/post/2026/059-ai-assisted-repository-process/paths/*.d2'
+      - 'content/post/2026/059-ai-assisted-repository-process/render-diagrams.sh'
       - '.github/workflows/render-d2-process.yml'
 
 permissions:
