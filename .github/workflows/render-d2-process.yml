@@ -19,14 +19,13 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           persist-credentials: true
-      - uses: actions/setup-go@v6
-        with:
-          go-version: '1.25.x'
       - name: Install pinned D2 CLI
-        run: go install oss.terrastruct.com/d2@v0.9.0
+        run: |
+          curl -fsSL https://d2lang.com/install.sh | sh -s -- --version v0.9.0 --prefix "$HOME/.local"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - name: Render diagrams from source
         run: |
-          export PATH="$(go env GOPATH)/bin:$PATH"
+          export PATH="$HOME/.local/bin:$PATH"
           bash content/post/2026/059-ai-assisted-repository-process/render-diagrams.sh
       - name: Commit generated SVG files
         run: |
