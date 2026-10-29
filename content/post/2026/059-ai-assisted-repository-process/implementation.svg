@@ -1,26 +1,26 @@
-<?xml version="1.0" encoding="utf-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" data-d2-version="v0.9.0" preserveAspectRatio="xMinYMin meet" viewBox="0 0 6236 756"><svg class="d2-1721724335 d2-svg" width="6236" height="756" viewBox="-89 -89 6236 756"><rect x="-89" y="-89" width="6236" height="756" rx="0" fill="#FFFFFF" class=" fill-N7" stroke-width="0" /><style type="text/css"><![CDATA[
+<?xml version="1.0" encoding="utf-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" data-d2-version="v0.9.0" preserveAspectRatio="xMinYMin meet" viewBox="0 0 2350 2229"><svg class="d2-1825135613 d2-svg" width="2350" height="2229" viewBox="-89 -106 2350 2229"><rect x="-89" y="-106" width="2350" height="2229" rx="0" fill="#FFFFFF" class=" fill-N7" stroke-width="0" /><style type="text/css"><![CDATA[
 .appendix-icon {
 	filter: drop-shadow(0px 0px 32px rgba(31, 36, 58, 0.1));
 }
-.d2-1721724335 .text-mono {
-	font-family: "d2-1721724335-font-mono";
+.d2-1825135613 .text-mono {
+	font-family: "d2-1825135613-font-mono";
 }
 @font-face {
-	font-family: d2-1721724335-font-mono;
+	font-family: d2-1825135613-font-mono;
 	src: url("data:application/font-woff;base64,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");
 }
-.d2-1721724335 .text-mono-bold {
-	font-family: "d2-1721724335-font-mono-bold";
+.d2-1825135613 .text-mono-bold {
+	font-family: "d2-1825135613-font-mono-bold";
 }
 @font-face {
-	font-family: d2-1721724335-font-mono-bold;
+	font-family: d2-1825135613-font-mono-bold;
 	src: url("data:application/font-woff;base64,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");
 }
-.d2-1721724335 .text-mono-italic {
-	font-family: "d2-1721724335-font-mono-italic";
+.d2-1825135613 .text-mono-italic {
+	font-family: "d2-1825135613-font-mono-italic";
 }
 @font-face {
-	font-family: d2-1721724335-font-mono-italic;
+	font-family: d2-1825135613-font-mono-italic;
 	src: url("data:application/font-woff;base64,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");
 }]]></style><style type="text/css"><![CDATA[.shape {
   shape-rendering: geometricPrecision;
@@ -35,525 +35,525 @@
   opacity: 0.5;
 }
 
-		.d2-1721724335 .fill-N2{fill:#0000B8;}
-		.d2-1721724335 .fill-N7{fill:#FFFFFF;}
-		.d2-1721724335 .fill-B1{fill:#000410;}
-		.d2-1721724335 .stroke-B1{stroke:#000410;}
-		.d2-1721724335 .stroke-B2{stroke:#0000E4;}.appendix text.text{fill:#000410}.md{--color-fg-default:#000410;--color-fg-muted:#0000B8;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#000410;--color-border-muted:#0000E4;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0000E4;--color-accent-emphasis:#0000E4;--color-attention-subtle:#0000B8;--color-danger-fg:red;}.light-code{display: block}.dark-code{display: none}]]></style><a href="./#node-i03" xlink:href="./#node-i03"><g class="STAz human"><g class="shape" ><rect x="106" y="242" width="367" height="66" stroke="#AE791B" fill="#FFF0C8" style="stroke-width:2;" /></g><text x="289.5" y="280.5" fill="#533A09" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I03 · AUTHORIZE NEW HANDOFF</text><title>Authorize new handoff</title></g></a><a href="./#node-i18" xlink:href="./#node-i18"><g class="STE4 human"><g class="shape" ><rect x="3426" y="432" width="415" height="80" stroke="#AE791B" fill="#FFF0C8" style="stroke-width:2;" /></g><text x="3633.5" y="477.5" fill="#533A09" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I18 · REVIEW AND AUTHORISE MERGE</text><title>Review and authorise merge</title></g></a><a href="./#node-i01" xlink:href="./#node-i01"><g class="STAx chat"><g class="shape" ><rect x="5595" y="500" width="434" height="66" stroke="#2874AD" fill="#DCEEFF" style="stroke-width:2;" /></g><text x="5812" y="538.5" fill="#163D5E" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I01 · PREPARE IMPLEMENTATION BRIEF</text><title>Prepare implementation brief</title></g></a><a href="./#node-i02" xlink:href="./#node-i02"><g class="STAy chat"><g class="shape" ><path d="M 299 451 C 297 451 296 451 294 451 L 32 392 C 29 391 29 390 32 390 L 294 331 C 297 330 301 330 304 331 L 566 390 C 569 391 569 392 566 392 L 304 451 C 302 451 301 451 299 451 Z" stroke="#2874AD" fill="#DCEEFF" style="stroke-width:2;" /></g><text x="299" y="396.5" fill="#163D5E" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I02 · CHOOSE WORKER?</text><title>Choose worker?</title></g></a><a href="./#node-i11" xlink:href="./#node-i11"><g class="STEx chat"><g class="shape" ><rect x="3464" y="151" width="338" height="66" stroke="#2874AD" fill="#DCEEFF" style="stroke-width:2;" /></g><text x="3633" y="189.5" fill="#163D5E" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I11 · CLASSIFY CI SIGNAL</text><title>Classify CI signal</title></g></a><a href="./#node-i12" xlink:href="./#node-i12"><g class="STEy chat"><g class="shape" ><rect x="4263" y="183" width="406" height="120" stroke="#2874AD" fill="#DCEEFF" style="stroke-width:2;" /></g><text x="4466" y="248.5" fill="#163D5E" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I12 · INDEPENDENTLY REVIEW WORK</text><title>Independently review work</title></g></a><a href="./#node-i13" xlink:href="./#node-i13"><g class="STEz chat"><g class="shape" ><path d="M 290 207 C 288 207 286 207 285 207 L 14 148 C 11 147 11 146 14 146 L 285 87 C 288 86 292 86 295 87 L 566 146 C 569 147 569 148 566 148 L 295 207 C 294 207 292 207 290 207 Z" stroke="#2874AD" fill="#DCEEFF" style="stroke-width:2;" /></g><text x="290" y="152.5" fill="#163D5E" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I13 · WORK REMAINING?</text><title>Work remaining?</title></g></a><a href="./#node-i14" xlink:href="./#node-i14"><g class="STE0 chat"><g class="shape" ><rect x="1184" y="198" width="396" height="66" stroke="#2874AD" fill="#DCEEFF" style="stroke-width:2;" /></g><text x="1382" y="236.5" fill="#163D5E" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I14 · ISSUE FOCUSED CORRECTION</text><title>Issue focused correction</title></g></a><a href="./#node-i15" xlink:href="./#node-i15"><g class="STE1 chat"><g class="shape" ><rect x="1198" y="404" width="339" height="80" stroke="#2874AD" fill="#DCEEFF" style="stroke-width:2;" /></g><text x="1367.5" y="449.5" fill="#163D5E" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I15 · MANAGE PR METADATA</text><title>Manage PR metadata</title></g></a><a href="./#node-i16" xlink:href="./#node-i16"><g class="STE2 chat"><g class="shape" ><rect x="1739" y="404" width="261" height="80" stroke="#2874AD" fill="#DCEEFF" style="stroke-width:2;" /></g><text x="1869.5" y="449.5" fill="#163D5E" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I16 · READY GATE</text><title>Ready gate</title></g></a><a href="./#node-i20" xlink:href="./#node-i20"><g class="STIw chat"><g class="shape" ><rect x="4866" y="455" width="405" height="66" stroke="#2874AD" fill="#DCEEFF" style="stroke-width:2;" /></g><text x="5068.5" y="493.5" fill="#163D5E" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I20 · POST-MERGE RECONCILIATION</text><title>Post-merge reconciliation</title></g></a><a href="./#node-i04" xlink:href="./#node-i04"><g class="STA0 jules"><g class="shape" ><rect x="1675" y="271" width="358" height="66" stroke="#348B51" fill="#DEF6E2" style="stroke-width:2;" /></g><text x="1854" y="309.5" fill="#17522B" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I04 · RECEIVE FOCUSED TASK</text><title>Receive focused task</title></g></a><a href="./#node-i05" xlink:href="./#node-i05"><g class="STA1 jules"><g class="shape" ><rect x="2113" y="228" width="339" height="80" stroke="#348B51" fill="#DEF6E2" style="stroke-width:2;" /></g><text x="2282.5" y="273.5" fill="#17522B" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I05 · IMPLEMENT AND TEST</text><title>Implement and test</title></g></a><a href="./#node-i06" xlink:href="./#node-i06"><g class="STA2 jules"><g class="shape" ><rect x="2522" y="235" width="358" height="66" stroke="#348B51" fill="#DEF6E2" style="stroke-width:2;" /></g><text x="2701" y="273.5" fill="#17522B" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I06 · PUBLISH COMMIT OR PR</text><title>Publish commit or PR</title></g></a><a href="./#node-i07" xlink:href="./#node-i07"><g class="STA3 codex"><g class="shape" ><rect x="1170" y="112" width="425" height="66" stroke="#784BAF" fill="#EDE3FC" style="stroke-width:2;" /></g><text x="1382.5" y="150.5" fill="#402469" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I07 · RECEIVE IMPLEMENTATION TASK</text><title>Receive implementation task</title></g></a><a href="./#node-i08" xlink:href="./#node-i08"><g class="STA4 codex"><g class="shape" ><rect x="1681" y="65" width="339" height="80" stroke="#784BAF" fill="#EDE3FC" style="stroke-width:2;" /></g><text x="1850.5" y="110.5" fill="#402469" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I08 · IMPLEMENT AND TEST</text><title>Implement and test</title></g></a><a href="./#node-i09" xlink:href="./#node-i09"><g class="STA5 codex"><g class="shape" ><rect x="2522" y="72" width="358" height="66" stroke="#784BAF" fill="#EDE3FC" style="stroke-width:2;" /></g><text x="2701" y="110.5" fill="#402469" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I09 · PUBLISH COMMIT OR PR</text><title>Publish commit or PR</title></g></a><a href="./#node-i10" xlink:href="./#node-i10"><g class="STEw system"><g class="shape" ><rect x="2960" y="144" width="396" height="80" stroke="#6C7785" fill="#F1F3F5" style="stroke-width:2;" /></g><text x="3158" y="189.5" fill="#303D4C" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I10 · OBSERVE CURRENT REVISION</text><title>Observe current revision</title></g></a><a href="./#node-i17" xlink:href="./#node-i17"><g class="STE3 system"><g class="shape" ><rect x="2522" y="439" width="358" height="66" stroke="#6C7785" fill="#F1F3F5" style="stroke-width:2;" /></g><text x="2701" y="477.5" fill="#303D4C" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I17 · SET READY FOR REVIEW</text><title>Set Ready for review</title></g></a><a href="./#node-i19" xlink:href="./#node-i19"><g class="STE5 system"><g class="shape" ><rect x="4282" y="455" width="368" height="66" stroke="#6C7785" fill="#F1F3F5" style="stroke-width:2;" /></g><text x="4466" y="493.5" fill="#303D4C" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I19 · MERGE AUTHORISED WORK</text><title>Merge authorised work</title></g></a><g class="KEkwMSAtJmd0OyBJMDIpWzBd"><marker id="mk-d2-1721724335-3488378134" markerWidth="10" markerHeight="12" refX="7" refY="6" viewBox="0 0 10 12" orient="auto" markerUnits="userSpaceOnUse"> <polygon points="0,0 10,6 0,12" fill="#000410" class="connection fill-B1" stroke-width="2" /> </marker><path d="M 5593 544 L 5555 544 S 5555 544 5555 544 L 5555 561 S 5555 561 5555 561 L 608 561 S 608 561 608 561 L 608 427.665985 S 608 427.665985 608 427.665985 L 412.999994 427.993286" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1721724335-3488378134)" mask="url(#d2-1721724335)" /></g><g class="KEkwMiAtJmd0OyBJMDQpWzBd"><path d="M 517.999999 379.998047 L 858 379.665985 S 858 379.665985 858 379.665985 L 858 304.833008 S 858 304.833008 858 304.833008 L 1671 304.833008" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1721724335-3488378134)" mask="url(#d2-1721724335)" /><text x="1058" y="310" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">JULES</text></g><g class="KEkwMiAtJmd0OyBJMDcpWzBd"><path d="M 410.999999 355.998326 L 808 355.665985 S 808 355.665985 808 355.665985 L 808 145.832993 S 808 145.832993 808 145.832993 L 1166 145.832993" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1721724335-3488378134)" mask="url(#d2-1721724335)" /><text x="808.5" y="275" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">CODEX/AGY</text></g><g class="KEkwMiAtJmd0OyBJMTUpWzBd"><path d="M 519.999994 403.995228 L 658 403.665985 S 658 403.665985 658 403.665985 L 658 457.665985 S 658 457.665985 658 457.665985 L 1195 457.665985" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1721724335-3488378134)" mask="url(#d2-1721724335)" /><text x="831.5" y="463" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">ADMIN ONLY</text></g><g class="KEkwNCAtJmd0OyBJMDUpWzBd"><path d="M 2035 304.833008 L 2073 304.833008 S 2073 304.833008 2073 304.833008 L 2073 281.665985 S 2073 281.665985 2073 281.665985 L 2109 281.665985" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1721724335-3488378134)" mask="url(#d2-1721724335)" /></g><g class="KEkwNSAtJmd0OyBJMDYpWzBd"><path d="M 2454 268.333008 L 2518 268.333008" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1721724335-3488378134)" mask="url(#d2-1721724335)" /></g><g class="KEkwNyAtJmd0OyBJMDgpWzBd"><path d="M 1597 145.832993 L 1635 145.832993 S 1635 145.832993 1635 145.832993 L 1635 118.333 S 1635 118.333 1635 118.333 L 1677 118.333" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1721724335-3488378134)" mask="url(#d2-1721724335)" /></g><g class="KEkwOCAtJmd0OyBJMDkpWzBd"><path d="M 2022 105 L 2518 105" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1721724335-3488378134)" mask="url(#d2-1721724335)" /></g><g class="KEkwNiAtJmd0OyBJMTApWzBd"><path d="M 2882 268.333008 L 2920 268.333008 S 2920 268.333008 2920 268.333008 L 2920 197.332993 S 2920 197.332993 2920 197.332993 L 2956 197.332993" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1721724335-3488378134)" mask="url(#d2-1721724335)" /></g><g class="KEkwOSAtJmd0OyBJMTApWzBd"><path d="M 2882 105 L 2920 105 S 2920 105 2920 105 L 2920 170.666 S 2920 170.666 2920 170.666 L 2956 170.666" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1721724335-3488378134)" mask="url(#d2-1721724335)" /></g><g class="KEkxMCAtJmd0OyBJMTEpWzBd"><path d="M 3357.5 184 L 3460.5 184" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1721724335-3488378134)" mask="url(#d2-1721724335)" /></g><g class="KEkxMSAtJmd0OyBJMTIpWzBd"><path d="M 3804 184 L 4173 184 S 4173 184 4173 184 L 4173 231.666 S 4173 231.666 4173 231.666 L 4259 231.666" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1721724335-3488378134)" mask="url(#d2-1721724335)" /><text x="4056" y="190" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">ACTIONABLE OR RECORDED</text></g><g class="KEkxMiAtJmd0OyBJMTMpWzBd"><path d="M 4261 207.666 L 4223 207.666 S 4223 207.666 4223 207.666 L 4223 12 S 4223 12 4223 12 L 608 12 S 608 12 608 12 L 608 111.5 S 608 111.5 608 111.5 L 406.999988 111.990244" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1721724335-3488378134)" mask="url(#d2-1721724335)" /></g><g class="KEkxMyAtJmd0OyBJMTQpWzBd"><path d="M 518.999996 159.995851 L 758 159.5 S 758 159.5 758 159.5 L 758 231.832993 S 758 231.832993 758 231.832993 L 1181 231.832993" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1721724335-3488378134)" mask="url(#d2-1721724335)" /><text x="815" y="237" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">ANOTHER JULES CHUNK</text></g><g class="KEkxNCAtJmd0OyBJMDUpWzBd"><path d="M 1582 231.832993 L 2073 231.832993 S 2073 231.832993 2073 231.832993 L 2073 255 S 2073 255 2073 255 L 2109 255" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1721724335-3488378134)" mask="url(#d2-1721724335)" /><text x="1858.5" y="237" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">NEW INSTRUCTION</text></g><g class="KEkxMyAtJmd0OyBJMDgpWzBd"><path d="M 514.999988 135.993103 L 658 135.5 S 658 135.5 658 135.5 L 658 71.833 S 658 71.833 658 71.833 L 1635 71.833 S 1635 71.833 1635 71.833 L 1635 91.666 S 1635 91.666 1635 91.666 L 1677 91.666" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1721724335-3488378134)" mask="url(#d2-1721724335)" /><text x="1075" y="77" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">CODEX/AGY CORRECTION</text></g><g class="KEkxMyAtJmd0OyBJMTUpWzBd"><path d="M 406.999997 183.9967 L 708 183.5 S 708 183.5 708 183.5 L 708 415.5 S 708 415.5 708 415.5 L 1195 415.5" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1721724335-3488378134)" mask="url(#d2-1721724335)" /><text x="708" y="399" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">NO CODE CHANGES</text></g><g class="KEkxNSAtJmd0OyBJMTYpWzBd"><path d="M 1539.666016 444.333008 L 1735.666016 444.333008" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1721724335-3488378134)" mask="url(#d2-1721724335)" /></g><g class="KEkxNiAtJmd0OyBJMTIpWzBd"><path d="M 2003 431 L 2073 431 S 2073 431 2073 431 L 2073 386.665985 S 2073 386.665985 2073 386.665985 L 4173 386.665985 S 4173 386.665985 4173 386.665985 L 4173 255.666 S 4173 255.666 4173 255.666 L 4259 255.666" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1721724335-3488378134)" mask="url(#d2-1721724335)" /><text x="3175" y="392" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">BLOCKING EVIDENCE</text></g><g class="KEkxNiAtJmd0OyBJMTcpWzBd"><path d="M 2003 472 L 2518 472" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1721724335-3488378134)" mask="url(#d2-1721724335)" /><text x="2261.5" y="478" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">VERIFIED READY</text></g><g class="KEkxNyAtJmd0OyBJMTgpWzBd"><path d="M 2882 472 L 3422 472" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1721724335-3488378134)" mask="url(#d2-1721724335)" /><text x="3153" y="478" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">STATE CONFIRMED</text></g><g class="KEkxOCAtJmd0OyBJMTIpWzBd"><path d="M 3843 455 L 4223 455 S 4223 455 4223 455 L 4223 279.665985 S 4223 279.665985 4223 279.665985 L 4259 279.665985" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1721724335-3488378134)" mask="url(#d2-1721724335)" /><text x="4140" y="461" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">CHANGES REQUESTED</text></g><g class="KEkxOCAtJmd0OyBJMTkpWzBd"><path d="M 3843 488 L 4278 488" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1721724335-3488378134)" mask="url(#d2-1721724335)" /><text x="4061.5" y="494" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">EXPLICIT APPROVAL</text></g><g class="KEkxOSAtJmd0OyBJMjApWzBd"><path d="M 4652 488 L 4862 488" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1721724335-3488378134)" mask="url(#d2-1721724335)" /><text x="4758.5" y="494" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">MERGED</text></g><g class="KEkyMCAtJmd0OyBJMDEpWzBd"><path d="M 5273 488 L 5555 488 S 5555 488 5555 488 L 5555 522 S 5555 522 5555 522 L 5591 522" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1721724335-3488378134)" mask="url(#d2-1721724335)" /><text x="5450" y="494" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">NEXT SELECTED TASK</text></g><g transform="translate(457 226)" class="appendix-icon"><title>Authorize new handoff</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3427_35082111-d2-1721724335-JEYDG)">
+		.d2-1825135613 .fill-N2{fill:#0000B8;}
+		.d2-1825135613 .fill-N7{fill:#FFFFFF;}
+		.d2-1825135613 .fill-B1{fill:#000410;}
+		.d2-1825135613 .stroke-B1{stroke:#000410;}
+		.d2-1825135613 .stroke-B2{stroke:#0000E4;}.appendix text.text{fill:#000410}.md{--color-fg-default:#000410;--color-fg-muted:#0000B8;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#000410;--color-border-muted:#0000E4;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0000E4;--color-accent-emphasis:#0000E4;--color-attention-subtle:#0000B8;--color-danger-fg:red;}.light-code{display: block}.dark-code{display: none}]]></style><a href="./#node-i03" xlink:href="./#node-i03"><g class="STAz human"><g class="shape" ><rect x="802" y="25" width="367" height="66" stroke="#AE791B" fill="#FFF0C8" style="stroke-width:2;" /></g><text x="985.5" y="63.5" fill="#533A09" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I03 · AUTHORIZE NEW HANDOFF</text><title>Authorize new handoff</title></g></a><a href="./#node-i18" xlink:href="./#node-i18"><g class="STE4 human"><g class="shape" ><rect x="1511" y="1195" width="415" height="66" stroke="#AE791B" fill="#FFF0C8" style="stroke-width:2;" /></g><text x="1718.5" y="1233.5" fill="#533A09" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I18 · REVIEW AND AUTHORISE MERGE</text><title>Review and authorise merge</title></g></a><a href="./#node-i01" xlink:href="./#node-i01"><g class="STAx chat"><g class="shape" ><rect x="1709" y="1956" width="434" height="66" stroke="#2874AD" fill="#DCEEFF" style="stroke-width:2;" /></g><text x="1926" y="1994.5" fill="#163D5E" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I01 · PREPARE IMPLEMENTATION BRIEF</text><title>Prepare implementation brief</title></g></a><a href="./#node-i02" xlink:href="./#node-i02"><g class="STAy chat"><g class="shape" ><path d="M 1458 104 C 1456 104 1455 104 1453 104 L 1191 59 C 1188 59 1188 58 1191 57 L 1453 12 C 1456 12 1460 12 1463 12 L 1725 57 C 1728 57 1728 58 1725 59 L 1463 104 C 1461 104 1460 104 1458 104 Z" stroke="#2874AD" fill="#DCEEFF" style="stroke-width:2;" /></g><text x="1458" y="63.5" fill="#163D5E" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I02 · CHOOSE WORKER?</text><title>Choose worker?</title></g></a><a href="./#node-i11" xlink:href="./#node-i11"><g class="STEx chat"><g class="shape" ><rect x="448" y="1195" width="338" height="66" stroke="#2874AD" fill="#DCEEFF" style="stroke-width:2;" /></g><text x="617" y="1233.5" fill="#163D5E" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I11 · CLASSIFY CI SIGNAL</text><title>Classify CI signal</title></g></a><a href="./#node-i12" xlink:href="./#node-i12"><g class="STEy chat"><g class="shape" ><rect x="698" y="1492" width="406" height="66" stroke="#2874AD" fill="#DCEEFF" style="stroke-width:2;" /></g><text x="901" y="1530.5" fill="#163D5E" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I12 · INDEPENDENTLY REVIEW WORK</text><title>Independently review work</title></g></a><a href="./#node-i13" xlink:href="./#node-i13"><g class="STEz chat"><g class="shape" ><path d="M 504 104 C 502 104 500 104 499 104 L 228 59 C 225 59 225 58 228 57 L 499 12 C 502 12 506 12 509 12 L 780 57 C 783 57 783 58 780 59 L 509 104 C 508 104 506 104 504 104 Z" stroke="#2874AD" fill="#DCEEFF" style="stroke-width:2;" /></g><text x="504" y="63.5" fill="#163D5E" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I13 · WORK REMAINING?</text><title>Work remaining?</title></g></a><a href="./#node-i14" xlink:href="./#node-i14"><g class="STE0 chat"><g class="shape" ><rect x="648" y="485" width="396" height="66" stroke="#2874AD" fill="#DCEEFF" style="stroke-width:2;" /></g><text x="846" y="523.5" fill="#163D5E" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I14 · ISSUE FOCUSED CORRECTION</text><title>Issue focused correction</title></g></a><a href="./#node-i15" xlink:href="./#node-i15"><g class="STE1 chat"><g class="shape" ><rect x="1474" y="485" width="339" height="66" stroke="#2874AD" fill="#DCEEFF" style="stroke-width:2;" /></g><text x="1643.5" y="523.5" fill="#163D5E" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I15 · MANAGE PR METADATA</text><title>Manage PR metadata</title></g></a><a href="./#node-i16" xlink:href="./#node-i16"><g class="STE2 chat"><g class="shape" ><rect x="1513" y="631" width="261" height="66" stroke="#2874AD" fill="#DCEEFF" style="stroke-width:2;" /></g><text x="1643.5" y="669.5" fill="#163D5E" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I16 · READY GATE</text><title>Ready gate</title></g></a><a href="./#node-i20" xlink:href="./#node-i20"><g class="STIw chat"><g class="shape" ><rect x="1602" y="1719" width="405" height="66" stroke="#2874AD" fill="#DCEEFF" style="stroke-width:2;" /></g><text x="1804.5" y="1757.5" fill="#163D5E" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I20 · POST-MERGE RECONCILIATION</text><title>Post-merge reconciliation</title></g></a><a href="./#node-i04" xlink:href="./#node-i04"><g class="STA0 jules"><g class="shape" ><rect x="1014" y="631" width="358" height="66" stroke="#348B51" fill="#DEF6E2" style="stroke-width:2;" /></g><text x="1193" y="669.5" fill="#17522B" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I04 · RECEIVE FOCUSED TASK</text><title>Receive focused task</title></g></a><a href="./#node-i05" xlink:href="./#node-i05"><g class="STA1 jules"><g class="shape" ><rect x="888" y="777" width="339" height="66" stroke="#348B51" fill="#DEF6E2" style="stroke-width:2;" /></g><text x="1057.5" y="815.5" fill="#17522B" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I05 · IMPLEMENT AND TEST</text><title>Implement and test</title></g></a><a href="./#node-i06" xlink:href="./#node-i06"><g class="STA2 jules"><g class="shape" ><rect x="879" y="913" width="358" height="66" stroke="#348B51" fill="#DEF6E2" style="stroke-width:2;" /></g><text x="1058" y="951.5" fill="#17522B" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I06 · PUBLISH COMMIT OR PR</text><title>Publish commit or PR</title></g></a><a href="./#node-i07" xlink:href="./#node-i07"><g class="STA3 codex"><g class="shape" ><rect x="203" y="485" width="425" height="66" stroke="#784BAF" fill="#EDE3FC" style="stroke-width:2;" /></g><text x="415.5" y="523.5" fill="#402469" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I07 · RECEIVE IMPLEMENTATION TASK</text><title>Receive implementation task</title></g></a><a href="./#node-i08" xlink:href="./#node-i08"><g class="STA4 codex"><g class="shape" ><rect x="119" y="631" width="339" height="66" stroke="#784BAF" fill="#EDE3FC" style="stroke-width:2;" /></g><text x="288.5" y="669.5" fill="#402469" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I08 · IMPLEMENT AND TEST</text><title>Implement and test</title></g></a><a href="./#node-i09" xlink:href="./#node-i09"><g class="STA5 codex"><g class="shape" ><rect x="110" y="913" width="358" height="66" stroke="#784BAF" fill="#EDE3FC" style="stroke-width:2;" /></g><text x="289" y="951.5" fill="#402469" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I09 · PUBLISH COMMIT OR PR</text><title>Publish commit or PR</title></g></a><a href="./#node-i10" xlink:href="./#node-i10"><g class="STEw system"><g class="shape" ><rect x="419" y="1059" width="396" height="66" stroke="#6C7785" fill="#F1F3F5" style="stroke-width:2;" /></g><text x="617" y="1097.5" fill="#303D4C" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I10 · OBSERVE CURRENT REVISION</text><title>Observe current revision</title></g></a><a href="./#node-i17" xlink:href="./#node-i17"><g class="STE3 system"><g class="shape" ><rect x="1540" y="913" width="358" height="66" stroke="#6C7785" fill="#F1F3F5" style="stroke-width:2;" /></g><text x="1719" y="951.5" fill="#303D4C" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I17 · SET READY FOR REVIEW</text><title>Set Ready for review</title></g></a><a href="./#node-i19" xlink:href="./#node-i19"><g class="STE5 system"><g class="shape" ><rect x="1621" y="1492" width="368" height="66" stroke="#6C7785" fill="#F1F3F5" style="stroke-width:2;" /></g><text x="1805" y="1530.5" fill="#303D4C" class="text-mono-bold" style="text-anchor:middle;font-size:16px">I19 · MERGE AUTHORISED WORK</text><title>Merge authorised work</title></g></a><g class="KEkwMSAtJmd0OyBJMDIpWzBd"><marker id="mk-d2-1825135613-3488378134" markerWidth="10" markerHeight="12" refX="7" refY="6" viewBox="0 0 10 12" orient="auto" markerUnits="userSpaceOnUse"> <polygon points="0,0 10,6 0,12" fill="#000410" class="connection fill-B1" stroke-width="2" /> </marker><path d="M 2047.75 1954 L 2047.75 144 S 2047.75 144 2047.75 144 L 1619.650024 144 S 1619.650024 144 1619.650024 144 L 1619.979106 80.999945" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1825135613-3488378134)" mask="url(#d2-1825135613)" /></g><g class="KEkwMiAtJmd0OyBJMDQpWzBd"><path d="M 1404.003629 97.999997 L 1404.449951 344 S 1404.449951 344 1404.449951 344 L 1193.983032 344 S 1193.983032 344 1193.983032 344 L 1193.983032 627" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1825135613-3488378134)" mask="url(#d2-1825135613)" /><text x="1280" y="350" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">JULES</text></g><g class="KEkwMiAtJmd0OyBJMDcpWzBd"><path d="M 1296.998203 78.999999 L 1296.849976 244 S 1296.849976 244 1296.849976 244 L 415.75 244 S 415.75 244 415.75 244 L 415.75 481" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1825135613-3488378134)" mask="url(#d2-1825135613)" /><text x="819.5" y="250" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">CODEX/AGY</text></g><g class="KEkwMiAtJmd0OyBJMTUpWzBd"><path d="M 1512.001021 98 L 1512.050049 194 S 1512.050049 194 1512.050049 194 L 1700.166016 194 S 1700.166016 194 1700.166016 194 L 1700.166016 481" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1825135613-3488378134)" mask="url(#d2-1825135613)" /><text x="1700.5" y="202" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">ADMIN ONLY</text></g><g class="KEkwNCAtJmd0OyBJMDUpWzBd"><path d="M 1114.583008 699 L 1114.583008 773" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1825135613-3488378134)" mask="url(#d2-1825135613)" /></g><g class="KEkwNSAtJmd0OyBJMDYpWzBd"><path d="M 1058.083008 845 L 1058.083008 909" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1825135613-3488378134)" mask="url(#d2-1825135613)" /></g><g class="KEkwNyAtJmd0OyBJMDgpWzBd"><path d="M 345.5 553 L 345.5 627" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1825135613-3488378134)" mask="url(#d2-1825135613)" /></g><g class="KEkwOCAtJmd0OyBJMDkpWzBd"><path d="M 289 699 L 289 909" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1825135613-3488378134)" mask="url(#d2-1825135613)" /></g><g class="KEkwNiAtJmd0OyBJMTApWzBd"><path d="M 1058.083008 981 L 1058.083008 1019 S 1058.083008 1019 1058.083008 1019 L 683.382996 1019 S 683.382996 1019 683.382996 1019 L 683.382996 1055" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1825135613-3488378134)" mask="url(#d2-1825135613)" /></g><g class="KEkwOSAtJmd0OyBJMTApWzBd"><path d="M 289 981 L 289 1019 S 289 1019 289 1019 L 551.382996 1019 S 551.382996 1019 551.382996 1019 L 551.382996 1055" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1825135613-3488378134)" mask="url(#d2-1825135613)" /></g><g class="KEkxMCAtJmd0OyBJMTEpWzBd"><path d="M 617.382996 1127 L 617.382996 1191" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1825135613-3488378134)" mask="url(#d2-1825135613)" /></g><g class="KEkxMSAtJmd0OyBJMTIpWzBd"><path d="M 617.382996 1263 L 617.382996 1402 S 617.382996 1402 617.382996 1402 L 860.882996 1402 S 860.882996 1402 860.882996 1402 L 860.882996 1488" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1825135613-3488378134)" mask="url(#d2-1825135613)" /><text x="714" y="1408" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">ACTIONABLE OR RECORDED</text></g><g class="KEkxMiAtJmd0OyBJMTMpWzBd"><path d="M 779.682983 1490 L 779.682983 1452 S 779.682983 1452 779.682983 1452 L 12 1452 S 12 1452 12 1452 L 12 144 S 12 144 12 144 L 337.450012 144 S 337.450012 144 337.450012 144 L 337.026866 80.99991" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1825135613-3488378134)" mask="url(#d2-1825135613)" /></g><g class="KEkxMyAtJmd0OyBJMTQpWzBd"><path d="M 559.99879 98 L 559.849976 344 S 559.849976 344 559.849976 344 L 846.25 344 S 846.25 344 846.25 344 L 846.25 481" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1825135613-3488378134)" mask="url(#d2-1825135613)" /><text x="650" y="350" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">ANOTHER JULES CHUNK</text></g><g class="KEkxNCAtJmd0OyBJMDUpWzBd"><path d="M 846.25 553 L 846.25 737 S 846.25 737 846.25 737 L 1001.583008 737 S 1001.583008 737 1001.583008 737 L 1001.583008 773" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1825135613-3488378134)" mask="url(#d2-1825135613)" /><text x="850.5" y="743" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">NEW INSTRUCTION</text></g><g class="KEkxMyAtJmd0OyBJMDgpWzBd"><path d="M 448.992857 97.999987 L 448.649994 194 S 448.649994 194 448.649994 194 L 162.25 194 S 162.25 194 162.25 194 L 162.25 627" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1825135613-3488378134)" mask="url(#d2-1825135613)" /><text x="162" y="226" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">CODEX/AGY CORRECTION</text></g><g class="KEkxMyAtJmd0OyBJMTUpWzBd"><path d="M 671.000461 79 L 671.049988 294 S 671.049988 294 671.049988 294 L 1529 294 S 1529 294 1529 294 L 1529 481" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1825135613-3488378134)" mask="url(#d2-1825135613)" /><text x="1087" y="300" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">NO CODE CHANGES</text></g><g class="KEkxNSAtJmd0OyBJMTYpWzBd"><path d="M 1643.666016 553 L 1643.666016 627" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1825135613-3488378134)" mask="url(#d2-1825135613)" /></g><g class="KEkxNiAtJmd0OyBJMTIpWzBd"><path d="M 1600.166016 699 L 1600.166016 737 S 1600.166016 737 1600.166016 737 L 1446.133057 737 S 1446.133057 737 1446.133057 737 L 1446.133057 1402 S 1446.133057 1402 1446.133057 1402 L 942.083008 1402 S 942.083008 1402 942.083008 1402 L 942.083008 1488" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1825135613-3488378134)" mask="url(#d2-1825135613)" /><text x="1446" y="1275" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">BLOCKING EVIDENCE</text></g><g class="KEkxNiAtJmd0OyBJMTcpWzBd"><path d="M 1719 699 L 1719 909" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1825135613-3488378134)" mask="url(#d2-1825135613)" /><text x="1719.5" y="811" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">VERIFIED READY</text></g><g class="KEkxNyAtJmd0OyBJMTgpWzBd"><path d="M 1719 981 L 1719 1191" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1825135613-3488378134)" mask="url(#d2-1825135613)" /><text x="1719" y="1093" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">STATE CONFIRMED</text></g><g class="KEkxOCAtJmd0OyBJMTIpWzBd"><path d="M 1632.75 1263 L 1632.75 1452 S 1632.75 1452 1632.75 1452 L 1023.28302 1452 S 1023.28302 1452 1023.28302 1452 L 1023.28302 1488" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1825135613-3488378134)" mask="url(#d2-1825135613)" /><text x="1404" y="1458" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">CHANGES REQUESTED</text></g><g class="KEkxOCAtJmd0OyBJMTkpWzBd"><path d="M 1805.25 1263 L 1805.25 1488" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1825135613-3488378134)" mask="url(#d2-1825135613)" /><text x="1805.5" y="1382" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">EXPLICIT APPROVAL</text></g><g class="KEkxOSAtJmd0OyBJMjApWzBd"><path d="M 1805.25 1560 L 1805.25 1715" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1825135613-3488378134)" mask="url(#d2-1825135613)" /><text x="1805.5" y="1644" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">MERGED</text></g><g class="KEkyMCAtJmd0OyBJMDEpWzBd"><path d="M 1854.166016 1787 L 1854.166016 1952" stroke="#000410" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1825135613-3488378134)" mask="url(#d2-1825135613)" /><text x="1854" y="1876" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:16px">NEXT SELECTED TASK</text></g><g transform="translate(1153 9)" class="appendix-icon"><title>Authorize new handoff</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3427_35082111-d2-1825135613-JEYDG)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M16 26C21.5228 26 26 21.5228 26 16C26 10.4772 21.5228 6 16 6C10.4772 6 6 10.4772 6 16C6 21.5228 10.4772 26 16 26Z" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 19.998V15.998" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 12H16.0098" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3427_35082111-d2-1721724335-JEYDG">
+<clipPath id="clip0_3427_35082111-d2-1825135613-JEYDG">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(425 226)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3440_35088111-d2-1721724335-JEYDG)">
+</g><g transform="translate(1121 9)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3440_35088111-d2-1825135613-JEYDG)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M14.3909 16.7965C14.7364 17.2584 15.1772 17.6406 15.6834 17.9171C16.1896 18.1938 16.7494 18.3582 17.3248 18.3993C17.9001 18.4405 18.4777 18.3575 19.0181 18.1559C19.5586 17.9543 20.0492 17.6389 20.4571 17.2309L22.8708 14.8173C23.6036 14.0586 24.0089 13.0425 23.9998 11.9877C23.9906 10.933 23.5676 9.92404 22.8217 9.17821C22.0759 8.43237 21.067 8.00931 20.0123 8.00015C18.9575 7.99098 17.9413 8.39644 17.1827 9.1292L15.7988 10.505" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M17.609 15.1874C17.2635 14.7255 16.8227 14.3433 16.3165 14.0667C15.8103 13.7902 15.2505 13.6257 14.6752 13.5845C14.0998 13.5433 13.5223 13.6263 12.9819 13.8279C12.4414 14.0295 11.9506 14.345 11.5428 14.753L9.1292 17.1666C8.39644 17.9252 7.99098 18.9414 8.00015 19.9962C8.00931 21.0509 8.43237 22.0598 9.17821 22.8056C9.92405 23.5515 10.933 23.9745 11.9877 23.9837C13.0425 23.9928 14.0586 23.5875 14.8173 22.8547L16.193 21.4788" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3440_35088111-d2-1721724335-JEYDG">
+<clipPath id="clip0_3440_35088111-d2-1825135613-JEYDG">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(3825 416)" class="appendix-icon"><title>Review and authorise merge</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3427_35082111-d2-1721724335-JEYTQ)">
+</g><g transform="translate(1910 1179)" class="appendix-icon"><title>Review and authorise merge</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3427_35082111-d2-1825135613-JEYTQ)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M16 26C21.5228 26 26 21.5228 26 16C26 10.4772 21.5228 6 16 6C10.4772 6 6 10.4772 6 16C6 21.5228 10.4772 26 16 26Z" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 19.998V15.998" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 12H16.0098" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3427_35082111-d2-1721724335-JEYTQ">
+<clipPath id="clip0_3427_35082111-d2-1825135613-JEYTQ">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(3793 416)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3440_35088111-d2-1721724335-JEYTQ)">
+</g><g transform="translate(1878 1179)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3440_35088111-d2-1825135613-JEYTQ)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M14.3909 16.7965C14.7364 17.2584 15.1772 17.6406 15.6834 17.9171C16.1896 18.1938 16.7494 18.3582 17.3248 18.3993C17.9001 18.4405 18.4777 18.3575 19.0181 18.1559C19.5586 17.9543 20.0492 17.6389 20.4571 17.2309L22.8708 14.8173C23.6036 14.0586 24.0089 13.0425 23.9998 11.9877C23.9906 10.933 23.5676 9.92404 22.8217 9.17821C22.0759 8.43237 21.067 8.00931 20.0123 8.00015C18.9575 7.99098 17.9413 8.39644 17.1827 9.1292L15.7988 10.505" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M17.609 15.1874C17.2635 14.7255 16.8227 14.3433 16.3165 14.0667C15.8103 13.7902 15.2505 13.6257 14.6752 13.5845C14.0998 13.5433 13.5223 13.6263 12.9819 13.8279C12.4414 14.0295 11.9506 14.345 11.5428 14.753L9.1292 17.1666C8.39644 17.9252 7.99098 18.9414 8.00015 19.9962C8.00931 21.0509 8.43237 22.0598 9.17821 22.8056C9.92405 23.5515 10.933 23.9745 11.9877 23.9837C13.0425 23.9928 14.0586 23.5875 14.8173 22.8547L16.193 21.4788" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3440_35088111-d2-1721724335-JEYTQ">
+<clipPath id="clip0_3440_35088111-d2-1825135613-JEYTQ">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(6013 484)" class="appendix-icon"><title>Prepare implementation brief</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3427_35082111-d2-1721724335-JEYDC)">
+</g><g transform="translate(2127 1940)" class="appendix-icon"><title>Prepare implementation brief</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3427_35082111-d2-1825135613-JEYDC)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M16 26C21.5228 26 26 21.5228 26 16C26 10.4772 21.5228 6 16 6C10.4772 6 6 10.4772 6 16C6 21.5228 10.4772 26 16 26Z" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 19.998V15.998" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 12H16.0098" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3427_35082111-d2-1721724335-JEYDC">
+<clipPath id="clip0_3427_35082111-d2-1825135613-JEYDC">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(5981 484)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3440_35088111-d2-1721724335-JEYDC)">
+</g><g transform="translate(2095 1940)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3440_35088111-d2-1825135613-JEYDC)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M14.3909 16.7965C14.7364 17.2584 15.1772 17.6406 15.6834 17.9171C16.1896 18.1938 16.7494 18.3582 17.3248 18.3993C17.9001 18.4405 18.4777 18.3575 19.0181 18.1559C19.5586 17.9543 20.0492 17.6389 20.4571 17.2309L22.8708 14.8173C23.6036 14.0586 24.0089 13.0425 23.9998 11.9877C23.9906 10.933 23.5676 9.92404 22.8217 9.17821C22.0759 8.43237 21.067 8.00931 20.0123 8.00015C18.9575 7.99098 17.9413 8.39644 17.1827 9.1292L15.7988 10.505" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M17.609 15.1874C17.2635 14.7255 16.8227 14.3433 16.3165 14.0667C15.8103 13.7902 15.2505 13.6257 14.6752 13.5845C14.0998 13.5433 13.5223 13.6263 12.9819 13.8279C12.4414 14.0295 11.9506 14.345 11.5428 14.753L9.1292 17.1666C8.39644 17.9252 7.99098 18.9414 8.00015 19.9962C8.00931 21.0509 8.43237 22.0598 9.17821 22.8056C9.92405 23.5515 10.933 23.9745 11.9877 23.9837C13.0425 23.9928 14.0586 23.5875 14.8173 22.8547L16.193 21.4788" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3440_35088111-d2-1721724335-JEYDC">
+<clipPath id="clip0_3440_35088111-d2-1825135613-JEYDC">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(443 343)" class="appendix-icon"><title>Choose worker?</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3427_35082111-d2-1721724335-JEYDE)">
+</g><g transform="translate(1602 17)" class="appendix-icon"><title>Choose worker?</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3427_35082111-d2-1825135613-JEYDE)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M16 26C21.5228 26 26 21.5228 26 16C26 10.4772 21.5228 6 16 6C10.4772 6 6 10.4772 6 16C6 21.5228 10.4772 26 16 26Z" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 19.998V15.998" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 12H16.0098" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3427_35082111-d2-1721724335-JEYDE">
+<clipPath id="clip0_3427_35082111-d2-1825135613-JEYDE">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(411 343)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3440_35088111-d2-1721724335-JEYDE)">
+</g><g transform="translate(1570 17)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3440_35088111-d2-1825135613-JEYDE)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M14.3909 16.7965C14.7364 17.2584 15.1772 17.6406 15.6834 17.9171C16.1896 18.1938 16.7494 18.3582 17.3248 18.3993C17.9001 18.4405 18.4777 18.3575 19.0181 18.1559C19.5586 17.9543 20.0492 17.6389 20.4571 17.2309L22.8708 14.8173C23.6036 14.0586 24.0089 13.0425 23.9998 11.9877C23.9906 10.933 23.5676 9.92404 22.8217 9.17821C22.0759 8.43237 21.067 8.00931 20.0123 8.00015C18.9575 7.99098 17.9413 8.39644 17.1827 9.1292L15.7988 10.505" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M17.609 15.1874C17.2635 14.7255 16.8227 14.3433 16.3165 14.0667C15.8103 13.7902 15.2505 13.6257 14.6752 13.5845C14.0998 13.5433 13.5223 13.6263 12.9819 13.8279C12.4414 14.0295 11.9506 14.345 11.5428 14.753L9.1292 17.1666C8.39644 17.9252 7.99098 18.9414 8.00015 19.9962C8.00931 21.0509 8.43237 22.0598 9.17821 22.8056C9.92405 23.5515 10.933 23.9745 11.9877 23.9837C13.0425 23.9928 14.0586 23.5875 14.8173 22.8547L16.193 21.4788" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3440_35088111-d2-1721724335-JEYDE">
+<clipPath id="clip0_3440_35088111-d2-1825135613-JEYDE">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(3786 135)" class="appendix-icon"><title>Classify CI signal</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3427_35082111-d2-1721724335-JEYTC)">
+</g><g transform="translate(770 1179)" class="appendix-icon"><title>Classify CI signal</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3427_35082111-d2-1825135613-JEYTC)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M16 26C21.5228 26 26 21.5228 26 16C26 10.4772 21.5228 6 16 6C10.4772 6 6 10.4772 6 16C6 21.5228 10.4772 26 16 26Z" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 19.998V15.998" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 12H16.0098" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3427_35082111-d2-1721724335-JEYTC">
+<clipPath id="clip0_3427_35082111-d2-1825135613-JEYTC">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(3754 135)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3440_35088111-d2-1721724335-JEYTC)">
+</g><g transform="translate(738 1179)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3440_35088111-d2-1825135613-JEYTC)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M14.3909 16.7965C14.7364 17.2584 15.1772 17.6406 15.6834 17.9171C16.1896 18.1938 16.7494 18.3582 17.3248 18.3993C17.9001 18.4405 18.4777 18.3575 19.0181 18.1559C19.5586 17.9543 20.0492 17.6389 20.4571 17.2309L22.8708 14.8173C23.6036 14.0586 24.0089 13.0425 23.9998 11.9877C23.9906 10.933 23.5676 9.92404 22.8217 9.17821C22.0759 8.43237 21.067 8.00931 20.0123 8.00015C18.9575 7.99098 17.9413 8.39644 17.1827 9.1292L15.7988 10.505" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M17.609 15.1874C17.2635 14.7255 16.8227 14.3433 16.3165 14.0667C15.8103 13.7902 15.2505 13.6257 14.6752 13.5845C14.0998 13.5433 13.5223 13.6263 12.9819 13.8279C12.4414 14.0295 11.9506 14.345 11.5428 14.753L9.1292 17.1666C8.39644 17.9252 7.99098 18.9414 8.00015 19.9962C8.00931 21.0509 8.43237 22.0598 9.17821 22.8056C9.92405 23.5515 10.933 23.9745 11.9877 23.9837C13.0425 23.9928 14.0586 23.5875 14.8173 22.8547L16.193 21.4788" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3440_35088111-d2-1721724335-JEYTC">
+<clipPath id="clip0_3440_35088111-d2-1825135613-JEYTC">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(4653 167)" class="appendix-icon"><title>Independently review work</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3427_35082111-d2-1721724335-JEYTE)">
+</g><g transform="translate(1088 1476)" class="appendix-icon"><title>Independently review work</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3427_35082111-d2-1825135613-JEYTE)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M16 26C21.5228 26 26 21.5228 26 16C26 10.4772 21.5228 6 16 6C10.4772 6 6 10.4772 6 16C6 21.5228 10.4772 26 16 26Z" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 19.998V15.998" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 12H16.0098" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3427_35082111-d2-1721724335-JEYTE">
+<clipPath id="clip0_3427_35082111-d2-1825135613-JEYTE">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(4621 167)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3440_35088111-d2-1721724335-JEYTE)">
+</g><g transform="translate(1056 1476)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3440_35088111-d2-1825135613-JEYTE)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M14.3909 16.7965C14.7364 17.2584 15.1772 17.6406 15.6834 17.9171C16.1896 18.1938 16.7494 18.3582 17.3248 18.3993C17.9001 18.4405 18.4777 18.3575 19.0181 18.1559C19.5586 17.9543 20.0492 17.6389 20.4571 17.2309L22.8708 14.8173C23.6036 14.0586 24.0089 13.0425 23.9998 11.9877C23.9906 10.933 23.5676 9.92404 22.8217 9.17821C22.0759 8.43237 21.067 8.00931 20.0123 8.00015C18.9575 7.99098 17.9413 8.39644 17.1827 9.1292L15.7988 10.505" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M17.609 15.1874C17.2635 14.7255 16.8227 14.3433 16.3165 14.0667C15.8103 13.7902 15.2505 13.6257 14.6752 13.5845C14.0998 13.5433 13.5223 13.6263 12.9819 13.8279C12.4414 14.0295 11.9506 14.345 11.5428 14.753L9.1292 17.1666C8.39644 17.9252 7.99098 18.9414 8.00015 19.9962C8.00931 21.0509 8.43237 22.0598 9.17821 22.8056C9.92405 23.5515 10.933 23.9745 11.9877 23.9837C13.0425 23.9928 14.0586 23.5875 14.8173 22.8547L16.193 21.4788" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3440_35088111-d2-1721724335-JEYTE">
+<clipPath id="clip0_3440_35088111-d2-1825135613-JEYTE">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(438 99)" class="appendix-icon"><title>Work remaining?</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3427_35082111-d2-1721724335-JEYTG)">
+</g><g transform="translate(653 17)" class="appendix-icon"><title>Work remaining?</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3427_35082111-d2-1825135613-JEYTG)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M16 26C21.5228 26 26 21.5228 26 16C26 10.4772 21.5228 6 16 6C10.4772 6 6 10.4772 6 16C6 21.5228 10.4772 26 16 26Z" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 19.998V15.998" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 12H16.0098" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3427_35082111-d2-1721724335-JEYTG">
+<clipPath id="clip0_3427_35082111-d2-1825135613-JEYTG">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(406 99)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3440_35088111-d2-1721724335-JEYTG)">
+</g><g transform="translate(621 17)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3440_35088111-d2-1825135613-JEYTG)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M14.3909 16.7965C14.7364 17.2584 15.1772 17.6406 15.6834 17.9171C16.1896 18.1938 16.7494 18.3582 17.3248 18.3993C17.9001 18.4405 18.4777 18.3575 19.0181 18.1559C19.5586 17.9543 20.0492 17.6389 20.4571 17.2309L22.8708 14.8173C23.6036 14.0586 24.0089 13.0425 23.9998 11.9877C23.9906 10.933 23.5676 9.92404 22.8217 9.17821C22.0759 8.43237 21.067 8.00931 20.0123 8.00015C18.9575 7.99098 17.9413 8.39644 17.1827 9.1292L15.7988 10.505" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M17.609 15.1874C17.2635 14.7255 16.8227 14.3433 16.3165 14.0667C15.8103 13.7902 15.2505 13.6257 14.6752 13.5845C14.0998 13.5433 13.5223 13.6263 12.9819 13.8279C12.4414 14.0295 11.9506 14.345 11.5428 14.753L9.1292 17.1666C8.39644 17.9252 7.99098 18.9414 8.00015 19.9962C8.00931 21.0509 8.43237 22.0598 9.17821 22.8056C9.92405 23.5515 10.933 23.9745 11.9877 23.9837C13.0425 23.9928 14.0586 23.5875 14.8173 22.8547L16.193 21.4788" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3440_35088111-d2-1721724335-JEYTG">
+<clipPath id="clip0_3440_35088111-d2-1825135613-JEYTG">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(1564 182)" class="appendix-icon"><title>Issue focused correction</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3427_35082111-d2-1721724335-JEYTI)">
+</g><g transform="translate(1028 469)" class="appendix-icon"><title>Issue focused correction</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3427_35082111-d2-1825135613-JEYTI)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M16 26C21.5228 26 26 21.5228 26 16C26 10.4772 21.5228 6 16 6C10.4772 6 6 10.4772 6 16C6 21.5228 10.4772 26 16 26Z" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 19.998V15.998" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 12H16.0098" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3427_35082111-d2-1721724335-JEYTI">
+<clipPath id="clip0_3427_35082111-d2-1825135613-JEYTI">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(1532 182)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3440_35088111-d2-1721724335-JEYTI)">
+</g><g transform="translate(996 469)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3440_35088111-d2-1825135613-JEYTI)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M14.3909 16.7965C14.7364 17.2584 15.1772 17.6406 15.6834 17.9171C16.1896 18.1938 16.7494 18.3582 17.3248 18.3993C17.9001 18.4405 18.4777 18.3575 19.0181 18.1559C19.5586 17.9543 20.0492 17.6389 20.4571 17.2309L22.8708 14.8173C23.6036 14.0586 24.0089 13.0425 23.9998 11.9877C23.9906 10.933 23.5676 9.92404 22.8217 9.17821C22.0759 8.43237 21.067 8.00931 20.0123 8.00015C18.9575 7.99098 17.9413 8.39644 17.1827 9.1292L15.7988 10.505" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M17.609 15.1874C17.2635 14.7255 16.8227 14.3433 16.3165 14.0667C15.8103 13.7902 15.2505 13.6257 14.6752 13.5845C14.0998 13.5433 13.5223 13.6263 12.9819 13.8279C12.4414 14.0295 11.9506 14.345 11.5428 14.753L9.1292 17.1666C8.39644 17.9252 7.99098 18.9414 8.00015 19.9962C8.00931 21.0509 8.43237 22.0598 9.17821 22.8056C9.92405 23.5515 10.933 23.9745 11.9877 23.9837C13.0425 23.9928 14.0586 23.5875 14.8173 22.8547L16.193 21.4788" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3440_35088111-d2-1721724335-JEYTI">
+<clipPath id="clip0_3440_35088111-d2-1825135613-JEYTI">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(1521 388)" class="appendix-icon"><title>Manage PR metadata</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3427_35082111-d2-1721724335-JEYTK)">
+</g><g transform="translate(1797 469)" class="appendix-icon"><title>Manage PR metadata</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3427_35082111-d2-1825135613-JEYTK)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M16 26C21.5228 26 26 21.5228 26 16C26 10.4772 21.5228 6 16 6C10.4772 6 6 10.4772 6 16C6 21.5228 10.4772 26 16 26Z" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 19.998V15.998" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 12H16.0098" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3427_35082111-d2-1721724335-JEYTK">
+<clipPath id="clip0_3427_35082111-d2-1825135613-JEYTK">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(1489 388)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3440_35088111-d2-1721724335-JEYTK)">
+</g><g transform="translate(1765 469)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3440_35088111-d2-1825135613-JEYTK)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M14.3909 16.7965C14.7364 17.2584 15.1772 17.6406 15.6834 17.9171C16.1896 18.1938 16.7494 18.3582 17.3248 18.3993C17.9001 18.4405 18.4777 18.3575 19.0181 18.1559C19.5586 17.9543 20.0492 17.6389 20.4571 17.2309L22.8708 14.8173C23.6036 14.0586 24.0089 13.0425 23.9998 11.9877C23.9906 10.933 23.5676 9.92404 22.8217 9.17821C22.0759 8.43237 21.067 8.00931 20.0123 8.00015C18.9575 7.99098 17.9413 8.39644 17.1827 9.1292L15.7988 10.505" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M17.609 15.1874C17.2635 14.7255 16.8227 14.3433 16.3165 14.0667C15.8103 13.7902 15.2505 13.6257 14.6752 13.5845C14.0998 13.5433 13.5223 13.6263 12.9819 13.8279C12.4414 14.0295 11.9506 14.345 11.5428 14.753L9.1292 17.1666C8.39644 17.9252 7.99098 18.9414 8.00015 19.9962C8.00931 21.0509 8.43237 22.0598 9.17821 22.8056C9.92405 23.5515 10.933 23.9745 11.9877 23.9837C13.0425 23.9928 14.0586 23.5875 14.8173 22.8547L16.193 21.4788" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3440_35088111-d2-1721724335-JEYTK">
+<clipPath id="clip0_3440_35088111-d2-1825135613-JEYTK">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(1984 388)" class="appendix-icon"><title>Ready gate</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3427_35082111-d2-1721724335-JEYTM)">
+</g><g transform="translate(1758 615)" class="appendix-icon"><title>Ready gate</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3427_35082111-d2-1825135613-JEYTM)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M16 26C21.5228 26 26 21.5228 26 16C26 10.4772 21.5228 6 16 6C10.4772 6 6 10.4772 6 16C6 21.5228 10.4772 26 16 26Z" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 19.998V15.998" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 12H16.0098" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3427_35082111-d2-1721724335-JEYTM">
+<clipPath id="clip0_3427_35082111-d2-1825135613-JEYTM">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(1952 388)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3440_35088111-d2-1721724335-JEYTM)">
+</g><g transform="translate(1726 615)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3440_35088111-d2-1825135613-JEYTM)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M14.3909 16.7965C14.7364 17.2584 15.1772 17.6406 15.6834 17.9171C16.1896 18.1938 16.7494 18.3582 17.3248 18.3993C17.9001 18.4405 18.4777 18.3575 19.0181 18.1559C19.5586 17.9543 20.0492 17.6389 20.4571 17.2309L22.8708 14.8173C23.6036 14.0586 24.0089 13.0425 23.9998 11.9877C23.9906 10.933 23.5676 9.92404 22.8217 9.17821C22.0759 8.43237 21.067 8.00931 20.0123 8.00015C18.9575 7.99098 17.9413 8.39644 17.1827 9.1292L15.7988 10.505" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M17.609 15.1874C17.2635 14.7255 16.8227 14.3433 16.3165 14.0667C15.8103 13.7902 15.2505 13.6257 14.6752 13.5845C14.0998 13.5433 13.5223 13.6263 12.9819 13.8279C12.4414 14.0295 11.9506 14.345 11.5428 14.753L9.1292 17.1666C8.39644 17.9252 7.99098 18.9414 8.00015 19.9962C8.00931 21.0509 8.43237 22.0598 9.17821 22.8056C9.92405 23.5515 10.933 23.9745 11.9877 23.9837C13.0425 23.9928 14.0586 23.5875 14.8173 22.8547L16.193 21.4788" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3440_35088111-d2-1721724335-JEYTM">
+<clipPath id="clip0_3440_35088111-d2-1825135613-JEYTM">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(5255 439)" class="appendix-icon"><title>Post-merge reconciliation</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3427_35082111-d2-1721724335-JEZDA)">
+</g><g transform="translate(1991 1703)" class="appendix-icon"><title>Post-merge reconciliation</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3427_35082111-d2-1825135613-JEZDA)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M16 26C21.5228 26 26 21.5228 26 16C26 10.4772 21.5228 6 16 6C10.4772 6 6 10.4772 6 16C6 21.5228 10.4772 26 16 26Z" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 19.998V15.998" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 12H16.0098" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3427_35082111-d2-1721724335-JEZDA">
+<clipPath id="clip0_3427_35082111-d2-1825135613-JEZDA">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(5223 439)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3440_35088111-d2-1721724335-JEZDA)">
+</g><g transform="translate(1959 1703)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3440_35088111-d2-1825135613-JEZDA)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M14.3909 16.7965C14.7364 17.2584 15.1772 17.6406 15.6834 17.9171C16.1896 18.1938 16.7494 18.3582 17.3248 18.3993C17.9001 18.4405 18.4777 18.3575 19.0181 18.1559C19.5586 17.9543 20.0492 17.6389 20.4571 17.2309L22.8708 14.8173C23.6036 14.0586 24.0089 13.0425 23.9998 11.9877C23.9906 10.933 23.5676 9.92404 22.8217 9.17821C22.0759 8.43237 21.067 8.00931 20.0123 8.00015C18.9575 7.99098 17.9413 8.39644 17.1827 9.1292L15.7988 10.505" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M17.609 15.1874C17.2635 14.7255 16.8227 14.3433 16.3165 14.0667C15.8103 13.7902 15.2505 13.6257 14.6752 13.5845C14.0998 13.5433 13.5223 13.6263 12.9819 13.8279C12.4414 14.0295 11.9506 14.345 11.5428 14.753L9.1292 17.1666C8.39644 17.9252 7.99098 18.9414 8.00015 19.9962C8.00931 21.0509 8.43237 22.0598 9.17821 22.8056C9.92405 23.5515 10.933 23.9745 11.9877 23.9837C13.0425 23.9928 14.0586 23.5875 14.8173 22.8547L16.193 21.4788" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3440_35088111-d2-1721724335-JEZDA">
+<clipPath id="clip0_3440_35088111-d2-1825135613-JEZDA">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(2017 255)" class="appendix-icon"><title>Receive focused task</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3427_35082111-d2-1721724335-JEYDI)">
+</g><g transform="translate(1356 615)" class="appendix-icon"><title>Receive focused task</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3427_35082111-d2-1825135613-JEYDI)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M16 26C21.5228 26 26 21.5228 26 16C26 10.4772 21.5228 6 16 6C10.4772 6 6 10.4772 6 16C6 21.5228 10.4772 26 16 26Z" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 19.998V15.998" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 12H16.0098" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3427_35082111-d2-1721724335-JEYDI">
+<clipPath id="clip0_3427_35082111-d2-1825135613-JEYDI">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(1985 255)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3440_35088111-d2-1721724335-JEYDI)">
+</g><g transform="translate(1324 615)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3440_35088111-d2-1825135613-JEYDI)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M14.3909 16.7965C14.7364 17.2584 15.1772 17.6406 15.6834 17.9171C16.1896 18.1938 16.7494 18.3582 17.3248 18.3993C17.9001 18.4405 18.4777 18.3575 19.0181 18.1559C19.5586 17.9543 20.0492 17.6389 20.4571 17.2309L22.8708 14.8173C23.6036 14.0586 24.0089 13.0425 23.9998 11.9877C23.9906 10.933 23.5676 9.92404 22.8217 9.17821C22.0759 8.43237 21.067 8.00931 20.0123 8.00015C18.9575 7.99098 17.9413 8.39644 17.1827 9.1292L15.7988 10.505" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M17.609 15.1874C17.2635 14.7255 16.8227 14.3433 16.3165 14.0667C15.8103 13.7902 15.2505 13.6257 14.6752 13.5845C14.0998 13.5433 13.5223 13.6263 12.9819 13.8279C12.4414 14.0295 11.9506 14.345 11.5428 14.753L9.1292 17.1666C8.39644 17.9252 7.99098 18.9414 8.00015 19.9962C8.00931 21.0509 8.43237 22.0598 9.17821 22.8056C9.92405 23.5515 10.933 23.9745 11.9877 23.9837C13.0425 23.9928 14.0586 23.5875 14.8173 22.8547L16.193 21.4788" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3440_35088111-d2-1721724335-JEYDI">
+<clipPath id="clip0_3440_35088111-d2-1825135613-JEYDI">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(2436 212)" class="appendix-icon"><title>Implement and test</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3427_35082111-d2-1721724335-JEYDK)">
+</g><g transform="translate(1211 761)" class="appendix-icon"><title>Implement and test</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3427_35082111-d2-1825135613-JEYDK)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M16 26C21.5228 26 26 21.5228 26 16C26 10.4772 21.5228 6 16 6C10.4772 6 6 10.4772 6 16C6 21.5228 10.4772 26 16 26Z" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 19.998V15.998" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 12H16.0098" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3427_35082111-d2-1721724335-JEYDK">
+<clipPath id="clip0_3427_35082111-d2-1825135613-JEYDK">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(2404 212)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3440_35088111-d2-1721724335-JEYDK)">
+</g><g transform="translate(1179 761)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3440_35088111-d2-1825135613-JEYDK)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M14.3909 16.7965C14.7364 17.2584 15.1772 17.6406 15.6834 17.9171C16.1896 18.1938 16.7494 18.3582 17.3248 18.3993C17.9001 18.4405 18.4777 18.3575 19.0181 18.1559C19.5586 17.9543 20.0492 17.6389 20.4571 17.2309L22.8708 14.8173C23.6036 14.0586 24.0089 13.0425 23.9998 11.9877C23.9906 10.933 23.5676 9.92404 22.8217 9.17821C22.0759 8.43237 21.067 8.00931 20.0123 8.00015C18.9575 7.99098 17.9413 8.39644 17.1827 9.1292L15.7988 10.505" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M17.609 15.1874C17.2635 14.7255 16.8227 14.3433 16.3165 14.0667C15.8103 13.7902 15.2505 13.6257 14.6752 13.5845C14.0998 13.5433 13.5223 13.6263 12.9819 13.8279C12.4414 14.0295 11.9506 14.345 11.5428 14.753L9.1292 17.1666C8.39644 17.9252 7.99098 18.9414 8.00015 19.9962C8.00931 21.0509 8.43237 22.0598 9.17821 22.8056C9.92405 23.5515 10.933 23.9745 11.9877 23.9837C13.0425 23.9928 14.0586 23.5875 14.8173 22.8547L16.193 21.4788" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3440_35088111-d2-1721724335-JEYDK">
+<clipPath id="clip0_3440_35088111-d2-1825135613-JEYDK">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(2864 219)" class="appendix-icon"><title>Publish commit or PR</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3427_35082111-d2-1721724335-JEYDM)">
+</g><g transform="translate(1221 897)" class="appendix-icon"><title>Publish commit or PR</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3427_35082111-d2-1825135613-JEYDM)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M16 26C21.5228 26 26 21.5228 26 16C26 10.4772 21.5228 6 16 6C10.4772 6 6 10.4772 6 16C6 21.5228 10.4772 26 16 26Z" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 19.998V15.998" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 12H16.0098" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3427_35082111-d2-1721724335-JEYDM">
+<clipPath id="clip0_3427_35082111-d2-1825135613-JEYDM">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(2832 219)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3440_35088111-d2-1721724335-JEYDM)">
+</g><g transform="translate(1189 897)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3440_35088111-d2-1825135613-JEYDM)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M14.3909 16.7965C14.7364 17.2584 15.1772 17.6406 15.6834 17.9171C16.1896 18.1938 16.7494 18.3582 17.3248 18.3993C17.9001 18.4405 18.4777 18.3575 19.0181 18.1559C19.5586 17.9543 20.0492 17.6389 20.4571 17.2309L22.8708 14.8173C23.6036 14.0586 24.0089 13.0425 23.9998 11.9877C23.9906 10.933 23.5676 9.92404 22.8217 9.17821C22.0759 8.43237 21.067 8.00931 20.0123 8.00015C18.9575 7.99098 17.9413 8.39644 17.1827 9.1292L15.7988 10.505" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M17.609 15.1874C17.2635 14.7255 16.8227 14.3433 16.3165 14.0667C15.8103 13.7902 15.2505 13.6257 14.6752 13.5845C14.0998 13.5433 13.5223 13.6263 12.9819 13.8279C12.4414 14.0295 11.9506 14.345 11.5428 14.753L9.1292 17.1666C8.39644 17.9252 7.99098 18.9414 8.00015 19.9962C8.00931 21.0509 8.43237 22.0598 9.17821 22.8056C9.92405 23.5515 10.933 23.9745 11.9877 23.9837C13.0425 23.9928 14.0586 23.5875 14.8173 22.8547L16.193 21.4788" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3440_35088111-d2-1721724335-JEYDM">
+<clipPath id="clip0_3440_35088111-d2-1825135613-JEYDM">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(1579 96)" class="appendix-icon"><title>Receive implementation task</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3427_35082111-d2-1721724335-JEYDO)">
+</g><g transform="translate(612 469)" class="appendix-icon"><title>Receive implementation task</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3427_35082111-d2-1825135613-JEYDO)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M16 26C21.5228 26 26 21.5228 26 16C26 10.4772 21.5228 6 16 6C10.4772 6 6 10.4772 6 16C6 21.5228 10.4772 26 16 26Z" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 19.998V15.998" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 12H16.0098" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3427_35082111-d2-1721724335-JEYDO">
+<clipPath id="clip0_3427_35082111-d2-1825135613-JEYDO">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(1547 96)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3440_35088111-d2-1721724335-JEYDO)">
+</g><g transform="translate(580 469)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3440_35088111-d2-1825135613-JEYDO)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M14.3909 16.7965C14.7364 17.2584 15.1772 17.6406 15.6834 17.9171C16.1896 18.1938 16.7494 18.3582 17.3248 18.3993C17.9001 18.4405 18.4777 18.3575 19.0181 18.1559C19.5586 17.9543 20.0492 17.6389 20.4571 17.2309L22.8708 14.8173C23.6036 14.0586 24.0089 13.0425 23.9998 11.9877C23.9906 10.933 23.5676 9.92404 22.8217 9.17821C22.0759 8.43237 21.067 8.00931 20.0123 8.00015C18.9575 7.99098 17.9413 8.39644 17.1827 9.1292L15.7988 10.505" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M17.609 15.1874C17.2635 14.7255 16.8227 14.3433 16.3165 14.0667C15.8103 13.7902 15.2505 13.6257 14.6752 13.5845C14.0998 13.5433 13.5223 13.6263 12.9819 13.8279C12.4414 14.0295 11.9506 14.345 11.5428 14.753L9.1292 17.1666C8.39644 17.9252 7.99098 18.9414 8.00015 19.9962C8.00931 21.0509 8.43237 22.0598 9.17821 22.8056C9.92405 23.5515 10.933 23.9745 11.9877 23.9837C13.0425 23.9928 14.0586 23.5875 14.8173 22.8547L16.193 21.4788" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3440_35088111-d2-1721724335-JEYDO">
+<clipPath id="clip0_3440_35088111-d2-1825135613-JEYDO">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(2004 49)" class="appendix-icon"><title>Implement and test</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3427_35082111-d2-1721724335-JEYDQ)">
+</g><g transform="translate(442 615)" class="appendix-icon"><title>Implement and test</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3427_35082111-d2-1825135613-JEYDQ)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M16 26C21.5228 26 26 21.5228 26 16C26 10.4772 21.5228 6 16 6C10.4772 6 6 10.4772 6 16C6 21.5228 10.4772 26 16 26Z" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 19.998V15.998" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 12H16.0098" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3427_35082111-d2-1721724335-JEYDQ">
+<clipPath id="clip0_3427_35082111-d2-1825135613-JEYDQ">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(1972 49)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3440_35088111-d2-1721724335-JEYDQ)">
+</g><g transform="translate(410 615)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3440_35088111-d2-1825135613-JEYDQ)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M14.3909 16.7965C14.7364 17.2584 15.1772 17.6406 15.6834 17.9171C16.1896 18.1938 16.7494 18.3582 17.3248 18.3993C17.9001 18.4405 18.4777 18.3575 19.0181 18.1559C19.5586 17.9543 20.0492 17.6389 20.4571 17.2309L22.8708 14.8173C23.6036 14.0586 24.0089 13.0425 23.9998 11.9877C23.9906 10.933 23.5676 9.92404 22.8217 9.17821C22.0759 8.43237 21.067 8.00931 20.0123 8.00015C18.9575 7.99098 17.9413 8.39644 17.1827 9.1292L15.7988 10.505" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M17.609 15.1874C17.2635 14.7255 16.8227 14.3433 16.3165 14.0667C15.8103 13.7902 15.2505 13.6257 14.6752 13.5845C14.0998 13.5433 13.5223 13.6263 12.9819 13.8279C12.4414 14.0295 11.9506 14.345 11.5428 14.753L9.1292 17.1666C8.39644 17.9252 7.99098 18.9414 8.00015 19.9962C8.00931 21.0509 8.43237 22.0598 9.17821 22.8056C9.92405 23.5515 10.933 23.9745 11.9877 23.9837C13.0425 23.9928 14.0586 23.5875 14.8173 22.8547L16.193 21.4788" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3440_35088111-d2-1721724335-JEYDQ">
+<clipPath id="clip0_3440_35088111-d2-1825135613-JEYDQ">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(2864 56)" class="appendix-icon"><title>Publish commit or PR</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3427_35082111-d2-1721724335-JEYDS)">
+</g><g transform="translate(452 897)" class="appendix-icon"><title>Publish commit or PR</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3427_35082111-d2-1825135613-JEYDS)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M16 26C21.5228 26 26 21.5228 26 16C26 10.4772 21.5228 6 16 6C10.4772 6 6 10.4772 6 16C6 21.5228 10.4772 26 16 26Z" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 19.998V15.998" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 12H16.0098" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3427_35082111-d2-1721724335-JEYDS">
+<clipPath id="clip0_3427_35082111-d2-1825135613-JEYDS">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(2832 56)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3440_35088111-d2-1721724335-JEYDS)">
+</g><g transform="translate(420 897)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3440_35088111-d2-1825135613-JEYDS)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M14.3909 16.7965C14.7364 17.2584 15.1772 17.6406 15.6834 17.9171C16.1896 18.1938 16.7494 18.3582 17.3248 18.3993C17.9001 18.4405 18.4777 18.3575 19.0181 18.1559C19.5586 17.9543 20.0492 17.6389 20.4571 17.2309L22.8708 14.8173C23.6036 14.0586 24.0089 13.0425 23.9998 11.9877C23.9906 10.933 23.5676 9.92404 22.8217 9.17821C22.0759 8.43237 21.067 8.00931 20.0123 8.00015C18.9575 7.99098 17.9413 8.39644 17.1827 9.1292L15.7988 10.505" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M17.609 15.1874C17.2635 14.7255 16.8227 14.3433 16.3165 14.0667C15.8103 13.7902 15.2505 13.6257 14.6752 13.5845C14.0998 13.5433 13.5223 13.6263 12.9819 13.8279C12.4414 14.0295 11.9506 14.345 11.5428 14.753L9.1292 17.1666C8.39644 17.9252 7.99098 18.9414 8.00015 19.9962C8.00931 21.0509 8.43237 22.0598 9.17821 22.8056C9.92405 23.5515 10.933 23.9745 11.9877 23.9837C13.0425 23.9928 14.0586 23.5875 14.8173 22.8547L16.193 21.4788" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3440_35088111-d2-1721724335-JEYDS">
+<clipPath id="clip0_3440_35088111-d2-1825135613-JEYDS">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(3340 128)" class="appendix-icon"><title>Observe current revision</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3427_35082111-d2-1721724335-JEYTA)">
+</g><g transform="translate(799 1043)" class="appendix-icon"><title>Observe current revision</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3427_35082111-d2-1825135613-JEYTA)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M16 26C21.5228 26 26 21.5228 26 16C26 10.4772 21.5228 6 16 6C10.4772 6 6 10.4772 6 16C6 21.5228 10.4772 26 16 26Z" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 19.998V15.998" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 12H16.0098" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3427_35082111-d2-1721724335-JEYTA">
+<clipPath id="clip0_3427_35082111-d2-1825135613-JEYTA">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(3308 128)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3440_35088111-d2-1721724335-JEYTA)">
+</g><g transform="translate(767 1043)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3440_35088111-d2-1825135613-JEYTA)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M14.3909 16.7965C14.7364 17.2584 15.1772 17.6406 15.6834 17.9171C16.1896 18.1938 16.7494 18.3582 17.3248 18.3993C17.9001 18.4405 18.4777 18.3575 19.0181 18.1559C19.5586 17.9543 20.0492 17.6389 20.4571 17.2309L22.8708 14.8173C23.6036 14.0586 24.0089 13.0425 23.9998 11.9877C23.9906 10.933 23.5676 9.92404 22.8217 9.17821C22.0759 8.43237 21.067 8.00931 20.0123 8.00015C18.9575 7.99098 17.9413 8.39644 17.1827 9.1292L15.7988 10.505" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M17.609 15.1874C17.2635 14.7255 16.8227 14.3433 16.3165 14.0667C15.8103 13.7902 15.2505 13.6257 14.6752 13.5845C14.0998 13.5433 13.5223 13.6263 12.9819 13.8279C12.4414 14.0295 11.9506 14.345 11.5428 14.753L9.1292 17.1666C8.39644 17.9252 7.99098 18.9414 8.00015 19.9962C8.00931 21.0509 8.43237 22.0598 9.17821 22.8056C9.92405 23.5515 10.933 23.9745 11.9877 23.9837C13.0425 23.9928 14.0586 23.5875 14.8173 22.8547L16.193 21.4788" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3440_35088111-d2-1721724335-JEYTA">
+<clipPath id="clip0_3440_35088111-d2-1825135613-JEYTA">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(2864 423)" class="appendix-icon"><title>Set Ready for review</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3427_35082111-d2-1721724335-JEYTO)">
+</g><g transform="translate(1882 897)" class="appendix-icon"><title>Set Ready for review</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3427_35082111-d2-1825135613-JEYTO)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M16 26C21.5228 26 26 21.5228 26 16C26 10.4772 21.5228 6 16 6C10.4772 6 6 10.4772 6 16C6 21.5228 10.4772 26 16 26Z" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 19.998V15.998" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 12H16.0098" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3427_35082111-d2-1721724335-JEYTO">
+<clipPath id="clip0_3427_35082111-d2-1825135613-JEYTO">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(2832 423)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3440_35088111-d2-1721724335-JEYTO)">
+</g><g transform="translate(1850 897)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3440_35088111-d2-1825135613-JEYTO)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M14.3909 16.7965C14.7364 17.2584 15.1772 17.6406 15.6834 17.9171C16.1896 18.1938 16.7494 18.3582 17.3248 18.3993C17.9001 18.4405 18.4777 18.3575 19.0181 18.1559C19.5586 17.9543 20.0492 17.6389 20.4571 17.2309L22.8708 14.8173C23.6036 14.0586 24.0089 13.0425 23.9998 11.9877C23.9906 10.933 23.5676 9.92404 22.8217 9.17821C22.0759 8.43237 21.067 8.00931 20.0123 8.00015C18.9575 7.99098 17.9413 8.39644 17.1827 9.1292L15.7988 10.505" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M17.609 15.1874C17.2635 14.7255 16.8227 14.3433 16.3165 14.0667C15.8103 13.7902 15.2505 13.6257 14.6752 13.5845C14.0998 13.5433 13.5223 13.6263 12.9819 13.8279C12.4414 14.0295 11.9506 14.345 11.5428 14.753L9.1292 17.1666C8.39644 17.9252 7.99098 18.9414 8.00015 19.9962C8.00931 21.0509 8.43237 22.0598 9.17821 22.8056C9.92405 23.5515 10.933 23.9745 11.9877 23.9837C13.0425 23.9928 14.0586 23.5875 14.8173 22.8547L16.193 21.4788" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3440_35088111-d2-1721724335-JEYTO">
+<clipPath id="clip0_3440_35088111-d2-1825135613-JEYTO">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(4634 439)" class="appendix-icon"><title>Merge authorised work</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3427_35082111-d2-1721724335-JEYTS)">
+</g><g transform="translate(1973 1476)" class="appendix-icon"><title>Merge authorised work</title><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3427_35082111-d2-1825135613-JEYTS)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M16 26C21.5228 26 26 21.5228 26 16C26 10.4772 21.5228 6 16 6C10.4772 6 6 10.4772 6 16C6 21.5228 10.4772 26 16 26Z" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 19.998V15.998" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M16 12H16.0098" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3427_35082111-d2-1721724335-JEYTS">
+<clipPath id="clip0_3427_35082111-d2-1825135613-JEYTS">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><g transform="translate(4602 439)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3440_35088111-d2-1721724335-JEYTS)">
+</g><g transform="translate(1941 1476)" class="appendix-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_3440_35088111-d2-1825135613-JEYTS)">
 <path d="M16 31.1109C24.3456 31.1109 31.1111 24.3454 31.1111 15.9998C31.1111 7.65415 24.3456 0.888672 16 0.888672C7.65436 0.888672 0.888885 7.65415 0.888885 15.9998C0.888885 24.3454 7.65436 31.1109 16 31.1109Z" fill="white" stroke="#DEE1EB"/>
 <path d="M14.3909 16.7965C14.7364 17.2584 15.1772 17.6406 15.6834 17.9171C16.1896 18.1938 16.7494 18.3582 17.3248 18.3993C17.9001 18.4405 18.4777 18.3575 19.0181 18.1559C19.5586 17.9543 20.0492 17.6389 20.4571 17.2309L22.8708 14.8173C23.6036 14.0586 24.0089 13.0425 23.9998 11.9877C23.9906 10.933 23.5676 9.92404 22.8217 9.17821C22.0759 8.43237 21.067 8.00931 20.0123 8.00015C18.9575 7.99098 17.9413 8.39644 17.1827 9.1292L15.7988 10.505" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M17.609 15.1874C17.2635 14.7255 16.8227 14.3433 16.3165 14.0667C15.8103 13.7902 15.2505 13.6257 14.6752 13.5845C14.0998 13.5433 13.5223 13.6263 12.9819 13.8279C12.4414 14.0295 11.9506 14.345 11.5428 14.753L9.1292 17.1666C8.39644 17.9252 7.99098 18.9414 8.00015 19.9962C8.00931 21.0509 8.43237 22.0598 9.17821 22.8056C9.92405 23.5515 10.933 23.9745 11.9877 23.9837C13.0425 23.9928 14.0586 23.5875 14.8173 22.8547L16.193 21.4788" stroke="#2E3346" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_3440_35088111-d2-1721724335-JEYTS">
+<clipPath id="clip0_3440_35088111-d2-1825135613-JEYTS">
 <rect width="32" height="32" fill="white"/>
 </clipPath>
 </defs>
 </svg>
-</g><mask id="d2-1721724335" maskUnits="userSpaceOnUse" x="-89" y="-89" width="6236" height="756">
-<rect x="-89" y="-89" width="6236" height="756" fill="white"></rect>
-<rect x="1032" y="294" width="52" height="21" fill="black"></rect>
-<rect x="763" y="259" width="91" height="21" fill="black"></rect>
-<rect x="780" y="447" width="103" height="21" fill="black"></rect>
-<rect x="3948" y="174" width="216" height="21" fill="black"></rect>
-<rect x="721" y="221" width="188" height="21" fill="black"></rect>
-<rect x="1784" y="221" width="149" height="21" fill="black"></rect>
-<rect x="977" y="61" width="196" height="21" fill="black"></rect>
-<rect x="634" y="383" width="148" height="21" fill="black"></rect>
-<rect x="3091" y="376" width="168" height="21" fill="black"></rect>
-<rect x="2192" y="462" width="139" height="21" fill="black"></rect>
-<rect x="3079" y="462" width="148" height="21" fill="black"></rect>
-<rect x="4057" y="445" width="166" height="21" fill="black"></rect>
-<rect x="3978" y="478" width="167" height="21" fill="black"></rect>
-<rect x="4728" y="478" width="61" height="21" fill="black"></rect>
-<rect x="5361" y="478" width="178" height="21" fill="black"></rect>
+</g><mask id="d2-1825135613" maskUnits="userSpaceOnUse" x="-89" y="-106" width="2350" height="2229">
+<rect x="-89" y="-106" width="2350" height="2229" fill="white"></rect>
+<rect x="1254" y="334" width="52" height="21" fill="black"></rect>
+<rect x="774" y="234" width="91" height="21" fill="black"></rect>
+<rect x="1649" y="186" width="103" height="21" fill="black"></rect>
+<rect x="606" y="1392" width="216" height="21" fill="black"></rect>
+<rect x="556" y="334" width="188" height="21" fill="black"></rect>
+<rect x="776" y="727" width="149" height="21" fill="black"></rect>
+<rect x="64" y="210" width="196" height="21" fill="black"></rect>
+<rect x="1013" y="284" width="148" height="21" fill="black"></rect>
+<rect x="1362" y="1259" width="168" height="21" fill="black"></rect>
+<rect x="1650" y="795" width="139" height="21" fill="black"></rect>
+<rect x="1645" y="1077" width="148" height="21" fill="black"></rect>
+<rect x="1321" y="1442" width="166" height="21" fill="black"></rect>
+<rect x="1722" y="1366" width="167" height="21" fill="black"></rect>
+<rect x="1775" y="1628" width="61" height="21" fill="black"></rect>
+<rect x="1765" y="1860" width="178" height="21" fill="black"></rect>
 </mask></svg></svg>
