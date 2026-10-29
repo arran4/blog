@@ -362,7 +362,7 @@ Each route node has its own ID, actor, purpose and outgoing transition. The dest
 
 ##### FE04 — Approve issue/scope? {#node-fe04}
 
-**Actor:** Human (decision). **Purpose:** Ask before creating new issue or major reframing.
+**Actor:** Human (decision). **Purpose:** Ask before creating new issue or major changing the scope.
 
 **Can move to:** **refine** → [FE03 — Clarify acceptance examples](#node-fe03); **approved** → [FE05 — Pick worker](#node-fe05).
 
