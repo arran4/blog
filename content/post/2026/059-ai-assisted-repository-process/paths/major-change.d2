@@ -1,0 +1,93 @@
+# Editable D2 source. Linked node IDs correspond to article headings.
+direction: right
+classes: {
+  human: { style: { fill: "#FFF0C8"; stroke: "#AE791B"; font-color: "#533A09" } }
+  chat: { style: { fill: "#DCEEFF"; stroke: "#2874AD"; font-color: "#163D5E" } }
+  jules: { style: { fill: "#DEF6E2"; stroke: "#348B51"; font-color: "#17522B" } }
+  codex: { style: { fill: "#EDE3FC"; stroke: "#784BAF"; font-color: "#402469" } }
+  system: { style: { fill: "#F1F3F5"; stroke: "#6C7785"; font-color: "#303D4C" } }
+}
+
+MA01: "MA01 · Major direction or breaking change" {
+  class: human
+  
+  link: "../#node-ma01"
+  tooltip: "Define business/technical objective"
+}
+
+MA02: "MA02 · Compatibility and migration research" {
+  class: chat
+  
+  link: "../#node-ma02"
+  tooltip: "Affected APIs, dependencies, users and upgrade paths"
+}
+
+MA03: "MA03 · Accept architecture?" {
+  class: human
+  shape: diamond
+  link: "../#node-ma03"
+  tooltip: "Resolve significant design choices before coding"
+}
+
+MA04: "MA04 · Roadmap and issue/PR stack" {
+  class: chat
+  
+  link: "../#node-ma04"
+  tooltip: "Represent phases, sequencing and dependencies"
+}
+
+MA05: "MA05 · Choose worker for increment" {
+  class: chat
+  shape: diamond
+  link: "../#node-ma05"
+  tooltip: "Jules for bounded slice, Codex/Agy for broad changes"
+}
+
+MA06: "MA06 · Implement bounded slice" {
+  class: jules
+  
+  link: "../#node-ma06"
+  tooltip: "Small incremental PR; management tracks related stacks"
+}
+
+MA07: "MA07 · Implement complex slice" {
+  class: codex
+  
+  link: "../#node-ma07"
+  tooltip: "Alternative path or authorised handoff"
+}
+
+MA08: "MA08 · PR, CI and compatibility evidence" {
+  class: system
+  
+  link: "../#node-ma08"
+  tooltip: "Check real tests, migrations and stack relationships"
+}
+
+MA09: "MA09 · More increments?" {
+  class: chat
+  shape: diamond
+  link: "../#node-ma09"
+  tooltip: "Continue same roadmap or request redesign"
+}
+
+MA10: "MA10 · Merge/major release authorisation" {
+  class: human
+  shape: diamond
+  link: "../#node-ma10"
+  tooltip: "Human decides merge and later publication"
+}
+
+MA01 -> MA02
+MA02 -> MA03
+MA03 -> MA02: "revise"
+MA03 -> MA04: "accepted"
+MA04 -> MA05
+MA05 -> MA06: "Jules"
+MA05 -> MA07: "Codex / Agy"
+MA06 -> MA08
+MA07 -> MA08
+MA08 -> MA09
+MA09 -> MA05: "next increment"
+MA09 -> MA10: "phase ready"
+MA10 -> MA04: "deferred / issues"
