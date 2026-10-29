@@ -1,0 +1,124 @@
+# D2 subprocess source; actor colour identifies responsibility. Detailed rules are in the linked node catalogue.
+direction: right
+classes: {
+  human: { style: { fill: "#FFF0C8"; stroke: "#AE791B"; font-color: "#533A09" } }
+  chat: { style: { fill: "#DCEEFF"; stroke: "#2874AD"; font-color: "#163D5E" } }
+  jules: { style: { fill: "#DEF6E2"; stroke: "#348B51"; font-color: "#17522B" } }
+  codex: { style: { fill: "#EDE3FC"; stroke: "#784BAF"; font-color: "#402469" } }
+  system: { style: { fill: "#F1F3F5"; stroke: "#6C7785"; font-color: "#303D4C" } }
+}
+
+C13: "C13 · Approve worker handoff?" {
+  class: system
+  shape: diamond
+  tooltip: "Approve worker handoff?"
+  link: "./#node-c13"
+}
+C02: "C02 · Classify signal" {
+  class: chat
+  tooltip: "Classify signal"
+  link: "./#node-c02"
+}
+C03: "C03 · Result category?" {
+  class: system
+  shape: diamond
+  tooltip: "Result category?"
+  link: "./#node-c03"
+}
+C05: "C05 · Inspect failed job" {
+  class: chat
+  tooltip: "Inspect failed job"
+  link: "./#node-c05"
+}
+C06: "C06 · Pending check" {
+  class: chat
+  tooltip: "Pending check"
+  link: "./#node-c06"
+}
+C07: "C07 · Quota-limited or unavailable" {
+  class: chat
+  tooltip: "Quota-limited or unavailable"
+  link: "./#node-c07"
+}
+C08: "C08 · Required verification?" {
+  class: system
+  shape: diamond
+  tooltip: "Required verification?"
+  link: "./#node-c08"
+}
+C09: "C09 · Record documented exception" {
+  class: chat
+  tooltip: "Record documented exception"
+  link: "./#node-c09"
+}
+C10: "C10 · Block or request alternate proof" {
+  class: chat
+  tooltip: "Block or request alternate proof"
+  link: "./#node-c10"
+}
+C11: "C11 · Code correction?" {
+  class: system
+  shape: diamond
+  tooltip: "Code correction?"
+  link: "./#node-c11"
+}
+C14: "C14 · Create replacement branch" {
+  class: chat
+  tooltip: "Create replacement branch"
+  link: "./#node-c14"
+}
+C17: "C17 · Re-review current head" {
+  class: chat
+  tooltip: "Re-review current head"
+  link: "./#node-c17"
+}
+C12: "C12 · Focused corrective chunk" {
+  class: system
+  tooltip: "Focused corrective chunk"
+  link: "./#node-c12"
+}
+C16: "C16 · Continue on new branch" {
+  class: system
+  tooltip: "Continue on new branch"
+  link: "./#node-c16"
+}
+C01: "C01 · CI event" {
+  class: system
+  tooltip: "CI event"
+  link: "./#node-c01"
+}
+C04: "C04 · Checks passed" {
+  class: system
+  tooltip: "Checks passed"
+  link: "./#node-c04"
+}
+C15: "C15 · Open replacement draft PR" {
+  class: system
+  tooltip: "Open replacement draft PR"
+  link: "./#node-c15"
+}
+
+C01 -> C02
+C02 -> C03
+C03 -> C04: "pass"
+C03 -> C05: "failure"
+C03 -> C06: "pending"
+C03 -> C07: "quota / infra"
+C04 -> C17
+C05 -> C11: "real code defect"
+C05 -> C09: "unrelated infra"
+C06 -> C02: "result available"
+C07 -> C08
+C08 -> C09: "non-required"
+C08 -> C10: "required"
+C09 -> C17: "disclosed"
+C10 -> C17: "after evidence"
+C11 -> C12: "Jules suited"
+C11 -> C13: "handoff advised"
+C12 -> C01: "new commit"
+C13 -> C14: "yes / Jules-owned"
+C13 -> C11: "no / retry or hold"
+C14 -> C15
+C15 -> C16: "new writable target"
+C16 -> C01: "new commit"
+C17 -> C02: "new CI event"
