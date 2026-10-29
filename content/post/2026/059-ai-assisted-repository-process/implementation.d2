@@ -1,0 +1,138 @@
+# D2 subprocess source; actor colour identifies responsibility. Detailed rules are in the linked node catalogue.
+direction: right
+classes: {
+  human: { style: { fill: "#FFF0C8"; stroke: "#AE791B"; font-color: "#533A09" } }
+  chat: { style: { fill: "#DCEEFF"; stroke: "#2874AD"; font-color: "#163D5E" } }
+  jules: { style: { fill: "#DEF6E2"; stroke: "#348B51"; font-color: "#17522B" } }
+  codex: { style: { fill: "#EDE3FC"; stroke: "#784BAF"; font-color: "#402469" } }
+  system: { style: { fill: "#F1F3F5"; stroke: "#6C7785"; font-color: "#303D4C" } }
+}
+
+I03: "I03 · Authorize new handoff" {
+  class: human
+  tooltip: "Authorize new handoff"
+  link: "./#node-i03"
+}
+I18: "I18 · Review and authorise merge" {
+  class: human
+  tooltip: "Review and authorise merge"
+  link: "./#node-i18"
+}
+I01: "I01 · Prepare implementation brief" {
+  class: chat
+  tooltip: "Prepare implementation brief"
+  link: "./#node-i01"
+}
+I02: "I02 · Choose worker?" {
+  class: system
+  shape: diamond
+  tooltip: "Choose worker?"
+  link: "./#node-i02"
+}
+I11: "I11 · Classify CI signal" {
+  class: chat
+  tooltip: "Classify CI signal"
+  link: "./#node-i11"
+}
+I12: "I12 · Independently review work" {
+  class: chat
+  tooltip: "Independently review work"
+  link: "./#node-i12"
+}
+I13: "I13 · Work remaining?" {
+  class: system
+  shape: diamond
+  tooltip: "Work remaining?"
+  link: "./#node-i13"
+}
+I14: "I14 · Issue focused correction" {
+  class: chat
+  tooltip: "Issue focused correction"
+  link: "./#node-i14"
+}
+I15: "I15 · Manage PR metadata" {
+  class: chat
+  tooltip: "Manage PR metadata"
+  link: "./#node-i15"
+}
+I16: "I16 · Ready gate" {
+  class: chat
+  tooltip: "Ready gate"
+  link: "./#node-i16"
+}
+I20: "I20 · Post-merge reconciliation" {
+  class: chat
+  tooltip: "Post-merge reconciliation"
+  link: "./#node-i20"
+}
+I04: "I04 · Receive focused task" {
+  class: system
+  tooltip: "Receive focused task"
+  link: "./#node-i04"
+}
+I05: "I05 · Implement and test" {
+  class: system
+  tooltip: "Implement and test"
+  link: "./#node-i05"
+}
+I06: "I06 · Publish commit or PR" {
+  class: system
+  tooltip: "Publish commit or PR"
+  link: "./#node-i06"
+}
+I07: "I07 · Receive implementation task" {
+  class: system
+  tooltip: "Receive implementation task"
+  link: "./#node-i07"
+}
+I08: "I08 · Implement and test" {
+  class: system
+  tooltip: "Implement and test"
+  link: "./#node-i08"
+}
+I09: "I09 · Publish commit or PR" {
+  class: system
+  tooltip: "Publish commit or PR"
+  link: "./#node-i09"
+}
+I10: "I10 · Observe current revision" {
+  class: system
+  tooltip: "Observe current revision"
+  link: "./#node-i10"
+}
+I17: "I17 · Set Ready for review" {
+  class: system
+  tooltip: "Set Ready for review"
+  link: "./#node-i17"
+}
+I19: "I19 · Merge authorised work" {
+  class: system
+  tooltip: "Merge authorised work"
+  link: "./#node-i19"
+}
+
+I01 -> I02
+I02 -> I04: "Jules"
+I02 -> I07: "Codex/Agy"
+I02 -> I15: "admin only"
+I04 -> I05
+I05 -> I06
+I07 -> I08
+I08 -> I09
+I06 -> I10
+I09 -> I10
+I10 -> I11
+I11 -> I12: "actionable or recorded"
+I12 -> I13
+I13 -> I14: "another Jules chunk"
+I14 -> I05: "new instruction"
+I13 -> I08: "Codex/Agy correction"
+I13 -> I15: "no code changes"
+I15 -> I16
+I16 -> I12: "blocking evidence"
+I16 -> I17: "verified ready"
+I17 -> I18: "state confirmed"
+I18 -> I12: "changes requested"
+I18 -> I19: "explicit approval"
+I19 -> I20: "merged"
+I20 -> I01: "next selected task"
