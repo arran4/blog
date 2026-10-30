@@ -43,7 +43,7 @@ An inner operation should not need to know about `os.Getenv`, the user's home di
 
 For a pure computation, pass values. For I/O, pass the smallest useful capability: an `io.Reader`, `io.Writer`, `fs.FS`, transport, clock, repository or function. Avoid mirroring the entire platform in an oversized `Dependencies` struct.
 
-For example, a download planner should not require a test to reconstruct a desktop session and create a token file. The focused follow-up, [Stop Rebuilding XDG Directories in Go Unit Tests](/blog/post/2026/054-stop-rebuilding-xdg-directories-in-go-tests/), explains when explicit paths and an in-memory token source are better—and why a real environment test is still necessary at the boundary.
+For example, a download planner should not require a test to reconstruct a desktop session and create a token file. The focused follow-up, [Prefer Dependency Injection to Environment Overrides in Go Tests](/blog/post/2026/054-stop-rebuilding-xdg-directories-in-go-tests/), explains how to inject resolved configuration, when a real environment test is necessary, and why XDG paths are an instructive special case.
 
 Use the [fixture selection guide](/blog/post/2026/047-choosing-go-filesystem-test-fixtures/) and [Go FSs Everywhere](/blog/post/2026/007-Go-FSs-Everywhere/) to choose the lowest-cost interface. Not every dependency needs an interface; a typed value or a function is often enough.
 
