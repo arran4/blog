@@ -1,6 +1,6 @@
 ---
 title: "Durable SQLite Workflows with Files on Disk and Offline Clients"
-date: 2026-10-19T22:02:00+11:00
+date: 2026-10-30T20:18:00+11:00
 draft: false
 guidance: ["go-persistence"]
 tags: ["go", "sqlite", "sqlc", "offline-first", "queues", "flutter", "testing"]
@@ -164,6 +164,35 @@ verify both clients agree
 Use deterministic generated images and fixture-backed RSS data, not live network access, to test the core path. Prove both cached and uncached media behavior. Include restart points between file rename/DB update, job claim/job completion, client send/ack, and server change/client checkpoint.
 
 Use a fake clock for retry timing where possible, and a real filesystem plus SQLite for a few bounded integration tests. This follows [scenario testing](/blog/post/2026/046-scenarios-as-executable-application-state/) and [explicit dependency boundaries in Go tests](/blog/post/2026/053-go-tests-treat-process-state-time-and-standard-io-as-dependencies/). The important assertion is the final observable state after recovery, not just that functions returned nil.
+
+## Design IDs for export and multi-server interoperability
+
+A SQLite primary key is usually scoped to one database, not a durable protocol identity. If users may move between self-hosted servers, a SaaS service and local clients, issue **globally scoped opaque IDs** for bookmarks, notes, comments, messages, attachments, client operations and server origins. A UUIDv7 or equivalent sortable random ID is one practical choice; imported upstream content may use a deterministic source-namespace plus stable upstream key. Keep physical row numbers for joins where they are convenient, but do not expose them as long-lived cross-node IDs.
+
+A logical comic strip and its *content revision* are distinct. A person's existing "read" flag may stay with the logical strip even after an update, while a separate unseen-revision marker offers an optional way to revisit it. Cross-node synchronization and migration must preserve causal/origin references and independently edited bookmark IDs.
+
+For durable client outboxes, remember: two operations with different IDs may still conflict semantically. If concurrent updates merely advance the same reading bookmark, the furthest valid logical position can converge without losing progress. If a note or manual position is edited on two offline devices, retaining both as a forked globally identified bookmark may be preferable to discarding one. Document the domain-specific merge rule rather than assuming HTTP arrival order is meaningful.
+
+## Keep SQL query generation distinct from object storage abstraction
+
+`sqlc` with `emit_interface: true` generates a **typed SQL query interface for a particular schema and engine**. It does not make SQLite and other dialects interchangeable, and it is not a file or object storage API.
+
+Prefer separate boundaries where there is a real use case:
+
+- A small application-level metadata/query port implemented via sqlc for the initial SQLite backend. A future DB-backed SaaS may introduce another implementation.
+- A context-aware **blob store** supporting streaming reads/writes, metadata, hashes, conditional creation and deletion, implemented first by local files and later by S3 or equivalent where needed.
+- A **read-only catalog filesystem** using `fs.FS` and `embed.FS`, plus a predictable filesystem override layer. Files supplied by an override directory should take precedence at a defined logical path; do not silently merge incompatible records.
+- A separate rights/retention policy that determines whether particular blobs may be cached, distributed, pinned, deleted or rebuilt.
+
+The standard `fs.FS` surface does not provide portable write or delete operations. Do not force it to act as a universal object store. Logical blob keys should never expose absolute storage paths or S3 bucket internals. Test local disk under temp dirs, and test S3 adapter consistency, streaming, atomicity/retry and permissions independently when S3 is introduced.
+
+## Reserve disk space instead of relying on cleanup after failure
+
+A preservation application should not fill the volume holding its own SQLite journal and authentication state. Monitor usable free bytes and capacity percentage, report state transitions to administrators, and reserve enough space to reject or defer new downloads before total exhaustion.
+
+Specify the threshold model precisely: a **percentage free** warning, an **absolute minimum free** reserve, a critical stage and hysteresis must not contradict one another. For example, a 1 GiB write-stop reserve will naturally trigger *before* a 500 MiB critical threshold, so those levels cannot both mean the same action. Keep threshold values configurable and verify with a fake capacity provider instead of actually filling a test disk.
+
+Retention is a separate policy registry. A **no-action** provider can remain the default for unique archives; later an explicit safe cleanup provider may consider both least-recently and least-frequently used *re-fetchable* cache entries. A disk emergency must not silently delete a user's only copy of an original, unreadable archives, private notes, receipts or data with legal retention requirements. Test dry-run plans, multi-reference dedup, pending writes, pinning and rehydration before enabling unattended destructive cleanup.
 
 ## Implementation and review standards
 
