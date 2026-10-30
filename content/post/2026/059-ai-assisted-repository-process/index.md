@@ -1,1069 +1,616 @@
 ---
-title: "An AI-Assisted Repository Development Process: Humans, Chat Management, Jules, Codex and CI"
-date: 2026-10-29T14:37:00+11:00
+title: "AI-Assisted Repository Development: A Unified Process"
+date: 2026-10-30T14:31:00+11:00
 draft: false
 guidance: ["agent-management"]
-tags: ["agents", "automation", "chatgpt", "ci", "codex", "github", "jules", "orchestration", "workflow"]
+tags: ["agents", "automation", "chatgpt", "ci", "codex", "github", "orchestration", "workflow"]
 categories: ["Software Development", "LLM Instructions", "Automation"]
 ---
 
-<!-- cspell:words agy bot-authored D2 handoff handoffs inspectable kjules non-actionable PRs workstream workstreams -->
+<!-- cspell:words agy Codex dogfood handoff handoffs inspectable workstream workstreams -->
 
-Software development with coding agents is not a straight line from a prompt to a pull request. My process begins with different kinds of work, uses a chat-based management agent to preserve intent and reconcile GitHub state, delegates bounded implementation to an appropriate worker, and loops through review, CI, human decisions and follow-up planning.
+My repository development process is neither a rigid waterfall nor a collection of independent coding-agent prompts. It starts from an idea, bug, change, maintenance event, existing pull request, or release request. I use a **Chat LLM as a management and review companion**, coding agents for repository work when appropriate, and GitHub to preserve the specification and implementation history.
 
-This is a **process map** rather than a description of a single Jules task. [Managing Jules with a Management LLM](/blog/post/2026/044-jules-management/) remains the more detailed operating reference for Jules-specific behaviour. This article describes the wider process in which Jules is one optional implementation path. Both articles form complementary current guidance; if they conflict on Jules branch ownership and Ready-for-review administration, follow the detailed Jules management article until the conflict is deliberately resolved.
+**This is the current process reference.** It is designed for both human readers and a fresh Chat LLM that needs to determine where a workstream stands, what evidence is missing, what action it can take, and what to do next. The diagram is one canonical, editable workflow, not eleven competing views. It models decision points, alternative routes, revisiting earlier work, and explicit endings.
 
-There is normally **one chat conversation per coherent workstream**, not necessarily one per issue or PR. Several workstreams can run independently at once. Within a workstream, Jules **or** Codex/Agy is ordinarily the selected implementation route for a particular increment; parallel PRs and stacked dependencies are deliberate exceptions, not an accidental consequence of drawing branches next to each other.
+Normally I maintain **one conversation per coherent workstream**. That conversation can manage several related issues and a dependency tree of pull requests; other conversations can manage other projects or branches at the same time. Conversation is part of the working design discussion, while GitHub issues, PRs, commits and the supporting project repositories preserve durable decisions and observable outcomes.
 
-## Diagram
+## Main process diagram
 
-The diagrams are written in **D2**, with committed SVG renders. D2 sources are the single point of edit; the `render-diagrams.sh` script regenerates all SVGs. Colours identify the **actor**: amber for human, blue for chat management, green for Jules, violet for Codex/Agy and grey for GitHub/CI. Diamonds denote decisions and labelled arrows define permitted transitions.
+![Unified AI-assisted repository workflow](workflow.svg)
 
-![Overview of managed development](overview.svg)
+[Open full SVG](workflow.svg) · [Edit D2 source](workflow.d2) · [Browse node catalogue](#node-catalogue)
 
-[Full-size overview](overview.svg) · [D2 source](overview.d2) · [Overview node descriptions](#overview-nodes)
+This is a large SVG intended to be opened and zoomed. Each D2 node contains an ID, a **header and brief purpose**, actor colour, a detailed hover description and a link back to its corresponding section in this article. The embedded image may not expose the links, so open the SVG itself or use the catalogue below. The `.d2` source is also suitable for a coding or management agent to read directly; do not rely on visual interpretation alone.
 
-### Parallel process paths
+### Diagram conventions
 
-There are deliberately **separate, similar paths** for each kind of work. This makes the differences in discovery, approvals, CI and publication visible without forcing one enormous diagram. Paths do not mean that implementation workers operate simultaneously; Jules and Codex/Agy are alternative workers for a chosen increment.
+| Element | Meaning |
+| --- | --- |
+| **Circle** | Independent starting point; different starts may enter different phases |
+| **Rectangle** | Activity, observable state or system action |
+| **Diamond** | Decision with labelled conditional exits; not automatically an approval |
+| **Oval** | Terminal outcome: completed, deferred/blocked or abandoned |
+| Amber | **Human** — intent, interactive debugging, review, consequential decisions |
+| Blue | **Chat LLM** — investigation, Q&A, prompts, specifications, PR management and review |
+| Violet | **Coding LLM** — Codex/Agy or another coding agent operating in a repository/container |
+| Green | **GitHub / CI** — durable issues/PRs, checks, merges, releases and recorded final state |
 
-#### Initial release
+The diagram is grouped by **phase**, not by a strict single actor per lane: each phase can involve several actors. The colours and the explicit actor field in the node descriptions distinguish responsibility. Long feedback edges are intentionally present because work can return to the right earlier state instead of creating a new issue or session mechanically.
 
-![Initial release path](paths/initial-release.svg)
+## How different work enters the shared pipeline
 
-[Open SVG](paths/initial-release.svg) · [Edit D2](paths/initial-release.d2) · [Node descriptions](#route-initial-release-nodes)
+A **new repository or first release** starts at [ST01](#node-st01), generally involves substantial [intent and Q&A](#node-pl01), repository setup, an initial roadmap, and a later [public opening audit](#node-rl04) if publishing the code publicly.
 
-#### Major change
+A **feature, major improvement or minor improvement** shares [ST02](#node-st02). These are overlapping classifications, not separate implementation engines. A bounded additive feature may move from baseline inspection directly to [issue reconciliation](#node-sp01); a major architectural change normally takes multiple rounds of questioning, contradiction detection and a [PR dependency tree](#node-tr02).
 
-![Major change path](paths/major-change.svg)
+A **bug** starts at [ST03](#node-st03). It may be a straightforward fix after analysis, or a longer investigation. For interactive UI problems, particularly Flutter, I may reproduce the issue directly and supply debugger output, screenshots and observations to the Chat LLM. The [debugging decision](#node-bg02) can instead delegate analysis to chat or a coding model. Once the root cause is credible, the ordinary issue, PR and review cycle applies.
 
-[Open SVG](paths/major-change.svg) · [Edit D2](paths/major-change.d2) · [Node descriptions](#route-major-change-nodes)
+An **automated version bump, tooling correction, security/audit finding or upgrade** starts at [ST04](#node-st04). It may be an entire workstream, or it may be incorporated into a feature or bug fix. An existing [PR or CI problem](#node-st05) can enter at review, and a release-only request [ST06](#node-st06) can go straight to release planning.
 
-#### Minor improvement
+## The question-and-answer loop is part of development
 
-![Minor improvement path](paths/minor-change.svg)
+I commonly begin with a long voice description covering my desired outcome, preferred implementation and constraints. The Chat LLM must not assume that this is a complete specification. It should ask targeted [clarifying questions](#node-pl02), [identify contradictions](#node-pl03), and surface choices or ambiguities for [discussion and deferral](#node-pl04). These are separate, **mergeable** activities that can repeat until enough is settled to proceed.
 
-[Open SVG](paths/minor-change.svg) · [Edit D2](paths/minor-change.d2) · [Node descriptions](#route-minor-change-nodes)
+"Enough" does not mean every decision is finished. Some concerns belong in follow-up issues. If a material assumption changes during implementation, review returns to [intent](#node-pl01) or [issue reconciliation](#node-sp01). The current issue and PR specification must then be reconciled with the new understanding; do not scatter duplicate issues merely because the task was revised.
 
-#### Feature implementation
+The same process runs while debugging: my answers and the Chat LLM's questions can be interleaved. A coding model may uncover new facts that invalidate a design assumption. That is a normal backtrack, not necessarily a failed task.
 
-![Feature implementation path](paths/feature.svg)
+## Issues, PRs, conversations and a dependency tree
 
-[Open SVG](paths/feature.svg) · [Edit D2](paths/feature.d2) · [Node descriptions](#route-feature-nodes)
+**GitHub issues and pull requests are the durable specification and evidence**: requirements, acceptance scenarios, dependencies, working implementation, review findings and resolving keywords. Chat conversations preserve evolving discussion and rationale, but a fresh agent should be able to reconstruct actionable expectations from GitHub. I also use [arran4/projects](https://github.com/arran4/projects) for portfolio and roadmap state and [arran4/public-relations](https://github.com/arran4/public-relations) for announcement planning, assets and communications.
 
-#### Bug fix
+At [SP01](#node-sp01), search the current issue register before adding anything. At [SP02](#node-sp02), verify that an existing issue actually matches the work; update it with implementation details or clarify changed scope. Creation of an issue or major change to a human-owned issue requires the appropriate [human decision](#node-sp03). Keep PR descriptions and closing keywords consistent so GitHub can resolve the *correct* issues, rather than merely checking for the presence of "Fixes #..." text.
 
-![Bug fix path](paths/bug-fix.svg)
+For large work, [TR02](#node-tr02) produces a **PR tree**: a dependency and conflict graph, not necessarily a linear stack. Two siblings may be independently mergeable, while a child PR waits on a parent. Agents can develop as much of the tree as feasible within a selected **dogfood, testable or completion milestone**. [TR03](#node-tr03) chooses a branch whose prerequisites are satisfied; when one branch is blocked by a conflict or review, an independent sibling can progress. After each merge, reassess descendants against updated bases and tests. Never assume a graphically nearby PR is safe to merge.
 
-[Open SVG](paths/bug-fix.svg) · [Edit D2](paths/bug-fix.d2) · [Node descriptions](#route-bug-fix-nodes)
+## Implementation and continuous review
 
-#### Automated maintenance
+At [EX01](#node-ex01), ask whether the Chat LLM can safely implement a **small, well-understood change directly**, given its tools and test access. Otherwise the Chat LLM creates a concrete [coding prompt](#node-ex02) for Codex, Agy or another capable worker. The coding agent may run in a container with broad permission to build, test and generate a complete PR tree. This is distinct from authorising merges, releases, history rewrites or unrelated scope changes.
 
-![Automated maintenance path](paths/automation.svg)
+The coding agent publishes real branches, commits and PRs with tests and links. At [RV01](#node-rv01), the Chat LLM independently inspects the actual cumulative diff, relevant PR head, issue requirements, PR dependency bases, review comments and CI. It must not treat an agent's completion message as proof. At [RV07](#node-rv07), I also review the direction and test the result where appropriate.
 
-[Open SVG](paths/automation.svg) · [Edit D2](paths/automation.d2) · [Node descriptions](#route-automation-nodes)
+A **simple merge conflict or minor fix** can be handled by me or directly by the Chat LLM where its tools permit; publish and review again. A complex bug, conflict or code defect should get a focused coding-agent prompt. A disagreement with the design goes back to the Q&A loop; a mismatch against the issue register goes back to issue reconciliation. Each review pass asks what is actually wrong and selects the earliest useful stage to revisit.
 
-#### Release and publication
+### CI and verification expectations
 
-![Release and publication path](paths/release.svg)
+Use real tests liberally, including focused scenarios, integration tests and local tooling. It is acceptable for an agent to use substantial local build/test resources. For public repositories I place considerable weight on GitHub CI and its test matrix. For private repositories, quota or infrastructure limits may make CI unavailable: classify that as **missing evidence**, not a pass. Use trusted local verification and disclose what remains unverified; required branch protections and checks still apply.
 
-[Open SVG](paths/release.svg) · [Edit D2](paths/release.d2) · [Node descriptions](#route-release-nodes)
+A new commit makes evidence from an earlier head insufficient for newly affected checks. Non-actionable infra or quota failures can be recorded and set aside only when project policy allows; real failing tests must be resolved. A passing check does not replace independent review. Human approval is needed before a merge.
 
+## Merge, issue closeout and release
 
-### Shared subprocess diagrams
+[RV10](#node-rv10) checks whether another PR in the tree is ready, whether the desired milestone has been reached or whether some dependencies remain blocked. At the chosen closeout point the Chat LLM performs [CL01](#node-cl01): verify issue status, resolving keywords, implementation notes, tests, remaining defects and superseded PRs. Then check [dependent or upstream work](#node-cl02), update [Projects](#node-cl03) and update [Public Relations](#node-cl04).
 
-#### Planning and issue reconciliation
+The Chat LLM should recommend **no release, patch, minor or major** from the merged change set and roadmap at [RL01](#node-rl01). A routine patch release can use previously approved automation policy where it exists; otherwise a human decides whether to release, wait, or defer. The definitive GitHub Actions implementation remains the [canonical CI/CD guidance](/blog/guidance/ci-cd/): validation before immutable tags, one publishing owner, explicit tag-context release workflow and verification of actual artifacts.
 
-![Planning and intake](planning.svg)
+**First publication or making a private repository public is a separate gate.** Inspect code and full repository history for secrets, personal information, licences, copyright ownership, external links, documentation, release quality and provenance. If cleanup requires rewriting Git history or force-pushing, obtain explicit informed approval first; never treat this as routine. The release workflow runs only after the applicable publication gates.
 
-[Planning SVG](planning.svg) · [D2 source](planning.d2) · [Node descriptions](#planning-and-intake-nodes)
+After a completed or deferred milestone, reconcile trackers and any needed announcements. Conclude as [completed](#node-en01), [deferred or blocked](#node-en02) with a resumption trigger, or [abandoned](#node-en03) with the reasons recorded. A new phase can start another pass through the same workflow.
 
-#### Implementation and PR review
+## Actor responsibilities and limitations
 
-![Implementation loop](implementation.svg)
-
-[Implementation SVG](implementation.svg) · [D2 source](implementation.d2) · [Node descriptions](#implementation-and-review-nodes). Jules executes focused chunks while the chat agent retains PR metadata, issue state, review and routing. Codex/Agy is an alternative, not a second editor on a Jules branch.
-
-#### CI, quotas and recovery
-
-![CI and recovery](ci-recovery.svg)
-
-[CI and recovery SVG](ci-recovery.svg) · [D2 source](ci-recovery.d2) · [Node descriptions](#ci-and-recovery-nodes). Quota-limited or unavailable CI remains missing evidence. A non-required, non-actionable run can be documented and set aside; required checks cannot be treated as passed.
-
-### Rendering and source maintenance
-
-Run `bash render-diagrams.sh` from this article's page bundle with D2 v0.9.0 installed. The script renders all eleven `.d2` files to `.svg`. The PR also includes a renderer workflow intended to update the committed SVGs. Do not edit the SVGs manually. If a diagram changes, its source, SVG and the associated node description must remain consistent.
-
-Each SVG shape links to its stable node anchor in this article. In-page image embedding does not always expose those links, so the adjacent navigation links and node catalogue are provided as alternatives.
-
-## Starting points and scope
-
-| Entry | Distinct planning needs | Full route |
+| Actor | Responsible for | Limitations and controls |
 | --- | --- | --- |
-| Initial release / repository creation | Project identity, ownership, licensing, first CI and publication | [Initial release](#route-initial-release-nodes) |
-| Major improvement | Breaking changes, migration, architecture and staged dependencies | [Major change](#route-major-change-nodes) |
-| Minor improvement | Additive behaviour with a bounded scope | [Minor improvement](#route-minor-change-nodes) |
-| Feature | User scenarios and acceptance criteria | [Feature](#route-feature-nodes) |
-| Bug fix | Reproduction and regression evidence | [Bug fix](#route-bug-fix-nodes) |
-| Automated bump, tooling correction or audit | Bot/CI findings, suitability and risk evaluation | [Maintenance](#route-automation-nodes) |
-| Release candidate | Reconcile merged work, verify artifacts and explicitly approve publication | [Release](#route-release-nodes) |
+| **Human** | Goals, voice descriptions, design answers and challenges, interactive debugging, PR direction, merge, publicity and exceptional release/rewrite consent | May defer or abandon; not expected to manually maintain routine labels or metadata |
+| **Chat LLM** | Research, Q&A, contradictions, issue/PR specification, prompt creation, PR-tree selection, review, CI interpretation, GitHub administration, closeout and trackers | May lack repository or terminal access; state must be checked with tools. Small direct fixes are conditional on capability and verification. Never claim a tool action or a passing check without evidence |
+| **Coding LLM** | Container-based implementation, debugging, tests, commits, PR tree creation, complex corrections | No independent authority over human-owned decisions; existing issue and PR specifications govern scope. A completed run is not a reviewed result |
+| **GitHub / CI** | Durable issues and PRs, current commits and branches, checks, release workflows, labels, publication and merge results | A failed, pending or absent check is not approval; branches and bot messages may be stale; repository policies must be respected |
 
-A workstream can begin with an existing PR or CI failure, and a single chat may manage several related issues and PRs. Multiple independent chats may progress concurrently. The diagram paths are alternatives for a **work type**, not a claim that all workers run together.
+Repository-specific developer instructions, [blog guidance](/blog/guidance/) and applicable agent skills can inform implementation, but they are **inputs to a node**, not a separate compulsory stage in this diagram.
 
-## Agents
+## Instructions to a fresh management LLM
 
-| Actor | Responsibilities | Limitations and authority boundaries |
-| --- | --- | --- |
-| **Human** | Goals, trade-offs, acceptance of significant changes, selecting broad agent handoffs, responding to third-party humans, merge and release decisions | Attention is limited; not expected to do repetitive PR metadata work. Decisions cannot be inferred merely from a passing check. |
-| **Chat management agent** | Research, process planning, issue triage, writing agent prompts, independent cumulative-diff review, CI interpretation, PR administration, Ready-for-review transition, closeout | Chat history is **not** the durable tracker. May lack terminal/tests or GitHub permissions; must verify tool results, disclose gaps and not claim actions succeeded when they did not. |
-| **Jules** | Asynchronous, focused code/test increments, observable commits and PR changes, follow-up corrections via its supported channel | Sessions can stall or lose state; limited GitHub control-plane administration; not authoritative about test/review correctness. **Do not let another agent push to a Jules-owned implementation branch.** |
-| **Codex / Agy** | Interactive or deeper changes, repository-wide exploration, debugging, larger implementation or recovery on an authorised writable branch | Alternative worker, not an automatic escalation; requires human-authorised handoff when changing agents. PR publication is not independent approval. Preserve provenance and branch isolation. |
-| **GitHub / CI (system)** | Persistent issues, PRs, commits, review threads, checks, labels, merges, releases and automation signals | CI can be absent, stale, quota-exhausted or infrastructure-failed. A status is evidence, not a decision; a check that did not run is never represented as passing. |
+Read this article and the canonical `workflow.d2` source. Treat each node ID as a **checkpoint, not a mandatory sequential checklist**. First inspect the target repository, PRs/issues and the latest conversation context. Report the current node, concrete evidence, unresolved decisions, and the permitted next node(s). If the work is already at review, do not restart planning without reason. If a major design conflict appears, do not force a superficial patch: return to clarification and reconcile the issues.
 
-The chat management agent also distinguishes clearly agent-authored GitHub messages from **third-party human** conversations. It may prepare replies, but should not impersonate the repository owner when engaging a real human.
+At each checkpoint: identify the workstream, inspect actual GitHub state, find the current actor and action, distinguish automatic routing from human approval, perform authorised work, verify tool results, then record the transition and any blocker. A Chat LLM without GitHub capabilities must say so and prepare an actionable prompt or human step instead of pretending it updated a PR. Conversely, when it *can* maintain an issue, PR description or merge-readiness state, it should not bounce routine administration to the coding worker.
 
-## Parallelism and nested lifecycles
+Use these compact status fields when resuming a conversation:
 
-A single workstream can include several GitHub issues, a sequence of PRs, and multiple Jules sessions. Conversely, separate workstreams can proceed in parallel in separate chats and branches. Do not collapse these identities into one status:
+| Field | Expected content |
+| --- | --- |
+| Workstream | Repository, objective, conversation context and milestone |
+| Current node | One of the IDs linked below, plus actual GitHub refs |
+| Specification | Canonical issues, PRs and accepted decisions |
+| PR tree | Parent/child/sibling relationships, blockers and mergeable leaves |
+| Verification | Tests, current head, CI classification and gaps |
+| Next action | Exact action, responsible actor, and any human approval required |
+| Exit | Completed, deferred with trigger, or abandoned |
 
-- **Workstream:** exploring / planned / executing / awaiting review / closeout / paused.
-- **Issue:** proposed / approved / open / in progress / resolved / deferred.
-- **Implementation session:** queued / active / stalled / completed / failed setup / superseded.
-- **PR:** absent / draft / ready / merged / closed without merge.
-- **CI evidence:** pending / passed / actionable failure / infrastructure fault / quota-unavailable / not applicable.
+## Node catalogue
 
-A stopped Jules session does not automatically invalidate a published PR; a merged PR does not necessarily complete a phase; and a code merge is not equivalent to a published release. A chat reassesses the **current GitHub head and state** at each meaningful return, rather than treating earlier prose as the truth.
+The ID headings below are derived from the same D2 nodes. Every node states the actor, its purpose, incoming conditions and all labelled transitions; following them is sufficient to navigate the process without visually decoding the entire SVG.
 
-## CI rules and exceptions
+### Starting points
 
-**Pass:** Verify the check applies to the current head and that it covers the intended acceptance evidence. A green check is necessary only where required, and never a substitute for diff review.
+#### ST01 — Initial release {#node-st01}
 
-**Actionable failure:** Inspect logs and changed paths. Route a small, concrete correction to the current appropriate worker; investigate unrelated or pre-checkout infrastructure failures separately.
+**Actor:** Human. **State:** Repository + first release. A new project or first public version.
 
-**Pending:** Do not infer success or failure. Continue only when the remaining work is independent of the check; use current results before Ready-for-review or merge decisions.
+**Enter from:** An independent starting point.
 
-**Quota-limited / disabled / unrelated infrastructure:** Record the exact missing evidence, why it is unavailable, and any replacement verification. On private repositories where CI quotas are exhausted, it can be reasonable to disregard a *non-required, non-actionable CI run* and continue independent manual review. This is **not** a test pass and does not waive required branch protection, mandatory checks, policy or release validation. If verification is required and no permitted equivalent exists, keep the PR blocked or seek a human decision about an allowed recovery route—do not silently mark it verified.
+**Move to:** [WS01 Open one workstream](#node-ws01) **when repo/initial**.
 
-In particular, review technical readiness separately from GitHub's mechanical mergeability, and keep release publication behind an explicit human decision.
+#### ST02 — Planned change {#node-st02}
 
-## Nodes (all diagrams)
+**Actor:** Human. **State:** Feature, minor or major. A feature or change of any size; classify scope later.
 
-Stable IDs appear in each source and rendered figure. Each section gives the node's **actor**, its operation and its outgoing transitions; branch labels are conditions, not automatic approvals. The detailed Jules article remains authoritative for its own recovery protocol.
+**Enter from:** An independent starting point.
 
-### Parallel route nodes {#parallel-route-nodes}
+**Move to:** [WS01 Open one workstream](#node-ws01) **when planned change**.
 
-Each route node has its own ID, actor, purpose and outgoing transition. The destinations link to stable anchors rather than depending on image-only navigation.
+#### ST03 — Bug or defect {#node-st03}
 
-#### Initial release {#route-initial-release-nodes}
+**Actor:** Human. **State:** Observed behaviour. An observed failure, including interactive Flutter problems.
 
-##### IR01 — Initial project idea {#node-ir01}
+**Enter from:** An independent starting point.
 
-**Actor:** Human. **Purpose:** Decide purpose and ownership.
+**Move to:** [BG01 Capture reproduction](#node-bg01) **when bug**.
 
-**Can move to:** **continue** → [IR02 — Research structure and licence](#node-ir02).
+#### ST04 — Maintenance {#node-st04}
 
-##### IR02 — Research structure and licence {#node-ir02}
+**Actor:** Human. **State:** Dependencies, tooling, audit. Manual or automated upkeep; also may be folded into another workstream.
 
-**Actor:** Chat management. **Purpose:** Consider repository, product and publishing requirements.
+**Enter from:** An independent starting point.
 
-**Can move to:** **continue** → [IR03 — Approve initial scope?](#node-ir03).
+**Move to:** [WS01 Open one workstream](#node-ws01) **when maintenance / audit**.
 
-##### IR03 — Approve initial scope? {#node-ir03}
+#### ST05 — Existing work {#node-st05}
 
-**Actor:** Human (decision). **Purpose:** Revise plan if constraints are unresolved.
+**Actor:** Human. **State:** PR, CI, stalled task. Resume an existing issue, PR tree or review checkpoint.
 
-**Can move to:** **revise** → [IR02 — Research structure and licence](#node-ir02); **approved** → [IR04 — Create repository and initial issues](#node-ir04).
+**Enter from:** An independent starting point.
 
-##### IR04 — Create repository and initial issues {#node-ir04}
+**Move to:** [RV01 Inspect actual PR state](#node-rv01) **when resume current PR**.
 
-**Actor:** Chat management. **Purpose:** With authorisation: repository setup, CI, documentation and durable issues.
+#### ST06 — Release request {#node-st06}
 
-**Can move to:** **continue** → [IR05 — Choose implementation worker](#node-ir05).
+**Actor:** Human. **State:** Already merged work. Release-only entry that does not require new code.
 
-##### IR05 — Choose implementation worker {#node-ir05}
+**Enter from:** An independent starting point.
 
-**Actor:** Chat management (decision). **Purpose:** Jules or Codex/Agy; never both writing same branch.
+**Move to:** [RL01 Recommend release intent](#node-rl01) **when release-only**.
 
-**Can move to:** **Jules** → [IR06 — Implement foundation](#node-ir06); **Codex / Agy** → [IR07 — Implement wider foundation](#node-ir07).
+### Workstream intake
 
-##### IR06 — Implement foundation {#node-ir06}
+#### WS01 — Open one workstream {#node-ws01}
 
-**Actor:** Jules. **Purpose:** Small chunks; alternative Codex/Agy for broader changes.
+**Actor:** Chat LLM. **State:** One chat, many related PRs. Carry objective, linked GitHub state and next action; multiple independent chats may run.
 
-**Can move to:** **continue** → [IR08 — Publish PR, verify tests and CI](#node-ir08).
+**Enter from:** [ST01 Initial release](#node-st01) (repo/initial); [ST02 Planned change](#node-st02) (planned change); [ST04 Maintenance](#node-st04) (maintenance / audit).
 
-##### IR07 — Implement wider foundation {#node-ir07}
+**Move to:** [WS02 Inspect current baseline](#node-ws02) **when inspect**.
 
-**Actor:** Codex / Agy. **Purpose:** Alternative worker for deeper foundation or setup.
+#### WS02 — Inspect current baseline {#node-ws02}
 
-**Can move to:** **continue** → [IR08 — Publish PR, verify tests and CI](#node-ir08).
+**Actor:** Chat LLM. **State:** Code, issues, PRs, releases. Check current repository state, existing specifications and outstanding dependencies.
 
-##### IR08 — Publish PR, verify tests and CI {#node-ir08}
+**Enter from:** [WS01 Open one workstream](#node-ws01) (inspect).
 
-**Actor:** GitHub / CI. **Purpose:** Real code and evidence in GitHub, not agent prose.
+**Move to:** [WS03 Select discovery depth?](#node-ws03) **when classify**.
 
-**Can move to:** **continue** → [IR09 — Review, correct, approve merge?](#node-ir09).
+#### WS03 — Select discovery depth? {#node-ws03}
 
-##### IR09 — Review, correct, approve merge? {#node-ir09}
+**Actor:** Chat LLM. **State:** Bug, small or architectural. Choose proportionate analysis; do not demand a full roadmap for a trivial fix.
 
-**Actor:** Human (decision). **Purpose:** Chat manages review and corrections; human owns merge.
+**Enter from:** [WS02 Inspect current baseline](#node-ws02) (classify).
 
-**Can move to:** **correction to selected worker** → [IR06 — Implement foundation](#node-ir06); **merge approved** → [IR10 — First release approved?](#node-ir10).
+**Move to:** [PL01 State detailed intent](#node-pl01) **when major / initial / unclear**; [SP01 Reconcile GitHub issues](#node-sp01) **when minor / clear / routine**; [BG01 Capture reproduction](#node-bg01) **when bug discovered**.
 
-##### IR10 — First release approved? {#node-ir10}
+### Bug diagnosis
 
-**Actor:** Human (decision). **Purpose:** Release is distinct from merge; explicit human decision.
+#### BG01 — Capture reproduction {#node-bg01}
 
-**Can move to:** **release deferred / follow-up** → [IR02 — Research structure and licence](#node-ir02).
+**Actor:** Human. **State:** Logs, steps, environment. Share observed and expected behaviour, stack traces, device or UI observations.
 
-#### Major change {#route-major-change-nodes}
+**Enter from:** [ST03 Bug or defect](#node-st03) (bug); [WS03 Select discovery depth?](#node-ws03) (bug discovered); [BG05 Confirm defect hypothesis](#node-bg05) (not reproduced).
 
-##### MA01 — Major direction or breaking change {#node-ma01}
+**Move to:** [BG02 How to debug?](#node-bg02) **when evidence**.
 
-**Actor:** Human. **Purpose:** Define business/technical objective.
+#### BG02 — How to debug? {#node-bg02}
 
-**Can move to:** **continue** → [MA02 — Compatibility and migration research](#node-ma02).
+**Actor:** Chat LLM. **State:** Size, complexity, tooling. Select human interactive, Chat LLM research or Coding LLM investigation.
 
-##### MA02 — Compatibility and migration research {#node-ma02}
+**Enter from:** [BG01 Capture reproduction](#node-bg01) (evidence).
 
-**Actor:** Chat management. **Purpose:** Affected APIs, dependencies, users and upgrade paths.
+**Move to:** [BG03 Interactive diagnosis](#node-bg03) **when interactive UI**; [BG04 Delegate diagnosis](#node-bg04) **when delegate**.
 
-**Can move to:** **continue** → [MA03 — Accept architecture?](#node-ma03).
+#### BG03 — Interactive diagnosis {#node-bg03}
 
-##### MA03 — Accept architecture? {#node-ma03}
+**Actor:** Human. **State:** Run UI, debugger, device. Especially for Flutter: reproduce with the human, copy evidence and results back to chat.
 
-**Actor:** Human (decision). **Purpose:** Resolve significant design choices before coding.
+**Enter from:** [BG02 How to debug?](#node-bg02) (interactive UI); [EX01 Who implements?](#node-ex01) (human UI debugging).
 
-**Can move to:** **revise** → [MA02 — Compatibility and migration research](#node-ma02); **accepted** → [MA04 — Roadmap and issue/PR stack](#node-ma04).
+**Move to:** [BG05 Confirm defect hypothesis](#node-bg05) **when copy findings**.
 
-##### MA04 — Roadmap and issue/PR stack {#node-ma04}
+#### BG04 — Delegate diagnosis {#node-bg04}
 
-**Actor:** Chat management. **Purpose:** Represent phases, sequencing and dependencies.
+**Actor:** Chat LLM. **State:** Chat or coding model. Investigate code or ask for focused coding-agent debugging when needed.
 
-**Can move to:** **continue** → [MA05 — Choose worker for increment](#node-ma05).
+**Enter from:** [BG02 How to debug?](#node-bg02) (delegate).
 
-##### MA05 — Choose worker for increment {#node-ma05}
+**Move to:** [BG05 Confirm defect hypothesis](#node-bg05) **when analysis**.
 
-**Actor:** Chat management (decision). **Purpose:** Jules for bounded slice, Codex/Agy for broad changes.
+#### BG05 — Confirm defect hypothesis {#node-bg05}
 
-**Can move to:** **Jules** → [MA06 — Implement bounded slice](#node-ma06); **Codex / Agy** → [MA07 — Implement complex slice](#node-ma07).
+**Actor:** Chat LLM. **State:** Evidence, regression test. Compare candidate cause to observed failure and decide if more diagnosis is required.
 
-##### MA06 — Implement bounded slice {#node-ma06}
+**Enter from:** [BG03 Interactive diagnosis](#node-bg03) (copy findings); [BG04 Delegate diagnosis](#node-bg04) (analysis).
 
-**Actor:** Jules. **Purpose:** Small incremental PR; management tracks related stacks.
+**Move to:** [BG01 Capture reproduction](#node-bg01) **when not reproduced**; [SP01 Reconcile GitHub issues](#node-sp01) **when cause sufficient**; [PL01 State detailed intent](#node-pl01) **when needs redesign**.
 
-**Can move to:** **continue** → [MA08 — PR, CI and compatibility evidence](#node-ma08).
+### Clarification and specification
 
-##### MA07 — Implement complex slice {#node-ma07}
+#### PL01 — State detailed intent {#node-pl01}
 
-**Actor:** Codex / Agy. **Purpose:** Alternative path or authorised handoff.
+**Actor:** Human. **State:** Voice, prose, examples. Describe what, why, constraints, examples and desired approach; answer and ask questions.
 
-**Can move to:** **continue** → [MA08 — PR, CI and compatibility evidence](#node-ma08).
+**Enter from:** [WS03 Select discovery depth?](#node-ws03) (major / initial / unclear); [BG05 Confirm defect hypothesis](#node-bg05) (needs redesign); [PL05 Enough specified?](#node-pl05) (not enough); [RV04 What needs changing?](#node-rv04) (requirements conflict); [RL04 Audit public exposure](#node-rl04) (fundamental quality failure).
 
-##### MA08 — PR, CI and compatibility evidence {#node-ma08}
+**Move to:** [PL02 Ask clarifying questions](#node-pl02) **when draft intent**.
 
-**Actor:** GitHub / CI. **Purpose:** Check real tests, migrations and stack relationships.
+#### PL02 — Ask clarifying questions {#node-pl02}
 
-**Can move to:** **continue** → [MA09 — More increments?](#node-ma09).
+**Actor:** Chat LLM. **State:** Missing requirements. Ask targeted questions; revise scope after every material change.
 
-##### MA09 — More increments? {#node-ma09}
+**Enter from:** [PL01 State detailed intent](#node-pl01) (draft intent); [PL04 Resolve ambiguities](#node-pl04) (more questions).
 
-**Actor:** Chat management (decision). **Purpose:** Continue same roadmap or request redesign.
+**Move to:** [PL03 Find contradictions](#node-pl03) **when questions answered**.
 
-**Can move to:** **next increment** → [MA05 — Choose worker for increment](#node-ma05); **phase ready** → [MA10 — Merge/major release authorisation](#node-ma10).
+#### PL03 — Find contradictions {#node-pl03}
 
-##### MA10 — Merge/major release authorisation {#node-ma10}
+**Actor:** Chat LLM. **State:** Conflicts and trade-offs. Challenge incompatible requirements, tests or architecture; revisit earlier decisions.
 
-**Actor:** Human (decision). **Purpose:** Human decides merge and later publication.
+**Enter from:** [PL02 Ask clarifying questions](#node-pl02) (questions answered).
 
-**Can move to:** **deferred / issues** → [MA04 — Roadmap and issue/PR stack](#node-ma04).
+**Move to:** [PL04 Resolve ambiguities](#node-pl04) **when conflicts identified**.
 
-#### Minor improvement {#route-minor-change-nodes}
+#### PL04 — Resolve ambiguities {#node-pl04}
 
-##### MI01 — Minor improvement goal {#node-mi01}
+**Actor:** Human. **State:** Choose or defer decisions. Discuss alternatives, settle contradictions, or defer non-blocking questions explicitly.
 
-**Actor:** Human. **Purpose:** Specify additive user-visible outcome.
+**Enter from:** [PL03 Find contradictions](#node-pl03) (conflicts identified).
 
-**Can move to:** **continue** → [MI02 — Inspect existing issues and behaviour](#node-mi02).
+**Move to:** [PL02 Ask clarifying questions](#node-pl02) **when more questions**; [PL05 Enough specified?](#node-pl05) **when decisions/deferred**.
 
-##### MI02 — Inspect existing issues and behaviour {#node-mi02}
+#### PL05 — Enough specified? {#node-pl05}
 
-**Actor:** Chat management. **Purpose:** Prefer reuse over duplicate issues.
+**Actor:** Human. **State:** Proceed, continue, defer. Advance when sufficient, not necessarily complete; otherwise loop or park.
 
-**Can move to:** **continue** → [MI03 — Scope accepted?](#node-mi03).
+**Enter from:** [PL04 Resolve ambiguities](#node-pl04) (decisions/deferred).
 
-##### MI03 — Scope accepted? {#node-mi03}
+**Move to:** [PL01 State detailed intent](#node-pl01) **when not enough**; [EN02 Deferred / blocked](#node-en02) **when defer**; [EN03 Abandoned](#node-en03) **when abandon**; [SP01 Reconcile GitHub issues](#node-sp01) **when sufficient**.
 
-**Actor:** Human (decision). **Purpose:** Confirm boundaries when consequential.
+#### SP01 — Reconcile GitHub issues {#node-sp01}
 
-**Can move to:** **redefine** → [MI02 — Inspect existing issues and behaviour](#node-mi02); **yes** → [MI04 — Acceptance criteria and prompt](#node-mi04).
+**Actor:** Chat LLM. **State:** Specification register. Search existing issues and PRs; align expected outcomes and acceptance cases.
 
-##### MI04 — Acceptance criteria and prompt {#node-mi04}
+**Enter from:** [WS03 Select discovery depth?](#node-ws03) (minor / clear / routine); [BG05 Confirm defect hypothesis](#node-bg05) (cause sufficient); [PL05 Enough specified?](#node-pl05) (sufficient); [RV04 What needs changing?](#node-rv04) (issue/spec mismatch).
 
-**Actor:** Chat management. **Purpose:** Plan a bounded implementation increment.
+**Move to:** [SP02 Issue record adequate?](#node-sp02) **when reconcile**.
 
-**Can move to:** **continue** → [MI05 — Worker selection](#node-mi05).
+#### SP02 — Issue record adequate? {#node-sp02}
 
-##### MI05 — Worker selection {#node-mi05}
+**Actor:** Chat LLM. **State:** Create, update, reuse. Check missing tests, issue ownership, resolving scope and change implications.
 
-**Actor:** Chat management (decision). **Purpose:** Choose one worker for this increment.
+**Enter from:** [SP01 Reconcile GitHub issues](#node-sp01) (reconcile).
 
-**Can move to:** **Jules** → [MI06 — Implement small change](#node-mi06); **Codex / Agy** → [MI07 — Implement alternative change](#node-mi07).
+**Move to:** [SP03 Request issue approval](#node-sp03) **when new issue / major reframe**; [SP04 Persist accepted spec](#node-sp04) **when existing issues valid**.
 
-##### MI06 — Implement small change {#node-mi06}
+#### SP03 — Request issue approval {#node-sp03}
 
-**Actor:** Jules. **Purpose:** Narrow code and focused tests.
+**Actor:** Human. **State:** New or material rewrite. Approve new issue creation or significant reframing; maintain existing records when authorised.
 
-**Can move to:** **continue** → [MI08 — Review diff and CI](#node-mi08).
+**Enter from:** [SP02 Issue record adequate?](#node-sp02) (new issue / major reframe).
 
-##### MI07 — Implement alternative change {#node-mi07}
+**Move to:** [SP04 Persist accepted spec](#node-sp04) **when approved**; [EN02 Deferred / blocked](#node-en02) **when not approved yet**.
 
-**Actor:** Codex / Agy. **Purpose:** Complex or interactive alternative.
+#### SP04 — Persist accepted spec {#node-sp04}
 
-**Can move to:** **continue** → [MI08 — Review diff and CI](#node-mi08).
+**Actor:** Chat LLM. **State:** Issues + PR descriptions. Record decisions, open questions, criteria and dependencies in GitHub and linked conversation.
 
-##### MI08 — Review diff and CI {#node-mi08}
+**Enter from:** [SP03 Request issue approval](#node-sp03) (approved); [SP02 Issue record adequate?](#node-sp02) (existing issues valid).
 
-**Actor:** Chat management. **Purpose:** Classify failures and check issue completion.
+**Move to:** [TR01 Work size and dependency?](#node-tr01) **when issues accepted**.
 
-**Can move to:** **fix with current worker** → [MI06 — Implement small change](#node-mi06); **verified** → [MI09 — Merge approved?](#node-mi09).
+### PR-tree planning
 
-##### MI09 — Merge approved? {#node-mi09}
+#### TR01 — Work size and dependency? {#node-tr01}
 
-**Actor:** Human (decision). **Purpose:** Chat handles Ready status; human merges.
+**Actor:** Chat LLM. **State:** Single PR or PR tree. Choose scope from dependencies and likely conflicts, not arbitrary linear stacking.
 
-**Can move to:** **merge approved** → [MI10 — Release or defer?](#node-mi10).
+**Enter from:** [SP04 Persist accepted spec](#node-sp04) (issues accepted).
 
-##### MI10 — Release or defer? {#node-mi10}
+**Move to:** [TR02 Plan PR dependency tree](#node-tr02) **when complex / dependent**; [EX01 Who implements?](#node-ex01) **when single PR**.
 
-**Actor:** Human (decision). **Purpose:** Potential minor release, not automatic.
+#### TR02 — Plan PR dependency tree {#node-tr02}
 
-**Can move to:** **new work / defer** → [MI02 — Inspect existing issues and behaviour](#node-mi02).
+**Actor:** Chat LLM. **State:** Conflict and merge ordering. Map sibling PRs that can merge independently and dependent children that must wait.
 
-#### Feature implementation {#route-feature-nodes}
+**Enter from:** [TR01 Work size and dependency?](#node-tr01) (complex / dependent).
 
-##### FE01 — Feature request {#node-fe01}
+**Move to:** [TR03 Select runnable node](#node-tr03) **when tree dependencies**.
 
-**Actor:** Human. **Purpose:** Describe new capability and value.
+#### TR03 — Select runnable node {#node-tr03}
 
-**Can move to:** **continue** → [FE02 — Find existing issues and comparable behaviour](#node-fe02).
+**Actor:** Chat LLM. **State:** Milestone + unblocked branch. Choose a ready node; if one branch blocks, advance an independent sibling.
 
-##### FE02 — Find existing issues and comparable behaviour {#node-fe02}
+**Enter from:** [TR02 Plan PR dependency tree](#node-tr02) (tree dependencies); [RV10 More work in PR tree?](#node-rv10) (next sibling / child).
 
-**Actor:** Chat management. **Purpose:** Identify users, edge cases, documentation.
+**Move to:** [EX01 Who implements?](#node-ex01) **when ready node**; [EN02 Deferred / blocked](#node-en02) **when all nodes blocked**.
 
-**Can move to:** **continue** → [FE03 — Clarify acceptance examples](#node-fe03).
+#### TR04 — Milestone gate {#node-tr04}
 
-##### FE03 — Clarify acceptance examples {#node-fe03}
+**Actor:** Human. **State:** Dogfood, testable, complete. Confirm which portion of the tree is sufficient to test or merge now.
 
-**Actor:** Chat management. **Purpose:** Scenarios and testable outcomes.
+**Enter from:** An independent starting point.
 
-**Can move to:** **continue** → [FE04 — Approve issue/scope?](#node-fe04).
+**Move to:** [RV01 Inspect actual PR state](#node-rv01) **when test milestone**.
 
-##### FE04 — Approve issue/scope? {#node-fe04}
+### Implementation
 
-**Actor:** Human (decision). **Purpose:** Ask before creating new issue or major changing the scope.
+#### EX01 — Who implements? {#node-ex01}
 
-**Can move to:** **refine** → [FE03 — Clarify acceptance examples](#node-fe03); **approved** → [FE05 — Pick worker](#node-fe05).
+**Actor:** Chat LLM. **State:** Chat patch, coding agent, human. For small changes try direct Chat LLM fix when able; otherwise write a prompt for Codex/Agy.
 
-##### FE05 — Pick worker {#node-fe05}
+**Enter from:** [TR01 Work size and dependency?](#node-tr01) (single PR); [TR03 Select runnable node](#node-tr03) (ready node).
 
-**Actor:** Chat management (decision). **Purpose:** Bounded Jules or alternative Codex/Agy.
+**Move to:** [EX05 Direct small patch](#node-ex05) **when tiny + chat capable**; [EX02 Prepare implementation](#node-ex02) **when coding model**; [BG03 Interactive diagnosis](#node-bg03) **when human UI debugging**.
 
-**Can move to:** **Jules** → [FE06 — Implement feature increment](#node-fe06); **Codex / Agy** → [FE07 — Implement complex feature increment](#node-fe07).
+#### EX02 — Prepare implementation {#node-ex02}
 
-##### FE06 — Implement feature increment {#node-fe06}
+**Actor:** Chat LLM. **State:** Prompt + branch + tests. Specify accepted issue state, exact branch, constraints, tests, dependency tree and expected PRs.
 
-**Actor:** Jules. **Purpose:** Code and tests in short chunks.
+**Enter from:** [EX01 Who implements?](#node-ex01) (coding model); [RV06 Complex correction](#node-rv06) (corrective prompt).
 
-**Can move to:** **continue** → [FE08 — Publish code and CI evidence](#node-fe08).
+**Move to:** [EX03 Code and test locally](#node-ex03) **when prompt approved**.
 
-##### FE07 — Implement complex feature increment {#node-fe07}
+#### EX03 — Code and test locally {#node-ex03}
 
-**Actor:** Codex / Agy. **Purpose:** Alternative worker, not a simultaneous editor.
+**Actor:** Coding LLM (Codex/Agy). **State:** Coding LLM in container. Use agent in interactive or YOLO container; iterate on code, tests and generator output.
 
-**Can move to:** **continue** → [FE08 — Publish code and CI evidence](#node-fe08).
+**Enter from:** [EX02 Prepare implementation](#node-ex02) (prompt approved).
 
-##### FE08 — Publish code and CI evidence {#node-fe08}
+**Move to:** [EX04 Publish PR tree](#node-ex04) **when tests and code**.
 
-**Actor:** GitHub / CI. **Purpose:** PR, checks, review threads.
+#### EX04 — Publish PR tree {#node-ex04}
 
-**Can move to:** **continue** → [FE09 — Review and corrections](#node-fe09).
+**Actor:** Coding LLM (Codex/Agy). **State:** Branches and draft PRs. Push real commits and create the promised PRs, with explicit dependent bases and linked issues.
 
-##### FE09 — Review and corrections {#node-fe09}
+**Enter from:** [EX03 Code and test locally](#node-ex03) (tests and code).
 
-**Actor:** Chat management. **Purpose:** Independent cumulative-diff review; maintain PR metadata.
+**Move to:** [RV01 Inspect actual PR state](#node-rv01) **when published**.
 
-**Can move to:** **focused correction** → [FE06 — Implement feature increment](#node-fe06); **ready** → [FE10 — Approve merge?](#node-fe10).
+#### EX05 — Direct small patch {#node-ex05}
 
-##### FE10 — Approve merge? {#node-fe10}
+**Actor:** Chat LLM. **State:** Chat LLM, if capable. Use available tooling to edit and test an isolated authorised branch, publish an inspectable PR.
 
-**Actor:** Human (decision). **Purpose:** Decide final merge; release optional.
+**Enter from:** [EX01 Who implements?](#node-ex01) (tiny + chat capable).
 
-**Can move to:** **defer / follow-up** → [FE02 — Find existing issues and comparable behaviour](#node-fe02).
+**Move to:** [RV01 Inspect actual PR state](#node-rv01) **when published**.
 
-#### Bug fix {#route-bug-fix-nodes}
+### Review, CI and merging
 
-##### BF01 — Bug report or failing behaviour {#node-bf01}
+#### RV01 — Inspect actual PR state {#node-rv01}
 
-**Actor:** Human. **Purpose:** Human, third-party or test/monitoring report.
+**Actor:** Chat LLM. **State:** Diff, head, issue, ancestry. Verify published commits, comments, PR metadata, dependencies and fresh tests.
 
-**Can move to:** **continue** → [BF02 — Reproduce and locate cause](#node-bf02).
+**Enter from:** [ST05 Existing work](#node-st05) (resume current PR); [TR04 Milestone gate](#node-tr04) (test milestone); [EX04 Publish PR tree](#node-ex04) (published); [EX05 Direct small patch](#node-ex05) (published); [RV05 Small repair](#node-rv05) (republished).
 
-##### BF02 — Reproduce and locate cause {#node-bf02}
+**Move to:** [RV02 Classify CI signal](#node-rv02) **when current head**.
 
-**Actor:** Chat management. **Purpose:** Gather logs, versions, observed vs expected.
+#### RV02 — Classify CI signal {#node-rv02}
 
-**Can move to:** **continue** → [BF03 — Check existing issue and regression scope](#node-bf03).
+**Actor:** Chat LLM. **State:** Passed, failed, pending, quota. Required checks cannot be marked passed if absent; rerun or use accepted alternatives.
 
-##### BF03 — Check existing issue and regression scope {#node-bf03}
+**Enter from:** [RV01 Inspect actual PR state](#node-rv01) (current head).
 
-**Actor:** Chat management. **Purpose:** Maintain durable problem state.
+**Move to:** [RV03 Review correctness?](#node-rv03) **when CI evidence / disclosed gaps**; [EN02 Deferred / blocked](#node-en02) **when required CI blocked**.
 
-**Can move to:** **continue** → [BF04 — Enough evidence to act?](#node-bf04).
+#### RV03 — Review correctness? {#node-rv03}
 
-##### BF04 — Enough evidence to act? {#node-bf04}
+**Actor:** Chat LLM. **State:** Human + Chat evidence. Check behaviour, issue match, closing keywords, test quality, conflicts and merge ordering.
 
-**Actor:** Chat management (decision). **Purpose:** Request more data instead of guessing.
+**Enter from:** [RV02 Classify CI signal](#node-rv02) (CI evidence / disclosed gaps).
 
-**Can move to:** **insufficient** → [BF02 — Reproduce and locate cause](#node-bf02); **ready** → [BF05 — Choose repair worker](#node-bf05).
+**Move to:** [RV04 What needs changing?](#node-rv04) **when findings**.
 
-##### BF05 — Choose repair worker {#node-bf05}
+#### RV04 — What needs changing? {#node-rv04}
 
-**Actor:** Chat management (decision). **Purpose:** Jules small fix or Codex/Agy deeper debugging.
+**Actor:** Chat LLM. **State:** Simple, complex, spec, ready. Route repair to smallest appropriate stage, including back to Q&A and issue specifications.
 
-**Can move to:** **Jules** → [BF06 — Implement regression fix](#node-bf06); **Codex / Agy** → [BF07 — Investigate / repair complex defect](#node-bf07).
+**Enter from:** [RV03 Review correctness?](#node-rv03) (findings); [RV07 Human PR review](#node-rv07) (human objections); [RV08 Merge approved?](#node-rv08) (changes requested).
 
-##### BF06 — Implement regression fix {#node-bf06}
+**Move to:** [RV05 Small repair](#node-rv05) **when simple conflict/fix**; [RV06 Complex correction](#node-rv06) **when complex repair**; [PL01 State detailed intent](#node-pl01) **when requirements conflict**; [SP01 Reconcile GitHub issues](#node-sp01) **when issue/spec mismatch**; [RV07 Human PR review](#node-rv07) **when ready**.
 
-**Actor:** Jules. **Purpose:** Small targeted patch and regression test.
+#### RV05 — Small repair {#node-rv05}
 
-**Can move to:** **continue** → [BF08 — Check targeted and broad CI](#node-bf08).
+**Actor:** Human. **State:** Human or Chat directly. Resolve trivial conflict or tiny fix; Chat may patch when authorised, then republish and review.
 
-##### BF07 — Investigate / repair complex defect {#node-bf07}
+**Enter from:** [RV04 What needs changing?](#node-rv04) (simple conflict/fix).
 
-**Actor:** Codex / Agy. **Purpose:** Alternative investigation route.
+**Move to:** [RV01 Inspect actual PR state](#node-rv01) **when republished**.
 
-**Can move to:** **continue** → [BF08 — Check targeted and broad CI](#node-bf08).
+#### RV06 — Complex correction {#node-rv06}
 
-##### BF08 — Check targeted and broad CI {#node-bf08}
+**Actor:** Chat LLM. **State:** Prompt to coding model. Produce targeted prompt for Codex/Agy; repair existing branch/PR when safe.
 
-**Actor:** GitHub / CI. **Purpose:** Separate actionable failures from quota/infra.
+**Enter from:** [RV04 What needs changing?](#node-rv04) (complex repair).
 
-**Can move to:** **continue** → [BF09 — Independent review and readiness](#node-bf09).
+**Move to:** [EX02 Prepare implementation](#node-ex02) **when corrective prompt**.
 
-##### BF09 — Independent review and readiness {#node-bf09}
+#### RV07 — Human PR review {#node-rv07}
 
-**Actor:** Chat management. **Purpose:** Confirm reproduction and intended outcome.
+**Actor:** Human. **State:** Direction + test milestone. Read changes, test where appropriate, request redesign, defer, or approve.
 
-**Can move to:** **fix still needed** → [BF06 — Implement regression fix](#node-bf06); **verified** → [BF10 — Approve merge / patch release?](#node-bf10).
+**Enter from:** [RV04 What needs changing?](#node-rv04) (ready).
 
-##### BF10 — Approve merge / patch release? {#node-bf10}
+**Move to:** [RV04 What needs changing?](#node-rv04) **when human objections**; [RV08 Merge approved?](#node-rv08) **when review accepted**.
 
-**Actor:** Human (decision). **Purpose:** Merge and release are separate decisions.
+#### RV08 — Merge approved? {#node-rv08}
 
-**Can move to:** **deferred follow-up** → [BF03 — Check existing issue and regression scope](#node-bf03).
+**Actor:** Human. **State:** Current PR only. Explicit approval; passing CI or model readiness is not merge authority.
 
-#### Automated maintenance {#route-automation-nodes}
+**Enter from:** [RV07 Human PR review](#node-rv07) (review accepted).
 
-##### AU01 — Automated bump, alert or audit {#node-au01}
+**Move to:** [RV04 What needs changing?](#node-rv04) **when changes requested**; [EN02 Deferred / blocked](#node-en02) **when hold**; [RV09 Merge eligible node](#node-rv09) **when approved**.
 
-**Actor:** GitHub / CI. **Purpose:** Dependabot/tooling/CI audit event.
+#### RV09 — Merge eligible node {#node-rv09}
 
-**Can move to:** **continue** → [AU02 — Classify relevance and risk](#node-au02).
+**Actor:** GitHub / CI. **State:** GitHub merge action. Merge only valid, approved PR with required checks and dependency prerequisites satisfied.
 
-##### AU02 — Classify relevance and risk {#node-au02}
+**Enter from:** [RV08 Merge approved?](#node-rv08) (approved).
 
-**Actor:** Chat management. **Purpose:** Assess affected dependencies, security, compatibility.
+**Move to:** [RV10 More work in PR tree?](#node-rv10) **when merged**.
 
-**Can move to:** **continue** → [AU03 — Review issue and PR provenance](#node-au03).
+#### RV10 — More work in PR tree? {#node-rv10}
 
-##### AU03 — Review issue and PR provenance {#node-au03}
+**Actor:** Chat LLM. **State:** Parallel siblings, blockers. Update bases and conflicts; choose another ready sibling or pause dependent branch.
 
-**Actor:** Chat management. **Purpose:** Check agent versus third-party ownership.
+**Enter from:** [RV09 Merge eligible node](#node-rv09) (merged).
 
-**Can move to:** **continue** → [AU04 — Human authorisation needed?](#node-au04).
+**Move to:** [TR03 Select runnable node](#node-tr03) **when next sibling / child**; [CL01 Audit issues and PRs](#node-cl01) **when milestone complete**; [EN02 Deferred / blocked](#node-en02) **when remaining work blocked**.
 
-##### AU04 — Human authorisation needed? {#node-au04}
+### Closeout and trackers
 
-**Actor:** Chat management (decision). **Purpose:** New issues/major changes or sensitive decisions.
+#### CL01 — Audit issues and PRs {#node-cl01}
 
-**Can move to:** **routine authorised** → [AU06 — Choose corrective worker](#node-au06); **approval required** → [AU05 — Approve material change?](#node-au05).
+**Actor:** Chat LLM. **State:** Keywords + real completion. Check Fixes/Closes references, issue statuses, acceptance evidence, final implementation notes.
 
-##### AU05 — Approve material change? {#node-au05}
+**Enter from:** [RV10 More work in PR tree?](#node-rv10) (milestone complete).
 
-**Actor:** Human (decision). **Purpose:** Human retains consequential scope decisions.
+**Move to:** [CL02 Notify dependencies](#node-cl02) **when issues correct**.
 
-**Can move to:** **approved** → [AU06 — Choose corrective worker](#node-au06); **declined** → [AU02 — Classify relevance and risk](#node-au02).
+#### CL02 — Notify dependencies {#node-cl02}
 
-##### AU06 — Choose corrective worker {#node-au06}
+**Actor:** Chat LLM. **State:** Upstream + downstream. Check version constraints, dependent PRs, projects and actionable update notices.
 
-**Actor:** Chat management (decision). **Purpose:** Automated update may already have a PR.
+**Enter from:** [CL01 Audit issues and PRs](#node-cl01) (issues correct).
 
-**Can move to:** **Jules** → [AU07 — Narrow corrective chunk](#node-au07); **Codex / Agy** → [AU08 — Interactive migration / correction](#node-au08); **no coding needed** → [AU09 — Verify updated PR and CI](#node-au09).
+**Move to:** [CL03 Update Projects repo](#node-cl03) **when notify**.
 
-##### AU07 — Narrow corrective chunk {#node-au07}
+#### CL03 — Update Projects repo {#node-cl03}
 
-**Actor:** Jules. **Purpose:** Implement if the bot update needs small fixes.
+**Actor:** Chat LLM. **State:** Ideas, work and position. Update arran4/projects with roadmap, workstream and current milestone.
 
-**Can move to:** **continue** → [AU09 — Verify updated PR and CI](#node-au09).
+**Enter from:** [CL02 Notify dependencies](#node-cl02) (notify).
 
-##### AU08 — Interactive migration / correction {#node-au08}
+**Move to:** [CL04 Update PR repository](#node-cl04) **when tracker current**.
 
-**Actor:** Codex / Agy. **Purpose:** Alternative for broader failures.
+#### CL04 — Update PR repository {#node-cl04}
 
-**Can move to:** **continue** → [AU09 — Verify updated PR and CI](#node-au09).
+**Actor:** Chat LLM. **State:** Announcement readiness. Update arran4/public-relations with accurate materials or future campaign tasks.
 
-##### AU09 — Verify updated PR and CI {#node-au09}
+**Enter from:** [CL03 Update Projects repo](#node-cl03) (tracker current).
 
-**Actor:** GitHub / CI. **Purpose:** Do not regard quota-limited CI as passed.
+**Move to:** [RL01 Recommend release intent](#node-rl01) **when evaluate version**.
 
-**Can move to:** **continue** → [AU10 — Merge / release decision](#node-au10); **correction** → [AU07 — Narrow corrective chunk](#node-au07).
+### Release and public opening
 
-##### AU10 — Merge / release decision {#node-au10}
+#### RL01 — Recommend release intent {#node-rl01}
 
-**Actor:** Human (decision). **Purpose:** No auto-merge merely because tool generated update.
+**Actor:** Chat LLM. **State:** None, patch, minor, major. Use accepted scope, roadmap, merged changes and release guidance; patch may be routine if authorised.
 
-**Can move to:** The next workstream or subprocess, after the relevant approval.
+**Enter from:** [ST06 Release request](#node-st06) (release-only); [CL04 Update PR repository](#node-cl04) (evaluate version).
 
-#### Release and publication {#route-release-nodes}
+**Move to:** [RL02 Publish now?](#node-rl02) **when release recommendation**.
 
-##### RL01 — Release candidate {#node-rl01}
+#### RL02 — Publish now? {#node-rl02}
 
-**Actor:** Chat management. **Purpose:** From first, major, minor, patch or maintenance work.
+**Actor:** Human. **State:** Decision or defer. May choose no release, normal versioned release, or delayed/public opening.
 
-**Can move to:** **continue** → [RL02 — Reconcile merged work and versions](#node-rl02).
+**Enter from:** [RL01 Recommend release intent](#node-rl01) (release recommendation).
 
-##### RL02 — Reconcile merged work and versions {#node-rl02}
+**Move to:** [EN01 Completed](#node-en01) **when no release / done**; [EN02 Deferred / blocked](#node-en02) **when defer release**; [RL03 First public opening?](#node-rl03) **when release approved**.
 
-**Actor:** Chat management. **Purpose:** Changelog, compatibility, dependency status.
+#### RL03 — First public opening? {#node-rl03}
 
-**Can move to:** **continue** → [RL03 — Required release checks available?](#node-rl03).
+**Actor:** Human. **State:** Visibility and history. If private-to-public, require broader quality, provenance, licence, copyright and link checks.
 
-##### RL03 — Required release checks available? {#node-rl03}
+**Enter from:** [RL02 Publish now?](#node-rl02) (release approved).
 
-**Actor:** Chat management (decision). **Purpose:** Classify quotas, failing tests, infrastructure.
+**Move to:** [RL07 Run release workflow](#node-rl07) **when already public / private release**; [RL04 Audit public exposure](#node-rl04) **when first public opening**.
 
-**Can move to:** **missing mandatory evidence** → [RL04 — Restore verification or block](#node-rl04); **sufficient evidence** → [RL05 — Authorise release?](#node-rl05).
+#### RL04 — Audit public exposure {#node-rl04}
 
-##### RL04 — Restore verification or block {#node-rl04}
+**Actor:** Chat LLM. **State:** Links, secrets, licences. Inspect repository history, links, copyright, documentation, quality and release assets.
 
-**Actor:** Chat management. **Purpose:** No fabricated pass or branch-protection bypass.
+**Enter from:** [RL03 First public opening?](#node-rl03) (first public opening).
 
-**Can move to:** **checks restored** → [RL03 — Required release checks available?](#node-rl03).
+**Move to:** [RL05 History rewrite needed?](#node-rl05) **when audit findings**; [PL01 State detailed intent](#node-pl01) **when fundamental quality failure**.
 
-##### RL05 — Authorise release? {#node-rl05}
+#### RL05 — History rewrite needed? {#node-rl05}
 
-**Actor:** Human (decision). **Purpose:** Explicit publication decision.
+**Actor:** Human. **State:** Explicit destructive consent. Force-push or rewrite only on explicit informed approval; consider collaborators and tags.
 
-**Can move to:** **hold** → [RL02 — Reconcile merged work and versions](#node-rl02); **approved** → [RL06 — Tag and publish via established CI](#node-rl06).
+**Enter from:** [RL04 Audit public exposure](#node-rl04) (audit findings).
 
-##### RL06 — Tag and publish via established CI {#node-rl06}
+**Move to:** [RL06 Approve visibility change](#node-rl06) **when no rewrite / approved rewrite**; [EN02 Deferred / blocked](#node-en02) **when rewrite consent pending**.
 
-**Actor:** GitHub / CI. **Purpose:** One safe release publisher per tag.
+#### RL06 — Approve visibility change {#node-rl06}
 
-**Can move to:** **continue** → [RL07 — Verify artifacts and downstream effects](#node-rl07).
+**Actor:** Human. **State:** Human-publication gate. Make public only after verified audit and approval.
 
-##### RL07 — Verify artifacts and downstream effects {#node-rl07}
+**Enter from:** [RL05 History rewrite needed?](#node-rl05) (no rewrite / approved rewrite).
 
-**Actor:** Chat management. **Purpose:** Validate actual release, not only workflow dispatch.
+**Move to:** [RL07 Run release workflow](#node-rl07) **when public approved**.
 
-**Can move to:** **continue** → [RL08 — Follow-up, notes and next phase](#node-rl08).
+#### RL07 — Run release workflow {#node-rl07}
 
-##### RL08 — Follow-up, notes and next phase {#node-rl08}
+**Actor:** GitHub / CI. **State:** Tag dispatch + publisher. Use documented release-safe action to tag and publish; no duplicate release publisher.
 
-**Actor:** Chat management. **Purpose:** Reconcile issues and select next work.
+**Enter from:** [RL03 First public opening?](#node-rl03) (already public / private release); [RL06 Approve visibility change](#node-rl06) (public approved).
 
-**Can move to:** **continue** → [RL09 — Human chooses next phase](#node-rl09).
+**Move to:** [RL08 Verify published result](#node-rl08) **when workflow complete**.
 
-##### RL09 — Human chooses next phase {#node-rl09}
+#### RL08 — Verify published result {#node-rl08}
 
-**Actor:** Human (decision). **Purpose:** Do not silently start new project.
+**Actor:** Chat LLM. **State:** Artifacts, downstream. Confirm actual tag, release, packages and downstream impact; update tracker and announcements.
 
-**Can move to:** **continue roadmap** → [RL02 — Reconcile merged work and versions](#node-rl02).
+**Enter from:** [RL07 Run release workflow](#node-rl07) (workflow complete).
 
-### Overview nodes {#overview-nodes}
+**Move to:** [EN01 Completed](#node-en01) **when confirmed**; [EN02 Deferred / blocked](#node-en02) **when publishing failed**.
 
-#### O01 — Select starting point {#node-o01}
+### Terminal outcomes
 
-**Actor:** Human. **Action:** New, major, minor, fix or automated. This node records an operation or observed state, not implicit human approval.
+#### EN01 — Completed {#node-en01}
 
-**Transitions:** **on completion** → [O02 — Open workstream](#node-o02).
+**Actor:** GitHub / CI. **State:** Verified milestone. Work and any authorised release completed; issue and tracker state reconciled.
 
-**Boundary:** Selecting initial release includes repository creation and preparation for publication; an automated event can re-enter planning without a new idea.
+**Enter from:** [RL02 Publish now?](#node-rl02) (no release / done); [RL08 Verify published result](#node-rl08) (confirmed).
 
-#### O02 — Open workstream {#node-o02}
+**Move to:** Terminal state; resume with a new entry or recorded dependency.
 
-**Actor:** Chat management. **Action:** Keep a chat per coherent workstream. This node records an operation or observed state, not implicit human approval.
+#### EN02 — Deferred / blocked {#node-en02}
 
-**Transitions:** **on completion** → [O03 — Research and plan](#node-o03).
+**Actor:** GitHub / CI. **State:** Reason + resumption trigger. Record what remains, owner, dependency, and the condition for resuming.
 
-#### O03 — Research and plan {#node-o03}
+**Enter from:** [PL05 Enough specified?](#node-pl05) (defer); [SP03 Request issue approval](#node-sp03) (not approved yet); [TR03 Select runnable node](#node-tr03) (all nodes blocked); [RV02 Classify CI signal](#node-rv02) (required CI blocked); [RV08 Merge approved?](#node-rv08) (hold); [RV10 More work in PR tree?](#node-rv10) (remaining work blocked); [RL02 Publish now?](#node-rl02) (defer release); [RL05 History rewrite needed?](#node-rl05) (rewrite consent pending); [RL08 Verify published result](#node-rl08) (publishing failed).
 
-**Actor:** Chat management. **Action:** Inspect repository, issues and releases. This node records an operation or observed state, not implicit human approval.
+**Move to:** Terminal state; resume with a new entry or recorded dependency.
 
-**Transitions:** **on completion** → [O04 — Accept approach?](#node-o04).
+#### EN03 — Abandoned {#node-en03}
 
-#### O04 — Accept approach? {#node-o04}
+**Actor:** Human. **State:** Reason + consequences. Document cancellation, superseded PRs, issue closure/retention and change of direction.
 
-**Actor:** Human. **Action:** Scope, priority and dependencies. This is a decision gate; the labelled outcomes determine the next operation.
+**Enter from:** [PL05 Enough specified?](#node-pl05) (abandon).
 
-**Transitions:** **revise** → [O03 — Research and plan](#node-o03); **accept** → [O05 — Reconcile issues](#node-o05).
+**Move to:** Terminal state; resume with a new entry or recorded dependency.
 
-**Boundary:** The human may iterate collaboratively rather than approving a preselected option.
 
-#### O05 — Reconcile issues {#node-o05}
+## Notes
 
-**Actor:** Chat management. **Action:** Prepare existing or proposed records. This node records an operation or observed state, not implicit human approval.
+This process intentionally leaves choices reversible. A human may change the scope, abandon a line of development, park work for later, or take a different ready branch in a PR tree. A CI quota failure, coding-agent exit, or conflict does not automatically mean the specification failed. The diagram describes **how decisions are made and persisted**, not a guarantee that every path always runs.
 
-**Transitions:** **on completion** → [O06 — Select work unit](#node-o06).
+The current workstream can span several coding sessions and PRs. An issue may outlive one implementation attempt and a PR tree may serve one milestone without exhausting the roadmap. If the workflow has changed while work is in progress, reconcile the durable records and continue from the correct node; do not silently apply obsolete plans.
 
-#### O06 — Select work unit {#node-o06}
+### Maintaining this diagram
 
-**Actor:** Chat management. **Action:** One or several related issues. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [O07 — Select implementation path](#node-o07).
-
-#### O07 — Select implementation path {#node-o07}
-
-**Actor:** Chat management. **Action:** Jules / Codex-Agy / chat admin. This is a decision gate; the labelled outcomes determine the next operation.
-
-**Transitions:** **Jules** → [O08 — Small coding increment](#node-o08); **Codex/Agy** → [O09 — Larger coding increment](#node-o09); **administration only** → [O11 — Review and correct](#node-o11).
-
-**Boundary:** Jules and Codex/Agy paths are alternatives for this increment, not parallel agents writing to the same branch.
-
-#### O08 — Small coding increment {#node-o08}
-
-**Actor:** Jules. **Action:** Focused prompt and asynchronous changes. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [O10 — Publish reviewable evidence](#node-o10).
-
-#### O09 — Larger coding increment {#node-o09}
-
-**Actor:** Codex / Agy. **Action:** Interactive or recovery execution. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [O10 — Publish reviewable evidence](#node-o10).
-
-#### O10 — Publish reviewable evidence {#node-o10}
-
-**Actor:** GitHub / CI. **Action:** PR, commits, tests and CI. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [O11 — Review and correct](#node-o11).
-
-#### O11 — Review and correct {#node-o11}
-
-**Actor:** Chat management. **Action:** Diff, CI, issues, metadata, loops. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **another Jules chunk** → [O08 — Small coding increment](#node-o08); **coding/recovery** → [O09 — Larger coding increment](#node-o09); **ready** → [O12 — Approve merge?](#node-o12).
-
-**Boundary:** Subprocess details: [implementation](#implementation-and-review-nodes) and [CI/recovery](#ci-and-recovery-nodes).
-
-#### O12 — Approve merge? {#node-o12}
-
-**Actor:** Human. **Action:** Human reviews the ready PR. This is a decision gate; the labelled outcomes determine the next operation.
-
-**Transitions:** **request changes** → [O11 — Review and correct](#node-o11); **approved** → [O13 — Merge / release gate](#node-o13).
-
-**Boundary:** Ready for review does not grant merge authority.
-
-#### O13 — Merge / release gate {#node-o13}
-
-**Actor:** GitHub / CI. **Action:** Merge authorised; publish separately. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [O14 — Close out and continue](#node-o14).
-
-#### O14 — Close out and continue {#node-o14}
-
-**Actor:** Chat management. **Action:** Reconcile issues, release and next phase. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **next phase** → [O03 — Research and plan](#node-o03).
-
-### Planning and intake nodes {#planning-and-intake-nodes}
-
-#### P01 — Identify entry point {#node-p01}
-
-**Actor:** Human. **Action:** Initial, major, minor, fix, automation. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [P02 — Establish workstream](#node-p02).
-
-**Boundary:** For first release, include repository initialisation and initial CI; for version bumps, inspect bot-created PRs and security/audit impact.
-
-#### P02 — Establish workstream {#node-p02}
-
-**Actor:** Chat management. **Action:** One chat per workstream, parallel chats OK. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [P03 — Discover baseline](#node-p03).
-
-#### P03 — Discover baseline {#node-p03}
-
-**Actor:** Chat management. **Action:** Source, open issues, PRs, CI, releases. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [P04 — Research alternatives](#node-p04).
-
-#### P04 — Research alternatives {#node-p04}
-
-**Actor:** Chat management. **Action:** Trade-offs, compatibility and risks. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [P05 — Clarify requirements](#node-p05).
-
-#### P05 — Clarify requirements {#node-p05}
-
-**Actor:** Human. **Action:** Collaborative questions and direction. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **refine** → [P04 — Research alternatives](#node-p04); **aligned** → [P06 — Build roadmap](#node-p06).
-
-**Boundary:** Human Q&A is collaborative input, not merely an authorisation button.
-
-#### P06 — Build roadmap {#node-p06}
-
-**Actor:** Chat management. **Action:** Dependencies, stages and release intent. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [P07 — Approve roadmap?](#node-p07).
-
-#### P07 — Approve roadmap? {#node-p07}
-
-**Actor:** Human. **Action:** Direction / costs / non-goals. This is a decision gate; the labelled outcomes determine the next operation.
-
-**Transitions:** **rework** → [P04 — Research alternatives](#node-p04); **accepted** → [P08 — Reconcile issue register](#node-p08).
-
-#### P08 — Reconcile issue register {#node-p08}
-
-**Actor:** Chat management. **Action:** Deduplicate, refine and draft candidates. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **new issues found** → [P09 — Create new issues?](#node-p09).
-
-#### P09 — Create new issues? {#node-p09}
-
-**Actor:** Human. **Action:** Explicit approval for new records. This is a decision gate; the labelled outcomes determine the next operation.
-
-**Transitions:** **yes** → [P10 — Record durable issues](#node-p10); **no / existing** → [P11 — Choose implementation unit](#node-p11).
-
-**Boundary:** New issue creation requires explicit human authorisation; maintaining accurate existing issues is routine management.
-
-#### P10 — Record durable issues {#node-p10}
-
-**Actor:** GitHub / CI. **Action:** Create only approved; update existing. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [P11 — Choose implementation unit](#node-p11).
-
-#### P11 — Choose implementation unit {#node-p11}
-
-**Actor:** Chat management. **Action:** Cluster related issues, scope PRs. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [P12 — Set acceptance evidence](#node-p12).
-
-**Boundary:** A work unit can resolve multiple related issues or need stacked PRs, but should not collect unrelated work.
-
-#### P12 — Set acceptance evidence {#node-p12}
-
-**Actor:** Chat management. **Action:** Tests, CI, documentation and rollback. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [P13 — Authorize execution](#node-p13).
-
-#### P13 — Authorize execution {#node-p13}
-
-**Actor:** Human. **Action:** Agent handoff when required. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **restart as new workstream** → [P02 — Establish workstream](#node-p02).
-
-**Boundary:** Approval to implement does not authorise a merge or a release.
-
-### Implementation and review nodes {#implementation-and-review-nodes}
-
-#### I01 — Prepare implementation brief {#node-i01}
-
-**Actor:** Chat management. **Action:** Current head, acceptance and test plan. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [I02 — Choose worker?](#node-i02).
-
-#### I02 — Choose worker? {#node-i02}
-
-**Actor:** Chat management. **Action:** Exclusive primary implementation path. This is a decision gate; the labelled outcomes determine the next operation.
-
-**Transitions:** **Jules** → [I04 — Receive focused task](#node-i04); **Codex/Agy** → [I07 — Receive implementation task](#node-i07); **admin only** → [I15 — Manage PR metadata](#node-i15).
-
-**Boundary:** Choose one primary implementation worker for the next increment. Change worker only by an explicit, safe handoff.
-
-#### I03 — Authorize new handoff {#node-i03}
-
-**Actor:** Human. **Action:** Required for changing implementation agent. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** Terminal for this diagram; consult the next subprocess or management review.
-
-**Boundary:** The workstream can remain paused pending human authorisation; the diagram does not imply automatic escalation.
-
-#### I04 — Receive focused task {#node-i04}
-
-**Actor:** Jules. **Action:** Concrete, bounded chunk. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [I05 — Implement and test](#node-i05).
-
-#### I05 — Implement and test {#node-i05}
-
-**Actor:** Jules. **Action:** Asynchronous coding, limited admin. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [I06 — Publish commit or PR](#node-i06).
-
-#### I06 — Publish commit or PR {#node-i06}
-
-**Actor:** Jules. **Action:** Observable GitHub changes. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [I10 — Observe current revision](#node-i10).
-
-**Boundary:** A Jules message that says completed is not equivalent to an inspectable commit or PR.
-
-#### I07 — Receive implementation task {#node-i07}
-
-**Actor:** Codex / Agy. **Action:** Writable branch and relevant context. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [I08 — Implement and test](#node-i08).
-
-#### I08 — Implement and test {#node-i08}
-
-**Actor:** Codex / Agy. **Action:** Larger change or deeper debugging. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [I09 — Publish commit or PR](#node-i09).
-
-#### I09 — Publish commit or PR {#node-i09}
-
-**Actor:** Codex / Agy. **Action:** Independent branch or safe current PR. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [I10 — Observe current revision](#node-i10).
-
-#### I10 — Observe current revision {#node-i10}
-
-**Actor:** GitHub / CI. **Action:** Head SHA, diff, comments and checks. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [I11 — Classify CI signal](#node-i11).
-
-**Boundary:** Check the actual new head and its entire cumulative diff; do not accept a summary as proof.
-
-#### I11 — Classify CI signal {#node-i11}
-
-**Actor:** Chat management. **Action:** See separate CI subprocess. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **actionable or recorded** → [I12 — Independently review work](#node-i12).
-
-**Boundary:** Quota-limited checks go through [C07](#node-c07), not a fictional pass.
-
-#### I12 — Independently review work {#node-i12}
-
-**Actor:** Chat management. **Action:** Cumulative diff, tests and requirements. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [I13 — Work remaining?](#node-i13).
-
-#### I13 — Work remaining? {#node-i13}
-
-**Actor:** Chat management. **Action:** Defect, administration or complete. This is a decision gate; the labelled outcomes determine the next operation.
-
-**Transitions:** **another Jules chunk** → [I14 — Issue focused correction](#node-i14); **Codex/Agy correction** → [I08 — Implement and test](#node-i08); **no code changes** → [I15 — Manage PR metadata](#node-i15).
-
-**Boundary:** A tiny direct fix may be management-owned only on a safe management branch; broader fixes require a worker.
-
-#### I14 — Issue focused correction {#node-i14}
-
-**Actor:** Chat management. **Action:** Fresh @jules comment where appropriate. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **new instruction** → [I05 — Implement and test](#node-i05).
-
-**Boundary:** Post a fresh focused @jules comment when its integration is active and correction is reasonable; avoid zero-diff loops.
-
-#### I15 — Manage PR metadata {#node-i15}
-
-**Actor:** Chat management. **Action:** Description, links, labels and draft state. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [I16 — Ready gate](#node-i16).
-
-#### I16 — Ready gate {#node-i16}
-
-**Actor:** Chat management. **Action:** Latest head verified; disclose CI gaps. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **blocking evidence** → [I12 — Independently review work](#node-i12); **verified ready** → [I17 — Set Ready for review](#node-i17).
-
-**Boundary:** Required verification must be real. A non-required quota-limited run may be documented and excluded from readiness only when policy permits.
-
-#### I17 — Set Ready for review {#node-i17}
-
-**Actor:** GitHub / CI. **Action:** Confirm actual draft-to-ready transition. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **state confirmed** → [I18 — Review and authorise merge](#node-i18).
-
-**Boundary:** After verification, perform and confirm GitHub Ready-for-review transition during the same review pass.
-
-#### I18 — Review and authorise merge {#node-i18}
-
-**Actor:** Human. **Action:** Human-owned decision. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **changes requested** → [I12 — Independently review work](#node-i12); **explicit approval** → [I19 — Merge authorised work](#node-i19).
-
-**Boundary:** Only an explicit human instruction permits merge; change requests return to management review.
-
-#### I19 — Merge authorised work {#node-i19}
-
-**Actor:** GitHub / CI. **Action:** Never infer approval from CI. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **merged** → [I20 — Post-merge reconciliation](#node-i20).
-
-#### I20 — Post-merge reconciliation {#node-i20}
-
-**Actor:** Chat management. **Action:** Issues, follow-ups and next task. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **next selected task** → [I01 — Prepare implementation brief](#node-i01).
-
-**Boundary:** Assess release suitability but do not automatically publish. Prefer next eligible work in the same repository.
-
-### CI and recovery nodes {#ci-and-recovery-nodes}
-
-#### C01 — CI event {#node-c01}
-
-**Actor:** GitHub / CI. **Action:** Push, PR, dispatch or scheduled run. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [C02 — Classify signal](#node-c02).
-
-#### C02 — Classify signal {#node-c02}
-
-**Actor:** Chat management. **Action:** Required? relevant? current head?. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [C03 — Result category?](#node-c03).
-
-**Boundary:** Always classify against the current PR head, test requirements, repository visibility and branch policy.
-
-#### C03 — Result category? {#node-c03}
-
-**Actor:** Chat management. **Action:** Pass / fail / pending / quota. This is a decision gate; the labelled outcomes determine the next operation.
-
-**Transitions:** **pass** → [C04 — Checks passed](#node-c04); **failure** → [C05 — Inspect failed job](#node-c05); **pending** → [C06 — Pending check](#node-c06); **quota / infra** → [C07 — Quota-limited or unavailable](#node-c07).
-
-#### C04 — Checks passed {#node-c04}
-
-**Actor:** GitHub / CI. **Action:** Evidence only for tested revision. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [C17 — Re-review current head](#node-c17).
-
-**Boundary:** A stale green check from an earlier head is not conclusive.
-
-#### C05 — Inspect failed job {#node-c05}
-
-**Actor:** Chat management. **Action:** Distinguish code defect and infrastructure. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **real code defect** → [C11 — Code correction?](#node-c11); **unrelated infra** → [C09 — Record documented exception](#node-c09).
-
-#### C06 — Pending check {#node-c06}
-
-**Actor:** Chat management. **Action:** Wait for observable result; do not assume. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **result available** → [C02 — Classify signal](#node-c02).
-
-#### C07 — Quota-limited or unavailable {#node-c07}
-
-**Actor:** Chat management. **Action:** Identify repo policy and check criticality. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [C08 — Required verification?](#node-c08).
-
-**Boundary:** A private-repository quota failure can be expected; record it as unavailable evidence, not product failure.
-
-#### C08 — Required verification? {#node-c08}
-
-**Actor:** Chat management. **Action:** Cannot waive branch protection. This is a decision gate; the labelled outcomes determine the next operation.
-
-**Transitions:** **non-required** → [C09 — Record documented exception](#node-c09); **required** → [C10 — Block or request alternate proof](#node-c10).
-
-**Boundary:** Mandatory checks and branch protections remain binding; management cannot wave them away.
-
-#### C09 — Record documented exception {#node-c09}
-
-**Actor:** Chat management. **Action:** No claim of CI pass; manual evidence. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **disclosed** → [C17 — Re-review current head](#node-c17).
-
-**Boundary:** If the check is non-required, record the exemption, manual tests and limitations, then continue independent review.
-
-#### C10 — Block or request alternate proof {#node-c10}
-
-**Actor:** Chat management. **Action:** Rerun, local tests or human decision. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **after evidence** → [C17 — Re-review current head](#node-c17).
-
-**Boundary:** When a check is required, seek an authorised alternate check/rerun or hold.
-
-#### C11 — Code correction? {#node-c11}
-
-**Actor:** Chat management. **Action:** Route to current suitable worker. This is a decision gate; the labelled outcomes determine the next operation.
-
-**Transitions:** **Jules suited** → [C12 — Focused corrective chunk](#node-c12); **handoff advised** → [C13 — Approve worker handoff?](#node-c13).
-
-#### C12 — Focused corrective chunk {#node-c12}
-
-**Actor:** Jules. **Action:** Only if session healthy and converging. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **new commit** → [C01 — CI event](#node-c01).
-
-**Boundary:** A failed Jules environment before checkout does not count as a coding failure.
-
-#### C13 — Approve worker handoff? {#node-c13}
-
-**Actor:** Human. **Action:** Jules -> Codex/Agy only if authorised. This is a decision gate; the labelled outcomes determine the next operation.
-
-**Transitions:** **yes / Jules-owned** → [C14 — Create replacement branch](#node-c14); **no / retry or hold** → [C11 — Code correction?](#node-c11).
-
-**Boundary:** When Jules is unsuitable, suggest a different worker; the human chooses the handoff.
-
-#### C14 — Create replacement branch {#node-c14}
-
-**Actor:** Chat management. **Action:** Never modify Jules-owned branch. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **on completion** → [C15 — Open replacement draft PR](#node-c15).
-
-**Boundary:** If leaving a Jules-owned branch, management creates a separate replacement branch first, from a trusted base.
-
-#### C15 — Open replacement draft PR {#node-c15}
-
-**Actor:** GitHub / CI. **Action:** Cross-link provenance and dependencies. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **new writable target** → [C16 — Continue on new branch](#node-c16).
-
-**Boundary:** Open and cross-link the replacement draft PR before providing the new writable target to Codex/Agy.
-
-#### C16 — Continue on new branch {#node-c16}
-
-**Actor:** Codex / Agy. **Action:** Use old Jules work as read-only context. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **new commit** → [C01 — CI event](#node-c01).
-
-**Boundary:** Never ask the incoming agent to push directly to the existing Jules branch.
-
-#### C17 — Re-review current head {#node-c17}
-
-**Actor:** Chat management. **Action:** Diff, CI state, issues and readiness. This node records an operation or observed state, not implicit human approval.
-
-**Transitions:** **new CI event** → [C02 — Classify signal](#node-c02).
-
-## Notes and unresolved design questions
-
-This is a **draft process description**, deliberately covering more than the older Jules management post. The original sketches also hint at research/Q&A feedback, issue-stack planning, UI/prototype iteration and multiple simultaneous projects. The four diagrams specify the coding and management routes first; design/prototype and multi-repository orchestration could become separate subprocesses once their transition rules are agreed.
-
-Decisions to refine before publishing:
-
-1. **Human authorisation granularity:** Is a project-level instruction enough to create later related issues, or should every new issue still need its own confirmation? The current diagram retains the Jules article's per-issue approval default.
-2. **Release ownership:** Should the chat agent execute a release after an explicit approval, or should the human perform publication personally? In either case, the action is never inferred from PR merge.
-3. **Planning/prototyping:** Should UI sketches, throwaway proofs of concept and comparative implementation trials have their own path before durable issue/PR work?
-4. **CI exceptions:** Which repositories have non-required checks that are normally ignored due to quotas, and how should that policy be recorded rather than rediscovered each time?
-5. **Parallel increments:** When is it worth deliberately maintaining stacked PRs or more than one implementation worker under one workstream, versus opening another management chat?
-
-### Diagram maintenance
-
-- **Primary editable format:** D2 (`*.dot`). Diagram boxes carry stable IDs, actor group and short descriptive text.
-- **Committed outputs:** SVG (`*.svg`) alongside each DOT file. No generated bitmap diagrams are necessary.
-- **Rendering:** D2 `dot` using [render-diagrams.sh](render-diagrams.sh). Review SVG layout and link targets after edits.
-- **Traceability:** When a diagram node is added, renamed or removed, update this catalogue and every incoming/outgoing transition. Keep links and labels aligned.
-- **Validation:** Check DOT parses, SVG assets are regenerated, anchors resolve, links remain local, and Hugo front matter and cspell checks succeed.
+Edit only `workflow.d2` and the relevant written node description; run `bash render-diagrams.sh` from the page bundle to update `workflow.svg`, or let the PR's D2 rendering workflow do so. Commit the text and resulting SVG together. Preserve node IDs when their meaning stays stable so links and LLM checkpoints do not break. If adding a node, specify actor, description, all decision exits and how it affects issue or PR state.
 
 ## References
 
-- [Managing Jules with a Management LLM](/blog/post/2026/044-jules-management/) — current detailed control-plane, branch ownership, review and Ready-for-review rules.
-- [ChatGPT-Orchestrated Jules to Agy or Codex](/blog/post/2026/038-jules-agy-codex-handoff/) — historical handoff rationale; defer to newer guidance where inconsistent.
-- [Canonical GitHub Actions CI/CD Super-Reference](/blog/post/2026/043-canonical-github-actions-ci-cd-super-reference/) — CI and release engineering policy in repositories where it applies.
-- [D2 language](https://graphviz.org/doc/info/lang.html) — diagram source grammar.
-- [D2 SVG output](https://graphviz.org/docs/outputs/svg/) — published vector representation.
-
-- [D2 documentation](https://d2lang.com/), including layout and renderer options.
+- [Canonical CI/CD workflow and release safety](/blog/guidance/ci-cd/)
+- [Projects and roadmap register](https://github.com/arran4/projects)
+- [Public Relations planning and announcements](https://github.com/arran4/public-relations)
+- [D2 language and CLI](https://d2lang.com/)
