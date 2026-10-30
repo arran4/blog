@@ -21,19 +21,12 @@ if (( count < 50 )); then
   exit 1
 fi
 
-version="$(d2 --version)"
-case "$version" in
-  v0.9.*|v0.10.*|v1.*) ;;
-  *)
-    echo "D2 $version uses the older PNG renderer; install D2 v0.9.0 or newer to avoid Playwright." >&2
-    exit 1
-    ;;
-esac
-
+# A Go-installed, tagged D2 may display an older '-HEAD' version string.
+# CI pins the module version; do not infer renderer capabilities from --version.
 d2 --layout=elk --theme=300 workflow.d2 workflow.svg
 # D2's raster exporter uses a very tall internal frame for this workflow and
 # exceeds its 32768-pixel limit even with --scale=1. Rasterise the authoritative
-# SVG at its natural size instead; this keeps both outputs derived from one D2 render.
+# SVG instead; this keeps both outputs derived from one D2 render.
 command -v rsvg-convert >/dev/null || {
   echo "rsvg-convert not found; install librsvg2-bin (or the Gentoo librsvg tool)" >&2
   exit 1
@@ -42,4 +35,4 @@ command -v rsvg-convert >/dev/null || {
 rsvg-convert --format=png --width=4800 --output=workflow.png workflow.svg
 grep -q 'data-d2-version=' workflow.svg
 test -s workflow.png
-echo "Rendered ${count} linked workflow nodes to workflow.svg and workflow.png (D2 ${version})"
+echo "Rendered ${count} linked workflow nodes to workflow.svg and workflow.png"
