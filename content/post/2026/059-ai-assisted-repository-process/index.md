@@ -7,7 +7,7 @@ tags: ["agents", "automation", "chatgpt", "ci", "codex", "github", "orchestratio
 categories: ["Software Development", "LLM Instructions", "Automation"]
 ---
 
-<!-- cspell:words agy Codex dogfood handoff handoffs inspectable rsvg workstream workstreams -->
+<!-- cspell:words agy Codex dogfood handoff handoffs inspectable librsvg rsvg workstream workstreams -->
 
 My repository development process is neither a rigid waterfall nor a collection of independent coding-agent prompts. It starts from an idea, bug, change, maintenance event, existing pull request, or release request. I use a **Chat LLM as a management and review companion**, coding agents for repository work when appropriate, and GitHub to preserve the specification and implementation history.
 
@@ -693,7 +693,7 @@ The current workstream can span several coding sessions and PRs. An issue may ou
 
 ### Installing and rendering with existing tools
 
-Use a package manager or Go's module-aware installer rather than piping remote shell scripts into a shell. With a Go toolchain compatible with D2's pinned version, the explicit installation command is:
+Use a package manager or Go's module-aware installer rather than piping remote shell scripts into a shell. With Go 1.27 or newer (required by D2 v0.9.0), the explicit installation command is:
 
 ```bash
 go install github.com/d2lang/d2@v0.9.0
