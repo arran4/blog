@@ -38,7 +38,8 @@ command -v rsvg-convert >/dev/null || {
   echo "rsvg-convert not found; install librsvg2-bin (or the Gentoo librsvg tool)" >&2
   exit 1
 }
-rsvg-convert --format=png --output=workflow.png workflow.svg
+# Keep the convenience PNG readable but bounded; the SVG retains full zoom.
+rsvg-convert --format=png --width=4800 --output=workflow.png workflow.svg
 grep -q 'data-d2-version=' workflow.svg
 test -s workflow.png
 echo "Rendered ${count} linked workflow nodes to workflow.svg and workflow.png (D2 ${version})"
