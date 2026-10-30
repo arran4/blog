@@ -15,7 +15,7 @@ while IFS= read -r id; do
     exit 1
   fi
   count=$((count + 1))
-done < <(sed -nE 's/^  ([A-Z]{2}[0-9]{2}): .*/\1/p' workflow.d2)
+done < <(sed -nE 's/^([A-Z]{2}[0-9]{2}): .*/\1/p' workflow.d2)
 if (( count < 50 )); then
   echo "Expected a full workflow catalogue; found only ${count} nodes" >&2
   exit 1
