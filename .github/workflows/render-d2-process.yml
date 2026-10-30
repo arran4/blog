@@ -28,14 +28,14 @@ jobs:
         run: |
           export PATH="$HOME/.local/bin:$PATH"
           bash content/post/2026/059-ai-assisted-repository-process/render-diagrams.sh
-      - name: Commit generated SVG files
+      - name: Commit generated diagram exports
         run: |
-          git add -- 'content/post/2026/059-ai-assisted-repository-process/workflow.svg'
+          git add -- 'content/post/2026/059-ai-assisted-repository-process/workflow.svg' 'content/post/2026/059-ai-assisted-repository-process/workflow.png'
           if git diff --cached --quiet; then
             echo 'Generated diagrams are unchanged'
             exit 0
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git -c commit.gpgsign=false commit -m 'docs: render D2 process diagrams'
+          git -c commit.gpgsign=false commit -m 'docs: render SVG and PNG process diagrams'
           git push origin HEAD:"${{ github.event.pull_request.head.ref }}"
