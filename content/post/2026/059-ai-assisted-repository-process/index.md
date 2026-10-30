@@ -1,6 +1,6 @@
 ---
 title: "AI-Assisted Repository Development: A Unified Process"
-date: 2026-10-30T14:31:00+11:00
+date: 2026-10-30T17:20:00+11:00
 draft: false
 guidance: ["agent-management"]
 tags: ["agents", "automation", "chatgpt", "ci", "codex", "github", "orchestration", "workflow"]
@@ -19,9 +19,9 @@ Normally I maintain **one conversation per coherent workstream**. That conversat
 
 ![Unified AI-assisted repository workflow](workflow.svg)
 
-[Open full SVG](workflow.svg) · [Edit D2 source](workflow.d2) · [Browse node catalogue](#node-catalogue)
+[Open full SVG](workflow.svg) · [Open PNG export](workflow.png) · [Edit D2 source](workflow.d2) · [Browse node catalogue](#node-catalogue)
 
-This is a large SVG intended to be opened and zoomed. Each D2 node contains an ID, a **header and brief purpose**, actor colour, a detailed hover description and a link back to its corresponding section in this article. The embedded image may not expose the links, so open the SVG itself or use the catalogue below. The `.d2` source is also suitable for a coding or management agent to read directly; do not rely on visual interpretation alone.
+This is a large diagram intended to be opened and zoomed. The PNG export is an easier-to-read alternative in Firefox when the SVG automatically resizes. Each D2 node contains an ID, a **header and brief purpose**, actor colour, a detailed hover description and a link back to its corresponding section in this article. The embedded image may not expose the links, so open the SVG itself or use the catalogue below. The `.d2` source is also suitable for a coding or management agent to read directly; do not rely on visual interpretation alone.
 
 ### Diagram conventions
 
@@ -613,7 +613,7 @@ The current workstream can span several coding sessions and PRs. An issue may ou
 
 ### Maintaining this diagram
 
-Edit only `workflow.d2` and the relevant written node description; run `bash render-diagrams.sh` from the page bundle to update `workflow.svg`, or let the PR's D2 rendering workflow do so. Commit the text and resulting SVG together. Preserve node IDs when their meaning stays stable so links and LLM checkpoints do not break. If adding a node, specify actor, description, all decision exits and how it affects issue or PR state.
+Edit only `workflow.d2` and the relevant written node description; run `bash render-diagrams.sh` from the page bundle to update both `workflow.svg` and `workflow.png`, or let the PR's D2 rendering workflow do so. Commit the text and resulting SVG together. Preserve node IDs when their meaning stays stable so links and LLM checkpoints do not break. If adding a node, specify actor, description, all decision exits and how it affects issue or PR state.
 
 ## References
 
