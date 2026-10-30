@@ -31,9 +31,14 @@ case "$version" in
 esac
 
 d2 --layout=elk --theme=300 workflow.d2 workflow.svg
-# The PNG renderer defaults to a larger scale. This tall diagram exceeds its
-# 32768-pixel frame-height limit at that scale, so render at 1x instead.
-d2 --layout=elk --theme=300 --scale=1 workflow.d2 workflow.png
+# D2's raster exporter uses a very tall internal frame for this workflow and
+# exceeds its 32768-pixel limit even with --scale=1. Rasterise the authoritative
+# SVG at its natural size instead; this keeps both outputs derived from one D2 render.
+command -v rsvg-convert >/dev/null || {
+  echo "rsvg-convert not found; install librsvg2-bin (or the Gentoo librsvg tool)" >&2
+  exit 1
+}
+rsvg-convert --format=png --output=workflow.png workflow.svg
 grep -q 'data-d2-version=' workflow.svg
 test -s workflow.png
 echo "Rendered ${count} linked workflow nodes to workflow.svg and workflow.png (D2 ${version})"
