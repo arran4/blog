@@ -22,7 +22,16 @@ jobs:
           persist-credentials: true
       - name: Install pinned D2 CLI
         run: |
-          curl -fsSL https://d2lang.com/install.sh | sh -s -- --version v0.9.0 --prefix "$HOME/.local"
+          archive="$(mktemp)"
+          curl --fail --location --silent --show-error --retry 3 \
+            "https://github.com/d2lang/d2/releases/download/v0.9.0/d2-v0.9.0-linux-amd64.tar.gz" \
+            --output "$archive"
+          echo "5669ddc46b99e942cc96078f4a4e36d5e62103348f4c05179ede27802fdd87a9  $archive" | sha256sum --check
+          mkdir -p "$HOME/.local/bin"
+          tar -xzOf "$archive" d2-v0.9.0/bin/d2 > "$HOME/.local/bin/d2"
+          chmod +x "$HOME/.local/bin/d2"
+          rm -f "$archive"
+          "$HOME/.local/bin/d2" --version
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - name: Install SVG rasteriser for PNG export
         run: |
