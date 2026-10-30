@@ -7,7 +7,7 @@ tags: ["agents", "automation", "chatgpt", "ci", "codex", "github", "orchestratio
 categories: ["Software Development", "LLM Instructions", "Automation"]
 ---
 
-<!-- cspell:words agy Codex dogfood handoff handoffs inspectable workstream workstreams -->
+<!-- cspell:words agy Codex dogfood handoff handoffs inspectable rsvg workstream workstreams -->
 
 My repository development process is neither a rigid waterfall nor a collection of independent coding-agent prompts. It starts from an idea, bug, change, maintenance event, existing pull request, or release request. I use a **Chat LLM as a management and review companion**, coding agents for repository work when appropriate, and GitHub to preserve the specification and implementation history.
 
