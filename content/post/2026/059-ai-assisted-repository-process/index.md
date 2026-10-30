@@ -40,7 +40,7 @@ The diagram is grouped by **phase**, not by a strict single actor per lane: each
 
 ## How different work enters the shared pipeline
 
-A **new repository or first release** starts at [ST01](#node-st01), generally involves substantial [intent and Q&A](#node-pl01), repository setup, an initial roadmap, and a later [public opening audit](#node-rl04) if publishing the code publicly.
+A **new repository or first release** starts at [ST01](#node-st01), generally involves substantial [intent and Q&A](#node-pl01), explicit [repository bootstrap](#node-tr05), an initial roadmap, and a later [public opening audit](#node-rl04) if publishing the code publicly.
 
 A **feature, major improvement or minor improvement** shares [ST02](#node-st02). These are overlapping classifications, not separate implementation engines. A bounded additive feature may move from baseline inspection directly to [issue reconciliation](#node-sp01); a major architectural change normally takes multiple rounds of questioning, contradiction detection and a [PR dependency tree](#node-tr02).
 
@@ -119,7 +119,7 @@ Use these compact status fields when resuming a conversation:
 
 ## Node catalogue
 
-The ID headings below are derived from the same D2 nodes. Every node states the actor, its purpose, incoming conditions and all labelled transitions; following them is sufficient to navigate the process without visually decoding the entire SVG.
+The headings below are generated from the canonical D2 nodes. Each lists the actor, purpose, input paths and conditional exits; following the links is sufficient to navigate the process without visually decoding the SVG.
 
 ### Starting points
 
@@ -127,7 +127,7 @@ The ID headings below are derived from the same D2 nodes. Every node states the 
 
 **Actor:** Human. **State:** Repository + first release. A new project or first public version.
 
-**Enter from:** An independent starting point.
+**Enter from:** Independent starting point.
 
 **Move to:** [WS01 Open one workstream](#node-ws01) **when repo/initial**.
 
@@ -135,7 +135,7 @@ The ID headings below are derived from the same D2 nodes. Every node states the 
 
 **Actor:** Human. **State:** Feature, minor or major. A feature or change of any size; classify scope later.
 
-**Enter from:** An independent starting point.
+**Enter from:** Independent starting point.
 
 **Move to:** [WS01 Open one workstream](#node-ws01) **when planned change**.
 
@@ -143,7 +143,7 @@ The ID headings below are derived from the same D2 nodes. Every node states the 
 
 **Actor:** Human. **State:** Observed behaviour. An observed failure, including interactive Flutter problems.
 
-**Enter from:** An independent starting point.
+**Enter from:** Independent starting point.
 
 **Move to:** [BG01 Capture reproduction](#node-bg01) **when bug**.
 
@@ -151,7 +151,7 @@ The ID headings below are derived from the same D2 nodes. Every node states the 
 
 **Actor:** Human. **State:** Dependencies, tooling, audit. Manual or automated upkeep; also may be folded into another workstream.
 
-**Enter from:** An independent starting point.
+**Enter from:** Independent starting point.
 
 **Move to:** [WS01 Open one workstream](#node-ws01) **when maintenance / audit**.
 
@@ -159,7 +159,7 @@ The ID headings below are derived from the same D2 nodes. Every node states the 
 
 **Actor:** Human. **State:** PR, CI, stalled task. Resume an existing issue, PR tree or review checkpoint.
 
-**Enter from:** An independent starting point.
+**Enter from:** Independent starting point.
 
 **Move to:** [RV01 Inspect actual PR state](#node-rv01) **when resume current PR**.
 
@@ -167,7 +167,7 @@ The ID headings below are derived from the same D2 nodes. Every node states the 
 
 **Actor:** Human. **State:** Already merged work. Release-only entry that does not require new code.
 
-**Enter from:** An independent starting point.
+**Enter from:** Independent starting point.
 
 **Move to:** [RL01 Recommend release intent](#node-rl01) **when release-only**.
 
@@ -299,7 +299,7 @@ The ID headings below are derived from the same D2 nodes. Every node states the 
 
 #### SP03 — Request issue approval {#node-sp03}
 
-**Actor:** Human. **State:** New or material rewrite. Approve new issue creation or significant reframing; maintain existing records when authorised.
+**Actor:** Human. **State:** New or material rewrite. Approve new issue creation or significant scope changes; maintain existing records when authorised.
 
 **Enter from:** [SP02 Issue record adequate?](#node-sp02) (new issue / major reframe).
 
@@ -311,7 +311,7 @@ The ID headings below are derived from the same D2 nodes. Every node states the 
 
 **Enter from:** [SP03 Request issue approval](#node-sp03) (approved); [SP02 Issue record adequate?](#node-sp02) (existing issues valid).
 
-**Move to:** [TR01 Work size and dependency?](#node-tr01) **when issues accepted**.
+**Move to:** [TR01 Work size and dependency?](#node-tr01) **when existing repository**; [TR05 Bootstrap repository](#node-tr05) **when new repository approved**.
 
 ### PR-tree planning
 
@@ -319,7 +319,7 @@ The ID headings below are derived from the same D2 nodes. Every node states the 
 
 **Actor:** Chat LLM. **State:** Single PR or PR tree. Choose scope from dependencies and likely conflicts, not arbitrary linear stacking.
 
-**Enter from:** [SP04 Persist accepted spec](#node-sp04) (issues accepted).
+**Enter from:** [SP04 Persist accepted spec](#node-sp04) (existing repository); [TR05 Bootstrap repository](#node-tr05) (repository ready).
 
 **Move to:** [TR02 Plan PR dependency tree](#node-tr02) **when complex / dependent**; [EX01 Who implements?](#node-ex01) **when single PR**.
 
@@ -337,13 +337,21 @@ The ID headings below are derived from the same D2 nodes. Every node states the 
 
 **Enter from:** [TR02 Plan PR dependency tree](#node-tr02) (tree dependencies); [RV10 More work in PR tree?](#node-rv10) (next sibling / child).
 
-**Move to:** [EX01 Who implements?](#node-ex01) **when ready node**; [EN02 Deferred / blocked](#node-en02) **when all nodes blocked**.
+**Move to:** [EX01 Who implements?](#node-ex01) **when ready node**; [EN02 Deferred / blocked](#node-en02) **when all nodes blocked**; [EN03 Abandoned](#node-en03) **when cancel milestone**.
+
+#### TR05 — Bootstrap repository {#node-tr05}
+
+**Actor:** Chat LLM. **State:** Source, CI, licence and docs. After human scope approval, initialise the repository, essential CI, documentation and licence, delegating source setup to the coding model as needed.
+
+**Enter from:** [SP04 Persist accepted spec](#node-sp04) (new repository approved).
+
+**Move to:** [TR01 Work size and dependency?](#node-tr01) **when repository ready**.
 
 #### TR04 — Milestone gate {#node-tr04}
 
 **Actor:** Human. **State:** Dogfood, testable, complete. Confirm which portion of the tree is sufficient to test or merge now.
 
-**Enter from:** An independent starting point.
+**Enter from:** Independent starting point.
 
 **Move to:** [RV01 Inspect actual PR state](#node-rv01) **when test milestone**.
 
@@ -421,7 +429,7 @@ The ID headings below are derived from the same D2 nodes. Every node states the 
 
 **Enter from:** [RV03 Review correctness?](#node-rv03) (findings); [RV07 Human PR review](#node-rv07) (human objections); [RV08 Merge approved?](#node-rv08) (changes requested).
 
-**Move to:** [RV05 Small repair](#node-rv05) **when simple conflict/fix**; [RV06 Complex correction](#node-rv06) **when complex repair**; [PL01 State detailed intent](#node-pl01) **when requirements conflict**; [SP01 Reconcile GitHub issues](#node-sp01) **when issue/spec mismatch**; [RV07 Human PR review](#node-rv07) **when ready**.
+**Move to:** [RV05 Small repair](#node-rv05) **when simple conflict/fix**; [RV06 Complex correction](#node-rv06) **when complex repair**; [PL01 State detailed intent](#node-pl01) **when requirements conflict**; [SP01 Reconcile GitHub issues](#node-sp01) **when issue/spec mismatch**; [RV07 Human PR review](#node-rv07) **when ready**; [EN03 Abandoned](#node-en03) **when work no longer wanted**.
 
 #### RV05 — Small repair {#node-rv05}
 
@@ -453,7 +461,7 @@ The ID headings below are derived from the same D2 nodes. Every node states the 
 
 **Enter from:** [RV07 Human PR review](#node-rv07) (review accepted).
 
-**Move to:** [RV04 What needs changing?](#node-rv04) **when changes requested**; [EN02 Deferred / blocked](#node-en02) **when hold**; [RV09 Merge eligible node](#node-rv09) **when approved**.
+**Move to:** [RV04 What needs changing?](#node-rv04) **when changes requested**; [EN02 Deferred / blocked](#node-en02) **when hold**; [EN03 Abandoned](#node-en03) **when cancel work**; [RV09 Merge eligible node](#node-rv09) **when approved**.
 
 #### RV09 — Merge eligible node {#node-rv09}
 
@@ -579,7 +587,7 @@ The ID headings below are derived from the same D2 nodes. Every node states the 
 
 **Enter from:** [RL02 Publish now?](#node-rl02) (no release / done); [RL08 Verify published result](#node-rl08) (confirmed).
 
-**Move to:** Terminal state; resume with a new entry or recorded dependency.
+**Move to:** Terminal state; a new workstream or recorded trigger is required to resume.
 
 #### EN02 — Deferred / blocked {#node-en02}
 
@@ -587,16 +595,15 @@ The ID headings below are derived from the same D2 nodes. Every node states the 
 
 **Enter from:** [PL05 Enough specified?](#node-pl05) (defer); [SP03 Request issue approval](#node-sp03) (not approved yet); [TR03 Select runnable node](#node-tr03) (all nodes blocked); [RV02 Classify CI signal](#node-rv02) (required CI blocked); [RV08 Merge approved?](#node-rv08) (hold); [RV10 More work in PR tree?](#node-rv10) (remaining work blocked); [RL02 Publish now?](#node-rl02) (defer release); [RL05 History rewrite needed?](#node-rl05) (rewrite consent pending); [RL08 Verify published result](#node-rl08) (publishing failed).
 
-**Move to:** Terminal state; resume with a new entry or recorded dependency.
+**Move to:** Terminal state; a new workstream or recorded trigger is required to resume.
 
 #### EN03 — Abandoned {#node-en03}
 
 **Actor:** Human. **State:** Reason + consequences. Document cancellation, superseded PRs, issue closure/retention and change of direction.
 
-**Enter from:** [PL05 Enough specified?](#node-pl05) (abandon).
+**Enter from:** [PL05 Enough specified?](#node-pl05) (abandon); [TR03 Select runnable node](#node-tr03) (cancel milestone); [RV04 What needs changing?](#node-rv04) (work no longer wanted); [RV08 Merge approved?](#node-rv08) (cancel work).
 
-**Move to:** Terminal state; resume with a new entry or recorded dependency.
-
+**Move to:** Terminal state; a new workstream or recorded trigger is required to resume.
 
 ## Notes
 
