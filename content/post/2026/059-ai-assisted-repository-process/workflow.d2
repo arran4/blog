@@ -188,6 +188,12 @@ tree: {
     tooltip: "Chat LLM: Choose a ready node; if one branch blocks, advance an independent sibling"
     link: "./#node-tr03"
   }
+  TR05: "TR05 · Bootstrap repository\\nSource, CI, licence and docs" {
+    class: chat
+    shape: rectangle
+    tooltip: "Chat LLM: After human scope approval, initialise the repository, essential CI, documentation and licence, delegating source setup to the coding model as needed"
+    link: "./#node-tr05"
+  }
   TR04: "TR04 · Milestone gate\nDogfood, testable, complete" {
     class: human
     shape: rectangle
@@ -435,12 +441,15 @@ spec.SP02 -> spec.SP03: "new issue / major reframe"
 spec.SP03 -> spec.SP04: "approved"
 spec.SP03 -> end.EN02: "not approved yet"
 spec.SP02 -> spec.SP04: "existing issues valid"
-spec.SP04 -> tree.TR01: "issues accepted"
+spec.SP04 -> tree.TR01: "existing repository"
+spec.SP04 -> tree.TR05: "new repository approved"
+tree.TR05 -> tree.TR01: "repository ready"
 tree.TR01 -> tree.TR02: "complex / dependent"
 tree.TR01 -> execution.EX01: "single PR"
 tree.TR02 -> tree.TR03: "tree dependencies"
 tree.TR03 -> execution.EX01: "ready node"
 tree.TR03 -> end.EN02: "all nodes blocked"
+tree.TR03 -> end.EN03: "cancel milestone"
 tree.TR04 -> review.RV01: "test milestone"
 execution.EX01 -> execution.EX05: "tiny + chat capable"
 execution.EX01 -> execution.EX02: "coding model"
@@ -458,12 +467,14 @@ review.RV04 -> review.RV06: "complex repair"
 review.RV04 -> spec.PL01: "requirements conflict"
 review.RV04 -> spec.SP01: "issue/spec mismatch"
 review.RV04 -> review.RV07: "ready"
+review.RV04 -> end.EN03: "work no longer wanted"
 review.RV05 -> review.RV01: "republished"
 review.RV06 -> execution.EX02: "corrective prompt"
 review.RV07 -> review.RV04: "human objections"
 review.RV07 -> review.RV08: "review accepted"
 review.RV08 -> review.RV04: "changes requested"
 review.RV08 -> end.EN02: "hold"
+review.RV08 -> end.EN03: "cancel work"
 review.RV08 -> review.RV09: "approved"
 review.RV09 -> review.RV10: "merged"
 review.RV10 -> tree.TR03: "next sibling / child"
