@@ -22,7 +22,7 @@ jobs:
           persist-credentials: true
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.26.x'
+          go-version: '1.27.x'
           cache: false
       - name: Install pinned D2 using Go modules
         run: |
