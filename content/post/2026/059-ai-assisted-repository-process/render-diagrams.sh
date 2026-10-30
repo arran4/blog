@@ -31,7 +31,9 @@ case "$version" in
 esac
 
 d2 --layout=elk --theme=300 workflow.d2 workflow.svg
-d2 --layout=elk --theme=300 workflow.d2 workflow.png
+# The PNG renderer defaults to a larger scale. This tall diagram exceeds its
+# 32768-pixel frame-height limit at that scale, so render at 1x instead.
+d2 --layout=elk --theme=300 --scale=1 workflow.d2 workflow.png
 grep -q 'data-d2-version=' workflow.svg
 test -s workflow.png
 echo "Rendered ${count} linked workflow nodes to workflow.svg and workflow.png (D2 ${version})"
