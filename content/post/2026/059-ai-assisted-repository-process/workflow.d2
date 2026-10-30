@@ -13,18 +13,96 @@ classes: {
   github: { style: { fill: "#E9F3EF"; stroke: "#47836D"; font-color: "#163F31"; font-size: 26 } }
 }
 
-legend: |md
-  **Legend / reading order**
-  
-  - **Amber:** Human; **blue:** Chat LLM; **teal:** Human or Chat LLM; **violet:** Coding LLM; **green:** GitHub / CI
-  - **Circle:** entry; **diamond:** decision; **oval:** completion / deferral / abandonment
-  - **Blue line:** standard progress; **green:** approval / completion; **orange dashed:** rework / backtrack
-  - **Grey dashed:** defer / block; **red:** abandon / cancel
-  - Short branch labels are by the **decision source**; see the linked node for full conditions.
-| {
-  near: top-left
-}
+# Framed examples are an isolated legend, not a part of the process graph.
+# No edges connect the legend's sample objects to real workflow nodes.
+legend: {
+  label: "LEGEND · ACTORS, SHAPES AND ROUTES"
+  direction: right
+  label.near: top-center
+  style: {
+    fill: "#F9FBFF"
+    stroke: "#324761"
+    stroke-width: 5
+    border-radius: 18
+    font-color: "#20334D"
+    font-size: 36
+  }
 
+  actors: {
+    label: "ACTOR COLOURS"
+    direction: down
+    style: { fill: "#FFFFFF"; stroke: "#AFBED0"; stroke-width: 2; border-radius: 10; font-size: 29 }
+    human_example: "Human" { class: human }
+    chat_example: "Chat LLM" { class: chat }
+    shared_example: "Human or Chat LLM" { class: joint }
+    coding_example: "Coding LLM (Codex/Agy)" { class: coding }
+    github_example: "GitHub / CI" { class: github }
+  }
+
+  shapes: {
+    label: "PROCESS SYMBOLS"
+    direction: down
+    style: { fill: "#FFFFFF"; stroke: "#AFBED0"; stroke-width: 2; border-radius: 10; font-size: 29 }
+    entry_example: "ENTRY" {
+      shape: circle
+      class: human
+    }
+    action_example: "ACTION" {
+      shape: rectangle
+      class: chat
+    }
+    decision_example: "DECISION" {
+      shape: diamond
+      class: joint
+    }
+    end_example: "TERMINAL" {
+      shape: oval
+      class: github
+    }
+  }
+
+  routes: {
+    label: "CONNECTION TYPES"
+    direction: down
+    style: { fill: "#FFFFFF"; stroke: "#AFBED0"; stroke-width: 2; border-radius: 10; font-size: 29 }
+
+    normal: {
+      direction: right
+      style: { fill: transparent; stroke: transparent }
+      from: "From" { shape: rectangle; style.font-size: 22 }
+      to: "To" { shape: rectangle; style.font-size: 22 }
+      from -> to: "Progress" { style.stroke: "#436B90"; style.stroke-width: 4; style.font-size: 24 }
+    }
+    approved: {
+      direction: right
+      style: { fill: transparent; stroke: transparent }
+      from: "From" { shape: rectangle; style.font-size: 22 }
+      to: "To" { shape: rectangle; style.font-size: 22 }
+      from -> to: "Approved" { style.stroke: "#278352"; style.stroke-width: 4; style.font-size: 24 }
+    }
+    rework: {
+      direction: right
+      style: { fill: transparent; stroke: transparent }
+      from: "From" { shape: rectangle; style.font-size: 22 }
+      to: "Earlier" { shape: rectangle; style.font-size: 22 }
+      from -> to: "Backtrack" { style.stroke: "#E08C2B"; style.stroke-width: 4; style.stroke-dash: 4; style.font-size: 24 }
+    }
+    blocked: {
+      direction: right
+      style: { fill: transparent; stroke: transparent }
+      from: "From" { shape: rectangle; style.font-size: 22 }
+      to: "Hold" { shape: rectangle; style.font-size: 22 }
+      from -> to: "Deferred" { style.stroke: "#85919C"; style.stroke-width: 4; style.stroke-dash: 4; style.font-size: 24 }
+    }
+    cancelled: {
+      direction: right
+      style: { fill: transparent; stroke: transparent }
+      from: "From" { shape: rectangle; style.font-size: 22 }
+      to: "Stop" { shape: oval; style.font-size: 22 }
+      from -> to: "Abandoned" { style.stroke: "#C53D48"; style.stroke-width: 4; style.font-size: 24 }
+    }
+  }
+}
 
 # Phase: start
 ST01: "ST01 · Initial release\nRepository + first release" {
