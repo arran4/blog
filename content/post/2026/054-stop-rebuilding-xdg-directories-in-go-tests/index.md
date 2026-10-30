@@ -1,5 +1,5 @@
 ---
-title: "Stop Rebuilding XDG Directories in Go Unit Tests"
+title: "Prefer Dependency Injection to Environment Overrides in Go Tests"
 date: 2026-10-11T02:42:55.064Z
 draft: false
 guidance: ["go-testing"]
@@ -8,9 +8,125 @@ categories: ["Testing", "Software Development"]
 discussion: "https://github.com/arran4/blog/discussions/207"
 ---
 
-<!-- cspell:words getenv httptest torbox XDG -->
+<!-- cspell:words getenv goroutines httptest torbox Unsetenv XDG -->
 
-A test that starts like this makes me ask whether we are testing application behaviour or rehearsing how a desktop session starts:
+A unit test that starts by rewriting process environment variables may be testing more configuration machinery than the behaviour it claims to protect:
+
+```go
+t.Setenv("APP_API_URL", "https://service.example.invalid")
+t.Setenv("APP_FEATURE_FLAG", "enabled")
+t.Setenv("HOME", t.TempDir())
+got := PlanWork(...)
+```
+
+None of these calls is inherently wrong. Go's \`t.Setenv\` is useful when **reading the real process environment is the contract under test**. But if \`PlanWork\` only needs a service URL and a feature setting, it should usually accept those values directly rather than reading ambient state.
+
+**Prefer dependency injection (DI) for ordinary behaviour tests; reserve environment overrides for tests of environment integration.** The same principle applies to credentials, filesystem paths, clocks, transports and other hidden dependencies. XDG directories provide a particularly instructive example, but they are not the limit of the rule.
+
+This builds on [treating process state as a dependency](/blog/post/2026/053-go-tests-treat-process-state-time-and-standard-io-as-dependencies/) and [minimising filesystem side effects](/blog/post/2026/048-minimize-filesystem-side-effects-in-tests/). The aim is not to ban \`t.Setenv\`, temporary directories or environment-based configuration; it is to use them only where they prove something.
+
+## The problem is process-wide state, not the spelling of the variable
+
+The environment belongs to the **process**, not an individual function or test. A production function that calls \`os.Getenv\` deep in its implementation makes behaviour depend on whichever environment happens to be active at the moment.
+
+Tests that change it to reach unrelated logic have several costs:
+
+- **Hidden dependencies:** a caller cannot see which settings influence the operation, and a test's setup obscures the assertion.
+- **Concurrency constraints:** \`t.Setenv\` restores the previous value during cleanup, but it does not isolate that value from other code in the process. Go prohibits its use in a parallel test or a test with a parallel ancestor; concurrent goroutines can still observe a temporary change.
+- **Repeated configuration testing:** dozens of tests implicitly exercise the same \`os.Getenv\` wiring instead of giving the application behaviour direct inputs.
+- **Fragile precedence:** defaults, empty variables, CLI flags, configuration files and explicit overrides can be unintentionally mixed when every operation resolves them independently.
+- **Artificial side effects:** replacing \`HOME\`, XDG paths or token filenames can force unnecessary directory creation and file I/O.
+
+Replacing \`t.Setenv\` with \`os.Setenv\` and a deferred restore does not solve the design problem; it removes Go's managed test cleanup and leaves the same process-global mutation. Similarly, a mutable package variable for the current configuration merely moves the hidden dependency.
+
+This does **not** mean every use of \`os.Getenv\` is a problem. Reading it at a command, service bootstrap or platform boundary is normal. The question is whether an inner operation should be responsible for reading it.
+
+## Resolve external configuration at the boundary; inject what the operation needs
+
+An outer adapter can read environment variables, validate them and resolve precedence. Inner code then receives typed values or small capabilities. A function does not need a pretend process environment just to build an HTTP request:
+
+```go
+type RequestConfig struct {
+    APIBaseURL string
+}
+
+func newStatusRequest(cfg RequestConfig) (*http.Request, error) {
+    return http.NewRequest(http.MethodGet, cfg.APIBaseURL+"/status", nil)
+}
+
+func TestNewStatusRequest(t *testing.T) {
+    req, err := newStatusRequest(RequestConfig{
+        APIBaseURL: "https://test.example.invalid",
+    })
+    if err != nil {
+        t.Fatal(err)
+    }
+    if got, want := req.URL.String(), "https://test.example.invalid/status"; got != want {
+        t.Fatalf("URL = %q, want %q", got, want)
+    }
+}
+```
+
+No environment mutation, fake home directory or cleanup is needed. This test is about the request, not the origin of the configuration. If the operation actually sends HTTP requests, inject a transport or client as well, so request behaviour can be tested without contacting a real service.
+
+The environment adapter deserves its **own** tests. Even that adapter can often accept a lookup function instead of touching the actual process:
+
+```go
+type LookupEnv func(string) (string, bool)
+
+func resolveRequestConfig(lookup LookupEnv) RequestConfig {
+    url := "https://default.example.invalid"
+    if value, ok := lookup("APP_API_URL"); ok && value != "" {
+        url = value
+    }
+    return RequestConfig{APIBaseURL: url}
+}
+
+func TestResolveRequestConfig(t *testing.T) {
+    env := map[string]string{"APP_API_URL": "https://test.example.invalid"}
+    lookup := func(key string) (string, bool) {
+        value, ok := env[key]
+        return value, ok
+    }
+    if got := resolveRequestConfig(lookup).APIBaseURL; got != env["APP_API_URL"] {
+        t.Fatalf("API URL = %q", got)
+    }
+}
+
+// At application startup: cfg := resolveRequestConfig(os.LookupEnv)
+```
+
+This example deliberately treats an unset or empty override as the default. Real adapters should make that policy explicit, validate URLs and other values, and separately test whatever precedence the application promises (for example: CLI option, configuration file, environment variable, default).
+
+Do not pass a generic \`LookupEnv\` through the entire application when only the startup adapter needs it. Prefer the smallest useful dependency: a string or typed options for pure logic; an \`io.Reader\`, \`fs.FS\`, credential provider, clock or HTTP transport for I/O. **DI does not require an interface for every value**, or a giant \`Dependencies\` struct containing every environment variable.
+
+## Three distinct kinds of test
+
+1. **Behaviour test:** inject the exact configuration or capability the operation needs. Exercise normal, failure and edge cases without changing the process environment.
+2. **Configuration-resolution test:** provide a controlled lookup, then verify missing, present, empty, invalid and precedence cases. This is where environment interpretation belongs.
+3. **Process/OS integration test:** deliberately use \`t.Setenv\`, \`t.TempDir\`, \`httptest\` or a subprocess when the actual environment API, filesystem, permissions, process startup or assembled wiring is the subject.
+
+A small test of the real environment-reading boundary is still worthwhile:
+
+```go
+func TestRequestEnvironmentBoundary(t *testing.T) {
+    t.Setenv("APP_API_URL", "https://boundary.example.invalid")
+
+    got := resolveRequestConfig(os.LookupEnv)
+    if got.APIBaseURL != "https://boundary.example.invalid" {
+        t.Fatalf("API URL = %q", got.APIBaseURL)
+    }
+    // This test and its ancestors must not call t.Parallel.
+}
+```
+
+Use \`t.Setenv\` rather than manually juggling \`os.Setenv\` and \`os.Unsetenv\` when a focused, serial test genuinely needs process environment overrides. For tests that must run concurrently while changing environment state, isolate the work in subprocesses rather than assuming \`t.Setenv\` is goroutine-local. Do not run the whole suite serially merely to preserve a pattern that could be replaced by injection.
+
+The boundary also matters in production: if configuration is intended to be stable for a service's lifetime, resolve it once at startup. If hot reload or per-request overrides are a requirement, represent those explicitly in the relevant component's API instead of letting arbitrary environment reads decide when values change.
+
+## XDG: a concrete example where the distinction matters
+
+Consider this setup from a download-related test:
 
 ```go
 t.Setenv("XDG_RUNTIME_DIR", runtimeDir)
@@ -20,52 +136,30 @@ t.Setenv("XDG_DOWNLOAD_DIR", filepath.Join(tempDir, "downloads"))
 tokenPath := filepath.Join(tempDir, "torbox.token")
 ```
 
-None of these lines is automatically wrong. `t.Setenv` is the correct Go tool when a test genuinely needs to change the environment. `filepath.Join` is harmless on its own, and `t.TempDir` is a good tool for real filesystem integration tests.
+If the test verifies how the real desktop adapter resolves paths, some of this setup may be justified. If it only tests download planning or request construction, it is an elaborate indirect way of providing a destination and a credential.
 
-But five lines of **process and path setup before the action being tested** are a useful design smell. If a download planner needs a fake desktop session, several fake user directories and a token file merely to decide what to download, its dependencies may be hiding in the wrong place.
-
-This is a focused continuation of [treating process state as a dependency](/blog/post/2026/053-go-tests-treat-process-state-time-and-standard-io-as-dependencies/) and [minimising filesystem side effects](/blog/post/2026/048-minimize-filesystem-side-effects-in-tests/), rather than a rule against environmental configuration or temporary files.
-
-## Why I avoid this in ordinary tests
-
-**The environment is shared process state.** Go's `t.Setenv` restores the previous value during cleanup, but does not make the mutation local to the test. It is incompatible with `t.Parallel` in the test or any parallel ancestor. A package-wide assumption that the current environment belongs to one test can also surprise unrelated components.
-
-**Setup obscures the assertion.** A reviewer has to understand which synthetic directory influences which operation, whether the directory exists, and whether a token file has been written, before reaching the actual behaviour under test.
-
-**It tests accidental wiring repeatedly.** Dozens of unit tests that call `os.Getenv` indirectly prove the same environment-reading path over and over. That path needs coverage, but it need not be the entry point for every test of the application.
-
-**It encourages incidental disk I/O.** If the production API insists on pathnames, tests begin creating files even when a byte slice, `io.Reader`, `fs.FS`, or a narrow credential provider would express the case more directly.
-
-**It can hide a false assumption about XDG.** The variables in the example are not all equivalent.
-
-## XDG paths are different contracts
+There is a second problem: these names do **not** all describe the same kind of contract.
 
 | Setting | Intended source and meaning | Testing consequence |
 | --- | --- | --- |
-| `XDG_STATE_HOME` | XDG Base Directory variable for persistent user state | Test default/override resolution at the adapter; pass the resulting state directory inward |
-| `XDG_CACHE_HOME` | XDG Base Directory variable for disposable user caches | Inject the directory or cache capability for ordinary tests; verify real cache behaviour separately |
-| `XDG_RUNTIME_DIR` | A session-scoped runtime directory with ownership, `0700` permissions, lifecycle and local-filesystem requirements | A random temporary folder does not prove runtime-directory compliance |
-| `XDG_DOWNLOAD_DIR` | A name used in `xdg-user-dirs` configuration, typically `user-dirs.dirs`, **not** one of the XDG Base Directory variables | Do not assume setting an inherited process environment variable exercises the desktop's download-directory lookup |
-| `torbox.token` | An application credential convention, not an XDG location | Inject credential content/provider for logic tests; test secure persistence at its own boundary |
+| \`XDG_STATE_HOME\` | XDG Base Directory variable for persistent user state | Test default/override resolution at the adapter; pass the resulting state directory inward |
+| \`XDG_CACHE_HOME\` | XDG Base Directory variable for disposable user caches | Inject a directory or cache capability for normal tests; verify real cache behaviour separately |
+| \`XDG_RUNTIME_DIR\` | Session-scoped runtime directory with ownership, \`0700\` permissions, lifecycle and local-filesystem requirements | A temporary folder alone does not demonstrate runtime-directory compliance |
+| \`XDG_DOWNLOAD_DIR\` | Name used in \`xdg-user-dirs\` configuration (usually \`user-dirs.dirs\`), **not** an XDG Base Directory variable | Setting a process variable does not automatically exercise the user's desktop download-directory lookup |
+| \`torbox.token\` | Application-specific credential filename, not an XDG directory | Inject credential content or a provider for logic tests; test secure storage at its own boundary |
 
-For the Base Directory variables, relative paths are invalid; user state and cache also have documented defaults when unset. Runtime storage has stricter properties and no analogous universally fixed default. The download directory is a separate *user-dirs* convention and may be located through the configuration file or a desktop API. An application may deliberately support `XDG_DOWNLOAD_DIR` as its **own** environment override, but that is a documented application-specific interface, not proof of general XDG compliance.
+For the Base Directory variables, relative paths are invalid; state and cache have specified defaults when unset. Runtime storage carries additional requirements and has no equivalent universal fallback. The download directory is a separate *user-dirs* convention and may be obtained through a configuration file or desktop API. An application is free to support \`XDG_DOWNLOAD_DIR\` as its **own documented override**, but that does not make it part of the Base Directory specification.
 
 Sources: [freedesktop.org XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/latest/), [freedesktop.org xdg-user-dirs](https://wiki.freedesktop.org/www/Software/xdg-user-dirs/), and [xdg-user-dir(1)](https://manpages.debian.org/trixie/xdg-user-dirs/xdg-user-dir.1.en.html).
 
-This matters especially for runtime directories: a test can choose an isolated pathname, but it must not pretend that doing so tests session lifecycle, security, or socket support.
-
-## Resolve at the boundary; pass the actual dependency inward
-
-For code that plans where a download goes, I would rather see an explicit input:
+For a download planner, an explicit path is often enough:
 
 ```go
-type DownloadPlanOptions struct {
+type DownloadOptions struct {
     DownloadDir string
-    CacheDir    string
 }
 
-func PlanDownload(opts DownloadPlanOptions, name string) (string, error) {
-    // Validate the destination name before joining it.
+func PlanDownload(opts DownloadOptions, name string) (string, error) {
     if name == "" || filepath.Base(name) != name || name == "." || name == ".." {
         return "", fmt.Errorf("invalid download name %q", name)
     }
@@ -73,10 +167,7 @@ func PlanDownload(opts DownloadPlanOptions, name string) (string, error) {
 }
 
 func TestPlanDownload(t *testing.T) {
-    got, err := PlanDownload(DownloadPlanOptions{
-        DownloadDir: "downloads",
-        CacheDir:    "cache",
-    }, "report.zip")
+    got, err := PlanDownload(DownloadOptions{DownloadDir: "downloads"}, "report.zip")
     if err != nil {
         t.Fatal(err)
     }
@@ -86,15 +177,9 @@ func TestPlanDownload(t *testing.T) {
 }
 ```
 
-No OS environment, directories, files or cleanup are needed because this test is about destination planning, not filesystem effects.
+There is no reason to manufacture an XDG session merely to verify that plan. A test of actual writes, secure credential persistence or a runtime socket is different: use the OS facilities required by that contract. In particular, \`t.TempDir()\` does not recreate the ownership, lifetime or security guarantees of a login-managed \`XDG_RUNTIME_DIR\`.
 
-The important design choice is **not** to make a giant `Dependencies` struct mirroring every possible environment variable. Pass only the locations and capabilities the operation genuinely uses. If a function requires only a cache key and bytes, it may not need a cache path at all.
-
-The outer command, service bootstrap or platform adapter is responsible for taking the real user environment and producing typed configuration. If the application supports CLI flags or explicit configuration, resolve their precedence there, once. Business logic should not be forced to resolve them again.
-
-## Keep credentials separate from their storage
-
-A token's *value* and a token's *filename* are different concerns. A test that is only checking authenticated request construction needs neither a real token file nor a fake home directory.
+A credential's value is also distinct from its filename. For authenticated request tests, prefer an injected token source (or a plain token value when sufficient) rather than writing a fake token file:
 
 ```go
 type TokenSource interface {
@@ -106,88 +191,46 @@ type staticToken string
 func (s staticToken) Token(context.Context) (string, error) {
     return string(s), nil
 }
-
-// Unit tests pass staticToken("fake-test-token") to the client.
-// Production uses an implementation that loads the credential securely.
 ```
 
-Use an injectable transport to inspect the outgoing request without contacting a real service. Redact token values from diagnostics. A separate integration test should verify file permissions, failure modes, file lifecycle and the production token loader when those are actual requirements.
+Use a separate integration test for the real loader's permissions, error handling and lifecycle. Do not log real token values.
 
-Avoid making the token path a globally mutable variable merely to replace it in tests. Prefer a constructor argument or an owned provider. That is a smaller, clearer seam.
+## Recognising the right refactor
 
-## The three tests I actually want
+Ask: **If I replace these environment overrides with explicit inputs or a small fake, am I still proving the same requirement?**
 
-1. **Logic test:** construct typed paths, token providers, fake filesystems and transports directly; assert the intended behaviour. No environment mutation and no temp directory merely for setup.
-2. **Configuration boundary test:** call the environment resolver with a controlled lookup function, or use `t.Setenv` in one focused non-parallel test when the actual process environment API matters. Check unset, empty, absolute/relative and override cases as appropriate.
-3. **Real integration test:** use `t.TempDir()`, `httptest`, subprocesses or OS facilities when permissions, directory creation, actual download writes, socket behaviour, or credential persistence is what is being proven. Keep the environment mutation local to that deliberately serial boundary.
+If yes, resolve the external state outside the operation and inject the useful values or capabilities. If not, the test is probably about an environment or OS contract: keep the real boundary test, name it clearly and constrain its scope.
 
-A pure lookup seam can be small:
-
-```go
-type LookupEnv func(string) (string, bool)
-
-func cacheHome(lookup LookupEnv, home string) string {
-    if value, ok := lookup("XDG_CACHE_HOME"); ok && filepath.IsAbs(value) {
-        return value
-    }
-    return filepath.Join(home, ".cache")
-}
-
-func TestCacheHome(t *testing.T) {
-    lookup := func(name string) (string, bool) {
-        if name == "XDG_CACHE_HOME" {
-            return "/custom-cache", true
-        }
-        return "", false
-    }
-    if got := cacheHome(lookup, "/home/test"); got != "/custom-cache" {
-        t.Fatalf("cache = %q", got)
-    }
-}
-```
-
-This is illustrative of the *cache* rule only; it is **not** a complete XDG resolver, and a real resolver should keep platform-specific details, missing variables and error policy in their proper adapters. Do not implement the entire desktop specification just to make this unit test possible.
-
-A focused process-boundary test may still be exactly right:
-
-```go
-func TestCacheEnvironmentBoundary(t *testing.T) {
-    t.Setenv("XDG_CACHE_HOME", t.TempDir())
-    // Invoke only the real adapter that intentionally reads os.LookupEnv.
-    // Do not call t.Parallel here or from a parallel parent.
-}
-```
-
-If the integration test requires a real runtime directory, verify relevant permissions and filesystem behaviour; do not equate `t.TempDir()` with a login-managed runtime session.
-
-## How to recognise the right refactor
-
-Ask one question before changing test infrastructure:
-
-> If I replace these five setup lines with explicit values or a small fake, am I still proving the same requirement?
-
-If yes, move the environment lookup and path resolution outward and test the inner operation directly. If not, the test probably *is* about an OS/environment contract; preserve it and name it as such.
-
-Do not rewrite every test as part of one cleanup. Extract one useful seam, retain a boundary test, and stop when the scenario is easier to understand. This follows [choosing proportional filesystem fixtures](/blog/post/2026/047-choosing-go-filesystem-test-fixtures/), [small Go test setup helpers](/blog/post/2026/049-go-test-setup-use-small-must-helpers/), and [writing large tests as scenarios](/blog/post/2026/051-large-go-tests-should-read-like-scenarios/).
+Do not refactor every test or introduce a universal configuration framework. Extract one useful seam, retain essential integration coverage and stop when the test makes the intended behaviour clearer. The same proportional approach is described in [choosing filesystem fixtures](/blog/post/2026/047-choosing-go-filesystem-test-fixtures/), [small Go test setup helpers](/blog/post/2026/049-go-test-setup-use-small-must-helpers/) and [writing large tests as scenarios](/blog/post/2026/051-large-go-tests-should-read-like-scenarios/).
 
 ## A reusable repository instruction
 
-When this is an actual project convention, put the operative part in the repository's `AGENTS.md` (or its existing agent-instruction file), not only in a remote blog article:
+Where this fits a project's real conventions, put an actionable version in \`AGENTS.md\` or the repository's existing agent-instruction file:
 
 ```markdown
-### Environment and filesystem tests
-- Treat environment variables, XDG paths, credential locations and process globals
-  as external dependencies. Resolve them at application boundaries and inject
-  only the paths/capabilities the inner operation needs.
-- Do not recreate a synthetic XDG session in routine unit tests. Prefer typed
-  options, in-memory fixtures, fake token providers and injectable transports.
-- Use t.Setenv in focused tests of actual environment parsing/wiring; these
-  tests must not run in parallel. Use t.TempDir for genuine OS/path semantics.
-- Distinguish XDG Base Directory variables from xdg-user-dirs configuration.
-  Do not claim a fake XDG_RUNTIME_DIR verifies session or permission semantics.
+### Process environment in tests
+- Treat environment variables and other process globals as external inputs.
+  Resolve configuration at application boundaries and inject the typed values
+  or small capabilities required by inner operations.
+- Do not override the process environment merely to configure ordinary unit
+  tests. Prefer explicit options, readers, fake providers or transports.
+- Test environment defaults, empty/unset values, validation and precedence in
+  focused configuration-adapter tests using an injected lookup where practical.
+- Use t.Setenv for tests that intentionally read the real process environment;
+  keep such tests and their ancestors non-parallel. Use subprocess isolation
+  when independent concurrent environment mutation is required.
+- Use t.TempDir when actual filesystem behaviour matters, not just as setup.
 - Preserve focused integration coverage when removing incidental test setup.
 ```
 
-Link the longer article from `docs/testing.md` or `AGENTS.md` as rationale, but keep enough concrete instruction local that the rule still works offline. If the repository has no XDG-specific behaviour, omit those details entirely.
+For repositories that actually integrate with XDG, add a separate XDG-specific rule:
 
-I prefer a **visible dependency over a manufactured desktop**. Tests should explain the behaviour being protected rather than the ceremony needed to reach it.
+```markdown
+- Distinguish XDG Base Directory variables from xdg-user-dirs configuration.
+  Inject resolved paths for ordinary tests; do not claim that a temporary
+  XDG_RUNTIME_DIR demonstrates session lifecycle or permission compliance.
+```
+
+Link the article from local documentation for rationale, but keep enough instruction within the repository for an agent to apply the rule offline. If the project does not use XDG, it should not inherit XDG-specific testing ceremony.
+
+**Prefer visible inputs over rewriting the process around a test.** The goal is to prove application behaviour without repeatedly reconstructing its runtime environment.
