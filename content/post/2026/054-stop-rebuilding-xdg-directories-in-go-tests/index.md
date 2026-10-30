@@ -8,7 +8,7 @@ categories: ["Testing", "Software Development"]
 discussion: "https://github.com/arran4/blog/discussions/207"
 ---
 
-<!-- cspell:words getenv httptest torbox XDG -->
+<!-- cspell:words getenv goroutines httptest torbox Unsetenv XDG -->
 
 A unit test that starts by rewriting process environment variables may be testing more configuration machinery than the behaviour it claims to protect:
 
