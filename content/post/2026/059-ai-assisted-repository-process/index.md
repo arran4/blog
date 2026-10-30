@@ -1,6 +1,6 @@
 ---
 title: "AI-Assisted Repository Development: A Unified Process"
-date: 2026-10-30T17:20:00+11:00
+date: 2026-10-30T18:25:00+11:00
 draft: false
 guidance: ["agent-management"]
 tags: ["agents", "automation", "chatgpt", "ci", "codex", "github", "orchestration", "workflow"]
@@ -33,10 +33,18 @@ This is a large diagram intended to be opened and zoomed. The PNG export is an e
 | **Oval** | Terminal outcome: completed, deferred/blocked or abandoned |
 | Amber | **Human** — intent, interactive debugging, review, consequential decisions |
 | Blue | **Chat LLM** — investigation, Q&A, prompts, specifications, PR management and review |
+| Teal | **Human or Chat LLM** — either can make an ordinary routing/analysis decision when enough evidence exists |
 | Violet | **Coding LLM** — Codex/Agy or another coding agent operating in a repository/container |
 | Green | **GitHub / CI** — durable issues/PRs, checks, merges, releases and recorded final state |
+| Solid blue connector | Normal progress |
+| Solid green connector | Accepted, approved or completed transition |
+| Dashed orange connector | Backtracking, correction or rework |
+| Dashed grey connector | Deferred, pending or blocked |
+| Solid red connector | Abandoned or cancelled |
 
-The diagram is grouped by **phase**, not by a strict single actor per lane: each phase can involve several actors. The colours and the explicit actor field in the node descriptions distinguish responsibility. Long feedback edges are intentionally present because work can return to the right earlier state instead of creating a new issue or session mechanically.
+The legend is also embedded in the D2 diagram. Phase names remain in this catalogue and the source comments; the large nested phase frames were removed because they increased whitespace and forced lengthy connector routes. Each node retains its stable ID and actor colour. **Shared responsibility does not imply shared approval authority:** a Chat LLM may classify complexity, select a repair path or recommend a release, but cannot make a human-owned merge, visibility, history-rewrite or release decision without the required approval.
+
+For branching decisions, D2's `source-arrowhead.label` places a short outcome label near the starting node, instead of in the middle of a long connector. Exact transition conditions remain in the node catalogue and D2 connection tooltips. The ELK layout does not guarantee precise label positions, and some crossings remain possible; edge colour and dash type distinguish long backtracking links.
 
 ## How different work enters the shared pipeline
 
@@ -93,6 +101,7 @@ After a completed or deferred milestone, reconcile trackers and any needed annou
 | Actor | Responsible for | Limitations and controls |
 | --- | --- | --- |
 | **Human** | Goals, voice descriptions, design answers and challenges, interactive debugging, PR direction, merge, publicity and exceptional release/rewrite consent | May defer or abandon; not expected to manually maintain routine labels or metadata |
+| **Human or Chat LLM** | Shared analysis/routing decisions: discovery depth, debugging strategy, issue sufficiency, PR-tree selection, implementation route, evidence review, next branch, and release recommendation | Either may decide within accepted scope and available tools; only the human can exercise the reserved merge/publication/irreversible authority |
 | **Chat LLM** | Research, Q&A, contradictions, issue/PR specification, prompt creation, PR-tree selection, review, CI interpretation, GitHub administration, closeout and trackers | May lack repository or terminal access; state must be checked with tools. Small direct fixes are conditional on capability and verification. Never claim a tool action or a passing check without evidence |
 | **Coding LLM** | Container-based implementation, debugging, tests, commits, PR tree creation, complex corrections | No independent authority over human-owned decisions; existing issue and PR specifications govern scope. A completed run is not a reviewed result |
 | **GitHub / CI** | Durable issues and PRs, current commits and branches, checks, release workflows, labels, publication and merge results | A failed, pending or absent check is not approval; branches and bot messages may be stale; repository policies must be respected |
@@ -116,6 +125,77 @@ Use these compact status fields when resuming a conversation:
 | Verification | Tests, current head, CI classification and gaps |
 | Next action | Exact action, responsible actor, and any human approval required |
 | Exit | Completed, deferred with trigger, or abandoned |
+
+## Example scenario runs to validate the process
+
+These are **proposed examples for review**, not claims that a particular historical workstream followed them. Each trace uses the node IDs from the canonical diagram. They intentionally expose differences in how I work, and can be corrected without inventing a separate process diagram. The listed nodes are the principal checkpoints; routine intermediate transitions are sometimes condensed in prose. Questions after each example are intended to reveal missing decisions or incorrect routes.
+
+### Scenario A — Small bug, investigated by me, fixed directly by chat
+
+**Situation:** I reproduce a straightforward defect, identify the likely cause and provide a concise explanation. Chat has sufficient repository write and test access to make a tiny correction.
+
+**Trace:** [ST03](#node-st03) → [BG01](#node-bg01) → [BG02](#node-bg02) → [BG03](#node-bg03) → [BG05](#node-bg05) → [SP01](#node-sp01) → [SP02](#node-sp02) → [SP04](#node-sp04) → [TR01](#node-tr01) → [EX01](#node-ex01) → [EX05](#node-ex05) → [RV01](#node-rv01) → [RV02](#node-rv02) → [RV03](#node-rv03) → [RV04](#node-rv04) → [RV07](#node-rv07) → [RV08](#node-rv08) → [RV09](#node-rv09).
+
+**Evidence:** A matching existing issue, focused regression test, current PR diff, working CI or disclosed missing verification, review and human merge approval. Then the closeout checks [CL01–CL04](#node-cl01) and [RL01–RL02](#node-rl01) may end at [EN01](#node-en01) with **no immediate release**.
+
+**Review question:** Should a tiny correction skip GitHub issue creation when an existing issue or PR already captures its specification, and where do we record the reason?
+
+### Scenario B — Flutter UI bug with interactive diagnosis and coding-agent correction
+
+**Situation:** Automated tests do not reproduce a UI refresh issue. I run the application and debugger, report observations to chat and delegate the actual repair.
+
+**Trace:** [ST03](#node-st03) → [BG01](#node-bg01) → [BG02](#node-bg02) → [BG03](#node-bg03) → [BG05](#node-bg05). If more evidence is needed, return to [BG01](#node-bg01); otherwise use [SP01](#node-sp01) → [TR01](#node-tr01) → [EX01](#node-ex01) → [EX02](#node-ex02) → [EX03](#node-ex03) → [EX04](#node-ex04) → [RV01](#node-rv01).
+
+**Review loop:** [RV02](#node-rv02) → [RV03](#node-rv03) → [RV04](#node-rv04). If my live UI test reveals another defect, take the complex route [RV06](#node-rv06) → [EX02](#node-ex02), or backtrack to [BG03](#node-bg03) if the diagnosis needs human interactive work. Only a reviewed and approved result reaches [RV09](#node-rv09).
+
+**Review question:** When the coding agent cannot interact with the UI, should [BG03](#node-bg03) be an explicit repeatable handoff for every test iteration?
+
+### Scenario C — Minor feature, short Q&A and one implementation PR
+
+**Situation:** I describe a bounded feature to chat. The agent reviews the current code, asks only the essential questions and updates an existing issue or proposes one for approval.
+
+**Trace:** [ST02](#node-st02) → [WS01](#node-ws01) → [WS02](#node-ws02) → [WS03](#node-ws03) → [SP01](#node-sp01). If the requirement is unclear, switch through [PL01](#node-pl01) → [PL02](#node-pl02) → [PL03](#node-pl03) → [PL04](#node-pl04) → [PL05](#node-pl05). Then [SP02–SP04](#node-sp02) → [TR01](#node-tr01) → [EX01](#node-ex01) → [EX02–EX04](#node-ex02) → [RV01–RV09](#node-rv01).
+
+**Evidence:** Updated issue requirements, one scoped PR with tests, review and resolving keywords. A minor feature **does not automatically imply a minor version release**; [RL01](#node-rl01) makes a recommendation against the accumulated changes.
+
+**Review question:** Is the proposed issue approval a standard gate for minor features, or should an already authorised workstream permit routine issue updates without interrupting me?
+
+### Scenario D — Major change, iterative clarification and a branching PR tree
+
+**Situation:** A long voice brief initiates a substantial redesign. Chat inspects the code and finds contradictions. Several rounds of questions are needed; the roadmap produces multiple issues and a PR dependency tree with independent siblings.
+
+**Trace:** [ST02](#node-st02) → [WS01–WS03](#node-ws01) → [PL01](#node-pl01) → [PL02](#node-pl02) → [PL03](#node-pl03) → [PL04](#node-pl04) → [PL02](#node-pl02) (repeat as needed) → [PL05](#node-pl05) → [SP01–SP04](#node-sp01) → [TR01](#node-tr01) → [TR02](#node-tr02) → [TR03](#node-tr03).
+
+**PR-tree loop:** [EX01–EX04](#node-ex01) → [RV01–RV09](#node-rv01) → [RV10](#node-rv10) → [TR03](#node-tr03). If one PR's required parent is blocked, work on a different independent sibling. Review can take [RV04](#node-rv04) → [SP01](#node-sp01) when issues need correction, or [RV04](#node-rv04) → [PL01](#node-pl01) when the architectural intent changes. Human testing can target an intermediate dogfood milestone.
+
+**Evidence:** Durable issue tree and cross-links, explicit parent dependencies, stack bases, reviews and milestones. After the chosen milestone, complete the issue/PR audit and consider a major or minor release based on the actual compatibility changes.
+
+**Review question:** Should [TR04](#node-tr04), the dogfood milestone, have an explicit incoming path from the implementation/review loop rather than only pointing back to review? This is a likely missing transition in the current diagram.
+
+### Scenario E — Automated update plus CI quota limitation
+
+**Situation:** A dependency-bump PR or audit finding arrives while other work is underway. Chat classifies it, reuses the current workstream if related, and delegates any required code changes.
+
+**Trace:** [ST04](#node-st04) → [WS01–WS03](#node-ws01) → [SP01–SP04](#node-sp01) → [TR01](#node-tr01) → [EX01](#node-ex01) → [EX02–EX04](#node-ex02) → [RV01](#node-rv01) → [RV02](#node-rv02).
+
+**Quota branch:** On a private repository with unavailable CI, [RV02](#node-rv02) records missing evidence. Where policy permits non-required CI to be set aside, continue only after appropriate independent review; if mandatory checks are unsatisfied, enter [EN02](#node-en02) with a resume trigger, rather than calling CI green. Public repositories can rely on their available CI alongside extensive local tests.
+
+**Review question:** Should a purely automated, already-reviewed dependency PR route directly from issue reconciliation to PR review, bypassing coding entirely?
+
+### Scenario F — First release, public-opening audit, or abandonment
+
+**Situation:** A new project needs setup, extensive planning, a testable implementation and ultimately a public repository.
+
+**Trace:** [ST01](#node-st01) → [WS01–WS03](#node-ws01) → [PL01–PL05](#node-pl01) → [SP01–SP04](#node-sp01) → [TR05](#node-tr05) → [TR01–TR03](#node-tr01) → implementation and review → closeout → [RL01](#node-rl01) → [RL02](#node-rl02) → [RL03](#node-rl03) → [RL04](#node-rl04) → [RL05](#node-rl05) → [RL06](#node-rl06) → [RL07](#node-rl07) → [RL08](#node-rl08) → [EN01](#node-en01).
+
+**Alternative ends:** A design found unsuitable at [PL05](#node-pl05) can be deferred to [EN02](#node-en02) with its open questions, or abandoned at [EN03](#node-en03), with issues and PRs reconciled. A release can also be deferred without discarding the completed development milestone.
+
+**Review question:** Should opening the repository to the public occur *before* the first release, after it, or be an independent gate based on the repository's publicity policy?
+
+### Review record for these examples
+
+For each scenario, record whether the **entry, owner, evidence, decision, backtracking target, milestone and ending** match actual use. A changed scenario should update both the example and the canonical node transitions. If a scenario identifies a necessary additional edge, add it to `workflow.d2` and the destination sections rather than relying on narrative exceptions.
+
 
 ## Node catalogue
 
@@ -191,7 +271,7 @@ The headings below are generated from the canonical D2 nodes. Each lists the act
 
 #### WS03 — Select discovery depth? {#node-ws03}
 
-**Actor:** Chat LLM. **State:** Bug, small or architectural. Choose proportionate analysis; do not demand a full roadmap for a trivial fix.
+**Actor:** Human or Chat LLM. **State:** Bug, small or architectural. Choose proportionate analysis; do not demand a full roadmap for a trivial fix.
 
 **Enter from:** [WS02 Inspect current baseline](#node-ws02) (classify).
 
@@ -209,7 +289,7 @@ The headings below are generated from the canonical D2 nodes. Each lists the act
 
 #### BG02 — How to debug? {#node-bg02}
 
-**Actor:** Chat LLM. **State:** Size, complexity, tooling. Select human interactive, Chat LLM research or Coding LLM investigation.
+**Actor:** Human or Chat LLM. **State:** Size, complexity, tooling. Select human interactive, Chat LLM research or Coding LLM investigation.
 
 **Enter from:** [BG01 Capture reproduction](#node-bg01) (evidence).
 
@@ -233,7 +313,7 @@ The headings below are generated from the canonical D2 nodes. Each lists the act
 
 #### BG05 — Confirm defect hypothesis {#node-bg05}
 
-**Actor:** Chat LLM. **State:** Evidence, regression test. Compare candidate cause to observed failure and decide if more diagnosis is required.
+**Actor:** Human or Chat LLM. **State:** Evidence, regression test. Compare candidate cause to observed failure and decide if more diagnosis is required.
 
 **Enter from:** [BG03 Interactive diagnosis](#node-bg03) (copy findings); [BG04 Delegate diagnosis](#node-bg04) (analysis).
 
@@ -275,7 +355,7 @@ The headings below are generated from the canonical D2 nodes. Each lists the act
 
 #### PL05 — Enough specified? {#node-pl05}
 
-**Actor:** Human. **State:** Proceed, continue, defer. Advance when sufficient, not necessarily complete; otherwise loop or park.
+**Actor:** Human or Chat LLM. **State:** Proceed, continue, defer. Advance when sufficient, not necessarily complete; otherwise loop or park.
 
 **Enter from:** [PL04 Resolve ambiguities](#node-pl04) (decisions/deferred).
 
@@ -291,7 +371,7 @@ The headings below are generated from the canonical D2 nodes. Each lists the act
 
 #### SP02 — Issue record adequate? {#node-sp02}
 
-**Actor:** Chat LLM. **State:** Create, update, reuse. Check missing tests, issue ownership, resolving scope and change implications.
+**Actor:** Human or Chat LLM. **State:** Create, update, reuse. Check missing tests, issue ownership, resolving scope and change implications.
 
 **Enter from:** [SP01 Reconcile GitHub issues](#node-sp01) (reconcile).
 
@@ -317,7 +397,7 @@ The headings below are generated from the canonical D2 nodes. Each lists the act
 
 #### TR01 — Work size and dependency? {#node-tr01}
 
-**Actor:** Chat LLM. **State:** Single PR or PR tree. Choose scope from dependencies and likely conflicts, not arbitrary linear stacking.
+**Actor:** Human or Chat LLM. **State:** Single PR or PR tree. Choose scope from dependencies and likely conflicts, not arbitrary linear stacking.
 
 **Enter from:** [SP04 Persist accepted spec](#node-sp04) (existing repository); [TR05 Bootstrap repository](#node-tr05) (repository ready).
 
@@ -333,7 +413,7 @@ The headings below are generated from the canonical D2 nodes. Each lists the act
 
 #### TR03 — Select runnable node {#node-tr03}
 
-**Actor:** Chat LLM. **State:** Milestone + unblocked branch. Choose a ready node; if one branch blocks, advance an independent sibling.
+**Actor:** Human or Chat LLM. **State:** Milestone + unblocked branch. Choose a ready node; if one branch blocks, advance an independent sibling.
 
 **Enter from:** [TR02 Plan PR dependency tree](#node-tr02) (tree dependencies); [RV10 More work in PR tree?](#node-rv10) (next sibling / child).
 
@@ -359,7 +439,7 @@ The headings below are generated from the canonical D2 nodes. Each lists the act
 
 #### EX01 — Who implements? {#node-ex01}
 
-**Actor:** Chat LLM. **State:** Chat patch, coding agent, human. For small changes try direct Chat LLM fix when able; otherwise write a prompt for Codex/Agy.
+**Actor:** Human or Chat LLM. **State:** Chat patch, coding agent, human. For small changes try direct Chat LLM fix when able; otherwise write a prompt for Codex/Agy.
 
 **Enter from:** [TR01 Work size and dependency?](#node-tr01) (single PR); [TR03 Select runnable node](#node-tr03) (ready node).
 
@@ -417,7 +497,7 @@ The headings below are generated from the canonical D2 nodes. Each lists the act
 
 #### RV03 — Review correctness? {#node-rv03}
 
-**Actor:** Chat LLM. **State:** Human + Chat evidence. Check behaviour, issue match, closing keywords, test quality, conflicts and merge ordering.
+**Actor:** Human or Chat LLM. **State:** Human + Chat evidence. Check behaviour, issue match, closing keywords, test quality, conflicts and merge ordering.
 
 **Enter from:** [RV02 Classify CI signal](#node-rv02) (CI evidence / disclosed gaps).
 
@@ -425,7 +505,7 @@ The headings below are generated from the canonical D2 nodes. Each lists the act
 
 #### RV04 — What needs changing? {#node-rv04}
 
-**Actor:** Chat LLM. **State:** Simple, complex, spec, ready. Route repair to smallest appropriate stage, including back to Q&A and issue specifications.
+**Actor:** Human or Chat LLM. **State:** Simple, complex, spec, ready. Route repair to smallest appropriate stage, including back to Q&A and issue specifications.
 
 **Enter from:** [RV03 Review correctness?](#node-rv03) (findings); [RV07 Human PR review](#node-rv07) (human objections); [RV08 Merge approved?](#node-rv08) (changes requested).
 
@@ -473,7 +553,7 @@ The headings below are generated from the canonical D2 nodes. Each lists the act
 
 #### RV10 — More work in PR tree? {#node-rv10}
 
-**Actor:** Chat LLM. **State:** Parallel siblings, blockers. Update bases and conflicts; choose another ready sibling or pause dependent branch.
+**Actor:** Human or Chat LLM. **State:** Parallel siblings, blockers. Update bases and conflicts; choose another ready sibling or pause dependent branch.
 
 **Enter from:** [RV09 Merge eligible node](#node-rv09) (merged).
 
@@ -517,7 +597,7 @@ The headings below are generated from the canonical D2 nodes. Each lists the act
 
 #### RL01 — Recommend release intent {#node-rl01}
 
-**Actor:** Chat LLM. **State:** None, patch, minor, major. Use accepted scope, roadmap, merged changes and release guidance; patch may be routine if authorised.
+**Actor:** Human or Chat LLM. **State:** None, patch, minor, major. Use accepted scope, roadmap, merged changes and release guidance; patch may be routine if authorised.
 
 **Enter from:** [ST06 Release request](#node-st06) (release-only); [CL04 Update PR repository](#node-cl04) (evaluate version).
 
@@ -610,6 +690,17 @@ The headings below are generated from the canonical D2 nodes. Each lists the act
 This process intentionally leaves choices reversible. A human may change the scope, abandon a line of development, park work for later, or take a different ready branch in a PR tree. A CI quota failure, coding-agent exit, or conflict does not automatically mean the specification failed. The diagram describes **how decisions are made and persisted**, not a guarantee that every path always runs.
 
 The current workstream can span several coding sessions and PRs. An issue may outlive one implementation attempt and a PR tree may serve one milestone without exhausting the roadmap. If the workflow has changed while work is in progress, reconcile the durable records and continue from the correct node; do not silently apply obsolete plans.
+
+### Installing and rendering with existing tools
+
+Use a package manager or Go's module-aware installer rather than piping remote shell scripts into a shell. With a Go toolchain compatible with D2's pinned version, the explicit installation command is:
+
+```bash
+go install github.com/d2lang/d2@v0.9.0
+d2 --version
+```
+
+If an appropriate D2 ebuild is maintained on the system, prefer installing or upgrading that ebuild with Portage. The image export uses an installed `rsvg-convert` from librsvg. The checked-in `render-diagrams.sh` validates the node anchors and emits both the SVG and the scaled PNG. A different D2 version may produce different diagram routing even when the source stays unchanged.
 
 ### Maintaining this diagram
 
