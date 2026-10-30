@@ -1,6 +1,6 @@
 ---
 title: "AI-Assisted Repository Development: A Unified Process"
-date: 2026-10-30T18:25:00+11:00
+date: 2026-10-30T23:09:00+11:00
 draft: false
 guidance: ["agent-management"]
 tags: ["agents", "automation", "chatgpt", "ci", "codex", "github", "orchestration", "workflow"]
@@ -21,7 +21,7 @@ Normally I maintain **one conversation per coherent workstream**. That conversat
 
 [Open full SVG](workflow.svg) · [Open PNG export](workflow.png) · [Edit D2 source](workflow.d2) · [Browse node catalogue](#node-catalogue)
 
-This is a large diagram intended to be opened and zoomed. The PNG export is an easier-to-read alternative in Firefox when the SVG automatically resizes. It is rasterised from the same D2-generated SVG using `rsvg-convert` at a bounded width of 4,800 pixels, avoiding D2's raster frame-height limit for this unusually tall diagram. Each D2 node contains an ID, a **header and brief purpose**, actor colour, a detailed hover description and a link back to its corresponding section in this article. The embedded image may not expose the links, so open the SVG itself or use the catalogue below. The `.d2` source is also suitable for a coding or management agent to read directly; do not rely on visual interpretation alone.
+This is a large diagram intended to be opened and zoomed. The PNG export is an easier-to-read alternative in Firefox when the SVG automatically resizes. The diagram's node text has been enlarged to 26 points, with 21-point connection labels, so the PNG is more readable at full resolution. It is rasterised from the same D2-generated SVG using `rsvg-convert` at a width of 8,000 pixels, avoiding D2's raster frame-height limit for this unusually tall diagram. Each D2 node contains an ID, a **header and brief purpose**, actor colour, a detailed hover description and a link back to its corresponding section in this article. The embedded image may not expose the links, so open the SVG itself or use the catalogue below. The `.d2` source is also suitable for a coding or management agent to read directly; do not rely on visual interpretation alone.
 
 ### Diagram conventions
 
