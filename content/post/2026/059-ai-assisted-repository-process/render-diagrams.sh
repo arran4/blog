@@ -24,6 +24,10 @@ fi
 # A Go-installed, tagged D2 may display an older '-HEAD' version string.
 # CI pins the module version; do not infer renderer capabilities from --version.
 d2 --layout=elk --theme=300 workflow.d2 workflow.svg
+# Attach each node's current actor, purpose, evidence and permitted transitions
+# as inert XML descriptions. The root also receives JSON process instructions.
+# PNG rendering ignores these non-visual SVG elements.
+python3 embed-agent-instructions.py --svg workflow.svg --article index.md --d2 workflow.d2
 # D2's raster exporter uses a very tall internal frame for this workflow and
 # exceeds its 32768-pixel limit even with --scale=1. Rasterise the authoritative
 # SVG instead; this keeps both outputs derived from one D2 render.
@@ -35,5 +39,6 @@ command -v rsvg-convert >/dev/null || {
 # at its natural size; the SVG remains the zoomable, lossless version.
 rsvg-convert --format=png --width=8000 --output=workflow.png workflow.svg
 grep -q 'data-d2-version=' workflow.svg
+grep -q 'agent-workflow-instructions-v1' workflow.svg
 test -s workflow.png
 echo "Rendered ${count} linked workflow nodes to workflow.svg and workflow.png"

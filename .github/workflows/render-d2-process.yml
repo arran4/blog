@@ -5,6 +5,9 @@ on:
     paths:
       - 'content/post/2026/059-ai-assisted-repository-process/workflow.d2'
       - 'content/post/2026/059-ai-assisted-repository-process/render-diagrams.sh'
+      - 'content/post/2026/059-ai-assisted-repository-process/embed-agent-instructions.py'
+      - 'content/post/2026/059-ai-assisted-repository-process/test_embed_agent_instructions.py'
+      - 'content/post/2026/059-ai-assisted-repository-process/index.md'
       - '.github/workflows/render-d2-process.yml'
 
 permissions:
@@ -35,6 +38,11 @@ jobs:
             sudo apt-get update -qq
             sudo apt-get install -y --no-install-recommends librsvg2-bin
           fi
+      - name: Test SVG guidance embedding
+        run: |
+          python3 -m unittest discover -v \
+            -s content/post/2026/059-ai-assisted-repository-process \
+            -p 'test_embed_agent_instructions.py'
       - name: Render diagrams from source
         run: |
           bash content/post/2026/059-ai-assisted-repository-process/render-diagrams.sh
