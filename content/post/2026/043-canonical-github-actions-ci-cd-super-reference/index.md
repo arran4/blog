@@ -573,7 +573,7 @@ Qt/KDE projects may require additional package installation or an existing proje
 
 Linux applications that ship `.desktop` launchers should validate those files with `desktop-file-validate` from the `desktop-file-utils` package. This checks desktop-entry syntax, including action identifiers in `Actions=` and matching `[Desktop Action ...]` sections, before distribution packaging or downstream QA.
 
-Identify the actual files installed or shipped by the project when generating the workflow. Validate **every shipped desktop entry**, not arbitrary sample or vendored fixtures. If an entry is generated or transformed by the build, validate its generated output; if packaging changes it, validate the installed/package copy as well. Prefer explicit, repository-specific file paths over rediscovering the tree with `find` in every CI run.
+Identify the actual files installed or shipped by the project when generating the workflow. Validate **every shipped desktop entry**, not arbitrary sample or third-party fixtures. If an entry is generated or transformed by the build, validate its generated output; if packaging changes it, validate the installed/package copy as well. Prefer explicit, repository-specific file paths over rediscovering the tree with `find` in every CI run.
 
 For a repository using an Ubuntu runner, the lightweight lint or workflow-validation job can add steps like those used in [KLookup PR #133](https://github.com/arran4/klookup/pull/133):
 
