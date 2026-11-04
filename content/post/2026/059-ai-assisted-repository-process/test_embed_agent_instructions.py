@@ -74,7 +74,7 @@ class EmbeddingTests(unittest.TestCase):
         self.assertNotIn("<script", output)
 
     def test_missing_catalogue_entry_fails(self):
-        with self.assertRaisesRegex(ValueError, "mismatch"):
+        with self.assertRaisesRegex(ValueError, "article anchor"):
             guidance.embed(SVG, ARTICLE.replace("#### BB02 — Done", "#### CC02 — Done"), D2)
 
     def test_svg_with_missing_link_fails(self):
