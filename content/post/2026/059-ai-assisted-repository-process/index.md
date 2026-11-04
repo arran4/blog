@@ -23,6 +23,16 @@ Normally I maintain **one conversation per coherent workstream**. That conversat
 
 This is a large diagram intended to be opened and zoomed. The PNG export is an easier-to-read alternative in Firefox when the SVG automatically resizes. The diagram's node text has been enlarged to 26 points, with 21-point connection labels, so the PNG is more readable at full resolution. It is rasterised from the same D2-generated SVG using `rsvg-convert` at a width of 8,000 pixels, avoiding D2's raster frame-height limit for this unusually tall diagram. Each D2 node contains an ID, a **header and brief purpose**, actor colour, a detailed hover description and a link back to its corresponding section in this article. The embedded image may not expose the links, so open the SVG itself or use the catalogue below. The `.d2` source is also suitable for a coding or management agent to read directly; do not rely on visual interpretation alone.
 
+### Machine-readable agent instructions inside the SVG
+
+The generated SVG is also an **agent-readable process reference**. In addition to the existing short hover tooltips, its SVG groups contain standard non-visible `<desc>` elements at the corresponding workflow nodes. For example, the graphics group associated with `WS03` contains the accepted actor, current-state instructions, entry paths and conditional transitions from [the WS03 catalogue entry](#node-ws03). This guidance is embedded **beside the node**, not merely in a global XML comment.
+
+At the SVG document root, `<metadata id="agent-workflow-instructions-v1">` contains a JSON object with the general management-LLM instructions and all indexed node instructions. A parser can use `nodes["WS03"]` to look up the same section; it does not have to infer instructions from the diagram geometry. The `data-workflow-node="WS03"` attribute identifies the corresponding SVG graphics group.
+
+These elements are **inert documentation, not executable instructions**. The issue register, PRs, human approvals and live repository evidence still determine what an agent is authorised to do. Reading the SVG as an image (including the PNG or an HTML image tag) does not expose its hidden XML content; fetch or parse the raw SVG when machine-readable guidance is needed.
+
+The article remains the source of truth. `embed-agent-instructions.py` copies each node's text to its SVG `<desc>` and the document catalogue after D2 rendering, validates that every node has exactly one matching section, then produces the PNG from that same SVG. This experimental step is isolated in a [stacked PR](https://github.com/arran4/blog/pulls) so it can be removed without affecting the normal D2 diagram.
+
 ### Diagram conventions
 
 | Element | Meaning |
@@ -704,7 +714,7 @@ If an appropriate D2 ebuild is maintained on the system, prefer installing or up
 
 ### Maintaining this diagram
 
-Edit only `workflow.d2` and the relevant written node description; run `bash render-diagrams.sh` from the page bundle to update both `workflow.svg` and `workflow.png`, or let the PR's D2 rendering workflow do so. Commit the text and resulting SVG together. Preserve node IDs when their meaning stays stable so links and LLM checkpoints do not break. If adding a node, specify actor, description, all decision exits and how it affects issue or PR state.
+Edit `workflow.d2` and the matching node description in `index.md`; run `bash render-diagrams.sh` from the page bundle to regenerate `workflow.svg` with the embedded agent guidance and its `workflow.png` export, or let the PR's renderer workflow do so. Do not edit embedded SVG instructions directly. Commit the text and resulting SVG together. Preserve node IDs when their meaning stays stable so links and LLM checkpoints do not break. If adding a node, specify actor, description, all decision exits and how it affects issue or PR state.
 
 ## References
 
