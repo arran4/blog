@@ -62,7 +62,18 @@ done
 
 ## Submitting changes
 
-All changes to this repository must be made on a non-default branch and submitted through a pull request. Do not commit changes directly to `main` or another default branch. Unless the user explicitly requests otherwise, create the pull request as a draft so the proposed content can be reviewed before merge.
+All changes to this repository must be made on a non-default branch and submitted through a pull request. Do not commit changes directly to `main` or another default branch.
+
+Unless the user explicitly requests otherwise, **create each pull request as a draft and keep it in draft until it is ready for human review**. Draft means implementation, documentation, testing, CI, conflict resolution, or other required verification is still outstanding; it is not merely a marker that no human has reviewed the PR yet.
+
+Before marking a pull request **Ready for review**:
+
+- Confirm the intended scope is implemented and inspect the complete diff for accidental or unrelated changes.
+- Run the repository's required local checks where available and verify that applicable GitHub Actions checks have completed successfully. Investigate and correct failures rather than promoting a PR solely because a commit was pushed.
+- Confirm the branch is mergeable without unresolved conflicts and there are no known blocking defects, incomplete tasks, or unaddressed review comments.
+- Update the PR description with what was tested, the results and any relevant limitations. If required verification is unavailable, fails, or is incomplete, document the limitation and keep the PR in draft unless a human explicitly accepts the exception.
+
+When those conditions are met, mark the PR **Ready for review** so a human can assess and decide whether to merge it. Human review and approval occur **after** this transition; do not keep a fully verified PR in draft simply because no human has approved it yet. **Ready for review is not permission to merge.** Do not merge automatically without a separate instruction.
 
 Before submitting any changes, you must run the spell checker to ensure there are no spelling errors in the documentation and content files.
 
