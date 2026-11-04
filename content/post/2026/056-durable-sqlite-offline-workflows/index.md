@@ -1,6 +1,6 @@
 ---
 title: "Durable SQLite Workflows with Files on Disk and Offline Clients"
-date: 2026-10-30T20:18:00+11:00
+date: 2026-11-04T15:27:00+11:00
 draft: false
 guidance: ["go-persistence"]
 tags: ["go", "sqlite", "sqlc", "offline-first", "queues", "flutter", "testing"]
@@ -186,13 +186,44 @@ Prefer separate boundaries where there is a real use case:
 
 The standard `fs.FS` surface does not provide portable write or delete operations. Do not force it to act as a universal object store. Logical blob keys should never expose absolute storage paths or S3 bucket internals. Test local disk under temp dirs, and test S3 adapter consistency, streaming, atomicity/retry and permissions independently when S3 is introduced.
 
-## Reserve disk space instead of relying on cleanup after failure
+## Make cache policy optional and provider-aware
 
-A preservation application should not fill the volume holding its own SQLite journal and authentication state. Monitor usable free bytes and capacity percentage, report state transitions to administrators, and reserve enough space to reject or defer new downloads before total exhaustion.
+Preservation systems should reduce repeated requests against content creators, while refusing to let local disk exhaustion corrupt a running database. Neither concern implies **one universal storage threshold**: an administrator may choose not to manage a particular cache at all, while S3 or dynamically allocated providers may not even report a meaningful capacity.
 
-Specify the threshold model precisely: a **percentage free** warning, an **absolute minimum free** reserve, a critical stage and hysteresis must not contradict one another. For example, a 1 GiB write-stop reserve will naturally trigger *before* a 500 MiB critical threshold, so those levels cannot both mean the same action. Keep threshold values configurable and verify with a fake capacity provider instead of actually filling a test disk.
+Prefer a **registered cache manager policy** with explicit settings and measurable semantics:
 
-Retention is a separate policy registry. A **no-action** provider can remain the default for unique archives; later an explicit safe cleanup provider may consider both least-recently and least-frequently used *re-fetchable* cache entries. A disk emergency must not silently delete a user's only copy of an original, unreadable archives, private notes, receipts or data with legal retention requirements. Test dry-run plans, multi-reference dedup, pending writes, pinning and rehydration before enabling unattended destructive cleanup.
+- `no-op`: no eviction and no fabricated capacity warnings; operational storage failures still surface honestly.
+- `percent-free`: warn, defer or trim when a chosen **remaining free** percentage is crossed.
+- `percent-used`: restrict this cache to a chosen share of its provider or allocated budget (not the inverse of free space in every multi-tenant scenario).
+- `fixed-budget`: cap the cache by bytes, optionally with separately configured expiry or rotation policies.
+- Later `expiry`, `least-recently-used` and `least-frequently-used` implementations: operate only on explicitly eligible data, accounting for deduplication, shared references, permissions, and genuinely restorable source media.
+
+An object store interface should be able to return **capacity unknown/not supported** rather than inventing disk totals. Policies that need capacity must decline or use an explicitly configured alternate measurement when a provider cannot supply it. If thresholds have multiple stages, define warning, write refusal and possible safe cleanup separately, with hysteresis and tests based on a fake capacity provider. A 1 GiB hard write-stop and a 500 MiB warning are not interchangeable actions.
+
+For media that may be automatically deleted, a *verify or acknowledge restorability* gate can default on. A prior successful fetch or an advertised origin URL does not guarantee that the author will still be online later. Preserve originals which cannot be proven replaceable. A no-op provider remains a legitimate option, particularly for preservation-focused self-hosting.
+
+A simple notification subsystem can start with **a durable row for each administrator in SQLite plus console logging**. Delivery to email, push, webhooks or an external service should be additional independently optional transports. Missing capacity data must not generate recurring false alerts.
+
+## Build and rebuild from distinct authorities, not two simultaneous masters
+
+A local self-hosted reader can keep **mutable users, notes, bookmarks and operations authoritative in SQLite**, while media bytes live in a content-addressed blob store and catalog definitions come from embedded/override files. SQLite search indexes, thumbnails and materialized catalogs are derived projections.
+
+Make the recovery paths explicit:
+
+1. `reindex`: derive search/catalog/index metadata from verified source manifests and available media without rewriting authoritative user activity.
+2. `export`: emit a versioned snapshot/manifest of necessary relational state and media references for portability and backup.
+3. `restore/import`: validate and carefully apply an explicitly selected trusted snapshot with ID collisions, schema versions and conflict policy surfaced to the operator.
+4. `repair`: reconcile interrupted file materialization, orphaned staging files and incomplete DB references.
+
+These operations can work in both directions without implying every physical state representation is interchangeable or that a JPEG can recreate a user's password or private Markdown note. Avoid an automatic startup step that blindly treats exported copies as a second writable master.
+
+## Separate immutable public assets from dynamic private APIs
+
+A self-hosted or hosted service may expose licensed, immutable, content-addressed media from a static route or CDN, while delivering mutable user/account/bookmark/sync/admin state through dynamic authenticated handlers. Separate routes, origins or backend services only where useful.
+
+Public caching must never leak private notes, account progress, personal creator preferences or signed/private media URL tokens. A stable hash proves asset bytes, not authorization to republish copyrighted material. Licences, attribution, source-specific opt-outs, CDN cache invalidation and removal obligations need explicit handling.
+
+For source/catalog and test assets, **procedural drawing** (text labels, page numbers, timestamps and geometric layouts using Go's ordinary image APIs) is not generative AI artwork. It is a useful deterministic fixture. Pair it with intent-based `txtar` scenarios and a local mock HTTP source that exercises real fetching and failure recovery, so test CI does not burden or transform artists' existing work.
 
 ## Implementation and review standards
 
