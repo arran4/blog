@@ -8,7 +8,7 @@ categories: ["devops", "reference", "automation"]
 discussion: "https://github.com/arran4/blog/discussions/132"
 ---
 
-<!-- cspell:words actionlint AppImage Buildx DBUILD Dockerfiles GOPATH GoReleaser jurplel mvcommon myapp nFPM prerelease qmake semver stefanzweifel todate TXTAR typecheck zizmor -->
+<!-- cspell:words actionlint AppImage Buildx DBUILD Dockerfiles freedesktop GOPATH GoReleaser jurplel klookup mvcommon myapp nFPM prerelease qmake semver stefanzweifel todate TXTAR typecheck zizmor -->
 
 This is the canonical GitHub Actions CI/CD generation reference.
 
@@ -50,6 +50,7 @@ Inventory:
 - integration tests and their filesystem/process/network/database/service boundaries;
 - any end-to-end or system tests;
 - Dockerfiles and Compose environments;
+- shipped Linux desktop-entry (`.desktop`) files, including their source, generated and installed paths;
 - declared supported operating systems and architectures;
 - minimum supported language/toolchain versions;
 - packaging/installers and GoReleaser or equivalent release configuration;
@@ -109,7 +110,7 @@ Support files follow the same principle:
 Classify discovered capabilities before writing jobs:
 
 - **Universal baseline:** event routing, ordinary validation, minimal permissions, useful manual dispatch where applicable, and periodic verification for maintained repositories.
-- **Enable when present:** language-specific lint/test, generation checks, examples, integration/services, E2E/system smoke, platform/toolchain matrices, packaging, containers, release artifacts, GoReleaser.
+- **Enable when present:** language-specific lint/test, generation checks, examples, integration/services, E2E/system smoke, platform/toolchain matrices, packaging, Linux desktop-entry validation, containers, release artifacts, GoReleaser.
 - **Optional policy:** autofix PRs, dependency-update PRs, expensive scheduled checks.
 - **Exception requiring explanation:** additional workflow files, bespoke version arithmetic, unusual release ownership, or unusually broad permissions.
 
@@ -566,6 +567,26 @@ Canonical CMake shape:
 ```
 
 Qt/KDE projects may require additional package installation or an existing project bootstrap/container. Preserve those project-native environment contracts rather than replacing them with a generic Qt action if that loses necessary dependencies.
+
+
+### Freedesktop desktop-entry validation
+
+Linux applications that ship `.desktop` launchers should validate those files with `desktop-file-validate` from the `desktop-file-utils` package. This checks desktop-entry syntax, including action identifiers in `Actions=` and matching `[Desktop Action ...]` sections, before distribution packaging or downstream QA.
+
+Identify the actual files installed or shipped by the project when generating the workflow. Validate **every shipped desktop entry**, not arbitrary sample or third-party fixtures. If an entry is generated or transformed by the build, validate its generated output; if packaging changes it, validate the installed/package copy as well. Prefer explicit, repository-specific file paths over rediscovering the tree with `find` in every CI run.
+
+For a repository using an Ubuntu runner, the lightweight lint or workflow-validation job can add steps like those used in [KLookup PR #133](https://github.com/arran4/klookup/pull/133):
+
+```yaml
+      - name: Install desktop-entry validator
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends desktop-file-utils
+      - name: Validate installed desktop entry source
+        run: desktop-file-validate src/org.kde.klookup.desktop
+```
+
+Replace the example path with the repository's actual shipped files; list each file explicitly or pass the known paths to one invocation. On other runner images, install the equivalent distribution package through the package manager. The check belongs in normal PR/push validation and must participate in the release-validation gate when desktop entries are part of a release. Do not create a second workflow solely for this check.
 
 ### Containers
 
@@ -1484,6 +1505,7 @@ The following are additional capability-selected patterns:
 - generated compatibility matrices;
 - database compatibility;
 - GUI/headless tests;
+- freedesktop desktop-entry validation;
 - container smoke tests;
 - package installation smoke tests;
 - minimum-supported-version tests.
@@ -1934,6 +1956,7 @@ Before opening a CI PR, verify:
 - unit/integration/E2E layers match the project rather than a generic template;
 - compatibility matrices correspond to real support claims;
 - workflows themselves are validated where appropriate;
+- shipped Linux desktop entries are validated with `desktop-file-validate`, including generated or packaged versions where applicable;
 - release artifacts are smoke-tested where applicable;
 - release validation precedes permanent tagging;
 - the authoritative branch SHA is checked before tag creation and immediately before a new tag is pushed;
