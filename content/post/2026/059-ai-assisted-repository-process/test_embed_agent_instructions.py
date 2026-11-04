@@ -56,9 +56,12 @@ class EmbeddingTests(unittest.TestCase):
         metadata = root.find(f"{NS}metadata")
         self.assertEqual(metadata.get("id"), "agent-workflow-instructions-v1")
         payload = json.loads(metadata.text)
-        self.assertEqual(set(payload["nodes"]), {"AA01", "BB02"})
+        self.assertEqual(payload["schema"], "agent-workflow-node-guidance/v2")
+        self.assertEqual(payload["node_count"], 2)
+        self.assertEqual(payload["node_description_selector"], "g[data-workflow-node] > desc")
+        self.assertNotIn("nodes", payload)
+        self.assertNotIn("instructions", payload)
         self.assertIn("human consent", payload["management_instructions"])
-        self.assertIn("**Move to:**", payload["nodes"]["AA01"]["instructions"])
         decisions = [
             g for g in root.iter(f"{NS}g")
             if g.get("data-workflow-node") == "AA01"
@@ -68,6 +71,11 @@ class EmbeddingTests(unittest.TestCase):
         self.assertIn("risk", desc.text)
         self.assertIn("& evidence", desc.text)
         self.assertIn("when approved", desc.text)
+        self.assertIn("Move to:", desc.text)
+        # A node's full instructions appear once in the SVG: in its local <desc>.
+        self.assertEqual(output.count("Compare &lt;risk&gt; &amp; evidence."), 1)
+        self.assertNotIn("Compare <risk> & evidence.", metadata.text)
+        self.assertNotIn("AA01 — Review?", metadata.text)
         self.assertNotIn("Other prose should not", desc.text)
         self.assertIsNotNone(decisions[0].find(f"{NS}title"))
         self.assertEqual(len(list(root.iter(f"{NS}a"))), 2)
