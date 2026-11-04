@@ -1,13 +1,13 @@
 ---
 title: "Durable SQLite Workflows with Files on Disk and Offline Clients"
-date: 2026-11-04T15:27:00+11:00
+date: 2026-11-04T16:26:00+11:00
 draft: false
 guidance: ["go-persistence"]
 tags: ["go", "sqlite", "sqlc", "offline-first", "queues", "flutter", "testing"]
 categories: ["Software Architecture", "Software Development"]
 ---
 
-<!-- cspell:words dedupe FTS outbox sqlc -->
+<!-- cspell:words dedupe FTS outbox sqlc storedb -->
 
 A small Go service can be reliable without a distributed job broker or multiple database servers. The difficult part is not choosing SQLite. It is deciding where the **durable truth** lives when a server queue, generated files, a search index, and an offline application must agree after failures.
 
@@ -141,7 +141,7 @@ A comic source may support `FetchLatest`, `FetchArchive`, `FetchArchiveYear`, or
 
 Keep source inspection separate from durable content materialization: fetching metadata can enqueue bounded image download/generation jobs, which then update immutable media and derived indexes. Use stable upstream identities and cursors, bounded pages, and explicit end-of-history behavior.
 
-A remote source needs timeouts, response limits, redirect policy, MIME checks, and server-side request-forgery defenses. For developer-controlled private hosts, use an explicit trusted-source policy rather than silently permitting reserved addresses.
+A remote source needs timeouts, response limits, redirect policy, MIME checks, and server-side request-forgery defences. For developer-controlled private hosts, use an explicit trusted-source policy rather than silently permitting reserved addresses.
 
 ## Make the failure path executable
 
