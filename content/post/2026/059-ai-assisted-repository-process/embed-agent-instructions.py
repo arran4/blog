@@ -86,12 +86,15 @@ def embed(svg: str, markdown: str, d2: str) -> str:
     svg = LINKED_GROUP.sub(annotate, svg)
     if len(seen) != len(docs) or len(set(seen)) != len(seen) or set(seen) != set(docs):
         raise ValueError(f"Node link mismatch; expected {len(docs)}, found {len(seen)}")
+    # The full instructions live only in each node's <desc>. The root
+    # metadata describes how to find them, without duplicating the catalogue.
     payload = {
-        "schema": "agent-workflow-node-guidance/v1",
+        "schema": "agent-workflow-node-guidance/v2",
         "source": "index.md",
         "diagram_source": "workflow.d2",
         "management_instructions": guidance,
-        "nodes": docs,
+        "node_description_selector": "g[data-workflow-node] > desc",
+        "node_count": len(docs),
     }
     encoded = html.escape(
         json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
@@ -111,8 +114,12 @@ def embed(svg: str, markdown: str, d2: str) -> str:
     if md_element is None or md_element.get("id") != METADATA_ID:
         raise ValueError("SVG metadata was not injected at the root")
     parsed = json.loads(md_element.text or "")
-    if set(parsed["nodes"]) != set(docs):
-        raise ValueError("JSON node catalogue mismatch")
+    if "nodes" in parsed or "instructions" in parsed:
+        raise ValueError("Global metadata must not duplicate node instructions")
+    if parsed["node_count"] != len(docs):
+        raise ValueError("Global metadata node count mismatch")
+    if parsed["node_description_selector"] != "g[data-workflow-node] > desc":
+        raise ValueError("Missing node description lookup rule")
     for node_id in docs:
         group = next(
             (
