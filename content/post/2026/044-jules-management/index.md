@@ -2,7 +2,6 @@
 title: "Managing Jules with a Management LLM"
 date: 2026-09-09T12:26:55+10:00
 draft: false
-guidance: ["agent-management"]
 tags:
   - llm
   - agents
@@ -22,6 +21,8 @@ discussion: "https://github.com/arran4/blog/discussions/135"
 ---
 
 <!-- cspell:words closeout handoff handoffs inspectable joobq kjules oobjq reframing undraft unmerged workdir -->
+
+> **Historical workflow:** This article documents an earlier implementation-agent process. For the current agent-independent workflow, including PR trees, review, release and project tracking, use [AI-Assisted Repository Development: A Unified Process](/blog/post/2026/059-ai-assisted-repository-process/). This page is retained for historical context, not as current `agent-management` guidance.
 
 I use Jules as an asynchronous implementation worker, but the useful workflow is larger than Jules itself. The part that makes it practical is a separate **management LLM** that sits between me, GitHub, the implementation agent, and the durable issue history.
 
