@@ -63,7 +63,7 @@ def validate(source: str, article: str) -> None:
         raise ValueError("Starting choices must be grouped in a start frame")
     if "near: bottom-center" not in source:
         raise ValueError("Normal completion must remain at the bottom")
-    if "near: top-right" not in source:
+    if "near: center-right" not in source:
         raise ValueError("Legend should stay away from start choices")
     if "TR07" not in incoming["TR04"]:
         raise ValueError("Dogfood checkpoint must be reachable from a decision")
