@@ -1,6 +1,6 @@
 # Canonical AI-assisted repository process (D2 v0.9.0).
 # One diagram; source of truth for node IDs, actors, and transition routes.
-# Phases are documented in the blog; frames omitted to reduce visual whitespace.
+# Phases are documented in the blog; only the entry choices have a grouping frame; phases use comments.
 # Node labels use an ID/title and a visible plain-language description.
 # The D2 node links and full article catalogue provide detailed instructions.
 # Node labels are 26pt and connection labels 21pt to remain readable in PNG exports.
@@ -15,8 +15,1452 @@ classes: {
   github: { style: { fill: "#E9F3EF"; stroke: "#47836D"; font-color: "#163F31"; font-size: 26 } }
 }
 
+
+# Entry choices are deliberately grouped and form the top of the main flow.
+start_here: {
+  label: "START HERE · CHOOSE ONE ENTRY POINT"
+  direction: right
+  style: { fill: "#F4FAFF"; stroke: "#315F8A"; stroke-width: 5; border-radius: 16; font-size: 34; font-color: "#173B5C" }
+  ST01: "ST01 · Initial release\nBegin a new repository or initial release." {
+    class: human
+    shape: circle
+    tooltip: "Human: A new project or first public version"
+    link: "./#node-st01"
+  }
+
+  ST02: "ST02 · Planned change\nRequest a feature or improvement." {
+    class: human
+    shape: circle
+    tooltip: "Human: A feature or change of any size; classify scope later"
+    link: "./#node-st02"
+  }
+
+  ST03: "ST03 · Bug or defect\nReport unexpected behaviour to be fixed." {
+    class: human
+    shape: circle
+    tooltip: "Human: An observed failure, including interactive Flutter problems"
+    link: "./#node-st03"
+  }
+
+  ST04: "ST04 · Maintenance\nStart dependency, tooling or audit upkeep." {
+    class: human
+    shape: circle
+    tooltip: "Human: Manual or automated upkeep; also may be folded into another workstream"
+    link: "./#node-st04"
+  }
+
+  ST05: "ST05 · Existing work\nResume an issue, PR or paused conversation." {
+    class: human
+    shape: circle
+    tooltip: "Human: Resume an existing issue, PR tree or review checkpoint"
+    link: "./#node-st05"
+  }
+
+  ST06: "ST06 · Release request\nConsider releasing already merged work." {
+    class: human
+    shape: circle
+    tooltip: "Human: Release-only entry that does not require new code"
+    link: "./#node-st06"
+  }
+}
+
+# Phase: WS
+WS01: "WS01 · Open one workstream\nOpen or resume one focused conversation." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Keep one coherent workstream in chat, linking its canonical issues, PRs and Project coordination record."
+  link: "./#node-ws01"
+}
+
+WS02: "WS02 · Inspect current baseline\nInspect issues, PRs and the current code." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Re-read the current GitHub baseline and the Projects coordination record before making new assumptions."
+  link: "./#node-ws02"
+}
+
+WS03: "WS03 · Select discovery depth?\nChoose planning, debugging or resumption." {
+  class: joint
+  shape: diamond
+  tooltip: "Human or Chat LLM: Route the request by its actual goal; all starts go through Projects coordination; do not force major planning for routine tasks."
+  link: "./#node-ws03"
+}
+
+WS04: "WS04 · Register conversation in Projects\nLink this chat and its current objective." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: When given a conversation URL, add or update a lightweight Projects coordination pointer in the owning repo/project file; do not mirror issue details."
+  link: "./#node-ws04"
+}
+
+WS05: "WS05 · Park checkpoint in Projects\nStore blockers, next action and chat link." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Before a pause, record only the source PR/issue links, current blocker, resume condition and conversation URL in Projects; routine low-risk Projects changes may be autonomously merged under its own policy."
+  link: "./#node-ws05"
+}
+
+WS06: "WS06 · Close Projects handoff\nRecord cancellation without a second tracker." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: On human-authorised abandonment, record why the work stopped and update or remove stale Projects handoff links, preserving canonical issues/PR history."
+  link: "./#node-ws06"
+}
+
+# Phase: BG
+BG01: "BG01 · Capture reproduction\nRecord steps to reproduce and expected results." {
+  class: joint
+  shape: rectangle
+  tooltip: "Human or Chat LLM: Capture reproduction, observed-versus-expected behaviour, logs, versions, screenshots and context."
+  link: "./#node-bg01"
+}
+
+BG02: "BG02 · Who investigates?\nRoute to chat, coding agent or human." {
+  class: joint
+  shape: diamond
+  tooltip: "Human or Chat LLM: Select human interactive, Chat LLM research or Coding LLM investigation"
+  link: "./#node-bg02"
+}
+
+BG03: "BG03 · Human interactive investigation\nRun the app and report findings to chat." {
+  class: human
+  shape: rectangle
+  tooltip: "Human: Execute local UI or debugger steps from the Chat LLM request and return reproducible evidence."
+  link: "./#node-bg03"
+}
+
+BG04: "BG04 · Chat investigates\nAnalyse evidence and try a small fix." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Investigate directly where tools allow; a verified fix proceeds through issue and PR workflow, otherwise escalate with focused evidence."
+  link: "./#node-bg04"
+}
+
+BG05: "BG05 · Root cause supported?\nCheck the diagnosis against the evidence." {
+  class: joint
+  shape: diamond
+  tooltip: "Human or Chat LLM: Evaluate whether logs, reproduction, tests and human feedback support the root cause; loop or reframe if they do not."
+  link: "./#node-bg05"
+}
+
+BG06: "BG06 · Prepare coding-agent diagnosis\nWrite the prompt, evidence and test request." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Supply the coding-agent investigation prompt to the human with reproduction, hypotheses, testing expectations and exact PR/issue context."
+  link: "./#node-bg06"
+}
+
+BG07: "BG07 · Specify regression proof\nPlan a failing test and scenario evidence." {
+  class: joint
+  shape: rectangle
+  tooltip: "Human or Chat LLM: Specify the test to add or update, with unit, txtar, integration or scenario proof that would demonstrate the bug and prevent a recurrence; implement it with the fix later."
+  link: "./#node-bg07"
+}
+
+BG08: "BG08 · Request human investigation\nExplain why and provide runnable steps." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Explain why a manual device/UI debugger run is needed, give steps, flowchart or rationale, and ask the human for exact observations and output."
+  link: "./#node-bg08"
+}
+
+BG09: "BG09 · Coding agent diagnoses\nRun investigations and return evidence." {
+  class: coding
+  shape: rectangle
+  tooltip: "Coding LLM: Investigate the prepared prompt in a repository/worktree, run experiments and tests, and send findings back to Chat LLM for verification; do not self-approve the diagnosis."
+  link: "./#node-bg09"
+}
+
+# Phase: PL
+PL01: "PL01 · State detailed intent\nExplain the goal, constraints and examples." {
+  class: human
+  shape: rectangle
+  tooltip: "Human: Describe what, why, constraints, examples and desired approach; answer and ask questions"
+  link: "./#node-pl01"
+}
+
+PL02: "PL02 · Ask clarifying questions\nAsk what is missing or unclear." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Ask targeted questions; revise scope after every material change"
+  link: "./#node-pl02"
+}
+
+PL03: "PL03 · Contradictions found?\nCheck whether requirements disagree." {
+  class: chat
+  shape: diamond
+  tooltip: "Chat LLM: Search for conflicts in requirements, design, scope, tests and assumptions; route yes to resolution and no to sufficiency check."
+  link: "./#node-pl03"
+}
+
+PL04: "PL04 · Resolve contradictions\nDiscuss, decide or defer conflicting needs." {
+  class: human
+  shape: rectangle
+  tooltip: "Human: Decide between conflicting requirements, ask follow-up questions, then recheck the revised specification."
+  link: "./#node-pl04"
+}
+
+PL05: "PL05 · Enough specified?\nDecide whether there is enough to start." {
+  class: joint
+  shape: diamond
+  tooltip: "Human or Chat LLM: Advance when sufficient, not necessarily complete; otherwise loop or park"
+  link: "./#node-pl05"
+}
+
+# Phase: SP
+SP01: "SP01 · Reconcile GitHub issues\nMatch the work to existing GitHub issues." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Search existing issues and PRs; align expected outcomes and acceptance cases"
+  link: "./#node-sp01"
+}
+
+SP02: "SP02 · Issue record adequate?\nCheck whether an issue covers the work." {
+  class: joint
+  shape: diamond
+  tooltip: "Human or Chat LLM: Check missing tests, issue ownership, resolving scope and change implications"
+  link: "./#node-sp02"
+}
+
+SP03: "SP03 · Issue change approved?\nApprove a new issue or major rewrite." {
+  class: human
+  shape: diamond
+  tooltip: "Human: Decide whether an issue should be created or materially rewritten; routine authorised updates to existing issues need no fresh approval."
+  link: "./#node-sp03"
+}
+
+SP04: "SP04 · Persist accepted spec\nKeep approved detail in issues and PRs." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Record canonical requirements and acceptance checks in issues and PR descriptions, not duplicated into Projects."
+  link: "./#node-sp04"
+}
+
+SP05: "SP05 · New repository required?\nChoose bootstrap or an existing repo." {
+  class: joint
+  shape: diamond
+  tooltip: "Human or Chat LLM: After recording canonical issue/spec requirements, decide if a new repository needs bootstrapping or an existing repository can proceed."
+  link: "./#node-sp05"
+}
+
+# Phase: TR
+TR01: "TR01 · Work size and dependency?\nDecide whether one PR is enough." {
+  class: joint
+  shape: diamond
+  tooltip: "Human or Chat LLM: Choose scope from dependencies and likely conflicts, not arbitrary linear stacking"
+  link: "./#node-tr01"
+}
+
+TR02: "TR02 · Plan PR dependency tree\nMap PR dependencies and merge order." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Map sibling PRs that can merge independently and dependent children that must wait"
+  link: "./#node-tr02"
+}
+
+TR03: "TR03 · Runnable PR available?\nChoose an unblocked branch or park work." {
+  class: joint
+  shape: diamond
+  tooltip: "Human or Chat LLM: Choose an independently runnable leaf; if none is available record why work is blocked; cancel only with human agreement."
+  link: "./#node-tr03"
+}
+
+TR05: "TR05 · Bootstrap repository\nSet up the repo, tests and documentation." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: After human scope approval, initialise the repository, essential CI, documentation and licence, delegating source setup to the coding model as needed"
+  link: "./#node-tr05"
+}
+
+TR04: "TR04 · Dogfood verification needed?\nDecide how to test this PR milestone." {
+  class: joint
+  shape: diamond
+  tooltip: "Human or Chat LLM: This reachable gate follows publication of each PR; decide whether to prepare an explicit dogfood/UI test before review."
+  link: "./#node-tr04"
+}
+
+TR06: "TR06 · Prepare dogfood test plan\nAsk for human or automated milestone proof." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Select practical UI/dogfood steps, Playwright, screenshot, prototype, txtar or scenario evidence for the current PR milestone, and attach or request evidence for review."
+  link: "./#node-tr06"
+}
+
+# Phase: EX
+EX01: "EX01 · Who implements?\nUse chat directly or prompt a coding agent." {
+  class: joint
+  shape: diamond
+  tooltip: "Human or Chat LLM: Chat should fix small scoped changes itself when it has adequate access and verification; otherwise delegate with a prompt."
+  link: "./#node-ex01"
+}
+
+EX02: "EX02 · Prepare implementation\nWrite a runnable prompt with test criteria." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Include branch, canonical issue acceptance criteria, PR dependencies, regression tests and txtar/scenario/integration tests where helpful."
+  link: "./#node-ex02"
+}
+
+EX03: "EX03 · Code and test locally\nImplement the change and prove its behaviour." {
+  class: coding
+  shape: rectangle
+  tooltip: "Coding LLM: Write or update unit and larger end-to-end, txtar, integration or scenario proof, then run tests and inspect output."
+  link: "./#node-ex03"
+}
+
+EX04: "EX04 · Publish PR tree\nPush code and open linked pull requests." {
+  class: coding
+  shape: rectangle
+  tooltip: "Coding LLM (Codex/Agy): Push real commits and create the promised PRs, with explicit dependent bases and linked issues"
+  link: "./#node-ex04"
+}
+
+EX05: "EX05 · Chat direct fix\nFix a small change and run its tests." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Directly implement when capable, add focused regression and scenario proof, publish to PR, otherwise delegate to EX02."
+  link: "./#node-ex05"
+}
+
+# Phase: RV
+RV01: "RV01 · Inspect actual PR state\nInspect what the PR actually contains." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Verify published commits, comments, PR metadata, dependencies and fresh tests"
+  link: "./#node-rv01"
+}
+
+RV02: "RV02 · CI evidence usable?\nDistinguish passing, missing and blocked CI." {
+  class: chat
+  shape: diamond
+  tooltip: "Chat LLM: Check current head and mandatory CI evidence, distinguish missing quota from actual success; route required blocked checks to coordination hold."
+  link: "./#node-rv02"
+}
+
+RV03: "RV03 · Review correctness?\nReview the requirements and regression proof." {
+  class: joint
+  shape: rectangle
+  tooltip: "Human or Chat LLM: Review correctness, test quality, realistic high-level txtar/scenario coverage, issue/PR traceability and code-level tests."
+  link: "./#node-rv03"
+}
+
+RV04: "RV04 · What needs changing?\nChoose the right correction or review path." {
+  class: joint
+  shape: diamond
+  tooltip: "Human or Chat LLM: Route repair to smallest appropriate stage, including back to Q&A and issue specifications"
+  link: "./#node-rv04"
+}
+
+RV05: "RV05 · Small repair\nFix a straightforward issue or conflict." {
+  class: human
+  shape: rectangle
+  tooltip: "Human: Resolve trivial conflict or tiny fix; Chat may patch when authorised, then republish and review"
+  link: "./#node-rv05"
+}
+
+RV06: "RV06 · Complex correction\nSend a focused request to a coding agent." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Produce targeted prompt for Codex/Agy; repair existing branch/PR when safe"
+  link: "./#node-rv06"
+}
+
+RV07: "RV07 · Human PR review\nReview changes and verify user-facing results." {
+  class: human
+  shape: rectangle
+  tooltip: "Human: Review the PR and test meaningful UI or bug behaviour; delegate screenshots, Playwright or prototypes when they can provide reliable evidence."
+  link: "./#node-rv07"
+}
+
+RV08: "RV08 · Merge approved?\nDecide whether this PR may be merged." {
+  class: human
+  shape: diamond
+  tooltip: "Human: Explicit approval; passing CI or model readiness is not merge authority"
+  link: "./#node-rv08"
+}
+
+RV09: "RV09 · Merge eligible node\nMerge a reviewed, eligible pull request." {
+  class: github
+  shape: rectangle
+  tooltip: "GitHub / CI: Merge only valid, approved PR with required checks and dependency prerequisites satisfied"
+  link: "./#node-rv09"
+}
+
+RV10: "RV10 · More work in PR tree?\nContinue siblings or close the milestone." {
+  class: joint
+  shape: diamond
+  tooltip: "Human or Chat LLM: Update bases and conflicts; choose another ready sibling or pause dependent branch"
+  link: "./#node-rv10"
+}
+
+RV11: "RV11 · What verification is needed?\nChoose manual, automated or none." {
+  class: joint
+  shape: diamond
+  tooltip: "Human or Chat LLM: After reviewing the PR, decide whether interactive UI/bug proof or automated Playwright/scenario evidence is needed; do not assume an earlier bug hypothesis was correct."
+  link: "./#node-rv11"
+}
+
+RV12: "RV12 · Human verifies the result\nRun the change and confirm real behaviour." {
+  class: human
+  shape: rectangle
+  tooltip: "Human: Run a local or installed build, reproduce the original bug, test changed UI and report whether the analysis/PR actually solved it; return discrepancies for revision."
+  link: "./#node-rv12"
+}
+
+RV13: "RV13 · Automate the proof\nUse Playwright, scenarios or previews." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Provide or delegate trusted UI automation, Playwright, screenshots, previews, integration tests or txtar/scenario evidence, attached to PR or shared for human assessment."
+  link: "./#node-rv13"
+}
+
+RV14: "RV14 · Review evidence accepted?\nFix objections or request merge approval." {
+  class: joint
+  shape: diamond
+  tooltip: "Human or Chat LLM: Compare manual and automated results against issue requirements and original bug hypothesis; route incorrect analysis back to diagnosis or issue correction."
+  link: "./#node-rv14"
+}
+
+# Phase: CL
+CL01: "CL01 · Audit issues and PRs\nCheck issues, tests and PR closeout evidence." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Verify canonical issues, resolving keywords, regression and scenario proof, remaining blockers and correct PR merge state."
+  link: "./#node-cl01"
+}
+
+CL02: "CL02 · Notify dependencies\nUpdate anything that depends on this work." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Check version constraints, dependent PRs, projects and actionable update notices"
+  link: "./#node-cl02"
+}
+
+CL03: "CL03 · Sync Projects coordination\nUpdate conversation pointer and resume state." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Keep the arran4/projects handoff index current at milestone closeout; issues/PRs carry implementation detail, Projects links conversation, status, blockers and next action."
+  link: "./#node-cl03"
+}
+
+CL04: "CL04 · Update PR repository\nRecord announcement tasks and readiness." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Update arran4/public-relations with accurate materials or future campaign tasks"
+  link: "./#node-cl04"
+}
+
+# Phase: RL
+RL01: "RL01 · Recommend release intent\nChoose whether and how to release this work." {
+  class: joint
+  shape: rectangle
+  tooltip: "Human or Chat LLM: Use accepted scope, roadmap, merged changes and release guidance; patch may be routine if authorised"
+  link: "./#node-rl01"
+}
+
+RL02: "RL02 · Publish now?\nDecide whether it is time to publish." {
+  class: human
+  shape: diamond
+  tooltip: "Human: May choose no release, normal versioned release, or delayed/public opening"
+  link: "./#node-rl02"
+}
+
+RL03: "RL03 · First public opening?\nCheck whether the repo must become public." {
+  class: human
+  shape: diamond
+  tooltip: "Human: If private-to-public, require broader quality, provenance, licence, copyright and link checks"
+  link: "./#node-rl03"
+}
+
+RL04: "RL04 · Audit public exposure\nInspect history, secrets, links and licences." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Inspect repository history, links, copyright, documentation, quality and release assets"
+  link: "./#node-rl04"
+}
+
+RL05: "RL05 · History rewrite needed?\nAsk before rewriting published Git history." {
+  class: human
+  shape: diamond
+  tooltip: "Human: Force-push or rewrite only on explicit informed approval; consider collaborators and tags"
+  link: "./#node-rl05"
+}
+
+RL06: "RL06 · Approve visibility change\nApprove making the repository public." {
+  class: human
+  shape: rectangle
+  tooltip: "Human: Make public only after verified audit and approval"
+  link: "./#node-rl06"
+}
+
+RL07: "RL07 · Run release workflow\nRun the approved tagging and release action." {
+  class: github
+  shape: rectangle
+  tooltip: "GitHub / CI: Use documented release-safe action to tag and publish; no duplicate release publisher"
+  link: "./#node-rl07"
+}
+
+RL08: "RL08 · Release verified?\nConfirm the actual published result." {
+  class: joint
+  shape: diamond
+  tooltip: "Human or Chat LLM: Decide whether published assets, tag, package, repository visibility and downstream checks really succeeded; otherwise record failed release."
+  link: "./#node-rl08"
+}
+
+RL09: "RL09 · Public audit passed?\nDecide if publication requirements are met." {
+  class: joint
+  shape: diamond
+  tooltip: "Human or Chat LLM: Determine whether secret, history, licence, link and quality checks are adequate; unresolved fundamental issues return to design, while blocking items pause release."
+  link: "./#node-rl09"
+}
+
+RL10: "RL10 · Inspect published assets\nCheck tag, packages and downstream state." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Inspect actual GitHub tag, release, uploaded artifacts, package/overlay and visibility after the release workflow, then hand off the outcome for confirmation."
+  link: "./#node-rl10"
+}
+
+# Phase: EN
+EN01: "EN01 · Completed\nFinish the verified milestone at the end." {
+  class: github
+  shape: oval
+  tooltip: "GitHub / CI: Work and any authorised release completed; issue and tracker state reconciled"
+  link: "./#node-en01"
+}
+
+EN02: "EN02 · Deferred or blocked\nRecord the blocker and how to resume." {
+  class: github
+  shape: oval
+  tooltip: "Chat LLM: Record a concrete resumption trigger, owner, conversation URL and authoritative issue/PR links in Projects when applicable."
+  link: "./#node-en02"
+}
+
+EN03: "EN03 · Abandoned\nRecord why and close the handoff." {
+  class: human
+  shape: oval
+  tooltip: "Human: Explicitly abandon the work and reconcile obsolete issues/PRs, with a concise Projects coordination update."
+  link: "./#node-en03"
+}
+
+# Connections. Short routing hints are kept near endpoints to avoid crossing text.
+
+start_here.ST01 -> WS01: {
+  source-arrowhead.label: "start"
+  tooltip: "ST01 → WS01: start"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+start_here.ST02 -> WS01: {
+  source-arrowhead.label: "start"
+  tooltip: "ST02 → WS01: start"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+start_here.ST03 -> WS01: {
+  source-arrowhead.label: "start"
+  tooltip: "ST03 → WS01: start"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+start_here.ST04 -> WS01: {
+  source-arrowhead.label: "start"
+  tooltip: "ST04 → WS01: start"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+start_here.ST05 -> WS01: {
+  source-arrowhead.label: "start"
+  tooltip: "ST05 → WS01: start"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+start_here.ST06 -> WS01: {
+  source-arrowhead.label: "start"
+  tooltip: "ST06 → WS01: start"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+WS01 -> WS04: {
+  source-arrowhead.label: "register chat"
+  tooltip: "WS01 → WS04: register chat"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+WS04 -> WS02: {
+  source-arrowhead.label: "load state"
+  tooltip: "WS04 → WS02: load state"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+WS02 -> WS03: {
+  source-arrowhead.label: "classify"
+  tooltip: "WS02 → WS03: classify"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+WS03 -> PL01: {
+  target-arrowhead.label: "complex  → PL01"
+  tooltip: "WS03 → PL01: complex / unclear"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+WS03 -> SP01: {
+  target-arrowhead.label: "clear change → SP01"
+  tooltip: "WS03 → SP01: clear change"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+WS03 -> BG01: {
+  target-arrowhead.label: "bug → BG01"
+  tooltip: "WS03 → BG01: bug"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+WS03 -> RV01: {
+  target-arrowhead.label: "resume PR → RV01"
+  tooltip: "WS03 → RV01: resume PR"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+WS03 -> RL01: {
+  target-arrowhead.label: "release only → RL01"
+  tooltip: "WS03 → RL01: release only"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+BG01 -> BG02: {
+  source-arrowhead.label: "reproduction rec"
+  tooltip: "BG01 → BG02: reproduction recorded"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+BG02 -> BG08: {
+  source-arrowhead.label: "human debug"
+  tooltip: "BG02 → BG08: human debug"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+BG02 -> BG04: {
+  source-arrowhead.label: "chat debug"
+  tooltip: "BG02 → BG04: chat debug"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+BG02 -> BG06: {
+  source-arrowhead.label: "agent debug"
+  tooltip: "BG02 → BG06: agent debug"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+BG08 -> BG03: {
+  source-arrowhead.label: "human steps"
+  tooltip: "BG08 → BG03: human steps shared"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+BG03 -> BG05: {
+  source-arrowhead.label: "human findings"
+  tooltip: "BG03 → BG05: human findings"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+BG04 -> BG05: {
+  source-arrowhead.label: "chat findings"
+  tooltip: "BG04 → BG05: chat findings"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+BG06 -> BG09: {
+  source-arrowhead.label: "coding prompt"
+  tooltip: "BG06 → BG09: coding prompt"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+BG09 -> BG05: {
+  source-arrowhead.label: "agent findings"
+  tooltip: "BG09 → BG05: agent findings"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+BG05 -> BG01: {
+  target-arrowhead.label: "insufficient evi → BG01"
+  tooltip: "BG05 → BG01: insufficient evidence"
+  style.stroke: "#E08C2B"
+  style.stroke-width: 4
+  style.font-size: 21
+  style.stroke-dash: 4
+}
+
+BG05 -> PL01: {
+  target-arrowhead.label: "needs redesign → PL01"
+  tooltip: "BG05 → PL01: needs redesign"
+  style.stroke: "#E08C2B"
+  style.stroke-width: 4
+  style.font-size: 21
+  style.stroke-dash: 4
+}
+
+BG05 -> BG07: {
+  target-arrowhead.label: "cause supported → BG07"
+  tooltip: "BG05 → BG07: cause supported"
+  style.stroke: "#278352"
+  style.stroke-width: 4
+  style.font-size: 21
+}
+
+BG07 -> SP01: {
+  target-arrowhead.label: "regression crite → SP01"
+  tooltip: "BG07 → SP01: regression criteria"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+PL01 -> PL02: {
+  source-arrowhead.label: "clarify"
+  tooltip: "PL01 → PL02: clarify"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+PL02 -> PL03: {
+  source-arrowhead.label: "compare requirem"
+  tooltip: "PL02 → PL03: compare requirements"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+PL03 -> PL04: {
+  source-arrowhead.label: "conflict found"
+  tooltip: "PL03 → PL04: conflict found"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+PL03 -> PL05: {
+  source-arrowhead.label: "no conflict"
+  tooltip: "PL03 → PL05: no conflict"
+  style.stroke: "#278352"
+  style.stroke-width: 4
+  style.font-size: 21
+}
+
+PL04 -> PL02: {
+  target-arrowhead.label: "decisions revise → PL02"
+  tooltip: "PL04 → PL02: decisions revised"
+  style.stroke: "#E08C2B"
+  style.stroke-width: 4
+  style.font-size: 21
+  style.stroke-dash: 4
+}
+
+PL05 -> PL01: {
+  target-arrowhead.label: "not ready → PL01"
+  tooltip: "PL05 → PL01: not ready"
+  style.stroke: "#E08C2B"
+  style.stroke-width: 4
+  style.font-size: 21
+  style.stroke-dash: 4
+}
+
+PL05 -> WS05: {
+  target-arrowhead.label: "defer → WS05"
+  tooltip: "PL05 → WS05: defer"
+  style.stroke: "#85919C"
+  style.stroke-width: 4
+  style.font-size: 21
+  style.stroke-dash: 4
+}
+
+PL05 -> WS06: {
+  target-arrowhead.label: "abandon → WS06"
+  tooltip: "PL05 → WS06: abandon"
+  style.stroke: "#C53D48"
+  style.stroke-width: 4
+  style.font-size: 21
+}
+
+PL05 -> SP01: {
+  source-arrowhead.label: "sufficient"
+  tooltip: "PL05 → SP01: sufficient"
+  style.stroke: "#278352"
+  style.stroke-width: 4
+  style.font-size: 21
+}
+
+SP01 -> SP02: {
+  source-arrowhead.label: "inspect issue"
+  tooltip: "SP01 → SP02: inspect issue"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+SP02 -> SP03: {
+  source-arrowhead.label: "approval needed"
+  tooltip: "SP02 → SP03: approval needed"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+SP02 -> SP04: {
+  source-arrowhead.label: "existing issue"
+  tooltip: "SP02 → SP04: existing issue valid"
+  style.stroke: "#278352"
+  style.stroke-width: 4
+  style.font-size: 21
+}
+
+SP03 -> SP04: {
+  source-arrowhead.label: "approved"
+  tooltip: "SP03 → SP04: approved"
+  style.stroke: "#278352"
+  style.stroke-width: 4
+  style.font-size: 21
+}
+
+SP03 -> WS05: {
+  target-arrowhead.label: "pending approval → WS05"
+  tooltip: "SP03 → WS05: pending approval"
+  style.stroke: "#85919C"
+  style.stroke-width: 4
+  style.font-size: 21
+  style.stroke-dash: 4
+}
+
+SP04 -> SP05: {
+  source-arrowhead.label: "recorded"
+  tooltip: "SP04 → SP05: recorded"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+SP05 -> TR05: {
+  source-arrowhead.label: "new repo"
+  tooltip: "SP05 → TR05: new repo"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+SP05 -> TR01: {
+  source-arrowhead.label: "existing repo"
+  tooltip: "SP05 → TR01: existing repo"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+TR05 -> TR01: {
+  source-arrowhead.label: "bootstrapped"
+  tooltip: "TR05 → TR01: bootstrapped"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+TR01 -> TR02: {
+  source-arrowhead.label: "dependent PRs"
+  tooltip: "TR01 → TR02: dependent PRs"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+TR01 -> EX01: {
+  source-arrowhead.label: "single PR"
+  tooltip: "TR01 → EX01: single PR"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+TR02 -> TR03: {
+  source-arrowhead.label: "tree ready"
+  tooltip: "TR02 → TR03: tree ready"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+TR03 -> EX01: {
+  source-arrowhead.label: "runnable"
+  tooltip: "TR03 → EX01: runnable"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+TR03 -> WS05: {
+  target-arrowhead.label: "all blocked → WS05"
+  tooltip: "TR03 → WS05: all blocked"
+  style.stroke: "#85919C"
+  style.stroke-width: 4
+  style.font-size: 21
+  style.stroke-dash: 4
+}
+
+TR03 -> WS06: {
+  target-arrowhead.label: "cancelled → WS06"
+  tooltip: "TR03 → WS06: cancelled"
+  style.stroke: "#C53D48"
+  style.stroke-width: 4
+  style.font-size: 21
+}
+
+EX01 -> EX05: {
+  source-arrowhead.label: "chat direct"
+  tooltip: "EX01 → EX05: chat direct"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+EX01 -> EX02: {
+  source-arrowhead.label: "coding agent"
+  tooltip: "EX01 → EX02: coding agent"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+EX02 -> EX03: {
+  source-arrowhead.label: "prompt accepted"
+  tooltip: "EX02 → EX03: prompt accepted"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+EX03 -> EX04: {
+  source-arrowhead.label: "tested implement"
+  tooltip: "EX03 → EX04: tested implementation"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+EX04 -> TR04: {
+  source-arrowhead.label: "PR published"
+  tooltip: "EX04 → TR04: PR published"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+EX05 -> TR04: {
+  source-arrowhead.label: "PR published"
+  tooltip: "EX05 → TR04: PR published"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+TR04 -> TR06: {
+  source-arrowhead.label: "dogfood needed"
+  tooltip: "TR04 → TR06: dogfood needed"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+TR04 -> RV01: {
+  target-arrowhead.label: "standard review → RV01"
+  tooltip: "TR04 → RV01: standard review"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+TR06 -> RV01: {
+  target-arrowhead.label: "test plan → RV01"
+  tooltip: "TR06 → RV01: test plan linked"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+RV01 -> RV02: {
+  source-arrowhead.label: "current head"
+  tooltip: "RV01 → RV02: current head"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+RV02 -> RV03: {
+  source-arrowhead.label: "CI usable"
+  tooltip: "RV02 → RV03: CI usable"
+  style.stroke: "#278352"
+  style.stroke-width: 4
+  style.font-size: 21
+}
+
+RV02 -> WS05: {
+  target-arrowhead.label: "required CI → WS05"
+  tooltip: "RV02 → WS05: required CI blocked"
+  style.stroke: "#85919C"
+  style.stroke-width: 4
+  style.font-size: 21
+  style.stroke-dash: 4
+}
+
+RV03 -> RV04: {
+  source-arrowhead.label: "findings"
+  tooltip: "RV03 → RV04: findings"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+RV04 -> RV05: {
+  target-arrowhead.label: "small fix → RV05"
+  tooltip: "RV04 → RV05: small fix"
+  style.stroke: "#E08C2B"
+  style.stroke-width: 4
+  style.font-size: 21
+  style.stroke-dash: 4
+}
+
+RV04 -> RV06: {
+  target-arrowhead.label: "complex fix → RV06"
+  tooltip: "RV04 → RV06: complex fix"
+  style.stroke: "#E08C2B"
+  style.stroke-width: 4
+  style.font-size: 21
+  style.stroke-dash: 4
+}
+
+RV04 -> PL01: {
+  target-arrowhead.label: "design mismatch → PL01"
+  tooltip: "RV04 → PL01: design mismatch"
+  style.stroke: "#E08C2B"
+  style.stroke-width: 4
+  style.font-size: 21
+  style.stroke-dash: 4
+}
+
+RV04 -> SP01: {
+  target-arrowhead.label: "issue mismatch → SP01"
+  tooltip: "RV04 → SP01: issue mismatch"
+  style.stroke: "#E08C2B"
+  style.stroke-width: 4
+  style.font-size: 21
+  style.stroke-dash: 4
+}
+
+RV04 -> RV07: {
+  source-arrowhead.label: "reviewable"
+  tooltip: "RV04 → RV07: reviewable"
+  style.stroke: "#278352"
+  style.stroke-width: 4
+  style.font-size: 21
+}
+
+RV04 -> WS06: {
+  target-arrowhead.label: "cancelled → WS06"
+  tooltip: "RV04 → WS06: cancelled"
+  style.stroke: "#C53D48"
+  style.stroke-width: 4
+  style.font-size: 21
+}
+
+RV05 -> RV01: {
+  target-arrowhead.label: "republished → RV01"
+  tooltip: "RV05 → RV01: republished"
+  style.stroke: "#E08C2B"
+  style.stroke-width: 4
+  style.font-size: 21
+  style.stroke-dash: 4
+}
+
+RV06 -> EX02: {
+  target-arrowhead.label: "corrective promp → EX02"
+  tooltip: "RV06 → EX02: corrective prompt"
+  style.stroke: "#E08C2B"
+  style.stroke-width: 4
+  style.font-size: 21
+  style.stroke-dash: 4
+}
+
+RV07 -> RV11: {
+  source-arrowhead.label: "review evidence"
+  tooltip: "RV07 → RV11: review evidence"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+RV11 -> RV12: {
+  source-arrowhead.label: "human / device"
+  tooltip: "RV11 → RV12: human / device"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+RV11 -> RV13: {
+  source-arrowhead.label: "automated "
+  tooltip: "RV11 → RV13: automated / preview"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+RV11 -> RV14: {
+  source-arrowhead.label: "no extra test"
+  tooltip: "RV11 → RV14: no extra test"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+RV12 -> RV14: {
+  source-arrowhead.label: "user findings"
+  tooltip: "RV12 → RV14: user findings"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+RV13 -> RV14: {
+  source-arrowhead.label: "automation findi"
+  tooltip: "RV13 → RV14: automation findings"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+RV14 -> RV04: {
+  target-arrowhead.label: "incorrect or → RV04"
+  tooltip: "RV14 → RV04: incorrect or unproven"
+  style.stroke: "#E08C2B"
+  style.stroke-width: 4
+  style.font-size: 21
+  style.stroke-dash: 4
+}
+
+RV14 -> RV08: {
+  source-arrowhead.label: "accepted"
+  tooltip: "RV14 → RV08: accepted"
+  style.stroke: "#278352"
+  style.stroke-width: 4
+  style.font-size: 21
+}
+
+RV08 -> RV04: {
+  target-arrowhead.label: "changes requeste → RV04"
+  tooltip: "RV08 → RV04: changes requested"
+  style.stroke: "#E08C2B"
+  style.stroke-width: 4
+  style.font-size: 21
+  style.stroke-dash: 4
+}
+
+RV08 -> WS05: {
+  target-arrowhead.label: "hold → WS05"
+  tooltip: "RV08 → WS05: hold"
+  style.stroke: "#85919C"
+  style.stroke-width: 4
+  style.font-size: 21
+  style.stroke-dash: 4
+}
+
+RV08 -> WS06: {
+  target-arrowhead.label: "cancel → WS06"
+  tooltip: "RV08 → WS06: cancel"
+  style.stroke: "#C53D48"
+  style.stroke-width: 4
+  style.font-size: 21
+}
+
+RV08 -> RV09: {
+  source-arrowhead.label: "human approved"
+  tooltip: "RV08 → RV09: human approved"
+  style.stroke: "#278352"
+  style.stroke-width: 4
+  style.font-size: 21
+}
+
+RV09 -> RV10: {
+  source-arrowhead.label: "merged"
+  tooltip: "RV09 → RV10: merged"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+RV10 -> TR03: {
+  target-arrowhead.label: "next PR → TR03"
+  tooltip: "RV10 → TR03: next PR"
+  style.stroke: "#E08C2B"
+  style.stroke-width: 4
+  style.font-size: 21
+  style.stroke-dash: 4
+}
+
+RV10 -> CL01: {
+  source-arrowhead.label: "milestone comple"
+  tooltip: "RV10 → CL01: milestone complete"
+  style.stroke: "#278352"
+  style.stroke-width: 4
+  style.font-size: 21
+}
+
+RV10 -> WS05: {
+  target-arrowhead.label: "remaining blocke → WS05"
+  tooltip: "RV10 → WS05: remaining blocked"
+  style.stroke: "#85919C"
+  style.stroke-width: 4
+  style.font-size: 21
+  style.stroke-dash: 4
+}
+
+CL01 -> CL02: {
+  source-arrowhead.label: "issues checked"
+  tooltip: "CL01 → CL02: issues checked"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+CL02 -> CL03: {
+  source-arrowhead.label: "dependency updat"
+  tooltip: "CL02 → CL03: dependency updates"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+CL03 -> CL04: {
+  source-arrowhead.label: "checkpoint curre"
+  tooltip: "CL03 → CL04: checkpoint current"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+CL04 -> RL01: {
+  source-arrowhead.label: "announcement rev"
+  tooltip: "CL04 → RL01: announcement reviewed"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+RL01 -> RL02: {
+  source-arrowhead.label: "recommend versio"
+  tooltip: "RL01 → RL02: recommend version"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+RL02 -> EN01: {
+  source-arrowhead.label: "no release"
+  tooltip: "RL02 → EN01: no release needed"
+  style.stroke: "#278352"
+  style.stroke-width: 4
+  style.font-size: 21
+}
+
+RL02 -> WS05: {
+  target-arrowhead.label: "defer release → WS05"
+  tooltip: "RL02 → WS05: defer release"
+  style.stroke: "#85919C"
+  style.stroke-width: 4
+  style.font-size: 21
+  style.stroke-dash: 4
+}
+
+RL02 -> RL03: {
+  source-arrowhead.label: "release approved"
+  tooltip: "RL02 → RL03: release approved"
+  style.stroke: "#278352"
+  style.stroke-width: 4
+  style.font-size: 21
+}
+
+RL03 -> RL07: {
+  source-arrowhead.label: "already public"
+  tooltip: "RL03 → RL07: already public"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+RL03 -> RL04: {
+  source-arrowhead.label: "first public"
+  tooltip: "RL03 → RL04: first public opening"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+RL04 -> RL09: {
+  source-arrowhead.label: "audit findings"
+  tooltip: "RL04 → RL09: audit findings"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+RL09 -> RL05: {
+  source-arrowhead.label: "audit clear"
+  tooltip: "RL09 → RL05: audit clear"
+  style.stroke: "#278352"
+  style.stroke-width: 4
+  style.font-size: 21
+}
+
+RL09 -> PL01: {
+  target-arrowhead.label: "fundamental fail → PL01"
+  tooltip: "RL09 → PL01: fundamental failure"
+  style.stroke: "#E08C2B"
+  style.stroke-width: 4
+  style.font-size: 21
+  style.stroke-dash: 4
+}
+
+RL09 -> WS05: {
+  target-arrowhead.label: "audit blocked → WS05"
+  tooltip: "RL09 → WS05: audit blocked"
+  style.stroke: "#85919C"
+  style.stroke-width: 4
+  style.font-size: 21
+  style.stroke-dash: 4
+}
+
+RL05 -> RL06: {
+  source-arrowhead.label: "no rewrite"
+  tooltip: "RL05 → RL06: no rewrite / approved"
+  style.stroke: "#278352"
+  style.stroke-width: 4
+  style.font-size: 21
+}
+
+RL05 -> WS05: {
+  target-arrowhead.label: "rewrite consent → WS05"
+  tooltip: "RL05 → WS05: rewrite consent pending"
+  style.stroke: "#85919C"
+  style.stroke-width: 4
+  style.font-size: 21
+  style.stroke-dash: 4
+}
+
+RL06 -> RL07: {
+  source-arrowhead.label: "public approved"
+  tooltip: "RL06 → RL07: public approved"
+  style.stroke: "#278352"
+  style.stroke-width: 4
+  style.font-size: 21
+}
+
+RL07 -> RL10: {
+  source-arrowhead.label: "workflow complet"
+  tooltip: "RL07 → RL10: workflow complete"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+RL10 -> RL08: {
+  source-arrowhead.label: "observed artifac"
+  tooltip: "RL10 → RL08: observed artifacts"
+  style.stroke: "#436B90"
+  style.stroke-width: 3
+  style.font-size: 21
+}
+
+RL08 -> EN01: {
+  source-arrowhead.label: "verified"
+  tooltip: "RL08 → EN01: verified"
+  style.stroke: "#278352"
+  style.stroke-width: 4
+  style.font-size: 21
+}
+
+RL08 -> WS05: {
+  target-arrowhead.label: "publication fail → WS05"
+  tooltip: "RL08 → WS05: publication failed"
+  style.stroke: "#85919C"
+  style.stroke-width: 4
+  style.font-size: 21
+  style.stroke-dash: 4
+}
+
+WS05 -> EN02: {
+  target-arrowhead.label: "checkpoint parke → EN02"
+  tooltip: "WS05 → EN02: checkpoint parked"
+  style.stroke: "#85919C"
+  style.stroke-width: 4
+  style.font-size: 21
+  style.stroke-dash: 4
+}
+
+WS06 -> EN03: {
+  target-arrowhead.label: "cancel recorded → EN03"
+  tooltip: "WS06 → EN03: cancel recorded"
+  style.stroke: "#C53D48"
+  style.stroke-width: 4
+  style.font-size: 21
+}
+
+# Detached key, declared after the main flow so the opening frame remains visually uninterrupted.
 # Framed examples are an isolated legend, not a part of the process graph.
-# No edges connect the legend's sample objects to real workflow nodes.
+# No edges connect these examples to real workflow nodes; kept at end of source to avoid separating entry choices.
 legend: {
   label: "LEGEND · ACTORS, SHAPES AND ROUTES"
   direction: right
@@ -106,1067 +1550,3 @@ legend: {
   }
 }
 
-# Phase: start
-ST01: "ST01 · Initial release\nStart a new project or first release." {
-  class: human
-  shape: circle
-  tooltip: "Human: A new project or first public version"
-  link: "./#node-st01"
-}
-ST02: "ST02 · Planned change\nAsk for a feature or improvement." {
-  class: human
-  shape: circle
-  tooltip: "Human: A feature or change of any size; classify scope later"
-  link: "./#node-st02"
-}
-ST03: "ST03 · Bug or defect\nDescribe what is not working." {
-  class: human
-  shape: circle
-  tooltip: "Human: An observed failure, including interactive Flutter problems"
-  link: "./#node-st03"
-}
-ST04: "ST04 · Maintenance\nKeep dependencies and tooling current." {
-  class: human
-  shape: circle
-  tooltip: "Human: Manual or automated upkeep; also may be folded into another workstream"
-  link: "./#node-st04"
-}
-ST05: "ST05 · Existing work\nResume an issue, PR or stalled task." {
-  class: human
-  shape: circle
-  tooltip: "Human: Resume an existing issue, PR tree or review checkpoint"
-  link: "./#node-st05"
-}
-ST06: "ST06 · Release request\nPublish work that is already merged." {
-  class: human
-  shape: circle
-  tooltip: "Human: Release-only entry that does not require new code"
-  link: "./#node-st06"
-}
-
-# Phase: intake
-WS01: "WS01 · Open one workstream\nKeep this work in one focused chat." {
-  class: chat
-  shape: rectangle
-  tooltip: "Chat LLM: Carry objective, linked GitHub state and next action; multiple independent chats may run"
-  link: "./#node-ws01"
-}
-WS02: "WS02 · Inspect current baseline\nCheck the code and outstanding work." {
-  class: chat
-  shape: rectangle
-  tooltip: "Chat LLM: Check current repository state, existing specifications and outstanding dependencies"
-  link: "./#node-ws02"
-}
-WS03: "WS03 · Select discovery depth?\nChoose how much planning is needed." {
-  class: joint
-  shape: diamond
-  tooltip: "Human or Chat LLM: Choose proportionate analysis; do not demand a full roadmap for a trivial fix"
-  link: "./#node-ws03"
-}
-
-# Phase: debug
-BG01: "BG01 · Capture reproduction\nShow how the bug happens." {
-  class: human
-  shape: rectangle
-  tooltip: "Human: Share observed and expected behaviour, stack traces, device or UI observations"
-  link: "./#node-bg01"
-}
-BG02: "BG02 · How to debug?\nChoose who should investigate it." {
-  class: joint
-  shape: diamond
-  tooltip: "Human or Chat LLM: Select human interactive, Chat LLM research or Coding LLM investigation"
-  link: "./#node-bg02"
-}
-BG03: "BG03 · Interactive diagnosis\nReproduce and inspect the issue together." {
-  class: human
-  shape: rectangle
-  tooltip: "Human: Especially for Flutter: reproduce with the human, copy evidence and results back to chat"
-  link: "./#node-bg03"
-}
-BG04: "BG04 · Delegate diagnosis\nAsk chat or a coding agent to investigate." {
-  class: chat
-  shape: rectangle
-  tooltip: "Chat LLM: Investigate code or ask for focused coding-agent debugging when needed"
-  link: "./#node-bg04"
-}
-BG05: "BG05 · Confirm defect hypothesis\nCheck whether the cause fits the evidence." {
-  class: joint
-  shape: rectangle
-  tooltip: "Human or Chat LLM: Compare candidate cause to observed failure and decide if more diagnosis is required"
-  link: "./#node-bg05"
-}
-
-# Phase: spec
-PL01: "PL01 · State detailed intent\nExplain the goal, constraints and examples." {
-  class: human
-  shape: rectangle
-  tooltip: "Human: Describe what, why, constraints, examples and desired approach; answer and ask questions"
-  link: "./#node-pl01"
-}
-PL02: "PL02 · Ask clarifying questions\nAsk what is missing or unclear." {
-  class: chat
-  shape: rectangle
-  tooltip: "Chat LLM: Ask targeted questions; revise scope after every material change"
-  link: "./#node-pl02"
-}
-PL03: "PL03 · Find contradictions\nCheck for requirements that conflict." {
-  class: chat
-  shape: rectangle
-  tooltip: "Chat LLM: Challenge incompatible requirements, tests or architecture; revisit earlier decisions"
-  link: "./#node-pl03"
-}
-PL04: "PL04 · Resolve ambiguities\nAgree on answers or defer open questions." {
-  class: human
-  shape: rectangle
-  tooltip: "Human: Discuss alternatives, settle contradictions, or defer non-blocking questions explicitly"
-  link: "./#node-pl04"
-}
-PL05: "PL05 · Enough specified?\nDecide whether there is enough to start." {
-  class: joint
-  shape: diamond
-  tooltip: "Human or Chat LLM: Advance when sufficient, not necessarily complete; otherwise loop or park"
-  link: "./#node-pl05"
-}
-SP01: "SP01 · Reconcile GitHub issues\nMatch the work to existing GitHub issues." {
-  class: chat
-  shape: rectangle
-  tooltip: "Chat LLM: Search existing issues and PRs; align expected outcomes and acceptance cases"
-  link: "./#node-sp01"
-}
-SP02: "SP02 · Issue record adequate?\nCheck whether an issue covers the work." {
-  class: joint
-  shape: diamond
-  tooltip: "Human or Chat LLM: Check missing tests, issue ownership, resolving scope and change implications"
-  link: "./#node-sp02"
-}
-SP03: "SP03 · Request issue approval\nGet approval for new or rewritten issues." {
-  class: human
-  shape: rectangle
-  tooltip: "Human: Approve new issue creation or significant scope changes; maintain existing records when authorised"
-  link: "./#node-sp03"
-}
-SP04: "SP04 · Persist accepted spec\nRecord agreed requirements in GitHub." {
-  class: chat
-  shape: rectangle
-  tooltip: "Chat LLM: Record decisions, open questions, criteria and dependencies in GitHub and linked conversation"
-  link: "./#node-sp04"
-}
-
-# Phase: tree
-TR01: "TR01 · Work size and dependency?\nDecide whether one PR is enough." {
-  class: joint
-  shape: diamond
-  tooltip: "Human or Chat LLM: Choose scope from dependencies and likely conflicts, not arbitrary linear stacking"
-  link: "./#node-tr01"
-}
-TR02: "TR02 · Plan PR dependency tree\nMap PR dependencies and merge order." {
-  class: chat
-  shape: rectangle
-  tooltip: "Chat LLM: Map sibling PRs that can merge independently and dependent children that must wait"
-  link: "./#node-tr02"
-}
-TR03: "TR03 · Select runnable node\nPick work that is ready and unblocked." {
-  class: joint
-  shape: rectangle
-  tooltip: "Human or Chat LLM: Choose a ready node; if one branch blocks, advance an independent sibling"
-  link: "./#node-tr03"
-}
-TR05: "TR05 · Bootstrap repository\nSet up the repo, tests and documentation." {
-  class: chat
-  shape: rectangle
-  tooltip: "Chat LLM: After human scope approval, initialise the repository, essential CI, documentation and licence, delegating source setup to the coding model as needed"
-  link: "./#node-tr05"
-}
-TR04: "TR04 · Milestone gate\nAgree what is ready to test or merge." {
-  class: human
-  shape: rectangle
-  tooltip: "Human: Confirm which portion of the tree is sufficient to test or merge now"
-  link: "./#node-tr04"
-}
-
-# Phase: execution
-EX01: "EX01 · Who implements?\nChoose between a direct fix and an agent." {
-  class: joint
-  shape: diamond
-  tooltip: "Human or Chat LLM: For small changes try direct Chat LLM fix when able; otherwise write a prompt for Codex/Agy"
-  link: "./#node-ex01"
-}
-EX02: "EX02 · Prepare implementation\nWrite an actionable implementation prompt." {
-  class: chat
-  shape: rectangle
-  tooltip: "Chat LLM: Specify accepted issue state, exact branch, constraints, tests, dependency tree and expected PRs"
-  link: "./#node-ex02"
-}
-EX03: "EX03 · Code and test locally\nBuild the change and run real tests." {
-  class: coding
-  shape: rectangle
-  tooltip: "Coding LLM (Codex/Agy): Use agent in interactive or YOLO container; iterate on code, tests and generator output"
-  link: "./#node-ex03"
-}
-EX04: "EX04 · Publish PR tree\nPush code and open linked pull requests." {
-  class: coding
-  shape: rectangle
-  tooltip: "Coding LLM (Codex/Agy): Push real commits and create the promised PRs, with explicit dependent bases and linked issues"
-  link: "./#node-ex04"
-}
-EX05: "EX05 · Direct small patch\nApply and test a small change in chat." {
-  class: chat
-  shape: rectangle
-  tooltip: "Chat LLM: Use available tooling to edit and test an isolated authorised branch, publish an inspectable PR"
-  link: "./#node-ex05"
-}
-
-# Phase: review
-RV01: "RV01 · Inspect actual PR state\nInspect what the PR actually contains." {
-  class: chat
-  shape: rectangle
-  tooltip: "Chat LLM: Verify published commits, comments, PR metadata, dependencies and fresh tests"
-  link: "./#node-rv01"
-}
-RV02: "RV02 · Classify CI signal\nCheck which CI results can be trusted." {
-  class: chat
-  shape: rectangle
-  tooltip: "Chat LLM: Required checks cannot be marked passed if absent; rerun or use accepted alternatives"
-  link: "./#node-rv02"
-}
-RV03: "RV03 · Review correctness?\nCompare the PR with requirements and tests." {
-  class: joint
-  shape: rectangle
-  tooltip: "Human or Chat LLM: Check behaviour, issue match, closing keywords, test quality, conflicts and merge ordering"
-  link: "./#node-rv03"
-}
-RV04: "RV04 · What needs changing?\nChoose the right correction or review path." {
-  class: joint
-  shape: diamond
-  tooltip: "Human or Chat LLM: Route repair to smallest appropriate stage, including back to Q&A and issue specifications"
-  link: "./#node-rv04"
-}
-RV05: "RV05 · Small repair\nFix a straightforward issue or conflict." {
-  class: human
-  shape: rectangle
-  tooltip: "Human: Resolve trivial conflict or tiny fix; Chat may patch when authorised, then republish and review"
-  link: "./#node-rv05"
-}
-RV06: "RV06 · Complex correction\nSend a focused request to a coding agent." {
-  class: chat
-  shape: rectangle
-  tooltip: "Chat LLM: Produce targeted prompt for Codex/Agy; repair existing branch/PR when safe"
-  link: "./#node-rv06"
-}
-RV07: "RV07 · Human PR review\nRead and test the proposed changes." {
-  class: human
-  shape: rectangle
-  tooltip: "Human: Read changes, test where appropriate, request redesign, defer, or approve"
-  link: "./#node-rv07"
-}
-RV08: "RV08 · Merge approved?\nDecide whether this PR may be merged." {
-  class: human
-  shape: diamond
-  tooltip: "Human: Explicit approval; passing CI or model readiness is not merge authority"
-  link: "./#node-rv08"
-}
-RV09: "RV09 · Merge eligible node\nMerge a reviewed, eligible pull request." {
-  class: github
-  shape: rectangle
-  tooltip: "GitHub / CI: Merge only valid, approved PR with required checks and dependency prerequisites satisfied"
-  link: "./#node-rv09"
-}
-RV10: "RV10 · More work in PR tree?\nContinue another PR or close the milestone." {
-  class: joint
-  shape: diamond
-  tooltip: "Human or Chat LLM: Update bases and conflicts; choose another ready sibling or pause dependent branch"
-  link: "./#node-rv10"
-}
-
-# Phase: close
-CL01: "CL01 · Audit issues and PRs\nConfirm that the right issues are resolved." {
-  class: chat
-  shape: rectangle
-  tooltip: "Chat LLM: Check Fixes/Closes references, issue statuses, acceptance evidence, final implementation notes"
-  link: "./#node-cl01"
-}
-CL02: "CL02 · Notify dependencies\nUpdate anything that depends on this work." {
-  class: chat
-  shape: rectangle
-  tooltip: "Chat LLM: Check version constraints, dependent PRs, projects and actionable update notices"
-  link: "./#node-cl02"
-}
-CL03: "CL03 · Update Projects repo\nRecord progress and next steps in Projects." {
-  class: chat
-  shape: rectangle
-  tooltip: "Chat LLM: Update arran4/projects with roadmap, workstream and current milestone"
-  link: "./#node-cl03"
-}
-CL04: "CL04 · Update PR repository\nRecord announcement tasks and readiness." {
-  class: chat
-  shape: rectangle
-  tooltip: "Chat LLM: Update arran4/public-relations with accurate materials or future campaign tasks"
-  link: "./#node-cl04"
-}
-
-# Phase: release
-RL01: "RL01 · Recommend release intent\nChoose whether and how to release this work." {
-  class: joint
-  shape: rectangle
-  tooltip: "Human or Chat LLM: Use accepted scope, roadmap, merged changes and release guidance; patch may be routine if authorised"
-  link: "./#node-rl01"
-}
-RL02: "RL02 · Publish now?\nDecide whether it is time to publish." {
-  class: human
-  shape: diamond
-  tooltip: "Human: May choose no release, normal versioned release, or delayed/public opening"
-  link: "./#node-rl02"
-}
-RL03: "RL03 · First public opening?\nCheck whether the repo must become public." {
-  class: human
-  shape: diamond
-  tooltip: "Human: If private-to-public, require broader quality, provenance, licence, copyright and link checks"
-  link: "./#node-rl03"
-}
-RL04: "RL04 · Audit public exposure\nCheck links, licences, secrets and quality." {
-  class: chat
-  shape: rectangle
-  tooltip: "Chat LLM: Inspect repository history, links, copyright, documentation, quality and release assets"
-  link: "./#node-rl04"
-}
-RL05: "RL05 · History rewrite needed?\nAsk before rewriting published Git history." {
-  class: human
-  shape: diamond
-  tooltip: "Human: Force-push or rewrite only on explicit informed approval; consider collaborators and tags"
-  link: "./#node-rl05"
-}
-RL06: "RL06 · Approve visibility change\nApprove making the repository public." {
-  class: human
-  shape: rectangle
-  tooltip: "Human: Make public only after verified audit and approval"
-  link: "./#node-rl06"
-}
-RL07: "RL07 · Run release workflow\nRun the approved tagging and release action." {
-  class: github
-  shape: rectangle
-  tooltip: "GitHub / CI: Use documented release-safe action to tag and publish; no duplicate release publisher"
-  link: "./#node-rl07"
-}
-RL08: "RL08 · Verify published result\nCheck what was actually published." {
-  class: chat
-  shape: rectangle
-  tooltip: "Chat LLM: Confirm actual tag, release, packages and downstream impact; update tracker and announcements"
-  link: "./#node-rl08"
-}
-
-# Phase: end
-EN01: "EN01 · Completed\nThe agreed milestone is finished." {
-  class: github
-  shape: oval
-  tooltip: "GitHub / CI: Work and any authorised release completed; issue and tracker state reconciled"
-  link: "./#node-en01"
-}
-EN02: "EN02 · Deferred / blocked\nRecord what is blocked and when to resume." {
-  class: github
-  shape: oval
-  tooltip: "GitHub / CI: Record what remains, owner, dependency, and the condition for resuming"
-  link: "./#node-en02"
-}
-EN03: "EN03 · Abandoned\nStop the work and record why." {
-  class: human
-  shape: oval
-  tooltip: "Human: Document cancellation, superseded PRs, issue closure/retention and change of direction"
-  link: "./#node-en03"
-}
-
-# Edge palette: progress blue, approval green, backtrack orange dashed, park grey, abandon red.
-ST01 -> WS01: {
-  tooltip: "ST01 → WS01: repo/initial"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-ST02 -> WS01: {
-  tooltip: "ST02 → WS01: planned change"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-ST03 -> BG01: {
-  tooltip: "ST03 → BG01: bug"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-ST04 -> WS01: {
-  tooltip: "ST04 → WS01: maintenance / audit"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-ST05 -> RV01: {
-  tooltip: "ST05 → RV01: resume current PR"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-ST06 -> RL01: {
-  tooltip: "ST06 → RL01: release-only"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-WS01 -> WS02: {
-  tooltip: "WS01 → WS02: inspect"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-WS02 -> WS03: {
-  tooltip: "WS02 → WS03: classify"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-WS03 -> PL01: {
-  source-arrowhead.label: "deep"
-  tooltip: "WS03 → PL01: major / initial / unclear"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-WS03 -> SP01: {
-  source-arrowhead.label: "clear"
-  tooltip: "WS03 → SP01: minor / clear / routine"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-WS03 -> BG01: {
-  source-arrowhead.label: "bug discovered"
-  tooltip: "WS03 → BG01: bug discovered"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-BG01 -> BG02: {
-  tooltip: "BG01 → BG02: evidence"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-BG02 -> BG03: {
-  source-arrowhead.label: "interactive UI"
-  tooltip: "BG02 → BG03: interactive UI"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-BG02 -> BG04: {
-  source-arrowhead.label: "delegate"
-  tooltip: "BG02 → BG04: delegate"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-BG03 -> BG05: {
-  tooltip: "BG03 → BG05: copy findings"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-BG04 -> BG05: {
-  tooltip: "BG04 → BG05: analysis"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-BG05 -> BG01: {
-  source-arrowhead.label: "not reproduced"
-  tooltip: "BG05 → BG01: not reproduced"
-  style.stroke: "#E08C2B"
-  style.stroke-width: 4
-  style.font-size: 21
-  style.stroke-dash: 4
-}
-
-BG05 -> SP01: {
-  source-arrowhead.label: "cause sufficient"
-  tooltip: "BG05 → SP01: cause sufficient"
-  style.stroke: "#278352"
-  style.stroke-width: 4
-  style.font-size: 21
-}
-
-BG05 -> PL01: {
-  source-arrowhead.label: "needs redesign"
-  tooltip: "BG05 → PL01: needs redesign"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-PL01 -> PL02: {
-  tooltip: "PL01 → PL02: draft intent"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-PL02 -> PL03: {
-  tooltip: "PL02 → PL03: questions answered"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-PL03 -> PL04: {
-  tooltip: "PL03 → PL04: conflicts identified"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-PL04 -> PL02: {
-  tooltip: "PL04 → PL02: more questions"
-  style.stroke: "#E08C2B"
-  style.stroke-width: 4
-  style.font-size: 21
-  style.stroke-dash: 4
-}
-
-PL04 -> PL05: {
-  tooltip: "PL04 → PL05: decisions/deferred"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-PL05 -> PL01: {
-  source-arrowhead.label: "not enough"
-  tooltip: "PL05 → PL01: not enough"
-  style.stroke: "#E08C2B"
-  style.stroke-width: 4
-  style.font-size: 21
-  style.stroke-dash: 4
-}
-
-PL05 -> EN02: {
-  source-arrowhead.label: "defer"
-  tooltip: "PL05 → EN02: defer"
-  style.stroke: "#85919C"
-  style.stroke-width: 4
-  style.font-size: 21
-  style.stroke-dash: 4
-}
-
-PL05 -> EN03: {
-  source-arrowhead.label: "abandon"
-  tooltip: "PL05 → EN03: abandon"
-  style.stroke: "#C53D48"
-  style.stroke-width: 4
-  style.font-size: 21
-}
-
-PL05 -> SP01: {
-  source-arrowhead.label: "sufficient"
-  tooltip: "PL05 → SP01: sufficient"
-  style.stroke: "#278352"
-  style.stroke-width: 4
-  style.font-size: 21
-}
-
-SP01 -> SP02: {
-  tooltip: "SP01 → SP02: reconcile"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-SP02 -> SP03: {
-  source-arrowhead.label: "new issue"
-  tooltip: "SP02 → SP03: new issue / major reframe"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-SP03 -> SP04: {
-  source-arrowhead.label: "approved"
-  tooltip: "SP03 → SP04: approved"
-  style.stroke: "#278352"
-  style.stroke-width: 4
-  style.font-size: 21
-}
-
-SP03 -> EN02: {
-  source-arrowhead.label: "await"
-  tooltip: "SP03 → EN02: not approved yet"
-  style.stroke: "#85919C"
-  style.stroke-width: 4
-  style.font-size: 21
-  style.stroke-dash: 4
-}
-
-SP02 -> SP04: {
-  source-arrowhead.label: "existing issues"
-  tooltip: "SP02 → SP04: existing issues valid"
-  style.stroke: "#278352"
-  style.stroke-width: 4
-  style.font-size: 21
-}
-
-SP04 -> TR01: {
-  tooltip: "SP04 → TR01: existing repository"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-SP04 -> TR05: {
-  tooltip: "SP04 → TR05: new repository approved"
-  style.stroke: "#278352"
-  style.stroke-width: 4
-  style.font-size: 21
-}
-
-TR05 -> TR01: {
-  tooltip: "TR05 → TR01: repository ready"
-  style.stroke: "#278352"
-  style.stroke-width: 4
-  style.font-size: 21
-}
-
-TR01 -> TR02: {
-  source-arrowhead.label: "PR tree"
-  tooltip: "TR01 → TR02: complex / dependent"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-TR01 -> EX01: {
-  source-arrowhead.label: "single PR"
-  tooltip: "TR01 → EX01: single PR"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-TR02 -> TR03: {
-  tooltip: "TR02 → TR03: tree dependencies"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-TR03 -> EX01: {
-  tooltip: "TR03 → EX01: ready node"
-  style.stroke: "#278352"
-  style.stroke-width: 4
-  style.font-size: 21
-}
-
-TR03 -> EN02: {
-  tooltip: "TR03 → EN02: all nodes blocked"
-  style.stroke: "#85919C"
-  style.stroke-width: 4
-  style.font-size: 21
-  style.stroke-dash: 4
-}
-
-TR03 -> EN03: {
-  tooltip: "TR03 → EN03: cancel milestone"
-  style.stroke: "#C53D48"
-  style.stroke-width: 4
-  style.font-size: 21
-}
-
-TR04 -> RV01: {
-  tooltip: "TR04 → RV01: test milestone"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-EX01 -> EX05: {
-  source-arrowhead.label: "direct fix"
-  tooltip: "EX01 → EX05: tiny + chat capable"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-EX01 -> EX02: {
-  source-arrowhead.label: "coding model"
-  tooltip: "EX01 → EX02: coding model"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-EX01 -> BG03: {
-  source-arrowhead.label: "human UI"
-  tooltip: "EX01 → BG03: human UI debugging"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-EX02 -> EX03: {
-  tooltip: "EX02 → EX03: prompt approved"
-  style.stroke: "#278352"
-  style.stroke-width: 4
-  style.font-size: 21
-}
-
-EX03 -> EX04: {
-  tooltip: "EX03 → EX04: tests and code"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-EX04 -> RV01: {
-  tooltip: "EX04 → RV01: published"
-  style.stroke: "#278352"
-  style.stroke-width: 4
-  style.font-size: 21
-}
-
-EX05 -> RV01: {
-  tooltip: "EX05 → RV01: published"
-  style.stroke: "#278352"
-  style.stroke-width: 4
-  style.font-size: 21
-}
-
-RV01 -> RV02: {
-  tooltip: "RV01 → RV02: current head"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-RV02 -> RV03: {
-  source-arrowhead.label: "CI evidence"
-  tooltip: "RV02 → RV03: CI evidence / disclosed gaps"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-RV02 -> EN02: {
-  source-arrowhead.label: "required CI"
-  tooltip: "RV02 → EN02: required CI blocked"
-  style.stroke: "#85919C"
-  style.stroke-width: 4
-  style.font-size: 21
-  style.stroke-dash: 4
-}
-
-RV03 -> RV04: {
-  tooltip: "RV03 → RV04: findings"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-RV04 -> RV05: {
-  source-arrowhead.label: "small repair"
-  tooltip: "RV04 → RV05: simple conflict/fix"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-RV04 -> RV06: {
-  source-arrowhead.label: "complex repair"
-  tooltip: "RV04 → RV06: complex repair"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-RV04 -> PL01: {
-  source-arrowhead.label: "design issue"
-  tooltip: "RV04 → PL01: requirements conflict"
-  style.stroke: "#E08C2B"
-  style.stroke-width: 4
-  style.font-size: 21
-  style.stroke-dash: 4
-}
-
-RV04 -> SP01: {
-  source-arrowhead.label: "issue mismatch"
-  tooltip: "RV04 → SP01: issue/spec mismatch"
-  style.stroke: "#E08C2B"
-  style.stroke-width: 4
-  style.font-size: 21
-  style.stroke-dash: 4
-}
-
-RV04 -> RV07: {
-  source-arrowhead.label: "ready"
-  tooltip: "RV04 → RV07: ready"
-  style.stroke: "#278352"
-  style.stroke-width: 4
-  style.font-size: 21
-}
-
-RV04 -> EN03: {
-  source-arrowhead.label: "work no"
-  tooltip: "RV04 → EN03: work no longer wanted"
-  style.stroke: "#C53D48"
-  style.stroke-width: 4
-  style.font-size: 21
-}
-
-RV05 -> RV01: {
-  tooltip: "RV05 → RV01: republished"
-  style.stroke: "#E08C2B"
-  style.stroke-width: 4
-  style.font-size: 21
-  style.stroke-dash: 4
-}
-
-RV06 -> EX02: {
-  tooltip: "RV06 → EX02: corrective prompt"
-  style.stroke: "#E08C2B"
-  style.stroke-width: 4
-  style.font-size: 21
-  style.stroke-dash: 4
-}
-
-RV07 -> RV04: {
-  tooltip: "RV07 → RV04: human objections"
-  style.stroke: "#E08C2B"
-  style.stroke-width: 4
-  style.font-size: 21
-  style.stroke-dash: 4
-}
-
-RV07 -> RV08: {
-  tooltip: "RV07 → RV08: review accepted"
-  style.stroke: "#278352"
-  style.stroke-width: 4
-  style.font-size: 21
-}
-
-RV08 -> RV04: {
-  source-arrowhead.label: "revise"
-  tooltip: "RV08 → RV04: changes requested"
-  style.stroke: "#E08C2B"
-  style.stroke-width: 4
-  style.font-size: 21
-  style.stroke-dash: 4
-}
-
-RV08 -> EN02: {
-  source-arrowhead.label: "hold"
-  tooltip: "RV08 → EN02: hold"
-  style.stroke: "#85919C"
-  style.stroke-width: 4
-  style.font-size: 21
-  style.stroke-dash: 4
-}
-
-RV08 -> EN03: {
-  source-arrowhead.label: "cancel work"
-  tooltip: "RV08 → EN03: cancel work"
-  style.stroke: "#C53D48"
-  style.stroke-width: 4
-  style.font-size: 21
-}
-
-RV08 -> RV09: {
-  source-arrowhead.label: "approved"
-  tooltip: "RV08 → RV09: approved"
-  style.stroke: "#278352"
-  style.stroke-width: 4
-  style.font-size: 21
-}
-
-RV09 -> RV10: {
-  tooltip: "RV09 → RV10: merged"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-RV10 -> TR03: {
-  source-arrowhead.label: "next PR"
-  tooltip: "RV10 → TR03: next sibling / child"
-  style.stroke: "#E08C2B"
-  style.stroke-width: 4
-  style.font-size: 21
-  style.stroke-dash: 4
-}
-
-RV10 -> CL01: {
-  source-arrowhead.label: "milestone compl"
-  tooltip: "RV10 → CL01: milestone complete"
-  style.stroke: "#278352"
-  style.stroke-width: 4
-  style.font-size: 21
-}
-
-RV10 -> EN02: {
-  source-arrowhead.label: "blocked"
-  tooltip: "RV10 → EN02: remaining work blocked"
-  style.stroke: "#85919C"
-  style.stroke-width: 4
-  style.font-size: 21
-  style.stroke-dash: 4
-}
-
-CL01 -> CL02: {
-  tooltip: "CL01 → CL02: issues correct"
-  style.stroke: "#E08C2B"
-  style.stroke-width: 4
-  style.font-size: 21
-  style.stroke-dash: 4
-}
-
-CL02 -> CL03: {
-  tooltip: "CL02 → CL03: notify"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-CL03 -> CL04: {
-  tooltip: "CL03 → CL04: tracker current"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-CL04 -> RL01: {
-  tooltip: "CL04 → RL01: evaluate version"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-RL01 -> RL02: {
-  tooltip: "RL01 → RL02: release recommendation"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-RL02 -> EN01: {
-  source-arrowhead.label: "no release / done"
-  tooltip: "RL02 → EN01: no release / done"
-  style.stroke: "#278352"
-  style.stroke-width: 4
-  style.font-size: 21
-}
-
-RL02 -> EN02: {
-  source-arrowhead.label: "defer release"
-  tooltip: "RL02 → EN02: defer release"
-  style.stroke: "#85919C"
-  style.stroke-width: 4
-  style.font-size: 21
-  style.stroke-dash: 4
-}
-
-RL02 -> RL03: {
-  source-arrowhead.label: "release approved"
-  tooltip: "RL02 → RL03: release approved"
-  style.stroke: "#278352"
-  style.stroke-width: 4
-  style.font-size: 21
-}
-
-RL03 -> RL07: {
-  source-arrowhead.label: "already ready"
-  tooltip: "RL03 → RL07: already public / private release"
-  style.stroke: "#278352"
-  style.stroke-width: 4
-  style.font-size: 21
-}
-
-RL03 -> RL04: {
-  source-arrowhead.label: "first public"
-  tooltip: "RL03 → RL04: first public opening"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-RL04 -> RL05: {
-  source-arrowhead.label: "audit findings"
-  tooltip: "RL04 → RL05: audit findings"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-RL04 -> PL01: {
-  source-arrowhead.label: "fundamental qua"
-  tooltip: "RL04 → PL01: fundamental quality failure"
-  style.stroke: "#E08C2B"
-  style.stroke-width: 4
-  style.font-size: 21
-  style.stroke-dash: 4
-}
-
-RL05 -> RL06: {
-  source-arrowhead.label: "audited"
-  tooltip: "RL05 → RL06: no rewrite / approved rewrite"
-  style.stroke: "#278352"
-  style.stroke-width: 4
-  style.font-size: 21
-}
-
-RL05 -> EN02: {
-  source-arrowhead.label: "rewrite consent"
-  tooltip: "RL05 → EN02: rewrite consent pending"
-  style.stroke: "#85919C"
-  style.stroke-width: 4
-  style.font-size: 21
-  style.stroke-dash: 4
-}
-
-RL06 -> RL07: {
-  tooltip: "RL06 → RL07: public approved"
-  style.stroke: "#278352"
-  style.stroke-width: 4
-  style.font-size: 21
-}
-
-RL07 -> RL08: {
-  tooltip: "RL07 → RL08: workflow complete"
-  style.stroke: "#436B90"
-  style.stroke-width: 3
-  style.font-size: 21
-}
-
-RL08 -> EN01: {
-  tooltip: "RL08 → EN01: confirmed"
-  style.stroke: "#278352"
-  style.stroke-width: 4
-  style.font-size: 21
-}
-
-RL08 -> EN02: {
-  tooltip: "RL08 → EN02: publishing failed"
-  style.stroke: "#85919C"
-  style.stroke-width: 4
-  style.font-size: 21
-  style.stroke-dash: 4
-}
