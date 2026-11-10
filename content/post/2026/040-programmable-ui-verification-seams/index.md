@@ -493,7 +493,7 @@ Make a small typed manifest for the *review combinations*; keep layout, CSS, par
 ```yaml
 pages:
   - id: business/customers
-    template: bportal-customers.html
+    template: business-customers.html
     roles: [operator, business-admin]
     states: [empty, pending, populated, revoked, error]
   - id: customer/consent
@@ -542,7 +542,7 @@ An agent-friendly verifier should offer:
 - `--list` or machine-readable `--manifest` for discoverability.
 - Exact fixture/role/state identification in output metadata; deterministic names and clock.
 - `--output -` for rendered HTML on stdout and `--output-dir` for a catalogue with local assets.
-- Atomic file output where applicable, useful nonzero errors and a documented, stable fixture schema.
+- Atomic file output where applicable, useful non-zero errors and a documented, stable fixture schema.
 - An option to check the complete template set, rather than silently ignoring broken shared partials.
 - A verification report distinguishing HTML assertions, targeted browser checks and any scenario-backed integration tests actually run.
 
