@@ -4,6 +4,7 @@ date: 2022-08-14T15:25:39+10:00
 draft: false
 tags: ["annoyance"]
 categories: ["synology"]
+discussion: "https://github.com/arran4/blog/discussions/229"
 ---
 <!-- cspell:words ksnip redownloading -->
 ![img.png](img.png)

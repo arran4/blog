@@ -4,6 +4,7 @@ date: 2026-07-05T13:44:48+10:00
 draft: false
 tags: ["github-actions", "ci", "cd", "go", "node", "dart", "flutter", "qt", "c++", "docker", "goreleaser", "packaging"]
 categories: ["devops", "reference", "automation"]
+discussion: "https://github.com/arran4/blog/discussions/266"
 ---
 
 <!-- cspell:words Dgenerate Dnew Dskip mlocate Poms -->

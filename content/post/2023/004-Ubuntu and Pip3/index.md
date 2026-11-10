@@ -4,6 +4,7 @@ date: 2023-05-28T21:55:00+10:00
 draft: false
 tags: ["untagged"]
 categories: ["uncategorized"]
+discussion: "https://github.com/arran4/blog/discussions/245"
 ---
 
 <!-- cspell:words checkpackages DEVNULL kdenlive pipx retcode traceback venv vosk -->

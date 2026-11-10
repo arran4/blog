@@ -4,6 +4,7 @@ date: 2026-03-26T10:57:11+11:00
 draft: false
 tags: ["go", "testing", "architecture", "patterns"]
 categories: ["engineering-process", "reference"]
+discussion: "https://github.com/arran4/blog/discussions/263"
 ---
 
 <!-- cspell:words dialer dialers httptest -->

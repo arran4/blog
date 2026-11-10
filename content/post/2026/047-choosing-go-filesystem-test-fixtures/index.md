@@ -13,6 +13,7 @@ tags:
 categories:
   - Testing
   - Software Development
+discussion: "https://github.com/arran4/blog/discussions/176"
 ---
 
 <!-- cspell:words autocrlf proc validationerrors writable -->

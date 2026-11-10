@@ -10,6 +10,7 @@ tags:
   - types
 categories:
   - programming
+discussion: "https://github.com/arran4/blog/discussions/76"
 ---
 
 <!-- cspell:words Marshaler myproject Unmarshaler -->

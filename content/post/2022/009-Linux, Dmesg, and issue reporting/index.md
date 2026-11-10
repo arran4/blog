@@ -4,6 +4,7 @@ date: 2022-06-02T22:26:09+10:00
 draft: false
 tags: ["issue", "gripe", "bug tracking", "linux"]
 categories: ["issue"]
+discussion: "https://github.com/arran4/blog/discussions/224"
 ---
 <!-- cspell:words acpi arrans HKEY thinkpad -->
 So started using linux.. Getting this issue here:

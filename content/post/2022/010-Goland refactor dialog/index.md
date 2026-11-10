@@ -4,6 +4,7 @@ date: 2022-06-13T17:19:26+10:00
 draft: false
 tags: ["goland", "should be on a bugtracker"]
 categories: ["uncategorized"]
+discussion: "https://github.com/arran4/blog/discussions/225"
 ---
 
 <!-- cspell:words bugtracker goland -->

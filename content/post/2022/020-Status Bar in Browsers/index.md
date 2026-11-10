@@ -4,6 +4,7 @@ date: 2022-08-20T18:33:55+10:00
 draft: false
 tags: ["rants"]
 categories: ["UI"]
+discussion: "https://github.com/arran4/blog/discussions/235"
 ---
 
 While I don't miss people using API to change the status bar text, something I can vaguely recall and I don't

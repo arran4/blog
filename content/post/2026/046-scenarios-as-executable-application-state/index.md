@@ -13,6 +13,7 @@ tags:
 categories:
   - Software Architecture
   - Testing
+discussion: "https://github.com/arran4/blog/discussions/169"
 ---
 
 <!-- cspell:words debuggable inspectable ksuids -->

@@ -4,6 +4,7 @@ date: 2026-07-28T11:50:49Z
 draft: false
 tags: ["go", "templates", "whitespace", "yaml"]
 categories: ["Programming", "Go"]
+discussion: "https://github.com/arran4/blog/discussions/84"
 ---
 
 <!-- cspell:words Smush smushed smushing unmarshal Unmarshal -->

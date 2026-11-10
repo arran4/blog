@@ -4,6 +4,7 @@ date: 2026-04-06T12:28:25+10:00
 draft: false
 tags: ["linux", "firefox", "recovery", "jsonlz4", "python"]
 categories: ["tutorial", "forensics"]
+discussion: "https://github.com/arran4/blog/discussions/265"
 ---
 <!-- cspell:words baklz btrfs jsonlz oneshot pathlib sessionstore -->
 ### 1. Introduction

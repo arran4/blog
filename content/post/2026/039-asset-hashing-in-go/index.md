@@ -4,6 +4,7 @@ date: 2026-08-27T13:38:30+00:00
 draft: false
 tags: ["go", "http", "caching", "web", "templates"]
 categories: ["engineering", "go-patterns", "reference"]
+discussion: "https://github.com/arran4/blog/discussions/113"
 ---
 
 <!-- cspell:words Brotli etag maxage precompute subresources unhashed -->

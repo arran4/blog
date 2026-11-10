@@ -4,6 +4,7 @@ date: 2022-04-24T12:19:14+10:00
 draft: false
 tags: ["complaints", "synology"]
 categories: ["complaints"]
+discussion: "https://github.com/arran4/blog/discussions/217"
 ---
 
 <!-- cspell:words synologys -->

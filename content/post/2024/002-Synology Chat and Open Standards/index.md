@@ -4,6 +4,7 @@ date: 2024-06-18T13:14:04+10:00
 draft: false
 tags: ["untagged"]
 categories: ["uncategorized"]
+discussion: "https://github.com/arran4/blog/discussions/248"
 ---
 
 I ended up setting my own Matrix server on my synology. However, it occurred to me that if Synology were to adopt open 

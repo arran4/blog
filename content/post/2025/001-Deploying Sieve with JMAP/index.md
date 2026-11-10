@@ -4,6 +4,7 @@ date: 2025-06-08T17:13:23+10:00
 draft: false
 tags: ["sieve", "jmap", "stalwart"]
 categories: ["tutorial"]
+discussion: "https://github.com/arran4/blog/discussions/249"
 ---
 <!-- cspell:words jmap resp -->
 When running an email server you often want rules that sort incoming mail into

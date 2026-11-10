@@ -5,6 +5,7 @@ draft: false
 tags: ["facebook", "automation", "personal-process"]
 categories: ["notes"]
 author: "Arran Ubels"
+discussion: "https://github.com/arran4/blog/discussions/256"
 ---
 
 It turns out the biggest challenge with Facebook these days is not the lack of a wall—it is the

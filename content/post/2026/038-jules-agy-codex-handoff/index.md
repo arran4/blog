@@ -16,6 +16,7 @@ categories:
   - Software Development
   - LLM Instructions
   - Automation
+discussion: "https://github.com/arran4/blog/discussions/111"
 ---
 
 I have increasingly ended up using coding agents as a **pipeline rather than a single worker**. The important part of that pipeline is not only the Jules-to-Agy-or-Codex handoff. There is another agent sitting outside the implementation session: usually **ChatGPT with GitHub integration**, or another system that can inspect the issue, pull request, commits, comments, and CI independently.

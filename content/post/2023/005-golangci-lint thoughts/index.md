@@ -4,6 +4,7 @@ date: 2023-07-23T13:40:45+10:00
 draft: false
 tags: ["golang"]
 categories: ["thoughts", "programming"]
+discussion: "https://github.com/arran4/blog/discussions/246"
 ---
 <!-- cspell:words Getenv gosimple IntelliJ ioutil Lshortfile manualofstylechecker openapi postgo prego prettifer projecttemplate Timesheets varargs -->
 A while back I added `golangci-lint` to the github actions of all my projects. I never got around to insuring that they

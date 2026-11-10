@@ -4,6 +4,7 @@ date: 2022-05-09T15:30:12+10:00
 draft: false
 tags: ["review", "complaints", "aws"]
 categories: ["complaints"]
+discussion: "https://github.com/arran4/blog/discussions/219"
 ---
 
 Ugh. So it turns out AWS Glue (the new interface) when you are writing a script using the editor won't take into account

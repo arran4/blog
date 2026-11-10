@@ -11,6 +11,7 @@ tags:
 categories:
   - Testing
   - Software Development
+discussion: "https://github.com/arran4/blog/discussions/274"
 ---
 
 <!-- cspell:words APIURL Chdir getenv httptest Setenv structs Unsetenv -->

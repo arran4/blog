@@ -4,6 +4,7 @@ date: 2023-03-07T00:14:40+11:00
 draft: false
 tags: ["untagged"]
 categories: ["uncategorized"]
+discussion: "https://github.com/arran4/blog/discussions/244"
 ---
 
 Looks like I have been inspired by [this blog on the old web](https://localghost.dev/blog/building-a-website-like-it-s-1999-in-2022/)

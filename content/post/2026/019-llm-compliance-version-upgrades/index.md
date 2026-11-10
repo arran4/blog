@@ -12,6 +12,7 @@ tags:
 categories:
   - LLM Instructions
   - DevOps
+discussion: "https://github.com/arran4/blog/discussions/63"
 ---
 
 When instructing LLM agents (like coding assistants) to update dependencies such as `golangci-lint`, there are often issues with the models defaulting to older, outdated versions based on their training data. If you try to correct them, they may fall back on what they "know" rather than following your instructions, resulting in version downgrades, overly specific version pinning, and regressions.

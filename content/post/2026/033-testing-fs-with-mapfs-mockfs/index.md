@@ -4,6 +4,7 @@ date: 2026-08-14T00:00:58Z
 draft: false
 tags: ["go", "testing", "fs", "mockfs", "mapfs", "txtar", "agentic-coding"]
 categories: ["engineering", "go-patterns"]
+discussion: "https://github.com/arran4/blog/discussions/98"
 ---
 <!-- cspell:words agentic structs Writable -->
 When building tools in Go that interact heavily with the file system, having a solid strategy for testing those interactions is critical. Direct coupling to `os` functions like `os.MkdirAll` or `os.WriteFile` makes testing cumbersome and slow.

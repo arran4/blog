@@ -5,6 +5,7 @@ draft: false
 tags: ["btop", "linux", "terminals"]
 categories: ["tools"]
 author: "Arran Ubels"
+discussion: "https://github.com/arran4/blog/discussions/254"
 ---
 
 <!-- cspell:words Alacritty btop Consible erresc Ghostty Konsole kterm mlterm priv ptyxis Qterminal roxterm rxvt Sakura urxvt vterm Yeahconsole zutty -->

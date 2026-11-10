@@ -1,0 +1,45 @@
+name: Sync blog post discussions
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'content/post/**/index.md'
+      - '.github/scripts/sync_post_discussions.py'
+      - '.github/workflows/sync-post-discussions.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  discussions: write
+  pull-requests: write
+
+concurrency:
+  group: sync-blog-post-discussions
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Reconcile discussions and post links
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python3 .github/scripts/sync_post_discussions.py --apply
+      - name: Create a reviewable PR containing real discussion URLs
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ github.token }}
+          branch: automation/sync-blog-discussion-links
+          delete-branch: true
+          add-paths: content/post/**/index.md
+          commit-message: 'chore: record blog discussion links'
+          title: 'chore: backfill and record blog discussion links'
+          body: |
+            Automated reconciliation of published posts against GitHub Discussions.
+            Existing discussions are reused and missing ones created in Announcements.
+            The resulting verified URLs are stored as front-matter discussion fields.
+            Please review the mapping before merging.
+          draft: true

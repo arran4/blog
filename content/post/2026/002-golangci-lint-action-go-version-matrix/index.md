@@ -4,6 +4,7 @@ date: 2026-02-18T18:55:04+11:00
 draft: false
 tags: ["go", "golangci-lint", "github-actions", "ci", "linting"]
 categories: ["reference", "devops"]
+discussion: "https://github.com/arran4/blog/discussions/259"
 ---
 
 <!-- cspell:words oldstable -->

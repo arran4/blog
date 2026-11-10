@@ -5,6 +5,7 @@ draft: false
 tags: ["github-actions", "docker", "devops"]
 categories: ["devops"]
 author: "Arran Ubels"
+discussion: "https://github.com/arran4/blog/discussions/252"
 ---
 <!-- cspell:words CERTDIR dind euxo IMZJPA installdependencies libcurl libicu NOPASSWD QKYUIFN seccomp SHKDINDWQ tmpfs -->
 ## Introduction

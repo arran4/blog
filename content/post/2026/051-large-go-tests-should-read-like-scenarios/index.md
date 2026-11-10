@@ -11,6 +11,7 @@ tags:
 categories:
   - Testing
   - Software Development
+discussion: "https://github.com/arran4/blog/discussions/273"
 ---
 
 <!-- cspell:words reviewability testdata -->

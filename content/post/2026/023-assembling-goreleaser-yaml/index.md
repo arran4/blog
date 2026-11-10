@@ -4,6 +4,7 @@ date: 2026-07-13T16:58:16+10:00
 draft: false
 tags: ["golang", "goreleaser", "ci", "docker", "release"]
 categories: ["Programming", "Tutorial"]
+discussion: "https://github.com/arran4/blog/discussions/69"
 ---
 
 <!-- cspell:words ebuilds freebsd gemfury goarm illumos mips mips64 mips64le mipsle netbsd openbsd opencontainers plan9 ppc64 ppc64le riscv64 s390x sboms snapcraft snapcrafts systemd Winget -->

@@ -11,6 +11,7 @@ tags:
 categories:
   - Software Development
   - Go
+discussion: "https://github.com/arran4/blog/discussions/270"
 ---
 
 <!-- cspell:words Debuggability debuggable httperr Println -->

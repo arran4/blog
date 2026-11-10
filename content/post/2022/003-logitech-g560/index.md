@@ -4,6 +4,7 @@ date: 2022-04-26T23:16:45+10:00
 draft: false 
 tags: ["review", "complaints", "logitech"]
 categories: ["review"]
+discussion: "https://github.com/arran4/blog/discussions/218"
 ---
 
 <!-- cspell:words colour Logi synchronise -->

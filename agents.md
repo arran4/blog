@@ -29,6 +29,20 @@ find content/post -name "*.md" -not -name "_index.md" -print0 | while IFS= read 
 done
 ```
 
+## Post Discussions
+
+Each published post should have a direct discussion URL in its YAML front matter,
+in a field named discussion. The single-page footer renders it when available.
+Do not use Giscus or GitHub search links in place of this URL.
+
+The Sync blog post discussions workflow runs on changes to published posts and
+on manual dispatch. It matches legacy discussions by post path or an unambiguous
+title, creates genuinely missing discussions in Announcements, and opens a draft
+PR recording the real URLs. Review and merge this generated PR. Do not invent
+discussion IDs in new posts. Preserve the original published post dates.
+
+The repository's Actions settings must allow workflows to create pull requests.
+
 ## Nested Directories
 
 Hugo requires `_index.md` files in nested content directories (like `content/post/<year>/`) to render category listing pages correctly. If you create a new year directory or any nested directory, you must also create an `_index.md` file within it containing basic front matter (e.g., `title: <Year> Posts`). You can easily create this using a one-liner like:
@@ -48,7 +62,18 @@ done
 
 ## Submitting changes
 
-All changes to this repository must be made on a non-default branch and submitted through a pull request. Do not commit changes directly to `main` or another default branch. Unless the user explicitly requests otherwise, create the pull request as a draft so the proposed content can be reviewed before merge.
+All changes to this repository must be made on a non-default branch and submitted through a pull request. Do not commit changes directly to `main` or another default branch.
+
+Unless the user explicitly requests otherwise, **create each pull request as a draft and keep it in draft until it is ready for human review**. Draft means implementation, documentation, testing, CI, conflict resolution, or other required verification is still outstanding; it is not merely a marker that no human has reviewed the PR yet.
+
+Before marking a pull request **Ready for review**:
+
+- Confirm the intended scope is implemented and inspect the complete diff for accidental or unrelated changes.
+- Run the repository's required local checks where available and verify that applicable GitHub Actions checks have completed successfully. Investigate and correct failures rather than promoting a PR solely because a commit was pushed.
+- Confirm the branch is mergeable without unresolved conflicts and there are no known blocking defects, incomplete tasks, or unaddressed review comments.
+- Update the PR description with what was tested, the results and any relevant limitations. If required verification is unavailable, fails, or is incomplete, document the limitation and keep the PR in draft unless a human explicitly accepts the exception.
+
+When those conditions are met, mark the PR **Ready for review** so a human can assess and decide whether to merge it. Human review and approval occur **after** this transition; do not keep a fully verified PR in draft simply because no human has approved it yet. **Ready for review is not permission to merge.** Do not merge automatically without a separate instruction.
 
 Before submitting any changes, you must run the spell checker to ensure there are no spelling errors in the documentation and content files.
 

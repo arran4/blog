@@ -5,6 +5,7 @@ draft: false
 tags: ["go", "api-design", "options-pattern", "ergonomics"]
 categories: ["notes"]
 author: "Arran Ubels"
+discussion: "https://github.com/arran4/blog/discussions/258"
 ---
 
 <!-- cspell:words structs -->

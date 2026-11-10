@@ -4,6 +4,7 @@ date: 2022-08-15T23:55:49+10:00
 draft: false
 tags: ["tools"]
 categories: ["tools"]
+discussion: "https://github.com/arran4/blog/discussions/230"
 ---
 <!-- cspell:words Authy backupable Crossplatform Dotfile FOSS kdenlive Kdiff keypass Kleopatra Konsole ksnip simplish Solaar Synchronises synchronising Twillio Vimdiff Webbrowser WhatsDesk Winget -->
 This is mostly just a list of things to remind me what to

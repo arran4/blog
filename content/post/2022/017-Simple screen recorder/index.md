@@ -4,6 +4,7 @@ date: 2022-08-20T18:18:39+10:00
 draft: false
 tags: ["Tools"]
 categories: ["Complaints"]
+discussion: "https://github.com/arran4/blog/discussions/232"
 ---
 
 SimpleScreenRecorder, the best simple screen recorder on linux that I know of.. I think it might be a wrapper

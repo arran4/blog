@@ -12,6 +12,7 @@ tags:
 categories:
   - Testing
   - Software Development
+discussion: "https://github.com/arran4/blog/discussions/202"
 ---
 
 <!-- cspell:words fstest testdata txtar -->

@@ -4,6 +4,7 @@ date: 2026-08-14T02:27:49Z
 draft: false
 tags: ["go", "testing", "golden-files", "txtar", "fs", "agentic-coding"]
 categories: ["engineering", "go-patterns"]
+discussion: "https://github.com/arran4/blog/discussions/100"
 ---
 
 <!-- cspell:words agentic -->
