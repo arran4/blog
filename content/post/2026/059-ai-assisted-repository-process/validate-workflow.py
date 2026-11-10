@@ -14,6 +14,12 @@ NODES = re.compile(
     r'^ *([A-Z]{2}\d{2}): "(?:[^"\\]|\\.)*" \{\n(?P<body>.*?)^ *\}',
     re.MULTILINE | re.DOTALL,
 )
+# Endpoint-attached captions bypass ELK placement and collided near decisions.
+# Use normal edge captions, which the layout engine can position instead.
+EDGE_BLOCKS = re.compile(
+    r"^((?:start\\.)?[A-Z]{2}\\d{2}) -> ([A-Z]{2}\\d{2}): \\{\\n(?P<body>.*?)^\\}",
+    re.MULTILINE | re.DOTALL,
+)
 EDGES = re.compile(
     r"^(?:start\.)?([A-Z]{2}\d{2}) -> ([A-Z]{2}\d{2}): \{",
     re.MULTILINE,
@@ -36,6 +42,65 @@ def validate(source: str, article: str) -> None:
     outgoing: dict[str, list[str]] = collections.defaultdict(list)
     incoming: dict[str, list[str]] = collections.defaultdict(list)
     edges = EDGES.findall(source)
+    for edge in EDGE_BLOCKS.finditer(source):
+        source_id, target_id = edge.group(1), edge.group(2)
+        body = edge.group("body")
+        if re.search(r"\\b(?:source|target)-arrowhead\\.label:", body):
+            raise ValueError(f"Endpoint-attached caption on {source_id} -> {target_id}")
+        caption = re.search(r'^  label: "([^"]+)"        if source_id not in nodes or target_id not in nodes:
+            raise ValueError(f"Dangling edge: {source_id} -> {target_id}")
+        outgoing[source_id].append(target_id)
+        incoming[target_id].append(source_id)
+    for node_id, shape in nodes.items():
+        exits = outgoing[node_id]
+        if len(exits) > 1 and shape != "diamond":
+            raise ValueError(f"{node_id} has {len(exits)} exits but is not a decision")
+        if shape == "diamond" and len(exits) < 2:
+            raise ValueError(f"{node_id} is a decision without alternative exits")
+        if not exits and node_id not in ENDS:
+            raise ValueError(f"Unintended dead-end node {node_id}")
+        if node_id in ENDS and exits:
+            raise ValueError(f"Terminator has outgoing edges: {node_id}")
+        anchor = f"{{#node-{node_id.lower()}}}"
+        if anchor not in article:
+            raise ValueError(f"No article anchor for {node_id}")
+
+    if not all(nodes.get(start) == "circle" for start in STARTS):
+        raise ValueError("All entry points must be circles")
+    if not all(nodes.get(end) == "oval" for end in ENDS):
+        raise ValueError("All terminators must be ovals")
+    if 'label: "START HERE' not in source or "start: {" not in source:
+        raise ValueError("Starting choices must be grouped in a start frame")
+    if "near: bottom-center" not in source:
+        raise ValueError("Normal completion must remain at the bottom")
+    if "near: center-right" not in source:
+        raise ValueError("Legend should stay away from start choices")
+    if "TR07" not in incoming["TR04"]:
+        raise ValueError("Dogfood checkpoint must be reachable from a decision")
+
+    visited = set(STARTS)
+    queue = collections.deque(STARTS)
+    while queue:
+        for target in outgoing[queue.popleft()]:
+            if target not in visited:
+                visited.add(target)
+                queue.append(target)
+    unreachable = sorted(set(nodes) - visited)
+    if unreachable:
+        raise ValueError(f"Unreachable states: {unreachable}")
+    print(f"Validated {len(nodes)} reachable process nodes, {len(edges)} edges, "
+          f"{sum(shape == 'diamond' for shape in nodes.values())} decisions")
+
+
+def main() -> None:
+    validate(SOURCE.read_text(encoding="utf-8"), ARTICLE.read_text(encoding="utf-8"))
+
+
+if __name__ == "__main__":
+    main()
+, body, re.MULTILINE)
+        if caption and "→" in caption.group(1) and not caption.group(1).endswith(target_id):
+            raise ValueError(f"Incorrect destination in edge caption {source_id} -> {target_id}")
     for source_id, target_id in edges:
         if source_id not in nodes or target_id not in nodes:
             raise ValueError(f"Dangling edge: {source_id} -> {target_id}")

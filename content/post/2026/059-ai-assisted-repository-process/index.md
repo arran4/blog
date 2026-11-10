@@ -35,7 +35,7 @@ The article remains the **single editable source of truth**. `embed-agent-instru
 
 ### Diagram conventions
 
-The six circular entry points are grouped inside a **START HERE** frame. Choose one; all enter the same conversation/handoff intake before the appropriate work path is selected. The legend is in its own frame to the right of the main flow, away from the starting choices. Rectangles contain actions with one subsequent transition; diamonds contain mutually exclusive choices. Short decision labels sit near their source where possible, while longer return lines include the **destination node ID** close to the far end. SVG/ELK may still produce occasional label collisions. Standard completion is anchored at the bottom, while exceptional deferred or abandoned outcomes may branch from the relevant stage.
+The six circular entry points are grouped inside a **START HERE** frame. Choose one; all enter the same conversation/handoff intake before the appropriate work path is selected. The legend is in its own frame to the right of the main flow, away from the starting choices. Rectangles contain actions with one subsequent transition; diamonds contain mutually exclusive choices. Branch outcomes use standard D2 **connection labels** rather than source/target-arrowhead labels: ELK can allocate room for these captions. Long return lines include the **destination node ID** in the same caption. Visual inspection of the generated SVG is still required. Standard completion is anchored at the bottom, while exceptional deferred or abandoned outcomes may branch from the relevant stage.
 
 | Element | Meaning |
 | --- | --- |
@@ -56,7 +56,7 @@ The six circular entry points are grouped inside a **START HERE** frame. Choose 
 
 The diagram includes a **large framed D2 legend** with actual example nodes for each actor, circle/rectangle/diamond/oval samples, and miniature arrows showing the exact five connector styles. The legend examples are visual documentation only, with no links to workflow nodes. Phase names remain in this catalogue and the source comments; the large nested phase frames were removed because they increased whitespace and forced lengthy connector routes. Each node retains its stable ID and actor colour. **Shared responsibility does not imply shared approval authority:** a Chat LLM may classify complexity, select a repair path or recommend a release, but cannot make a human-owned merge, visibility, history-rewrite or release decision without the required approval.
 
-For branching decisions, D2's `source-arrowhead.label` places a short outcome label near the starting node, instead of in the middle of a long connector. Exact transition conditions remain in the node catalogue and D2 connection tooltips. The ELK layout does not guarantee precise label positions, and some crossings remain possible; edge colour and dash type distinguish long backtracking links.
+For branching decisions, a short standard D2 connection label identifies the outcome. Endpoint-attached arrowhead labels are deliberately avoided because D2 does not include them in its automatic label placement, making collisions likely around shared nodes. Long/backtracking captions include the destination node ID; full transition conditions remain in the node catalogue and D2 connection tooltips. The ELK layout does not guarantee precise label positions, and some crossings remain possible; edge colour and dash type distinguish long backtracking links.
 
 ## How different work enters the shared pipeline
 
