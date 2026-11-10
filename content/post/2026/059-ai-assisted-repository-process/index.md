@@ -35,7 +35,7 @@ The article remains the **single editable source of truth**. `embed-agent-instru
 
 ### Diagram conventions
 
-The six circular entry points are grouped inside a **START HERE** frame. Choose one; all enter the same conversation/handoff intake before the appropriate work path is selected. The legend is separate at the top right. Rectangles contain actions with one subsequent transition; diamonds contain mutually exclusive choices. Short decision labels sit near their source where possible, while longer return lines include the **destination node ID** close to the far end. SVG/ELK may still produce occasional label collisions. Standard completion is anchored at the bottom, while exceptional deferred or abandoned outcomes may branch from the relevant stage.
+The six circular entry points are grouped inside a **START HERE** frame. Choose one; all enter the same conversation/handoff intake before the appropriate work path is selected. The legend is in its own frame to the right of the main flow, away from the starting choices. Rectangles contain actions with one subsequent transition; diamonds contain mutually exclusive choices. Short decision labels sit near their source where possible, while longer return lines include the **destination node ID** close to the far end. SVG/ELK may still produce occasional label collisions. Standard completion is anchored at the bottom, while exceptional deferred or abandoned outcomes may branch from the relevant stage.
 
 | Element | Meaning |
 | --- | --- |
