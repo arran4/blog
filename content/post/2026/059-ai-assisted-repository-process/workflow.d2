@@ -1,6 +1,6 @@
 # Canonical AI-assisted repository process (D2 v0.9.0).
 # One diagram; source of truth for node IDs, actors, and transition routes.
-# Phases are documented in the blog; frames omitted to reduce visual whitespace.
+# Entry choices are grouped in a start frame; other phases stay unframed to save space.
 # Node labels use an ID/title and a visible plain-language description.
 # The D2 node links and full article catalogue provide detailed instructions.
 # Node labels are 26pt and connection labels 21pt to remain readable in PNG exports.
@@ -19,6 +19,7 @@ classes: {
 # No edges connect the legend's sample objects to real workflow nodes.
 legend: {
   label: "LEGEND · ACTORS, SHAPES AND ROUTES"
+  near: top-right
   direction: right
   label.near: top-center
   style: {
@@ -107,45 +108,51 @@ legend: {
 }
 
 # Phase: start
-ST01: "ST01 · Initial release\nStart a new project or first release." {
-  class: human
-  shape: circle
-  tooltip: "Human: A new project or first public version"
-  link: "./#node-st01"
-}
-ST02: "ST02 · Planned change\nAsk for a feature or improvement." {
-  class: human
-  shape: circle
-  tooltip: "Human: A feature or change of any size; classify scope later"
-  link: "./#node-st02"
-}
-ST03: "ST03 · Bug or defect\nDescribe what is not working." {
-  class: human
-  shape: circle
-  tooltip: "Human: An observed failure, including interactive Flutter problems"
-  link: "./#node-st03"
-}
-ST04: "ST04 · Maintenance\nKeep dependencies and tooling current." {
-  class: human
-  shape: circle
-  tooltip: "Human: Manual or automated upkeep; also may be folded into another workstream"
-  link: "./#node-st04"
-}
-ST05: "ST05 · Existing work\nResume an issue, PR or stalled task." {
-  class: human
-  shape: circle
-  tooltip: "Human: Resume an existing issue, PR tree or review checkpoint"
-  link: "./#node-st05"
-}
-ST06: "ST06 · Release request\nPublish work that is already merged." {
-  class: human
-  shape: circle
-  tooltip: "Human: Release-only entry that does not require new code"
-  link: "./#node-st06"
+# Select one of these six entry points; the frame is not a workflow step.
+start: {
+  label: "START HERE · pick one entry"
+  label.near: top-center
+  style: { fill: "#F2F7FF"; stroke: "#365C92"; stroke-width: 5; border-radius: 18; font-size: 38; font-color: "#16395B" }
+  ST01: "ST01 · Initial release\nStart a new project or first release." {
+    class: human
+    shape: circle
+    tooltip: "Human: A new project or first public version"
+    link: "./#node-st01"
+  }
+  ST02: "ST02 · Planned change\nAsk for a feature or improvement." {
+    class: human
+    shape: circle
+    tooltip: "Human: A feature or change of any size; classify scope later"
+    link: "./#node-st02"
+  }
+  ST03: "ST03 · Bug or defect\nDescribe what is not working." {
+    class: human
+    shape: circle
+    tooltip: "Human: An observed failure, including interactive Flutter problems"
+    link: "./#node-st03"
+  }
+  ST04: "ST04 · Maintenance\nKeep dependencies and tooling current." {
+    class: human
+    shape: circle
+    tooltip: "Human: Manual or automated upkeep; also may be folded into another workstream"
+    link: "./#node-st04"
+  }
+  ST05: "ST05 · Existing work\nResume an issue, PR or stalled task." {
+    class: human
+    shape: circle
+    tooltip: "Human: Resume an existing issue, PR tree or review checkpoint"
+    link: "./#node-st05"
+  }
+  ST06: "ST06 · Release request\nPublish work that is already merged." {
+    class: human
+    shape: circle
+    tooltip: "Human: Release-only entry that does not require new code"
+    link: "./#node-st06"
+  }
 }
 
 # Phase: intake
-WS01: "WS01 · Open one workstream\nKeep this work in one focused chat." {
+WS01: "WS01 · Open one workstream\nKeep related work in a single chat." {
   class: chat
   shape: rectangle
   tooltip: "Chat LLM: Carry objective, linked GitHub state and next action; multiple independent chats may run"
@@ -162,6 +169,27 @@ WS03: "WS03 · Select discovery depth?\nChoose how much planning is needed." {
   shape: diamond
   tooltip: "Human or Chat LLM: Choose proportionate analysis; do not demand a full roadmap for a trivial fix"
   link: "./#node-ws03"
+}
+
+WS04: "WS04 · Choose the starting route?\nRoute this request to the right process." {
+  class: joint
+  shape: diamond
+  tooltip: "Human or Chat LLM: Route the entry as new work, bug, resumed PR or release-only"
+  link: "./#node-ws04"
+}
+
+WS05: "WS05 · Save conversation link\nRecord a resumption pointer in Projects." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: If given a conversation link, add it to the owning arran4/projects file alongside the relevant issue/PR; do not replicate active work details"
+  link: "./#node-ws05"
+}
+
+WS06: "WS06 · Read Projects handoff\nCheck related conversations and blockers." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Read current arran4/projects, matching repo handoff and overlapping updates; use it as a between-chat index not as a live issue tracker"
+  link: "./#node-ws06"
 }
 
 # Phase: debug
@@ -183,17 +211,45 @@ BG03: "BG03 · Interactive diagnosis\nReproduce and inspect the issue together."
   tooltip: "Human: Especially for Flutter: reproduce with the human, copy evidence and results back to chat"
   link: "./#node-bg03"
 }
-BG04: "BG04 · Delegate diagnosis\nAsk chat or a coding agent to investigate." {
+BG04: "BG04 · Chat diagnoses bug\nInspect code and explain the evidence." {
   class: chat
   shape: rectangle
   tooltip: "Chat LLM: Investigate code or ask for focused coding-agent debugging when needed"
   link: "./#node-bg04"
 }
-BG05: "BG05 · Confirm defect hypothesis\nCheck whether the cause fits the evidence." {
+BG05: "BG05 · Cause confirmed?\nDecide whether the diagnosis fits." {
   class: joint
-  shape: rectangle
+  shape: diamond
   tooltip: "Human or Chat LLM: Compare candidate cause to observed failure and decide if more diagnosis is required"
   link: "./#node-bg05"
+}
+
+BG06: "BG06 · Prepare human diagnosis\nExplain steps and request specific evidence." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Explain the suspected cause, why human testing helps, step-by-step checks, expected observations, process and explicit questions"
+  link: "./#node-bg06"
+}
+
+BG07: "BG07 · Prepare coding-agent diagnosis\nWrite a focused investigation prompt." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Give the human a coding-agent prompt with reproduction, context, tests and expected diagnostic evidence"
+  link: "./#node-bg07"
+}
+
+BG08: "BG08 · Coding-agent investigation\nInvestigate with repository tools and tests." {
+  class: coding
+  shape: rectangle
+  tooltip: "Coding LLM: Reproduce the issue, gather test or log evidence and report findings without assuming the original hypothesis was correct"
+  link: "./#node-bg08"
+}
+
+BG09: "BG09 · Specify regression coverage\nPlan a test for the original failure." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Specify a regression test and appropriate TXTAR/txtar or broad scenario evidence that demonstrates the behaviour"
+  link: "./#node-bg09"
 }
 
 # Phase: spec
@@ -209,9 +265,9 @@ PL02: "PL02 · Ask clarifying questions\nAsk what is missing or unclear." {
   tooltip: "Chat LLM: Ask targeted questions; revise scope after every material change"
   link: "./#node-pl02"
 }
-PL03: "PL03 · Find contradictions\nCheck for requirements that conflict." {
+PL03: "PL03 · Contradictions found?\nCheck for incompatible requirements." {
   class: chat
-  shape: rectangle
+  shape: diamond
   tooltip: "Chat LLM: Challenge incompatible requirements, tests or architecture; revisit earlier decisions"
   link: "./#node-pl03"
 }
@@ -252,6 +308,13 @@ SP04: "SP04 · Persist accepted spec\nRecord agreed requirements in GitHub." {
   link: "./#node-sp04"
 }
 
+PL07: "PL07 · Contradictions resolved?\nDecide whether more questions are needed." {
+  class: joint
+  shape: diamond
+  tooltip: "Human or Chat LLM: Confirm conflicts were resolved, deferred or need another round of clarification"
+  link: "./#node-pl07"
+}
+
 # Phase: tree
 TR01: "TR01 · Work size and dependency?\nDecide whether one PR is enough." {
   class: joint
@@ -277,11 +340,25 @@ TR05: "TR05 · Bootstrap repository\nSet up the repo, tests and documentation." 
   tooltip: "Chat LLM: After human scope approval, initialise the repository, essential CI, documentation and licence, delegating source setup to the coding model as needed"
   link: "./#node-tr05"
 }
-TR04: "TR04 · Milestone gate\nAgree what is ready to test or merge." {
+TR04: "TR04 · Dogfood checkpoint\nTest a useful intermediate milestone." {
   class: human
   shape: rectangle
   tooltip: "Human: Confirm which portion of the tree is sufficient to test or merge now"
   link: "./#node-tr04"
+}
+
+TR06: "TR06 · Runnable branch available?\nChoose ready work, defer or cancel." {
+  class: joint
+  shape: diamond
+  tooltip: "Human or Chat LLM: Check PR dependencies to find an unblocked node or preserve a blocker/cancellation"
+  link: "./#node-tr06"
+}
+
+TR07: "TR07 · Dogfood milestone needed?\nDecide whether to test the milestone." {
+  class: joint
+  shape: diamond
+  tooltip: "Human or Chat LLM: After a PR-tree checkpoint, decide if a runnable milestone needs human testing before closeout"
+  link: "./#node-tr07"
 }
 
 # Phase: execution
@@ -309,7 +386,7 @@ EX04: "EX04 · Publish PR tree\nPush code and open linked pull requests." {
   tooltip: "Coding LLM (Codex/Agy): Push real commits and create the promised PRs, with explicit dependent bases and linked issues"
   link: "./#node-ex04"
 }
-EX05: "EX05 · Direct small patch\nApply and test a small change in chat." {
+EX05: "EX05 · Chat direct fix\nMake and test a small change in chat." {
   class: chat
   shape: rectangle
   tooltip: "Chat LLM: Use available tooling to edit and test an isolated authorised branch, publish an inspectable PR"
@@ -323,7 +400,7 @@ RV01: "RV01 · Inspect actual PR state\nInspect what the PR actually contains." 
   tooltip: "Chat LLM: Verify published commits, comments, PR metadata, dependencies and fresh tests"
   link: "./#node-rv01"
 }
-RV02: "RV02 · Classify CI signal\nCheck which CI results can be trusted." {
+RV02: "RV02 · Inspect CI evidence\nRead check results and missing evidence." {
   class: chat
   shape: rectangle
   tooltip: "Chat LLM: Required checks cannot be marked passed if absent; rerun or use accepted alternatives"
@@ -378,6 +455,55 @@ RV10: "RV10 · More work in PR tree?\nContinue another PR or close the milestone
   link: "./#node-rv10"
 }
 
+RV12: "RV12 · Extra verification needed?\nChoose normal review or more evidence." {
+  class: joint
+  shape: diamond
+  tooltip: "Human or Chat LLM: After PR review, route bug/UI evidence to verification, objections to repair, otherwise human merge decision"
+  link: "./#node-rv12"
+}
+
+RV13: "RV13 · Human verifies behavior\nProvide build and practical test steps." {
+  class: human
+  shape: rectangle
+  tooltip: "Human: Run application or build locally, check the proposed bug diagnosis or UI change and return precise observations"
+  link: "./#node-rv13"
+}
+
+RV14: "RV14 · Observed behavior correct?\nAccept evidence or reinvestigate failures." {
+  class: joint
+  shape: diamond
+  tooltip: "Human or Chat LLM: Check visual/manual/automated evidence and route a wrong diagnosis to bug intake or a faulty patch to repair"
+  link: "./#node-rv14"
+}
+
+RV15: "RV15 · Who verifies the UI?\nChoose automated proof or human testing." {
+  class: joint
+  shape: diamond
+  tooltip: "Human or Chat LLM: Use Playwright or a reliable UI harness where suitable, otherwise human interactive device/local testing"
+  link: "./#node-rv15"
+}
+
+RV16: "RV16 · Automate visual proof\nAttach UI captures or scenario results." {
+  class: coding
+  shape: rectangle
+  tooltip: "Coding LLM or Chat tooling: Produce Playwright UI tests, golden captures or scenario previews in PR/chat for verification"
+  link: "./#node-rv16"
+}
+
+RV17: "RV17 · Required CI available?\nCheck whether required checks are satisfied." {
+  class: chat
+  shape: diamond
+  tooltip: "Chat LLM: Evaluate required checks, pending, failure and private quota; do not claim missing CI has passed"
+  link: "./#node-rv17"
+}
+
+QA01: "QA01 · Check test evidence\nReview unit, regression and broad scenarios." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: Assess updated regression tests, integration coverage, TXTAR/txtar CLI or API examples and visible end-to-end evidence in PR"
+  link: "./#node-qa01"
+}
+
 # Phase: close
 CL01: "CL01 · Audit issues and PRs\nConfirm that the right issues are resolved." {
   class: chat
@@ -391,7 +517,7 @@ CL02: "CL02 · Notify dependencies\nUpdate anything that depends on this work." 
   tooltip: "Chat LLM: Check version constraints, dependent PRs, projects and actionable update notices"
   link: "./#node-cl02"
 }
-CL03: "CL03 · Update Projects repo\nRecord progress and next steps in Projects." {
+CL03: "CL03 · Refresh Projects handoff\nKeep only current links and next steps." {
   class: chat
   shape: rectangle
   tooltip: "Chat LLM: Update arran4/projects with roadmap, workstream and current milestone"
@@ -402,6 +528,20 @@ CL04: "CL04 · Update PR repository\nRecord announcement tasks and readiness." {
   shape: rectangle
   tooltip: "Chat LLM: Update arran4/public-relations with accurate materials or future campaign tasks"
   link: "./#node-cl04"
+}
+
+CL05: "CL05 · Park Projects handoff\nSave the blocker and resumption link." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: When pausing, update arran4/projects with current chat link, blocker, next action and relevant issue/PR, not duplicate task details"
+  link: "./#node-cl05"
+}
+
+CL06: "CL06 · Retire Projects handoff\nKeep useful links, mark work stopped." {
+  class: chat
+  shape: rectangle
+  tooltip: "Chat LLM: When abandoning, preserve a concise reason and link, without pretending source issues or PRs were completed"
+  link: "./#node-cl06"
 }
 
 # Phase: release
@@ -423,7 +563,7 @@ RL03: "RL03 · First public opening?\nCheck whether the repo must become public.
   tooltip: "Human: If private-to-public, require broader quality, provenance, licence, copyright and link checks"
   link: "./#node-rl03"
 }
-RL04: "RL04 · Audit public exposure\nCheck links, licences, secrets and quality." {
+RL04: "RL04 · Audit public exposure\nInspect secrets, licences and history." {
   class: chat
   shape: rectangle
   tooltip: "Chat LLM: Inspect repository history, links, copyright, documentation, quality and release assets"
@@ -447,17 +587,25 @@ RL07: "RL07 · Run release workflow\nRun the approved tagging and release action
   tooltip: "GitHub / CI: Use documented release-safe action to tag and publish; no duplicate release publisher"
   link: "./#node-rl07"
 }
-RL08: "RL08 · Verify published result\nCheck what was actually published." {
+RL08: "RL08 · Release verified?\nCheck tags, assets and distribution." {
   class: chat
-  shape: rectangle
+  shape: diamond
   tooltip: "Chat LLM: Confirm actual tag, release, packages and downstream impact; update tracker and announcements"
   link: "./#node-rl08"
+}
+
+RL09: "RL09 · Public exposure safe?\nDecide if audit findings block publication." {
+  class: joint
+  shape: diamond
+  tooltip: "Human or Chat LLM: Review secrets, licensing, ownership and history audit results; substantial unresolved exposure returns to specification"
+  link: "./#node-rl09"
 }
 
 # Phase: end
 EN01: "EN01 · Completed\nThe agreed milestone is finished." {
   class: github
   shape: oval
+  near: bottom-center
   tooltip: "GitHub / CI: Work and any authorised release completed; issue and tracker state reconciled"
   link: "./#node-en01"
 }
