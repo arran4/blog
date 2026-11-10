@@ -11,7 +11,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 SVG_NS = "http://www.w3.org/2000/svg"
-NODE_SOURCE = re.compile(r"^[ \\t]*([A-Z]{2}\\d{2}): ", re.MULTILINE)
+NODE_SOURCE = re.compile(r"^[ \t]*([A-Z]{2}\d{2}): ", re.MULTILINE)
 HEADING = re.compile(
     r"^#### ([A-Z]{2}\d{2}) — (.+?) \{#node-([a-z]{2}\d{2})\}[ \t]*$",
     re.MULTILINE,
