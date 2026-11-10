@@ -7,6 +7,7 @@ on:
       - 'content/post/2026/059-ai-assisted-repository-process/render-diagrams.sh'
       - 'content/post/2026/059-ai-assisted-repository-process/embed-agent-instructions.py'
       - 'content/post/2026/059-ai-assisted-repository-process/test_embed_agent_instructions.py'
+      - 'content/post/2026/059-ai-assisted-repository-process/validate-workflow.py'
       - 'content/post/2026/059-ai-assisted-repository-process/index.md'
       - '.github/workflows/render-d2-process.yml'
 
