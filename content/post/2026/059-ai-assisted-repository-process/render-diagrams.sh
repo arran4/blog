@@ -23,6 +23,8 @@ fi
 
 # A Go-installed, tagged D2 may display an older '-HEAD' version string.
 # CI pins the module version; do not infer renderer capabilities from --version.
+# Fail fast on orphaned states, unlabeled decisions or an incomplete start frame.
+python3 validate-workflow.py
 d2 --layout=elk --theme=300 workflow.d2 workflow.svg
 # Attach each node's current actor, purpose, evidence and permitted transitions
 # as inert XML descriptions. The root also receives JSON process instructions.
