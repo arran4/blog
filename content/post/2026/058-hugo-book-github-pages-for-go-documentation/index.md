@@ -5,6 +5,7 @@ draft: false
 guidance: ["documentation", "ci-cd"]
 tags: ["documentation", "developer-experience", "hugo", "hugo-book", "github-pages", "github-actions", "go", "open-source"]
 categories: ["Software Development", "DevOps"]
+discussion: "https://github.com/arran4/blog/discussions/276"
 ---
 
 <!-- cspell:words godoc peaceiris -->
