@@ -86,6 +86,19 @@ class LayoutTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "overlaps a node"):
             layout.protect(make_svg(overlap_static=True), min_labels=4)
 
+    def test_start_connections_keep_continuous_strokes(self):
+        route = base64.b64encode(b"(start.ST01 -&gt; AA01)[0]").decode()
+        start_edge = (f'<g class="{route}"><path class="connection" '
+                      'd="M 10 10 L 100 200" mask="url(#d2-cutouts)" /></g>')
+        document = make_svg().decode().replace("</svg>", start_edge + "</svg>")
+        output, moved = layout.protect(document.encode(), min_labels=3)
+        root = ET.fromstring(output)
+        self.assertEqual(moved, 3)
+        paths = [el for el in root.iter(f"{NS}path")
+                 if el.get("class") == "connection"]
+        self.assertEqual(len(paths), 4)
+        self.assertTrue(all(p.get("mask") is None for p in paths))
+
     def test_double_processing_rejected(self):
         once, _ = layout.protect(make_svg(), min_labels=3)
         with self.assertRaisesRegex(ValueError, "already positioned"):

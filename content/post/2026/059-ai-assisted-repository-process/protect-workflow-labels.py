@@ -25,7 +25,7 @@ ET.register_namespace("xlink", XLINK)
 Q = lambda name: f"{{{SVG}}}{name}"
 FONT = re.compile(r"font-size:\s*([\d.]+)px")
 NUM = re.compile(r"-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?")
-EDGE = re.compile(r"^\(([A-Z]{2}\d{2}) -> ([A-Z]{2}\d{2})\)\[\d+\]$")
+EDGE = re.compile(r"^\((?:start\.)?([A-Z]{2}\d{2}) -> ([A-Z]{2}\d{2})\)\[\d+\]$")
 OVERLAY_ID = "workflow-edge-label-overlay"
 # Every offset is in SVG units. Branch labels should be next to the diamond,
 # not centered somewhere on a long backtracking connector.
