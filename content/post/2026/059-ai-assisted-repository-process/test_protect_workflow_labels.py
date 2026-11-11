@@ -58,8 +58,8 @@ class ProtectionTests(unittest.TestCase):
             protect_mod.protect(data)
 
     def test_double_protection_is_an_error(self):
-        output, _ = protect_mod.protect(svg([(100, 20 + i * 50, "NEXT")]
-                                               for i in range(70)))
+        output, _ = protect_mod.protect(svg([(100, 20 + i * 50, "NEXT")
+                                               for i in range(70)]))
         with self.assertRaisesRegex(ValueError, "already protected"):
             protect_mod.protect(output)
 
