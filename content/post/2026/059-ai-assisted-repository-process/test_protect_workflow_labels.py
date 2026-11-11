@@ -34,9 +34,8 @@ def svg(labels, node_x=400):
 
 class ProtectionTests(unittest.TestCase):
     def test_places_connector_text_above_edges_with_backing(self):
-        output, n = protect_mod.protect(svg([(100, 20, "APPROVED")] * 0 +
-                                             [(100, 20 + i * 50, "NEXT")]
-                                             for i in range(70)))
+        output, n = protect_mod.protect(svg([(100, 20 + i * 50, "NEXT")
+                                             for i in range(70)]))
         root = ET.fromstring(output)
         overlay = root.find(f"{NS}g[@id='workflow-edge-label-overlay']")
         self.assertIsNotNone(overlay)
