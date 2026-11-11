@@ -48,7 +48,17 @@ def validate(source: str, article: str) -> None:
         if "target-arrowhead.label:" in body:
             raise ValueError(f"Unsupported target-end caption on {source_id} -> {target_id}")
         is_decision = nodes.get(source_id) == "diamond"
-        source_label = re.search(r'^  source-arrowhead\.label: "([^"]+)"
+        source_label = re.search(r'^  source-arrowhead\.label: "([^"]+)"$', body, re.MULTILINE)
+        normal_label = re.search(r'^  label: "([^"]+)"$', body, re.MULTILINE)
+        if is_decision and not source_label:
+            raise ValueError(f"Decision outcome needs a near-source caption: {source_id} -> {target_id}")
+        if not is_decision and source_label:
+            raise ValueError(f"Only decisions may use source-end captions: {source_id} -> {target_id}")
+        if source_label and normal_label:
+            raise ValueError(f"Duplicate caption on {source_id} -> {target_id}")
+        caption = source_label or normal_label
+        if caption and "→" in caption.group(1) and not caption.group(1).endswith(target_id):
+            raise ValueError(f"Incorrect destination in edge caption {source_id} -> {target_id}")
     for source_id, target_id in edges:
         if source_id not in nodes or target_id not in nodes:
             raise ValueError(f"Dangling edge: {source_id} -> {target_id}")
