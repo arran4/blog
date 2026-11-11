@@ -4,8 +4,8 @@
 # Node labels use an ID/title and a visible plain-language description.
 # The D2 node links and full article catalogue provide detailed instructions.
 # Node labels are 26pt and connection labels 21pt to remain readable in PNG exports.
-# Branch captions use ordinary connection labels so ELK reserves space for them.
-# Long feedback captions include the destination ID; detailed conditions live in tooltips.
+# Decision outcomes use source-end captions; the SVG export staggers them gently
+# just below/above the decision. Long feedback captions still include target IDs.
 direction: down
 classes: {
   human: { style: { fill: "#FFF1C8"; stroke: "#9C6813"; font-color: "#4D350E"; font-size: 26 } }
@@ -661,7 +661,7 @@ start.ST04 -> WS01: {
 }
 
 WS03 -> PL01: {
-  label: "major → PL01"
+  source-arrowhead.label: "major → PL01"
   tooltip: "WS03 → PL01: major / initial / unclear"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -669,7 +669,7 @@ WS03 -> PL01: {
 }
 
 WS03 -> SP01: {
-  label: "routine → SP01"
+  source-arrowhead.label: "routine → SP01"
   tooltip: "WS03 → SP01: minor / clear / routine"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -677,7 +677,7 @@ WS03 -> SP01: {
 }
 
 WS03 -> BG01: {
-  label: "bug"
+  source-arrowhead.label: "bug"
   tooltip: "WS03 → BG01: bug discovered"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -706,7 +706,7 @@ BG04 -> BG05: {
 }
 
 BG05 -> BG01: {
-  label: "retry → BG01"
+  source-arrowhead.label: "retry → BG01"
   tooltip: "BG05 → BG01: not reproduced"
   style.stroke: "#E08C2B"
   style.stroke-width: 4
@@ -715,7 +715,7 @@ BG05 -> BG01: {
 }
 
 BG05 -> PL01: {
-  label: "redesign → PL01"
+  source-arrowhead.label: "redesign → PL01"
   tooltip: "BG05 → PL01: needs redesign"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -737,7 +737,7 @@ PL02 -> PL03: {
 }
 
 PL05 -> PL01: {
-  label: "not enough"
+  source-arrowhead.label: "not enough"
   tooltip: "PL05 → PL01: not enough"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -745,7 +745,7 @@ PL05 -> PL01: {
 }
 
 PL05 -> CL05: {
-  label: "defer → CL05"
+  source-arrowhead.label: "defer → CL05"
   tooltip: "PL05 → CL05: defer"
   style.stroke: "#85919C"
   style.stroke-width: 4
@@ -754,7 +754,7 @@ PL05 -> CL05: {
 }
 
 PL05 -> CL06: {
-  label: "abandon → CL06"
+  source-arrowhead.label: "abandon → CL06"
   tooltip: "PL05 → CL06: abandon"
   style.stroke: "#C53D48"
   style.stroke-width: 4
@@ -762,7 +762,7 @@ PL05 -> CL06: {
 }
 
 PL05 -> SP01: {
-  label: "sufficient"
+  source-arrowhead.label: "sufficient"
   tooltip: "PL05 → SP01: sufficient"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -777,7 +777,7 @@ SP01 -> SP02: {
 }
 
 SP02 -> SP03: {
-  label: "new issue"
+  source-arrowhead.label: "new issue"
   tooltip: "SP02 → SP03: new issue / major reframe"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -785,7 +785,7 @@ SP02 -> SP03: {
 }
 
 SP02 -> SP04: {
-  label: "yes"
+  source-arrowhead.label: "yes"
   tooltip: "SP02 → SP04: existing issues valid"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -800,7 +800,7 @@ TR05 -> TR01: {
 }
 
 TR01 -> TR02: {
-  label: "complex"
+  source-arrowhead.label: "complex"
   tooltip: "TR01 → TR02: complex / dependent"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -808,7 +808,7 @@ TR01 -> TR02: {
 }
 
 TR01 -> EX01: {
-  label: "single PR"
+  source-arrowhead.label: "single PR"
   tooltip: "TR01 → EX01: single PR"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -831,7 +831,7 @@ TR04 -> RV01: {
 }
 
 EX01 -> EX05: {
-  label: "tiny fix"
+  source-arrowhead.label: "tiny fix"
   tooltip: "EX01 → EX05: tiny + chat capable"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -839,7 +839,7 @@ EX01 -> EX05: {
 }
 
 EX01 -> EX02: {
-  label: "coding model"
+  source-arrowhead.label: "coding model"
   tooltip: "EX01 → EX02: coding model"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -847,7 +847,7 @@ EX01 -> EX02: {
 }
 
 EX01 -> BG03: {
-  label: "human UI → BG03"
+  source-arrowhead.label: "human UI → BG03"
   tooltip: "EX01 → BG03: human UI debugging"
   style.stroke: "#E08C2B"
   style.stroke-width: 4
@@ -898,7 +898,7 @@ RV03 -> RV04: {
 }
 
 RV04 -> RV05: {
-  label: "small repair"
+  source-arrowhead.label: "small repair"
   tooltip: "RV04 → RV05: simple conflict/fix"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -906,7 +906,7 @@ RV04 -> RV05: {
 }
 
 RV04 -> RV06: {
-  label: "complex repair"
+  source-arrowhead.label: "complex repair"
   tooltip: "RV04 → RV06: complex repair"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -914,7 +914,7 @@ RV04 -> RV06: {
 }
 
 RV04 -> PL01: {
-  label: "requirements → PL01"
+  source-arrowhead.label: "requirements → PL01"
   tooltip: "RV04 → PL01: requirements conflict"
   style.stroke: "#E08C2B"
   style.stroke-width: 4
@@ -923,7 +923,7 @@ RV04 -> PL01: {
 }
 
 RV04 -> SP01: {
-  label: "spec mismatch → SP01"
+  source-arrowhead.label: "spec mismatch → SP01"
   tooltip: "RV04 → SP01: issue/spec mismatch"
   style.stroke: "#E08C2B"
   style.stroke-width: 4
@@ -932,7 +932,7 @@ RV04 -> SP01: {
 }
 
 RV04 -> RV07: {
-  label: "ready"
+  source-arrowhead.label: "ready"
   tooltip: "RV04 → RV07: ready"
   style.stroke: "#278352"
   style.stroke-width: 4
@@ -940,7 +940,7 @@ RV04 -> RV07: {
 }
 
 RV04 -> CL06: {
-  label: "abandon → CL06"
+  source-arrowhead.label: "abandon → CL06"
   tooltip: "RV04 → CL06: work no longer wanted"
   style.stroke: "#C53D48"
   style.stroke-width: 4
@@ -964,7 +964,7 @@ RV06 -> EX02: {
 }
 
 RV08 -> RV04: {
-  label: "changes → RV04"
+  source-arrowhead.label: "changes → RV04"
   tooltip: "RV08 → RV04: changes requested"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -972,7 +972,7 @@ RV08 -> RV04: {
 }
 
 RV08 -> CL05: {
-  label: "hold → CL05"
+  source-arrowhead.label: "hold → CL05"
   tooltip: "RV08 → CL05: hold"
   style.stroke: "#85919C"
   style.stroke-width: 4
@@ -981,7 +981,7 @@ RV08 -> CL05: {
 }
 
 RV08 -> CL06: {
-  label: "cancel → CL06"
+  source-arrowhead.label: "cancel → CL06"
   tooltip: "RV08 → CL06: cancel work"
   style.stroke: "#C53D48"
   style.stroke-width: 4
@@ -989,7 +989,7 @@ RV08 -> CL06: {
 }
 
 RV08 -> RV09: {
-  label: "approved"
+  source-arrowhead.label: "approved"
   tooltip: "RV08 → RV09: approved"
   style.stroke: "#278352"
   style.stroke-width: 4
@@ -1004,7 +1004,7 @@ RV09 -> RV10: {
 }
 
 RV10 -> TR03: {
-  label: "next PR → TR03"
+  source-arrowhead.label: "next PR → TR03"
   tooltip: "RV10 → TR03: next sibling / child"
   style.stroke: "#E08C2B"
   style.stroke-width: 4
@@ -1013,7 +1013,7 @@ RV10 -> TR03: {
 }
 
 RV10 -> CL05: {
-  label: "blocked → CL05"
+  source-arrowhead.label: "blocked → CL05"
   tooltip: "RV10 → CL05: remaining work blocked"
   style.stroke: "#85919C"
   style.stroke-width: 4
@@ -1057,7 +1057,7 @@ RL01 -> RL02: {
 }
 
 RL02 -> EN01: {
-  label: "no release"
+  source-arrowhead.label: "no release"
   tooltip: "RL02 → EN01: no release / done"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -1065,7 +1065,7 @@ RL02 -> EN01: {
 }
 
 RL02 -> CL05: {
-  label: "defer → CL05"
+  source-arrowhead.label: "defer → CL05"
   tooltip: "RL02 → CL05: defer release"
   style.stroke: "#85919C"
   style.stroke-width: 4
@@ -1074,7 +1074,7 @@ RL02 -> CL05: {
 }
 
 RL02 -> RL03: {
-  label: "approved release"
+  source-arrowhead.label: "approved release"
   tooltip: "RL02 → RL03: release approved"
   style.stroke: "#278352"
   style.stroke-width: 4
@@ -1082,7 +1082,7 @@ RL02 -> RL03: {
 }
 
 RL03 -> RL07: {
-  label: "already public"
+  source-arrowhead.label: "already public"
   tooltip: "RL03 → RL07: already public / private release"
   style.stroke: "#278352"
   style.stroke-width: 4
@@ -1090,7 +1090,7 @@ RL03 -> RL07: {
 }
 
 RL03 -> RL04: {
-  label: "first public"
+  source-arrowhead.label: "first public"
   tooltip: "RL03 → RL04: first public opening"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -1098,7 +1098,7 @@ RL03 -> RL04: {
 }
 
 RL05 -> RL06: {
-  label: "no rewrite"
+  source-arrowhead.label: "no rewrite"
   tooltip: "RL05 → RL06: no rewrite / approved rewrite"
   style.stroke: "#278352"
   style.stroke-width: 4
@@ -1106,7 +1106,7 @@ RL05 -> RL06: {
 }
 
 RL05 -> CL05: {
-  label: "consent → CL05"
+  source-arrowhead.label: "consent → CL05"
   tooltip: "RL05 → CL05: rewrite consent pending"
   style.stroke: "#85919C"
   style.stroke-width: 4
@@ -1129,7 +1129,7 @@ RL07 -> RL08: {
 }
 
 RL08 -> EN01: {
-  label: "confirmed"
+  source-arrowhead.label: "confirmed"
   tooltip: "RL08 → EN01: confirmed"
   style.stroke: "#278352"
   style.stroke-width: 4
@@ -1137,7 +1137,7 @@ RL08 -> EN01: {
 }
 
 RL08 -> CL05: {
-  label: "publish fail → CL05"
+  source-arrowhead.label: "publish fail → CL05"
   tooltip: "RL08 → CL05: publishing failed"
   style.stroke: "#85919C"
   style.stroke-width: 4
@@ -1195,7 +1195,7 @@ WS02 -> WS04: {
 }
 
 WS04 -> WS03: {
-  label: "planned change"
+  source-arrowhead.label: "planned change"
   tooltip: "WS04 → WS03: planned change"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -1203,7 +1203,7 @@ WS04 -> WS03: {
 }
 
 WS04 -> BG01: {
-  label: "reported bug"
+  source-arrowhead.label: "reported bug"
   tooltip: "WS04 → BG01: reported bug"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -1211,7 +1211,7 @@ WS04 -> BG01: {
 }
 
 WS04 -> RV01: {
-  label: "resume → RV01"
+  source-arrowhead.label: "resume → RV01"
   tooltip: "WS04 → RV01: resume PR"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -1219,7 +1219,7 @@ WS04 -> RV01: {
 }
 
 WS04 -> RL01: {
-  label: "release → RL01"
+  source-arrowhead.label: "release → RL01"
   tooltip: "WS04 → RL01: release-only"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -1227,7 +1227,7 @@ WS04 -> RL01: {
 }
 
 BG02 -> BG06: {
-  label: "human diagnosis"
+  source-arrowhead.label: "human diagnosis"
   tooltip: "BG02 → BG06: human diagnosis"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -1235,7 +1235,7 @@ BG02 -> BG06: {
 }
 
 BG02 -> BG04: {
-  label: "Chat diagnosis"
+  source-arrowhead.label: "Chat diagnosis"
   tooltip: "BG02 → BG04: Chat diagnosis"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -1243,7 +1243,7 @@ BG02 -> BG04: {
 }
 
 BG02 -> BG07: {
-  label: "coding agent"
+  source-arrowhead.label: "coding agent"
   tooltip: "BG02 → BG07: coding-agent diagnosis"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -1272,7 +1272,7 @@ BG08 -> BG05: {
 }
 
 BG05 -> BG09: {
-  label: "confirmed"
+  source-arrowhead.label: "confirmed"
   tooltip: "BG05 → BG09: confirmed"
   style.stroke: "#278352"
   style.stroke-width: 4
@@ -1287,7 +1287,7 @@ BG09 -> SP01: {
 }
 
 PL03 -> PL04: {
-  label: "conflict"
+  source-arrowhead.label: "conflict"
   tooltip: "PL03 → PL04: contradictions found"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -1295,7 +1295,7 @@ PL03 -> PL04: {
 }
 
 PL03 -> PL05: {
-  label: "clear"
+  source-arrowhead.label: "clear"
   tooltip: "PL03 → PL05: no contradictions"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -1310,7 +1310,7 @@ PL04 -> PL07: {
 }
 
 PL07 -> PL02: {
-  label: "questions → PL02"
+  source-arrowhead.label: "questions → PL02"
   tooltip: "PL07 → PL02: more questions"
   style.stroke: "#E08C2B"
   style.stroke-width: 4
@@ -1319,7 +1319,7 @@ PL07 -> PL02: {
 }
 
 PL07 -> PL05: {
-  label: "resolved"
+  source-arrowhead.label: "resolved"
   tooltip: "PL07 → PL05: resolved or deferred"
   style.stroke: "#278352"
   style.stroke-width: 4
@@ -1334,7 +1334,7 @@ SP03 -> SP05: {
 }
 
 SP05 -> SP04: {
-  label: "approved"
+  source-arrowhead.label: "approved"
   tooltip: "SP05 → SP04: approved"
   style.stroke: "#278352"
   style.stroke-width: 4
@@ -1342,7 +1342,7 @@ SP05 -> SP04: {
 }
 
 SP05 -> CL05: {
-  label: "rejected → CL05"
+  source-arrowhead.label: "rejected → CL05"
   tooltip: "SP05 → CL05: not approved"
   style.stroke: "#85919C"
   style.stroke-width: 4
@@ -1358,7 +1358,7 @@ SP04 -> SP06: {
 }
 
 SP06 -> TR01: {
-  label: "existing repo"
+  source-arrowhead.label: "existing repo"
   tooltip: "SP06 → TR01: existing repository"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -1366,7 +1366,7 @@ SP06 -> TR01: {
 }
 
 SP06 -> TR05: {
-  label: "new repo"
+  source-arrowhead.label: "new repo"
   tooltip: "SP06 → TR05: new approved repo"
   style.stroke: "#278352"
   style.stroke-width: 4
@@ -1381,7 +1381,7 @@ TR03 -> TR06: {
 }
 
 TR06 -> EX01: {
-  label: "unblocked node"
+  source-arrowhead.label: "unblocked node"
   tooltip: "TR06 → EX01: unblocked node"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -1389,7 +1389,7 @@ TR06 -> EX01: {
 }
 
 TR06 -> CL05: {
-  label: "blocked → CL05"
+  source-arrowhead.label: "blocked → CL05"
   tooltip: "TR06 → CL05: all blocked"
   style.stroke: "#85919C"
   style.stroke-width: 4
@@ -1398,7 +1398,7 @@ TR06 -> CL05: {
 }
 
 TR06 -> CL06: {
-  label: "cancel → CL06"
+  source-arrowhead.label: "cancel → CL06"
   tooltip: "TR06 → CL06: cancel"
   style.stroke: "#C53D48"
   style.stroke-width: 4
@@ -1413,7 +1413,7 @@ RV02 -> RV17: {
 }
 
 RV17 -> QA01: {
-  label: "checks pass"
+  source-arrowhead.label: "checks pass"
   tooltip: "RV17 → QA01: checks acceptable"
   style.stroke: "#278352"
   style.stroke-width: 4
@@ -1421,7 +1421,7 @@ RV17 -> QA01: {
 }
 
 RV17 -> CL05: {
-  label: "CI blocked → CL05"
+  source-arrowhead.label: "CI blocked → CL05"
   tooltip: "RV17 → CL05: required checks blocked"
   style.stroke: "#85919C"
   style.stroke-width: 4
@@ -1444,7 +1444,7 @@ RV07 -> RV12: {
 }
 
 RV12 -> RV04: {
-  label: "objections → RV04"
+  source-arrowhead.label: "objections → RV04"
   tooltip: "RV12 → RV04: human objections"
   style.stroke: "#E08C2B"
   style.stroke-width: 4
@@ -1453,7 +1453,7 @@ RV12 -> RV04: {
 }
 
 RV12 -> RV15: {
-  label: "bug or UI proof"
+  source-arrowhead.label: "bug or UI proof"
   tooltip: "RV12 → RV15: bug or UI proof"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -1461,7 +1461,7 @@ RV12 -> RV15: {
 }
 
 RV12 -> RV08: {
-  label: "other PR"
+  source-arrowhead.label: "other PR"
   tooltip: "RV12 → RV08: normal PR accepted"
   style.stroke: "#278352"
   style.stroke-width: 4
@@ -1469,7 +1469,7 @@ RV12 -> RV08: {
 }
 
 RV15 -> RV13: {
-  label: "human UI"
+  source-arrowhead.label: "human UI"
   tooltip: "RV15 → RV13: human interactive"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -1477,7 +1477,7 @@ RV15 -> RV13: {
 }
 
 RV15 -> RV16: {
-  label: "automated UI"
+  source-arrowhead.label: "automated UI"
   tooltip: "RV15 → RV16: Playwright or UI harness"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -1499,7 +1499,7 @@ RV16 -> RV14: {
 }
 
 RV14 -> RV08: {
-  label: "verified"
+  source-arrowhead.label: "verified"
   tooltip: "RV14 → RV08: verified"
   style.stroke: "#278352"
   style.stroke-width: 4
@@ -1507,7 +1507,7 @@ RV14 -> RV08: {
 }
 
 RV14 -> BG01: {
-  label: "wrong cause → BG01"
+  source-arrowhead.label: "wrong cause → BG01"
   tooltip: "RV14 → BG01: diagnosis wrong"
   style.stroke: "#E08C2B"
   style.stroke-width: 4
@@ -1516,7 +1516,7 @@ RV14 -> BG01: {
 }
 
 RV14 -> RV06: {
-  label: "patch faulty"
+  source-arrowhead.label: "patch faulty"
   tooltip: "RV14 → RV06: patch faulty"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -1524,7 +1524,7 @@ RV14 -> RV06: {
 }
 
 RV10 -> TR07: {
-  label: "milestone → TR07"
+  source-arrowhead.label: "milestone → TR07"
   tooltip: "RV10 → TR07: milestone reached"
   style.stroke: "#E08C2B"
   style.stroke-width: 4
@@ -1533,7 +1533,7 @@ RV10 -> TR07: {
 }
 
 TR07 -> TR04: {
-  label: "dogfood required"
+  source-arrowhead.label: "dogfood required"
   tooltip: "TR07 → TR04: dogfood required"
   style.stroke: "#278352"
   style.stroke-width: 4
@@ -1541,7 +1541,7 @@ TR07 -> TR04: {
 }
 
 TR07 -> CL01: {
-  label: "complete → CL01"
+  source-arrowhead.label: "complete → CL01"
   tooltip: "TR07 → CL01: no more testing"
   style.stroke: "#436B90"
   style.stroke-width: 3
@@ -1549,7 +1549,7 @@ TR07 -> CL01: {
 }
 
 TR07 -> TR03: {
-  label: "more work → TR03"
+  source-arrowhead.label: "more work → TR03"
   tooltip: "TR07 → TR03: more work first"
   style.stroke: "#E08C2B"
   style.stroke-width: 4
@@ -1565,7 +1565,7 @@ RL04 -> RL09: {
 }
 
 RL09 -> RL05: {
-  label: "safe"
+  source-arrowhead.label: "safe"
   tooltip: "RL09 → RL05: safe to proceed"
   style.stroke: "#278352"
   style.stroke-width: 4
@@ -1573,7 +1573,7 @@ RL09 -> RL05: {
 }
 
 RL09 -> PL01: {
-  label: "unsafe → PL01"
+  source-arrowhead.label: "unsafe → PL01"
   tooltip: "RL09 → PL01: unsafe exposure"
   style.stroke: "#E08C2B"
   style.stroke-width: 4
@@ -1582,7 +1582,7 @@ RL09 -> PL01: {
 }
 
 RL08 -> RL07: {
-  label: "retry → RL07"
+  source-arrowhead.label: "retry → RL07"
   tooltip: "RL08 → RL07: retry release"
   style.stroke: "#E08C2B"
   style.stroke-width: 4
