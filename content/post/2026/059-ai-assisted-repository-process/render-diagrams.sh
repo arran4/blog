@@ -15,7 +15,7 @@ while IFS= read -r id; do
     exit 1
   fi
   count=$((count + 1))
-done < <(sed -nE 's/^([A-Z]{2}[0-9]{2}): .*/\1/p' workflow.d2)
+done < <(sed -nE 's/^ *([A-Z]{2}[0-9]{2}): .*/\1/p' workflow.d2)
 if (( count < 50 )); then
   echo "Expected a full workflow catalogue; found only ${count} nodes" >&2
   exit 1
@@ -23,11 +23,16 @@ fi
 
 # A Go-installed, tagged D2 may display an older '-HEAD' version string.
 # CI pins the module version; do not infer renderer capabilities from --version.
+# Fail fast on orphaned states, unlabeled decisions or an incomplete start frame.
+python3 validate-workflow.py
 d2 --layout=elk --theme=300 workflow.d2 workflow.svg
 # Attach each node's current actor, purpose, evidence and permitted transitions
 # as inert XML descriptions. The root also receives JSON process instructions.
 # PNG rendering ignores these non-visual SVG elements.
 python3 embed-agent-instructions.py --svg workflow.svg --article index.md --d2 workflow.d2
+# Stagger outgoing decision captions close to the node, while validating
+# every caption and preserving uninterrupted connector paths (no backing plates).
+python3 protect-workflow-labels.py --svg workflow.svg
 # D2's raster exporter uses a very tall internal frame for this workflow and
 # exceeds its 32768-pixel limit even with --scale=1. Rasterise the authoritative
 # SVG instead; this keeps both outputs derived from one D2 render.
