@@ -44,6 +44,11 @@ jobs:
           python3 -m unittest discover -v \
             -s content/post/2026/059-ai-assisted-repository-process \
             -p 'test_embed_agent_instructions.py'
+      - name: Test connector-label protection
+        run: |
+          python3 -m unittest discover -v \
+            -s content/post/2026/059-ai-assisted-repository-process \
+            -p 'test_protect_workflow_labels.py'
       - name: Render diagrams from source
         run: |
           bash content/post/2026/059-ai-assisted-repository-process/render-diagrams.sh

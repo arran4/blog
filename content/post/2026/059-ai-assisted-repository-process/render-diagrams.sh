@@ -30,6 +30,9 @@ d2 --layout=elk --theme=300 workflow.d2 workflow.svg
 # as inert XML descriptions. The root also receives JSON process instructions.
 # PNG rendering ignores these non-visual SVG elements.
 python3 embed-agent-instructions.py --svg workflow.svg --article index.md --d2 workflow.d2
+# A final diagram-wide geometry audit moves captions above all connector
+# strokes, adds white knockouts and rejects label/node or label/label overlap.
+python3 protect-workflow-labels.py --svg workflow.svg
 # D2's raster exporter uses a very tall internal frame for this workflow and
 # exceeds its 32768-pixel limit even with --scale=1. Rasterise the authoritative
 # SVG instead; this keeps both outputs derived from one D2 render.
