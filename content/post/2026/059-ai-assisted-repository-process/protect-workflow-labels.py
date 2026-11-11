@@ -197,6 +197,17 @@ def protect(svg_data: bytes, min_labels: int = 70, min_nodes: int = 75
             occupied.append(box)
             moved += 1
 
+    # D2 also adds a shared mask with black rectangles at *original* label
+    # positions. Even after moving the text, that mask would punch arbitrary
+    # holes in all workflow routes. Remove masking from workflow connections
+    # (not legend examples); every original SVG path d attribute stays intact.
+    for group in root.iter(Q("g")):
+        if edge_identity(group) is None:
+            continue
+        for child in group:
+            if child.tag == Q("path") and "connection" in child.get("class", "").split():
+                child.attrib.pop("mask", None)
+
     # Paint labels last, but preserve every connector path unchanged. Only a
     # tight outline around glyphs protects legibility at incidental crossings.
     overlay = ET.Element(Q("g"), {"id": OVERLAY_ID,

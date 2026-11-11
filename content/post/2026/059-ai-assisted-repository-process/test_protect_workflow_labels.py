@@ -35,7 +35,7 @@ def make_svg(labels: tuple[str, ...] = ("bug", "deep", "clear"),
         name = base64.b64encode(f"(AA01 -&gt; {dest})[0]".encode()).decode()
         x = 140 + i*120
         edges += (f'<g class="{name}"><path class="connection" '
-                  f'd="M {x} 200 L {x} 700"/>'
+                  f'd="M {x} 200 L {x} 700" mask="url(#d2-old-label-cutouts)"/>'
                   f'<text x="250" y="500" style="text-anchor:middle;'
                   f'font-size:18px">{label}</text></g>')
     if overlap_static:
@@ -70,6 +70,8 @@ class LayoutTests(unittest.TestCase):
         rendered = [el.get("d") for el in root.iter(f"{NS}path")
                     if el.get("class") == "connection"]
         self.assertEqual(paths, rendered)
+        self.assertTrue(all(el.get("mask") is None for el in root.iter(f"{NS}path")
+                            if el.get("class") == "connection"))
 
     def test_long_branch_caption_must_stay_close(self):
         result, moved = layout.protect(make_svg(("return to requirements → AB00",
