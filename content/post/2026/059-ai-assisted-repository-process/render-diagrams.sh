@@ -33,6 +33,9 @@ python3 embed-agent-instructions.py --svg workflow.svg --article index.md --d2 w
 # Stagger outgoing decision captions close to the node, while validating
 # every caption and preserving uninterrupted connector paths (no backing plates).
 python3 protect-workflow-labels.py --svg workflow.svg
+# Preserve the full drawing while making the XML source understandable by
+# process phase, checkpoint, transition and root management instructions.
+python3 format-workflow-svg.py --svg workflow.svg --d2 workflow.d2
 # D2's raster exporter uses a very tall internal frame for this workflow and
 # exceeds its 32768-pixel limit even with --scale=1. Rasterise the authoritative
 # SVG instead; this keeps both outputs derived from one D2 render.
