@@ -53,7 +53,7 @@ class SemanticFormatTests(unittest.TestCase):
                        "NODE / WS03", "NODE / BG01",
                        "TRANSITIONS /", "ROUTE / WS03 -> BG01"):
             self.assertIn(marker, doc)
-        self.assertIn('\n    "schema": "example"', doc)
+        self.assertIn('\n      "schema": "example"', doc)
         before = ET.fromstring(raw)
         after = ET.fromstring(out)
         self.assertEqual([e.get("d") for e in before.iter(f"{NS}path")],

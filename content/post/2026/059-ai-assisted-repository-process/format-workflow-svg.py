@@ -128,6 +128,11 @@ def annotate(svg: ET.Element, phases: dict[str, str],
             revised.append(safe_comment("NODE / " + title.strip()))
             found_nodes.add(node_id)
         elif edge is not None:
+            paths = [part for part in child
+                     if part.tag == Q("path")
+                     and "connection" in part.get("class", "").split()]
+            if len(paths) != 1 or not paths[0].get("d", "").strip():
+                raise ValueError(f"Transition has no complete path: {edge}")
             if not in_edges:
                 revised.append(safe_comment("TRANSITIONS / complete directed route graph"))
                 in_edges = True
