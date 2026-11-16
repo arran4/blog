@@ -212,8 +212,12 @@ def protect(svg_data: bytes, min_labels: int = 70, min_nodes: int = 75
     # tight outline around glyphs protects legibility at incidental crossings.
     overlay = ET.Element(Q("g"), {"id": OVERLAY_ID,
                                   "aria-label": "Staggered connector labels"})
-    for group, element, _, _ in caption_groups:
+    for group, element, _, edge in caption_groups:
         group.remove(element)
+        if edge is not None:
+            # Retain caption-to-route correspondence in the final SVG source.
+            element.set("data-from", edge[0])
+            element.set("data-to", edge[1])
         style = element.get("style", "").rstrip(";")
         element.set("style", style
                     + ";paint-order:stroke fill;stroke:#ffffff;"

@@ -156,6 +156,26 @@ def annotate(svg: ET.Element, phases: dict[str, str],
     return len(found_nodes), len(found_edges)
 
 
+def annotate_captions(root: ET.Element, edges: set[tuple[str, str]]) -> None:
+    overlay = next((el for el in root if el.tag == Q("g")
+                    and el.get("id") == "workflow-edge-label-overlay"), None)
+    if overlay is None:
+        raise ValueError("Missing final connector-caption layer")
+    revised: list[ET.Element] = []
+    for child in list(overlay):
+        if child.tag == Q("text"):
+            start, target = child.get("data-from"), child.get("data-to")
+            if start and target:
+                if (start, target) not in edges:
+                    raise ValueError(f"Unknown caption route: {start} -> {target}")
+                revised.append(safe_comment("CAPTION / " + start + " -> " + target
+                                            + " / " + "".join(child.itertext())))
+            else:
+                revised.append(safe_comment("LEGEND CAPTION / " + "".join(child.itertext())))
+        revised.append(child)
+    overlay[:] = revised
+
+
 def indent_semantically(elem: ET.Element, level: int = 0) -> None:
     if elem.tag in TEXT_CONTENT or elem.get(f"{{{XML}}}space") == "preserve":
         return
@@ -201,6 +221,7 @@ def format_svg(svg_bytes: bytes, d2_source: str, *,
     metadata.text = "\n" + "\n".join("    " + line for line in pretty.splitlines()) + "\n  "
 
     nodes, transitions = annotate(root, phases, edges)
+    annotate_captions(root, edges)
     root[:] = ([safe_comment("MANAGEMENT INSTRUCTIONS / raw XML metadata"), metadata,
                safe_comment("PRESENTATION / phases, checkpoints and continuous arrows")]
                + [child for child in root if child is not metadata])

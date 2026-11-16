@@ -54,6 +54,7 @@ class SemanticFormatTests(unittest.TestCase):
                        "TRANSITIONS /", "ROUTE / WS03 -> BG01"):
             self.assertIn(marker, doc)
         self.assertIn('\n      "schema": "example"', doc)
+        self.assertIn("CAPTION /", doc)
         before = ET.fromstring(raw)
         after = ET.fromstring(out)
         self.assertEqual([e.get("d") for e in before.iter(f"{NS}path")],
@@ -79,7 +80,7 @@ class SemanticFormatTests(unittest.TestCase):
 
     def test_missing_edge_rejected(self):
         raw, d2 = sample()
-        with self.assertRaisesRegex(ValueError, "Transition inventory mismatch"):
+        with self.assertRaisesRegex(ValueError, "Transition has no complete path"):
             fmt.format_svg(raw.replace(b'class="connection"', b'class="other"'),
                            d2, min_nodes=2, min_edges=1)
 

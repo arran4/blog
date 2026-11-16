@@ -57,6 +57,10 @@ class LayoutTests(unittest.TestCase):
         overlay = root.find(f"{NS}g[@id='workflow-edge-label-overlay']")
         self.assertIsNotNone(overlay)
         self.assertEqual(len(overlay.findall(f"{NS}text")), 3)
+        self.assertEqual([el.get("data-from") for el in overlay.findall(f"{NS}text")],
+                         ["AA01"] * 3)
+        self.assertEqual([el.get("data-to") for el in overlay.findall(f"{NS}text")],
+                         ["AB00", "AB01", "AB02"])
         self.assertFalse(overlay.findall(f"{NS}rect"))  # no line gaps
         ys = [float(label.get("y")) for label in overlay.findall(f"{NS}text")]
         self.assertEqual(len(set(ys)), 3)
