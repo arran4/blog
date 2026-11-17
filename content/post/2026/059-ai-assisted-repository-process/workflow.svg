@@ -1457,7 +1457,7 @@
 }
 </metadata>
 <!--WORKFLOW: PRESENTATION / phases, checkpoints and continuous arrows-->
-  <svg class="d2-3217221700 d2-svg" width="21200" height="10250" viewBox="-90 -91 21200"1025034581>
+  <svg class="d2-3217221700 d2-svg" width="21200" height="10250" viewBox="-90 -91 21200 10250">
     <rect x="-90" y="-91" width="21200" height="10250" rx="0" fill="#FFFFFF" class=" fill-N7" stroke-width="0" />
 <!--WORKFLOW: OUTCOMES / three terminal states share one bottom frame -->
     <g id="outcomes-frame" aria-label="Finish here: three workflow outcomes">
