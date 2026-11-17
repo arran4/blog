@@ -34,7 +34,7 @@
       "phase": "intake",
       "title": "Inspect current baseline",
       "actor": "Chat LLM",
-      "kind": "decision",
+      "kind": "action",
       "descId": "agent-node-ws02"
     },
     "WS03": {
@@ -69,7 +69,7 @@
       "phase": "debug",
       "title": "Capture reproduction",
       "actor": "Human",
-      "kind": "decision",
+      "kind": "action",
       "descId": "agent-node-bg01"
     },
     "BG02": {
@@ -90,7 +90,7 @@
       "phase": "debug",
       "title": "Chat diagnoses bug",
       "actor": "Chat LLM",
-      "kind": "decision",
+      "kind": "action",
       "descId": "agent-node-bg04"
     },
     "BG05": {
@@ -139,7 +139,7 @@
       "phase": "spec",
       "title": "Ask clarifying questions",
       "actor": "Chat LLM",
-      "kind": "decision",
+      "kind": "action",
       "descId": "agent-node-pl02"
     },
     "PL03": {
@@ -153,7 +153,7 @@
       "phase": "spec",
       "title": "Resolve ambiguities",
       "actor": "Human",
-      "kind": "decision",
+      "kind": "action",
       "descId": "agent-node-pl04"
     },
     "PL05": {
@@ -188,7 +188,7 @@
       "phase": "spec",
       "title": "Persist accepted spec",
       "actor": "Chat LLM",
-      "kind": "decision",
+      "kind": "action",
       "descId": "agent-node-sp04"
     },
     "PL07": {
@@ -244,7 +244,7 @@
       "phase": "tree",
       "title": "Dogfood checkpoint",
       "actor": "Human",
-      "kind": "decision",
+      "kind": "action",
       "descId": "agent-node-tr04"
     },
     "TR06": {
@@ -342,7 +342,7 @@
       "phase": "review",
       "title": "Human PR review",
       "actor": "Human",
-      "kind": "decision",
+      "kind": "action",
       "descId": "agent-node-rv07"
     },
     "RV08": {
@@ -356,7 +356,7 @@
       "phase": "review",
       "title": "Merge eligible node",
       "actor": "GitHub / CI",
-      "kind": "decision",
+      "kind": "action",
       "descId": "agent-node-rv09"
     },
     "RV10": {
@@ -398,7 +398,7 @@
       "phase": "review",
       "title": "Automate visual proof",
       "actor": "Coding LLM",
-      "kind": "decision",
+      "kind": "action",
       "descId": "agent-node-rv16"
     },
     "RV17": {
@@ -461,7 +461,7 @@
       "phase": "release",
       "title": "Recommend release intent",
       "actor": "Human or Chat LLM",
-      "kind": "decision",
+      "kind": "action",
       "descId": "agent-node-rl01"
     },
     "RL02": {
@@ -482,7 +482,7 @@
       "phase": "release",
       "title": "Audit public exposure",
       "actor": "Chat LLM",
-      "kind": "decision",
+      "kind": "action",
       "descId": "agent-node-rl04"
     },
     "RL05": {
@@ -503,7 +503,7 @@
       "phase": "release",
       "title": "Run release workflow",
       "actor": "GitHub / CI",
-      "kind": "decision",
+      "kind": "action",
       "descId": "agent-node-rl07"
     },
     "RL08": {
