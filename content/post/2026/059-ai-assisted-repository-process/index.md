@@ -19,23 +19,19 @@ Normally I maintain **one conversation per coherent workstream**. That conversat
 
 ![Unified AI-assisted repository workflow](workflow.svg)
 
-[Open full SVG](workflow.svg) · [Open PNG export](workflow.png) · [Edit D2 source](workflow.d2) · [Browse node catalogue](#node-catalogue)
+[Open full SVG](workflow.svg) · [Open high-resolution PNG](workflow.png) · [Browse node catalogue](#node-catalogue)
 
-This is a large diagram intended to be opened and zoomed. The PNG export is an easier-to-read alternative in Firefox when the SVG automatically resizes. The diagram's node text has been enlarged to 26 points, with 21-point connection labels, so the PNG is more readable at full resolution. It is rasterised from the same D2-generated SVG using `rsvg-convert` at a width of 8,000 pixels, avoiding D2's raster frame-height limit for this unusually tall diagram. Each D2 node shows an **ID, a title and a short plain-language description directly in the shape**, along with its actor colour; its longer hover description and link to the corresponding article section remain available. The embedded image may not expose the links, so open the SVG itself or use the catalogue below. The `.d2` source is also suitable for a coding or management agent to read directly; do not rely on visual interpretation alone.
+The diagram is a **single, native, hand-maintained SVG** containing the complete workflow and its machine-readable instructions. Open the SVG directly to zoom and use internal checkpoint links; the PNG is a high-resolution (14,000-pixel-wide) derivative of this same file. Larger node and connector fonts improve legibility, and the three final outcomes share a FINISH HERE frame. The source is organised with semantic comments for phases, nodes and transitions; human-readable checkpoint descriptions are left unindented for easier scanning.
 
 ### Machine-readable agent instructions inside the SVG
 
-The generated SVG is also an **agent-readable process reference**. In addition to the existing short hover tooltips, its SVG groups contain standard non-visible `<desc>` elements at the corresponding workflow nodes. For example, the graphics group associated with `WS03` contains the accepted actor, current-state instructions, entry paths and conditional transitions from [the WS03 catalogue entry](#node-ws03). This guidance is embedded **beside the node**, not merely in a global XML comment.
+The SVG is an **agent-readable process reference** as well as a human diagram. The root `<metadata id="workflow-model">` holds a complete 80-node, 124-transition graph, route conditions and shared management instructions. Each node's `<desc>` contains its actor, current action, incoming context and permitted next checkpoints. Raw-SVG/XML access is sufficient to follow the process; an agent must not depend on the blog article or another diagram source.
 
-At the SVG document root, `<metadata id="agent-workflow-instructions-v1">` contains the **shared** management-LLM instructions, the original source paths, the number of nodes and the lookup rule `g[data-workflow-node] > desc`. It **does not repeat the node catalogue**. A parser locates `g[data-workflow-node="WS03"] > desc` to read WS03's instructions directly in their corresponding graphics group.
-
-These elements are **inert documentation, not executable instructions**. The issue register, PRs, human approvals and live repository evidence still determine what an agent is authorised to do. Reading the SVG as an image (including the PNG or an HTML image tag) does not expose its hidden XML content; fetch or parse the raw SVG when machine-readable guidance is needed.
-
-The article remains the **single editable source of truth**. `embed-agent-instructions.py` exports each node's instructions to exactly one SVG `<desc>` after D2 rendering, validates that every diagram node has a matching article section, then produces the PNG from that same SVG. The root metadata contains no duplicate node instructions. An exported, standalone SVG necessarily contains a generated copy of its source article's guidance; avoiding even that export copy would require fetching the article separately, losing standalone usability. This experimental step is isolated in a [stacked PR](https://github.com/arran4/blog/pulls) so it can be removed without affecting the normal D2 diagram.
+These instructions are **inert documentation, not authorization**. Live repository evidence, issues, PRs, CI results, Projects pointers and explicit human approval still govern permitted actions. A raster image or SVG used as an HTML image does not expose the embedded machine-readable metadata, so an LLM needs the raw SVG source.
 
 ### Diagram conventions
 
-The six circular entry points are grouped inside a **START HERE** frame. Choose one; all enter the same conversation/handoff intake before the appropriate work path is selected. The legend is in its own frame to the right of the main flow, away from the starting choices. Rectangles contain actions with one subsequent transition; diamonds contain mutually exclusive choices. Branch outcomes use D2 **source-end labels**, kept close to the decision with short, individually staggered offsets after rendering. Long return lines include the **destination node ID** in the same caption. Visual inspection of the generated SVG is still required. Standard completion is anchored at the bottom, while exceptional deferred or abandoned outcomes may branch from the relevant stage.
+The six circular entry points are grouped inside a **START HERE** frame. Choose one; all enter the same conversation/handoff intake before the appropriate work path is selected. The legend is in its own frame to the right of the main flow, away from the starting choices. Rectangles contain actions with one subsequent transition; diamonds contain mutually exclusive choices. Branch outcomes use SVG **source-end labels**, kept close to the decision with short, individually staggered offsets after rendering. Long return lines include the **destination node ID** in the same caption. Visual inspection of the generated SVG is still required. Standard completion is anchored at the bottom, while exceptional deferred or abandoned outcomes may branch from the relevant stage.
 
 | Element | Meaning |
 | --- | --- |
@@ -54,9 +50,9 @@ The six circular entry points are grouped inside a **START HERE** frame. Choose 
 | Dashed grey connector | Deferred, pending or blocked |
 | Solid red connector | Abandoned or cancelled |
 
-The diagram includes a **large framed D2 legend** with actual example nodes for each actor, circle/rectangle/diamond/oval samples, and miniature arrows showing the exact five connector styles. The legend examples are visual documentation only, with no links to workflow nodes. Phase names remain in this catalogue and the source comments; the large nested phase frames were removed because they increased whitespace and forced lengthy connector routes. Each node retains its stable ID and actor colour. **Shared responsibility does not imply shared approval authority:** a Chat LLM may classify complexity, select a repair path or recommend a release, but cannot make a human-owned merge, visibility, history-rewrite or release decision without the required approval.
+The diagram includes a **large framed legend** with actual example nodes for each actor, circle/rectangle/diamond/oval samples, and miniature arrows showing the exact five connector styles. The legend examples are visual documentation only, with no links to workflow nodes. Phase names remain in this catalogue and the source comments; the large nested phase frames were removed because they increased whitespace and forced lengthy connector routes. Each node retains its stable ID and actor colour. **Shared responsibility does not imply shared approval authority:** a Chat LLM may classify complexity, select a repair path or recommend a release, but cannot make a human-owned merge, visibility, history-rewrite or release decision without the required approval.
 
-For branching decisions, a short source-end caption identifies the outcome. The export staggers labels just beyond each decision's boundary, choosing a small per-route horizontal and vertical offset to avoid collisions. Long/backtracking captions retain the destination node ID; full transition conditions remain in the node catalogue and D2 connection tooltips. Captions draw above unmodified, continuous connectors with only a narrow outline around the glyphs—no large white backing plates or arbitrary line gaps. The whole SVG is checked for caption-to-caption and caption-to-node overlaps, and CI fails on regressions. The ELK layout does not guarantee precise label positions, and some crossings remain possible; edge colour and dash type distinguish long backtracking links.
+For branching decisions, a short source-end caption identifies the outcome. Native SVG captions are positioned outside decisions and adjusted to avoid node and caption overlap. Long/backtracking captions retain the destination node ID; full transition conditions remain in the node catalogue and the embedded SVG transition conditions. Captions draw above unmodified, continuous connectors with only a narrow outline around the glyphs—no large white backing plates or arbitrary line gaps. The SVG validator checks the process graph and links, while visual review checks remaining text and line collisions. The ELK layout does not guarantee precise label positions, and some crossings remain possible; edge colour and dash type distinguish long backtracking links.
 
 ## How different work enters the shared pipeline
 
@@ -122,7 +118,7 @@ Repository-specific developer instructions, [blog guidance](/blog/guidance/) and
 
 ## Instructions to a fresh management LLM
 
-Read this article and the canonical `workflow.d2` source. At intake, read the current [arran4/projects](https://github.com/arran4/projects) record and, when a conversation link is supplied, maintain a minimal handoff pointer. Never copy detailed issue/PR information into Projects or assume an old handoff is current. For bug work, specify regression and visible scenario evidence and verify the diagnosis with the human after the PR when needed. Treat each node ID as a **checkpoint, not a mandatory sequential checklist**. First inspect the target repository, PRs/issues and the latest conversation context. Report the current node, concrete evidence, unresolved decisions, and the permitted next node(s). If the work is already at review, do not restart planning without reason. If a major design conflict appears, do not force a superficial patch: return to clarification and reconcile the issues.
+Read the raw `workflow.svg` metadata and checkpoint descriptions alongside live repository state. At intake, read the current [arran4/projects](https://github.com/arran4/projects) record and, when a conversation link is supplied, maintain a minimal handoff pointer. Never copy detailed issue/PR information into Projects or assume an old handoff is current. For bug work, specify regression and visible scenario evidence and verify the diagnosis with the human after the PR when needed. Treat each node ID as a **checkpoint, not a mandatory sequential checklist**. First inspect the target repository, PRs/issues and the latest conversation context. Report the current node, concrete evidence, unresolved decisions, and the permitted next node(s). If the work is already at review, do not restart planning without reason. If a major design conflict appears, do not force a superficial patch: return to clarification and reconcile the issues.
 
 At each checkpoint: identify the workstream, inspect actual GitHub state, find the current actor and action, distinguish automatic routing from human approval, perform authorised work, verify tool results, then record the transition and any blocker. A Chat LLM without GitHub capabilities must say so and prepare an actionable prompt or human step instead of pretending it updated a PR. Conversely, when it *can* maintain an issue, PR description or merge-readiness state, it should not bounce routine administration to the coding worker.
 
@@ -222,12 +218,12 @@ These are **proposed examples for review**, not claims that a particular histori
 
 ### Review record for these examples
 
-For each scenario, record whether the **entry, owner, evidence, decision, backtracking target, milestone and ending** match actual use. A changed scenario should update both the example and the canonical node transitions. If a scenario identifies a necessary additional edge, add it to `workflow.d2` and the destination sections rather than relying on narrative exceptions.
+For each scenario, record whether the **entry, owner, evidence, decision, backtracking target, milestone and ending** match actual use. A changed scenario should update both the example and the canonical node transitions. If a scenario identifies a necessary additional edge, add it to the SVG transition model and the corresponding checkpoint descriptions rather than relying on narrative exceptions.
 
 
 ## Node catalogue
 
-The ID is stable across D2, the blog, and the raw SVG's per-node machine-readable description. Each section states its owner, practical action, incoming context and allowed exits. Choose **one** outgoing transition from a diamond; rectangles describe work that has one next step. Normal completion is at the bottom, while exceptional stops may sit near the branch that triggers them.
+The ID is stable across the blog and the raw SVG's per-node machine-readable description. Each section states its owner, practical action, incoming context and allowed exits. Choose **one** outgoing transition from a diamond; rectangles describe work that has one next step. Normal completion is at the bottom, while exceptional stops may sit near the branch that triggers them.
 
 ### Starting points
 
@@ -895,24 +891,16 @@ This process intentionally leaves choices reversible. A human may change the sco
 
 The current workstream can span several coding sessions and PRs. An issue may outlive one implementation attempt and a PR tree may serve one milestone without exhausting the roadmap. If the workflow has changed while work is in progress, reconcile the durable records and continue from the correct node; do not silently apply obsolete plans.
 
-### Installing and rendering with existing tools
+### Editing and exporting the native SVG
 
-Use a package manager or Go's module-aware installer rather than piping remote shell scripts into a shell. With Go 1.27 or newer (required by D2 v0.9.0), the explicit installation command is:
+Edit `workflow.svg` directly. It is the authoritative source for node placement, arrow routing, conditions, instructions, and same-file navigation. Keep the `workflow-model` JSON metadata, node descriptions, visible arrows and click targets synchronized. Preserve stable node IDs when their meaning remains unchanged, and review semantic process changes independently of layout changes.
 
-```bash
-go install github.com/d2lang/d2@v0.9.0
-d2 --version
-```
+To regenerate the PNG, install `rsvg-convert` from librsvg and run `bash render-diagrams.sh` in this directory. The script validates the SVG and exports the PNG at 14,000 pixels wide; CI performs the same checks and commits the PNG derivative. The SVG is **never regenerated from D2**.
 
-If an appropriate D2 ebuild is maintained on the system, prefer installing or upgrading that ebuild with Portage. The image export uses an installed `rsvg-convert` from librsvg. The checked-in `render-diagrams.sh` validates the node anchors and emits both the SVG and the scaled PNG. A different D2 version may produce different diagram routing even when the source stays unchanged.
-
-### Maintaining this diagram
-
-Edit `workflow.d2` and the matching node description in `index.md`; run `bash render-diagrams.sh` from the page bundle to regenerate `workflow.svg` with the embedded agent guidance and its `workflow.png` export, or let the PR's renderer workflow do so. Do not edit embedded SVG instructions directly. Commit the text and resulting SVG together. Preserve node IDs when their meaning stays stable so links and LLM checkpoints do not break. If adding a node, specify actor, description, all decision exits and how it affects issue or PR state.
+The entry points intentionally share the common workstream-intake step WS01, which establishes the conversation and live repository context before distinguishing planned changes, bug reports, resumption and release-only paths. Future shortcuts must preserve that intake responsibility and be reviewed as process changes rather than diagram tweaks.
 
 ## References
 
 - [Canonical CI/CD workflow and release safety](/blog/guidance/ci-cd/)
 - [Projects and roadmap register](https://github.com/arran4/projects)
 - [Public Relations planning and announcements](https://github.com/arran4/public-relations)
-- [D2 language and CLI](https://d2lang.com/)
