@@ -2605,7 +2605,7 @@ Move to: RL01 Recommend release intent when evaluate version.</desc>
 
 <!--WORKFLOW: NODE / CL05 — Park Projects handoff-->
     <a href="#node-cl05" xlink:href="#node-cl05" data-article-href="./#node-cl05">
-      <g class="Q0wwNQ== chat" data-workflow-node="CL05" id="node-cl05">
+      <g class="Q0wwNQ== chat" data-workflow-node="CL05" id="node-cl05" transform="translate(0 260)">
         <desc id="agent-node-cl05" xml:lang="en">CL05 — Park Projects handoff
 Actor: Chat LLM. State: Save the blocker and resumption link. When pausing, update arran4/projects with current chat link, blocker, next action and relevant issue/PR, not duplicate task details.
 
@@ -3225,8 +3225,8 @@ Move to: WS01 Open one workstream when enter workstream.</desc>
     </g>
 
 <!--WORKFLOW: ROUTE / PL05 -> CL05-->
-    <g class="KFBMMDUgLSZndDsgQ0wwNSlbMF0=" data-from="PL05" data-to="CL05" data-transition-id="pl05-cl05" id="transition-pl05-cl05">
-      <a href="#node-cl05"><path d="M 12550.998321 3071 L 12550.950195 3157 S 12550.950195 3157 12550.950195 3157 L 19457.033203 3157 S 19457.033203 3157 19457.033203 3157 L 19457.033203 8681 S 19457.033203 8681 19457.033203 8681 L 10500.616211 8681 S 10500.616211 8681 10500.616211 8681 L 10500.616211 8714" stroke="#85919C" fill="none" class="connection" style="stroke-width:4;stroke-dasharray:16.000000,15.310511;" marker-end="url(#mk-d2-3217221700-1349562461)" /></a>
+    <g class="KFBMMDUgLSZndDsgQ0wwNSlbMF0=" data-from="PL05" data-to="CL05" data-transition-id="pl05-cl05" id="transition-pl05-cl05" data-merged-into="cl05-collector">
+      <a href="#node-cl05"><path d="M 12550.998321 3071 L 12550.950195 3157 S 12550.950195 3157 12550.950195 3157 L 19457.033203 3157 S 19457.033203 3157 19457.033203 3157 L 19457.033203 8681 S 19457.033203 8681 19457.033203 8681 L 10500.616211 8681 S 10500.616211 8681 10500.616211 8681 L 10980 8681 L 10980 8790" stroke="#85919C" fill="none" class="connection" style="stroke-width:4;stroke-dasharray:16.000000,15.310511;" marker-end="url(#mk-d2-3217221700-1349562461)" /></a>
     </g>
 
 <!--WORKFLOW: ROUTE / PL05 -> CL06-->
@@ -3370,8 +3370,8 @@ Move to: WS01 Open one workstream when enter workstream.</desc>
     </g>
 
 <!--WORKFLOW: ROUTE / RV08 -> CL05-->
-    <g class="KFJWMDggLSZndDsgQ0wwNSlbMF0=" data-from="RV08" data-to="CL05" data-transition-id="rv08-cl05" id="transition-rv08-cl05">
-      <a href="#node-cl05"><path d="M 7782.001845 5116.999999 L 7782.049805 5195 S 7782.049805 5195 7782.049805 5195 L 6551.125 5195 S 6551.125 5195 6551.125 5195 L 6551.125 8581 S 6551.125 8581 6551.125 8581 L 10023.916016 8581 S 10023.916016 8581 10023.916016 8581 L 10023.916016 8714" stroke="#85919C" fill="none" class="connection" style="stroke-width:4;stroke-dasharray:16.000000,15.310511;" marker-end="url(#mk-d2-3217221700-1349562461)" /></a>
+    <g class="KFJWMDggLSZndDsgQ0wwNSlbMF0=" data-from="RV08" data-to="CL05" data-transition-id="rv08-cl05" id="transition-rv08-cl05" data-merged-into="cl05-collector">
+      <a href="#node-cl05"><path d="M 7782.001845 5116.999999 L 7782.049805 5195 S 7782.049805 5195 7782.049805 5195 L 6551.125 5195 S 6551.125 5195 6551.125 5195 L 6551.125 8581 S 6551.125 8581 6551.125 8581 L 10023.916016 8581 S 10023.916016 8581 10023.916016 8581 L 9650 8581 L 9650 8790" stroke="#85919C" fill="none" class="connection" style="stroke-width:4;stroke-dasharray:16.000000,15.310511;" marker-end="url(#mk-d2-3217221700-1349562461)" /></a>
     </g>
 
 <!--WORKFLOW: ROUTE / RV08 -> CL06-->
@@ -3395,8 +3395,8 @@ Move to: WS01 Open one workstream when enter workstream.</desc>
     </g>
 
 <!--WORKFLOW: ROUTE / RV10 -> CL05-->
-    <g class="KFJWMTAgLSZndDsgQ0wwNSlbMF0=" data-from="RV10" data-to="CL05" data-transition-id="rv10-cl05" id="transition-rv10-cl05">
-      <a href="#node-cl05"><path d="M 8947.977962 6010.999919 L 8947.507812 6075 S 8947.507812 6075 8947.507812 6075 L 6965.225098 6075 S 6965.225098 6075 6965.225098 6075 L 6965.225098 8481 S 6965.225098 8481 6965.225098 8481 L 10160.116211 8481 S 10160.116211 8481 10160.116211 8481 L 10160.116211 8714" stroke="#85919C" fill="none" class="connection" style="stroke-width:4;stroke-dasharray:16.000000,15.310511;" marker-end="url(#mk-d2-3217221700-1349562461)" /></a>
+    <g class="KFJWMTAgLSZndDsgQ0wwNSlbMF0=" data-from="RV10" data-to="CL05" data-transition-id="rv10-cl05" id="transition-rv10-cl05" data-merged-into="cl05-collector">
+      <a href="#node-cl05"><path d="M 8947.977962 6010.999919 L 8947.507812 6075 S 8947.507812 6075 8947.507812 6075 L 6965.225098 6075 S 6965.225098 6075 6965.225098 6075 L 6965.225098 8481 S 6965.225098 8481 6965.225098 8481 L 10160.116211 8481 S 10160.116211 8481 10160.116211 8481 L 10030 8481 L 10030 8790" stroke="#85919C" fill="none" class="connection" style="stroke-width:4;stroke-dasharray:16.000000,15.310511;" marker-end="url(#mk-d2-3217221700-1349562461)" /></a>
     </g>
 
 <!--WORKFLOW: ROUTE / CL01 -> CL02-->
@@ -3430,8 +3430,8 @@ Move to: WS01 Open one workstream when enter workstream.</desc>
     </g>
 
 <!--WORKFLOW: ROUTE / RL02 -> CL05-->
-    <g class="KFJMMDIgLSZndDsgQ0wwNSlbMF0=" data-from="RL02" data-to="CL05" data-transition-id="rl02-cl05" id="transition-rl02-cl05">
-      <a href="#node-cl05"><path d="M 13347.999257 3741 L 13347.983398 3805 S 13347.983398 3805 13347.983398 3805 L 12423.182617 3805 S 12423.182617 3805 12423.182617 3805 L 12423.182617 8531 S 12423.182617 8531 12423.182617 8531 L 10296.316406 8531 S 10296.316406 8531 10296.316406 8531 L 10296.316406 8714" stroke="#85919C" fill="none" class="connection" style="stroke-width:4;stroke-dasharray:16.000000,15.310511;" marker-end="url(#mk-d2-3217221700-1349562461)" /></a>
+    <g class="KFJMMDIgLSZndDsgQ0wwNSlbMF0=" data-from="RL02" data-to="CL05" data-transition-id="rl02-cl05" id="transition-rl02-cl05" data-merged-into="cl05-collector">
+      <a href="#node-cl05"><path d="M 13347.999257 3741 L 13347.983398 3805 S 13347.983398 3805 13347.983398 3805 L 12423.182617 3805 S 12423.182617 3805 12423.182617 3805 L 12423.182617 8531 S 12423.182617 8531 12423.182617 8531 L 10296.316406 8531 S 10296.316406 8531 10296.316406 8531 L 10410 8531 L 10410 8790" stroke="#85919C" fill="none" class="connection" style="stroke-width:4;stroke-dasharray:16.000000,15.310511;" marker-end="url(#mk-d2-3217221700-1349562461)" /></a>
     </g>
 
 <!--WORKFLOW: ROUTE / RL02 -> RL03-->
@@ -3455,8 +3455,8 @@ Move to: WS01 Open one workstream when enter workstream.</desc>
     </g>
 
 <!--WORKFLOW: ROUTE / RL05 -> CL05-->
-    <g class="KFJMMDUgLSZndDsgQ0wwNSlbMF0=" data-from="RL05" data-to="CL05" data-transition-id="rl05-cl05" id="transition-rl05-cl05">
-      <a href="#node-cl05"><path d="M 17958.999986 4833 L 17958.982422 8581 S 17958.982422 8581 17958.982422 8581 L 10364.416016 8581 S 10364.416016 8581 10364.416016 8581 L 10364.416016 8714" stroke="#85919C" fill="none" class="connection" style="stroke-width:4;stroke-dasharray:16.000000,15.310511;" marker-end="url(#mk-d2-3217221700-1349562461)" /></a>
+    <g class="KFJMMDUgLSZndDsgQ0wwNSlbMF0=" data-from="RL05" data-to="CL05" data-transition-id="rl05-cl05" id="transition-rl05-cl05" data-merged-into="cl05-collector">
+      <a href="#node-cl05"><path d="M 17958.999986 4833 L 17958.982422 8581 S 17958.982422 8581 17958.982422 8581 L 10364.416016 8581 S 10364.416016 8581 10364.416016 8581 L 10600 8581 L 10600 8790" stroke="#85919C" fill="none" class="connection" style="stroke-width:4;stroke-dasharray:16.000000,15.310511;" marker-end="url(#mk-d2-3217221700-1349562461)" /></a>
     </g>
 
 <!--WORKFLOW: ROUTE / RL06 -> RL07-->
@@ -3475,8 +3475,8 @@ Move to: WS01 Open one workstream when enter workstream.</desc>
     </g>
 
 <!--WORKFLOW: ROUTE / RL08 -> CL05-->
-    <g class="KFJMMDggLSZndDsgQ0wwNSlbMF0=" data-from="RL08" data-to="CL05" data-transition-id="rl08-cl05" id="transition-rl08-cl05">
-      <a href="#node-cl05"><path d="M 18782.000034 5690 L 18782.033203 8631 S 18782.033203 8631 18782.033203 8631 L 10432.515625 8631 S 10432.515625 8631 10432.515625 8631 L 10432.515625 8714" stroke="#85919C" fill="none" class="connection" style="stroke-width:4;stroke-dasharray:16.000000,15.310511;" marker-end="url(#mk-d2-3217221700-1349562461)" /></a>
+    <g class="KFJMMDggLSZndDsgQ0wwNSlbMF0=" data-from="RL08" data-to="CL05" data-transition-id="rl08-cl05" id="transition-rl08-cl05" data-merged-into="cl05-collector">
+      <a href="#node-cl05"><path d="M 18782.000034 5690 L 18782.033203 8631 S 18782.033203 8631 18782.033203 8631 L 10432.515625 8631 S 10432.515625 8631 10432.515625 8631 L 10790 8631 L 10790 8790" stroke="#85919C" fill="none" class="connection" style="stroke-width:4;stroke-dasharray:16.000000,15.310511;" marker-end="url(#mk-d2-3217221700-1349562461)" /></a>
     </g>
 
 <!--WORKFLOW: ROUTE / ST03 -> WS01-->
@@ -3610,8 +3610,8 @@ Move to: WS01 Open one workstream when enter workstream.</desc>
     </g>
 
 <!--WORKFLOW: ROUTE / SP05 -> CL05-->
-    <g class="KFNQMDUgLSZndDsgQ0wwNSlbMF0=" data-from="SP05" data-to="CL05" data-transition-id="sp05-cl05" id="transition-sp05-cl05">
-      <a href="#node-cl05"><path d="M 8870.022387 4484.999916 L 8870.5 4549 S 8870.5 4549 8870.5 4549 L 6590.674805 4549 S 6590.674805 4549 6590.674805 4549 L 6590.674805 8531 S 6590.674805 8531 6590.674805 8531 L 10092.015625 8531 S 10092.015625 8531 10092.015625 8531 L 10092.015625 8714" stroke="#85919C" fill="none" class="connection" style="stroke-width:4;stroke-dasharray:16.000000,15.310511;" marker-end="url(#mk-d2-3217221700-1349562461)" /></a>
+    <g class="KFNQMDUgLSZndDsgQ0wwNSlbMF0=" data-from="SP05" data-to="CL05" data-transition-id="sp05-cl05" id="transition-sp05-cl05" data-merged-into="cl05-collector">
+      <a href="#node-cl05"><path d="M 8870.022387 4484.999916 L 8870.5 4549 S 8870.5 4549 8870.5 4549 L 6590.674805 4549 S 6590.674805 4549 6590.674805 4549 L 6590.674805 8531 S 6590.674805 8531 6590.674805 8531 L 10092.015625 8531 S 10092.015625 8531 10092.015625 8531 L 9840 8531 L 9840 8790" stroke="#85919C" fill="none" class="connection" style="stroke-width:4;stroke-dasharray:16.000000,15.310511;" marker-end="url(#mk-d2-3217221700-1349562461)" /></a>
     </g>
 
 <!--WORKFLOW: ROUTE / SP04 -> SP06-->
@@ -3640,8 +3640,8 @@ Move to: WS01 Open one workstream when enter workstream.</desc>
     </g>
 
 <!--WORKFLOW: ROUTE / TR06 -> CL05-->
-    <g class="KFRSMDYgLSZndDsgQ0wwNSlbMF0=" data-from="TR06" data-to="CL05" data-transition-id="tr06-cl05" id="transition-tr06-cl05">
-      <a href="#node-cl05"><path d="M 10475.000739 6454 L 10475.5 8481 S 10475.5 8481 10475.5 8481 L 10228.21582 8481 S 10228.21582 8481 10228.21582 8481 L 10228.21582 8714" stroke="#85919C" fill="none" class="connection" style="stroke-width:4;stroke-dasharray:16.000000,15.310511;" marker-end="url(#mk-d2-3217221700-1349562461)" /></a>
+    <g class="KFRSMDYgLSZndDsgQ0wwNSlbMF0=" data-from="TR06" data-to="CL05" data-transition-id="tr06-cl05" id="transition-tr06-cl05" data-merged-into="cl05-collector">
+      <a href="#node-cl05"><path d="M 10475.000739 6454 L 10475.5 8481 S 10475.5 8481 10475.5 8481 L 10228.21582 8481 S 10228.21582 8481 10228.21582 8481 L 10220 8481 L 10220 8790" stroke="#85919C" fill="none" class="connection" style="stroke-width:4;stroke-dasharray:16.000000,15.310511;" marker-end="url(#mk-d2-3217221700-1349562461)" /></a>
     </g>
 
 <!--WORKFLOW: ROUTE / TR06 -> CL06-->
@@ -3660,8 +3660,8 @@ Move to: WS01 Open one workstream when enter workstream.</desc>
     </g>
 
 <!--WORKFLOW: ROUTE / RV17 -> CL05-->
-    <g class="KFJWMTcgLSZndDsgQ0wwNSlbMF0=" data-from="RV17" data-to="CL05" data-transition-id="rv17-cl05" id="transition-rv17-cl05">
-      <a href="#node-cl05"><path d="M 1527.006678 8416.999993 L 1527.483032 8631 S 1527.483032 8631 1527.483032 8631 L 9955.816406 8631 S 9955.816406 8631 9955.816406 8631 L 9955.816406 8714" stroke="#85919C" fill="none" class="connection" style="stroke-width:4;stroke-dasharray:16.000000,15.310511;" marker-end="url(#mk-d2-3217221700-1349562461)" /></a>
+    <g class="KFJWMTcgLSZndDsgQ0wwNSlbMF0=" data-from="RV17" data-to="CL05" data-transition-id="rv17-cl05" id="transition-rv17-cl05" data-merged-into="cl05-collector">
+      <a href="#node-cl05"><path d="M 1527.006678 8416.999993 L 1527.483032 8631 S 1527.483032 8631 1527.483032 8631 L 9955.816406 8631 S 9955.816406 8631 9955.816406 8631 L 9460 8631 L 9460 8790" stroke="#85919C" fill="none" class="connection" style="stroke-width:4;stroke-dasharray:16.000000,15.310511;" marker-end="url(#mk-d2-3217221700-1349562461)" /></a>
     </g>
 
 <!--WORKFLOW: ROUTE / QA01 -> RV03-->
@@ -3766,7 +3766,7 @@ Move to: WS01 Open one workstream when enter workstream.</desc>
 
 <!--WORKFLOW: ROUTE / CL05 -> EN02-->
     <g class="KENMMDUgLSZndDsgRU4wMilbMF0=" data-from="CL05" data-to="EN02" data-transition-id="cl05-en02" id="transition-cl05-en02">
-      <a href="#node-en02"><path d="M 10228.213271 8827.999999 L 10228 9170 L 10200 9170 L 10200 9404" stroke="#85919C" fill="none" class="connection" style="stroke-width:4;stroke-dasharray:16.000000,15.310511;" marker-end="url(#mk-d2-3217221700-1349562461)" /></a>
+      <a href="#node-en02"><path d="M 10227.5 9092 L 9630 9092 L 9630 9365 L 10200 9365 L 10200 9404" stroke="#85919C" fill="none" class="connection" style="stroke-width:4;stroke-dasharray:16.000000,15.310511;" marker-end="url(#mk-d2-3217221700-1349562461)" /></a>
     </g>
 
 <!--WORKFLOW: ROUTE / CL06 -> EN03-->
@@ -6349,7 +6349,7 @@ Move to: WS01 Open one workstream when enter workstream.</desc>
 <!--WORKFLOW: CAPTION / RL08 -> RL07 / retry → RL07-->
     <a href="#node-rl07"><text x="19009.6" y="5481.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:25px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL08" data-to="RL07">retry → RL07</text></a>
 <!--WORKFLOW: CAPTION / CL05 -> EN02 / PARKED → EN02-->
-    <a href="#node-en02"><text x="10228.5" y="8959.0" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:25px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="CL05" data-to="EN02">PARKED → EN02</text></a>
+    <a href="#node-en02"><text x="9450" y="9200" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:25px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="CL05" data-to="EN02">PARKED → EN02</text></a>
 <!--WORKFLOW: CAPTION / CL06 -> EN03 / STOPPED → EN03-->
     <a href="#node-en03"><text x="9849.5" y="7088.0" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:25px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="CL06" data-to="EN03">STOPPED → EN03</text></a>
     <!--WORKFLOW: ROUTE END LABELS / long connectors and distinct entry origins -->
@@ -6366,48 +6366,59 @@ Move to: WS01 Open one workstream when enter workstream.</desc>
 <!--WORKFLOW: START ROUTE / ST06 -> WS01 / RELEASE -->
     <a href="#node-ws01"><text x="7392" y="1195" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:23px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="ST06" data-to="WS01" data-route-end="departure">RELEASE</text></a>
 <!--WORKFLOW: ARRIVAL / WS03 -> BG01 -->
-    <a href="#node-bg01"><text x="1346.0" y="5156.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS03" data-to="BG01" data-route-end="arrival">WS03 → BG01</text></a>
+    <a href="#node-ws03" aria-label="Back to source WS03"><text x="1346.0" y="5156.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS03" data-to="BG01" data-route-end="arrival">WS03 → BG01</text></a>
 <!--WORKFLOW: ARRIVAL / BG03 -> BG05 -->
-    <a href="#node-bg05"><text x="8794.0" y="2464.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG03" data-to="BG05" data-route-end="arrival">BG03 → BG05</text></a>
+    <a href="#node-bg03" aria-label="Back to source BG03"><text x="8794.0" y="2464.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG03" data-to="BG05" data-route-end="arrival">BG03 → BG05</text></a>
 <!--WORKFLOW: DEPARTURE / BG03 -> BG05 -->
     <a href="#node-bg05"><text x="4646.3" y="7092.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG03" data-to="BG05" data-route-end="departure">BG03 → BG05</text></a>
 <!--WORKFLOW: ARRIVAL / BG05 -> BG01 -->
-    <a href="#node-bg01"><text x="1570.0" y="5156.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG05" data-to="BG01" data-route-end="arrival">BG05 → BG01</text></a>
-<!--WORKFLOW: ARRIVAL / PL05 -> CL05 -->
-    <a href="#node-cl05"><text x="10500.6" y="8890.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="PL05" data-to="CL05" data-route-end="arrival">PL05 → CL05</text></a>
+    <a href="#node-bg05" aria-label="Back to source BG05"><text x="1570.0" y="5156.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG05" data-to="BG01" data-route-end="arrival">BG05 → BG01</text></a>
 <!--WORKFLOW: ARRIVAL / RV03 -> RV04 -->
-    <a href="#node-rv04"><text x="3645.0" y="2894.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV03" data-to="RV04" data-route-end="arrival">RV03 → RV04</text></a>
+    <a href="#node-rv03" aria-label="Back to source RV03"><text x="3645.0" y="2894.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV03" data-to="RV04" data-route-end="arrival">RV03 → RV04</text></a>
 <!--WORKFLOW: DEPARTURE / RV03 -> RV04 -->
     <a href="#node-rv04"><text x="499.0" y="8862.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV03" data-to="RV04" data-route-end="departure">RV03 → RV04</text></a>
 <!--WORKFLOW: ARRIVAL / RV04 -> PL01 -->
-    <a href="#node-pl01"><text x="13065.4" y="4868.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV04" data-to="PL01" data-route-end="arrival">RV04 → PL01</text></a>
+    <a href="#node-rv04" aria-label="Back to source RV04"><text x="13065.4" y="4868.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV04" data-to="PL01" data-route-end="arrival">RV04 → PL01</text></a>
 <!--WORKFLOW: ARRIVAL / RV04 -> CL06 -->
-    <a href="#node-cl06"><text x="9917.6" y="6918.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV04" data-to="CL06" data-route-end="arrival">RV04 → CL06</text></a>
-<!--WORKFLOW: ARRIVAL / RV08 -> CL05 -->
-    <a href="#node-cl05"><text x="10023.9" y="9005" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV08" data-to="CL05" data-route-end="arrival">RV08 → CL05</text></a>
-<!--WORKFLOW: ARRIVAL / RV10 -> CL05 -->
-    <a href="#node-cl05"><text x="10210.1" y="8890.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV10" data-to="CL05" data-route-end="arrival">RV10 → CL05</text></a>
+    <a href="#node-rv04" aria-label="Back to source RV04"><text x="9917.6" y="6918.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV04" data-to="CL06" data-route-end="arrival">RV04 → CL06</text></a>
 <!--WORKFLOW: ARRIVAL / RL02 -> EN01 -->
-    <a href="#node-en01"><text x="7550.0" y="9389.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL02" data-to="EN01" data-route-end="arrival">RL02 → EN01</text></a>
-<!--WORKFLOW: ARRIVAL / RL02 -> CL05 -->
-    <a href="#node-cl05"><text x="10471.3" y="8944.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL02" data-to="CL05" data-route-end="arrival">RL02 → CL05</text></a>
-<!--WORKFLOW: ARRIVAL / RL05 -> CL05 -->
-    <a href="#node-cl05"><text x="10674.4" y="8944.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL05" data-to="CL05" data-route-end="arrival">RL05 → CL05</text></a>
+    <a href="#node-rl02" aria-label="Back to source RL02"><text x="7550.0" y="9389.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL02" data-to="EN01" data-route-end="arrival">RL02 → EN01</text></a>
 <!--WORKFLOW: ARRIVAL / RL08 -> EN01 -->
-    <a href="#node-en01"><text x="7240" y="9389.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL08" data-to="EN01" data-route-end="arrival">RL08 → EN01</text></a>
-<!--WORKFLOW: ARRIVAL / RL08 -> CL05 -->
-    <a href="#node-cl05"><text x="10742.5" y="8890.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL08" data-to="CL05" data-route-end="arrival">RL08 → CL05</text></a>
+    <a href="#node-rl08" aria-label="Back to source RL08"><text x="7240" y="9389.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL08" data-to="EN01" data-route-end="arrival">RL08 → EN01</text></a>
 <!--WORKFLOW: ARRIVAL / WS04 -> BG01 -->
-    <a href="#node-bg01"><text x="1121.5" y="5156.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS04" data-to="BG01" data-route-end="arrival">WS04 → BG01</text></a>
+    <a href="#node-ws04" aria-label="Back to source WS04"><text x="1121.5" y="5156.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS04" data-to="BG01" data-route-end="arrival">WS04 → BG01</text></a>
 <!--WORKFLOW: ARRIVAL / WS04 -> RV01 -->
-    <a href="#node-rv01"><text x="812.1" y="8094.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS04" data-to="RV01" data-route-end="arrival">WS04 → RV01</text></a>
-<!--WORKFLOW: ARRIVAL / SP05 -> CL05 -->
-    <a href="#node-cl05"><text x="9782.0" y="8890.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="SP05" data-to="CL05" data-route-end="arrival">SP05 → CL05</text></a>
-<!--WORKFLOW: ARRIVAL / RV17 -> CL05 -->
-    <a href="#node-cl05"><text x="9955.8" y="8944.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV17" data-to="CL05" data-route-end="arrival">RV17 → CL05</text></a>
+    <a href="#node-ws04" aria-label="Back to source WS04"><text x="812.1" y="8094.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS04" data-to="RV01" data-route-end="arrival">WS04 → RV01</text></a>
 <!--WORKFLOW: ARRIVAL / TR07 -> TR04 -->
-    <a href="#node-tr04"><text x="685.5" y="4046.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR07" data-to="TR04" data-route-end="arrival">TR07 → TR04</text></a>
+    <a href="#node-tr07" aria-label="Back to source TR07"><text x="685.5" y="4046.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR07" data-to="TR04" data-route-end="arrival">TR07 → TR04</text></a>
 <!--WORKFLOW: ARRIVAL / CL06 -> EN03 -->
-    <a href="#node-en03"><text x="12850.0" y="9786.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="CL06" data-to="EN03" data-route-end="arrival">CL06 → EN03</text></a>
+    <a href="#node-cl06" aria-label="Back to source CL06"><text x="12850.0" y="9786.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="CL06" data-to="EN03" data-route-end="arrival">CL06 → EN03</text></a>
+
+    <!--WORKFLOW: CL05 COLLECTOR / nine arrows merge into one visibly directed trunk -->
+    <g id="cl05-collector" data-route-collector="CL05" aria-label="Nine incoming routes merge here, continue to CL05">
+      <title>CL05 incoming-route collector: arrowhead on each feeder and on the shared trunk; source labels below each feeder link back</title>
+      <desc>Sources: RV17, RV08, SP05, RV10, TR06, RL02, RL05, RL08, PL05. Each incoming arrow terminates at the collector; the joined trunk points to CL05. Click a source ID to return to that checkpoint.</desc>
+      <path d="M 9460 8790 H 11140 V 8950 H 10227.5 V 8974" stroke="#718399" stroke-width="5" fill="none" stroke-linejoin="round" marker-end="url(#mk-d2-3217221700-1349562461)" />
+      <rect x="9360" y="8812" width="1760" height="66" rx="10" fill="#f7faff" stroke="#b7c6d8" stroke-width="1" />
+    <!--WORKFLOW: CL05 INPUT / RV17 to CL05; click source ID to trace back -->
+    <a href="#node-rv17" aria-label="Back to RV17: CI blocked"><title>RV17 → CL05 · CI blocked</title><rect x="9394" y="8822" width="132" height="46" rx="8" fill="#eef3f8" stroke="#9AA8B8" stroke-width="1.5"/><text x="9460" y="8853" font-size="25px" font-family="sans-serif" fill="#184563" text-anchor="middle">RV17</text></a>
+    <!--WORKFLOW: CL05 INPUT / RV08 to CL05; click source ID to trace back -->
+    <a href="#node-rv08" aria-label="Back to RV08: hold"><title>RV08 → CL05 · hold</title><rect x="9584" y="8822" width="132" height="46" rx="8" fill="#eef3f8" stroke="#9AA8B8" stroke-width="1.5"/><text x="9650" y="8853" font-size="25px" font-family="sans-serif" fill="#184563" text-anchor="middle">RV08</text></a>
+    <!--WORKFLOW: CL05 INPUT / SP05 to CL05; click source ID to trace back -->
+    <a href="#node-sp05" aria-label="Back to SP05: rejected"><title>SP05 → CL05 · rejected</title><rect x="9774" y="8822" width="132" height="46" rx="8" fill="#eef3f8" stroke="#9AA8B8" stroke-width="1.5"/><text x="9840" y="8853" font-size="25px" font-family="sans-serif" fill="#184563" text-anchor="middle">SP05</text></a>
+    <!--WORKFLOW: CL05 INPUT / RV10 to CL05; click source ID to trace back -->
+    <a href="#node-rv10" aria-label="Back to RV10: blocked"><title>RV10 → CL05 · blocked</title><rect x="9964" y="8822" width="132" height="46" rx="8" fill="#eef3f8" stroke="#9AA8B8" stroke-width="1.5"/><text x="10030" y="8853" font-size="25px" font-family="sans-serif" fill="#184563" text-anchor="middle">RV10</text></a>
+    <!--WORKFLOW: CL05 INPUT / TR06 to CL05; click source ID to trace back -->
+    <a href="#node-tr06" aria-label="Back to TR06: all blocked"><title>TR06 → CL05 · all blocked</title><rect x="10154" y="8822" width="132" height="46" rx="8" fill="#eef3f8" stroke="#9AA8B8" stroke-width="1.5"/><text x="10220" y="8853" font-size="25px" font-family="sans-serif" fill="#184563" text-anchor="middle">TR06</text></a>
+    <!--WORKFLOW: CL05 INPUT / RL02 to CL05; click source ID to trace back -->
+    <a href="#node-rl02" aria-label="Back to RL02: defer release"><title>RL02 → CL05 · defer release</title><rect x="10344" y="8822" width="132" height="46" rx="8" fill="#eef3f8" stroke="#9AA8B8" stroke-width="1.5"/><text x="10410" y="8853" font-size="25px" font-family="sans-serif" fill="#184563" text-anchor="middle">RL02</text></a>
+    <!--WORKFLOW: CL05 INPUT / RL05 to CL05; click source ID to trace back -->
+    <a href="#node-rl05" aria-label="Back to RL05: consent pending"><title>RL05 → CL05 · consent pending</title><rect x="10534" y="8822" width="132" height="46" rx="8" fill="#eef3f8" stroke="#9AA8B8" stroke-width="1.5"/><text x="10600" y="8853" font-size="25px" font-family="sans-serif" fill="#184563" text-anchor="middle">RL05</text></a>
+    <!--WORKFLOW: CL05 INPUT / RL08 to CL05; click source ID to trace back -->
+    <a href="#node-rl08" aria-label="Back to RL08: publish failed"><title>RL08 → CL05 · publish failed</title><rect x="10724" y="8822" width="132" height="46" rx="8" fill="#eef3f8" stroke="#9AA8B8" stroke-width="1.5"/><text x="10790" y="8853" font-size="25px" font-family="sans-serif" fill="#184563" text-anchor="middle">RL08</text></a>
+    <!--WORKFLOW: CL05 INPUT / PL05 to CL05; click source ID to trace back -->
+    <a href="#node-pl05" aria-label="Back to PL05: defer"><title>PL05 → CL05 · defer</title><rect x="10914" y="8822" width="132" height="46" rx="8" fill="#eef3f8" stroke="#9AA8B8" stroke-width="1.5"/><text x="10980" y="8853" font-size="25px" font-family="sans-serif" fill="#184563" text-anchor="middle">PL05</text></a>
+      <text x="10220" y="8920" font-size="24px" font-family="sans-serif" fill="#184563" text-anchor="middle">INCOMING ROUTES → CL05 · click a source ID to trace back</text>
+    </g>
   </g>
 </svg>
