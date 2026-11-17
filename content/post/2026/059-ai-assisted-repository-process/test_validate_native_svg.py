@@ -80,5 +80,43 @@ class NativeSvgTests(unittest.TestCase):
             self.assertIn("translate(", node.get("transform", ""))
 
 
+    def test_reverse_arrival_links_are_checked(self):
+        def edit(root):
+            for anchor in root.iter(S+"a"):
+                label = anchor.find(S+"text")
+                if label is not None and label.get("data-route-end") == "arrival":
+                    anchor.set("href", "#node-"+label.get("data-to").lower())
+                    return
+            raise AssertionError("No reverse arrival to mutate")
+        with self.assertRaisesRegex(ValueError, "Incorrect forward/reverse caption link"):
+            native.validate(edited(edit))
+
+    def test_cl05_collects_exactly_nine_traceable_feeders(self):
+        model = native.validate(SOURCE)
+        sources = {edge["from"] for edge in model["transitions"] if edge["to"] == "CL05"}
+        self.assertEqual(len(sources), 9)
+        root = ET.fromstring(SOURCE)
+        collector = next(g for g in root.iter(S+"g") if g.get("id") == "cl05-collector")
+        labels = {a.get("href") for a in collector.iter(S+"a")}
+        self.assertEqual(labels, {"#node-"+x.lower() for x in sources})
+
+    def test_broken_cl05_collector_is_rejected(self):
+        def edit(root):
+            c = next(g for g in root.iter(S+"g") if g.get("id") == "cl05-collector")
+            a = next(c.iter(S+"a"))
+            c.remove(a)
+        with self.assertRaisesRegex(ValueError, "collector labels"):
+            native.validate(edited(edit))
+
+    def test_short_decision_caption_cannot_enter_diamond(self):
+        def edit(root):
+            for text in root.iter(S+"text"):
+                if text.get("data-from") == "SP02" and text.get("data-to") == "SP03":
+                    text.set("y", "4013")
+                    return
+        with self.assertRaisesRegex(ValueError, "Caption overlaps node"):
+            native.validate(edited(edit))
+
+
 if __name__ == "__main__":
     unittest.main()

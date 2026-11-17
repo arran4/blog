@@ -16,6 +16,144 @@ ENDS = {"EN01", "EN02", "EN03"}
 DECISIONS = {"WS03", "WS04", "BG05", "SP05", "RV08", "RL02", "RL08"}
 
 
+def _bounds(group: ET.Element) -> tuple[float, float, float, float]:
+    shape_group = next((g for g in group if g.tag == Q("g")
+                        and "shape" in g.get("class", "").split()), None)
+    if shape_group is None or len(shape_group) != 1:
+        raise ValueError("Missing or ambiguous node shape")
+    shape = shape_group[0]
+    if shape.tag == Q("rect"):
+        x, y = float(shape.get("x")), float(shape.get("y"))
+        bounds = (x, y, x + float(shape.get("width")), y + float(shape.get("height")))
+    elif shape.tag == Q("ellipse"):
+        x, y = float(shape.get("cx")), float(shape.get("cy"))
+        rx, ry = float(shape.get("rx")), float(shape.get("ry"))
+        bounds = (x - rx, y - ry, x + rx, y + ry)
+    elif shape.tag == Q("path"):
+        numbers = [float(n) for n in re.findall(r"-?\d+(?:\.\d+)?", shape.get("d", ""))]
+        if len(numbers) < 4 or len(numbers) % 2:
+            raise ValueError("Invalid node path geometry")
+        bounds = (min(numbers[::2]), min(numbers[1::2]),
+                  max(numbers[::2]), max(numbers[1::2]))
+    else:
+        raise ValueError("Unsupported workflow node shape")
+    translation = re.search(r"translate\(([-\d.]+)\s+([-\d.]+)\)", group.get("transform", ""))
+    if translation:
+        dx, dy = float(translation.group(1)), float(translation.group(2))
+        bounds = (bounds[0] + dx, bounds[1] + dy,
+                  bounds[2] + dx, bounds[3] + dy)
+    return bounds
+
+
+def _intersects(a: tuple[float, float, float, float],
+                b: tuple[float, float, float, float]) -> bool:
+    return min(a[2], b[2]) > max(a[0], b[0]) and min(a[3], b[3]) > max(a[1], b[1])
+
+
+def _caption_bounds(label: ET.Element) -> tuple[float, float, float, float]:
+    style = label.get("style", "")
+    match = re.search(r"font-size:(\d+(?:\.\d+)?)px", style)
+    if match is None:
+        raise ValueError("Workflow caption lacks explicit font size")
+    size = float(match.group(1))
+    x, y = float(label.get("x")), float(label.get("y"))
+    text = "".join(label.itertext())
+    if not text:
+        raise ValueError("Empty workflow caption")
+    # Conservative monospaced glyph widths, with a little breathing room.
+    width = len(text) * size * 0.71 + 16
+    return (x - width / 2, y - size - 8,
+            x + width / 2, y + size * 0.25 + 5)
+
+
+def _check_route_readability(root: ET.Element, drawn: dict,
+                             edges: dict, drawn_edges: dict) -> None:
+    node_boxes = {id: _bounds(group) for id, group in drawn.items()}
+    caption_boxes = []
+    captions = {}
+    arrivals = 0
+    for anchor in root.iter(Q("a")):
+        for label in anchor:
+            if label.tag != Q("text"):
+                continue
+            from_id, to_id = label.get("data-from"), label.get("data-to")
+            if not from_id or not to_id:
+                continue
+            eid = from_id.lower() + "-" + to_id.lower()
+            if eid not in edges:
+                raise ValueError(f"Caption for nonexistent route: {eid}")
+            placement = label.get("data-route-end")
+            expected_link = f"#node-{from_id.lower()}" if placement == "arrival" else f"#node-{to_id.lower()}"
+            if anchor.get("href") != expected_link:
+                raise ValueError(f"Incorrect forward/reverse caption link for {eid}")
+            if placement == "arrival":
+                arrivals += 1
+            bbox = _caption_bounds(label)
+            for nid, node_box in node_boxes.items():
+                if _intersects(bbox, node_box):
+                    raise ValueError(f"Caption overlaps node {nid}: {eid}")
+            for prior_id, prior_box in caption_boxes:
+                if _intersects(bbox, prior_box):
+                    raise ValueError(f"Captions overlap: {prior_id}, {eid}")
+            caption_boxes.append((eid, bbox))
+            if not placement:
+                captions[eid] = label
+    if len(captions) < 75 or arrivals < 30:
+        raise ValueError("Lost primary or bidirectional route annotations")
+
+    # The short SP02 routes are in the middle of their usable vertical legs,
+    # rather than clipped to the issue-record decision diamond.
+    for eid in ("sp02-sp03", "sp02-sp04"):
+        label = captions.get(eid)
+        if label is None:
+            raise ValueError(f"Missing issue decision caption: {eid}")
+        path = next(p for p in drawn_edges[eid].iter(Q("path"))
+                    if "connection" in p.get("class", "").split())
+        nums = [float(x) for x in re.findall(r"-?\d+(?:\.\d+)?", path.get("d"))]
+        middle = (nums[1] + nums[3]) / 2
+        if abs(float(label.get("y")) - middle) > 42:
+            raise ValueError(f"Short route caption should be near midpoint: {eid}")
+    # All PL05 decisions should clear the source diamond, including abandon.
+    diamond = node_boxes["PL05"]
+    for eid, label in captions.items():
+        if eid.startswith("pl05-") and _intersects(_caption_bounds(label),
+                                                   (diamond[0]-12, diamond[1]-12,
+                                                    diamond[2]+12, diamond[3]+12)):
+            raise ValueError(f"PL05 outcome is on the decision: {eid}")
+
+    # All nine CL05 routes are distinct in the semantic model, but converge
+    # graphically into one clearly arrowed bus. Each feeder has its own
+    # arrowhead and a distinct clickable source badge below the collector.
+    incoming = {e["from"] for e in edges.values() if e["to"] == "CL05"}
+    merged = {e.get("data-from") for e in drawn_edges.values()
+              if e.get("data-merged-into") == "cl05-collector"}
+    if merged != incoming or len(incoming) != 9:
+        raise ValueError("CL05 collector feeder inventory mismatch")
+    collector = next((g for g in root.iter(Q("g")) if g.get("id") == "cl05-collector"), None)
+    if collector is None or collector.get("data-route-collector") != "CL05":
+        raise ValueError("CL05 collector missing")
+    trunk = collector.find(Q("path"))
+    if trunk is None or not trunk.get("marker-end") or not trunk.get("d"):
+        raise ValueError("CL05 collector has no directional trunk")
+    badge_sources = set()
+    for anchor in collector.iter(Q("a")):
+        href = anchor.get("href", "")
+        if not href.startswith("#node-"):
+            raise ValueError("CL05 collector badge missing reverse link")
+        badge = href[6:].upper()
+        if badge in badge_sources or badge not in incoming or anchor.find(Q("text")) is None:
+            raise ValueError("Duplicated or invalid CL05 source badge")
+        if (anchor.find(Q("text")).text or "").strip() != badge:
+            raise ValueError("CL05 badge label not aligned with its source")
+        badge_sources.add(badge)
+    if badge_sources != incoming:
+        raise ValueError("CL05 collector labels do not cover incoming routes")
+    for source in incoming:
+        route = drawn_edges[source.lower() + "-cl05"]
+        path = next(p for p in route.iter(Q("path")) if "connection" in p.get("class", "").split())
+        if not re.search(r"\s8790$", path.get("d", "")):
+            raise ValueError(f"CL05 feeder misses common collector: {source}")
+
 def validate(source: str) -> dict:
     root = ET.fromstring(source)
     if root.tag != Q("svg") or not root.get("viewBox"):
@@ -136,6 +274,8 @@ def validate(source: str) -> dict:
         y.append(float(ellipse.get("cy"))+float(translation.group(2)))
     if max(y)-min(y) > 5:
         raise ValueError("Terminals must share a horizontal row")
+
+    _check_route_readability(root, drawn, edges, drawn_edges)
 
     return model
 
