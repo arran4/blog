@@ -171,6 +171,16 @@ class NativeSvgTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Duplicate route caption|Captions overlap"):
             native.validate(edited(edit))
 
+    def test_vertical_caption_uses_near_edge_anchor(self):
+        root = ET.fromstring(SOURCE)
+        labels = {label.get("data-to"): label for label in root.iter(S+"text")
+                  if label.get("data-from") == "SP02"}
+        self.assertIn("text-anchor:end", labels["SP03"].get("style"))
+        self.assertIn("text-anchor:start", labels["SP04"].get("style"))
+        self.assertAlmostEqual(float(labels["SP03"].get("x")), 9124, delta=20)
+        self.assertAlmostEqual(float(labels["SP04"].get("x")), 9924, delta=20)
+        native.validate(SOURCE)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -63,8 +63,16 @@ def _caption_bounds(label: ET.Element) -> tuple[float, float, float, float]:
         raise ValueError("Empty workflow caption")
     # Conservative monospaced glyph widths, with a little breathing room.
     width = len(text) * size * 0.71 + 16
-    return (x - width / 2, y - size - 8,
-            x + width / 2, y + size * 0.25 + 5)
+    anchor = re.search(r"text-anchor:(middle|start|end)", style)
+    if anchor is None:
+        raise ValueError("Route caption lacks supported text anchor")
+    if anchor.group(1) == "start":
+        left, right = x - 8, x + width - 8
+    elif anchor.group(1) == "end":
+        left, right = x - width + 8, x + 8
+    else:
+        left, right = x - width / 2, x + width / 2
+    return (left, y - size - 8, right, y + size * 0.25 + 5)
 
 
 # Captions are attached to actual polyline geometry, not merely to an empty
