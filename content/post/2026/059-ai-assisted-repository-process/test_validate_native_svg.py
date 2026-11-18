@@ -117,6 +117,48 @@ class NativeSvgTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Caption overlaps node"):
             native.validate(edited(edit))
 
+    def test_floating_caption_is_rejected(self):
+        def edit(root):
+            for label in root.iter(S+"text"):
+                if label.get("data-from") == "SP02" and label.get("data-to") == "SP03":
+                    label.set("x", "8947.6")
+                    return
+        with self.assertRaisesRegex(ValueError, "not adjacent to its own route"):
+            native.validate(edited(edit))
+
+    def test_caption_cannot_be_closer_to_an_unrelated_route(self):
+        def edit(root):
+            for label in root.iter(S+"text"):
+                if label.get("data-from") == "RV10" and label.get("data-to") == "TR07" and not label.get("data-route-end"):
+                    # This location has the correct caption adjacent to RV10→TR07
+                    # but an injected unrelated connector goes through the text.
+                    x, y = float(label.get("x")), float(label.get("y"))-10
+                    group = next(g for g in root.iter(S+"g") if g.get("data-transition-id") == "rv09-rv10")
+                    p = next(p for p in group.iter(S+"path") if "connection" in p.get("class", ""))
+                    p.set("d", f"M {x-200} {y} L {x+200} {y}")
+                    return
+        with self.assertRaisesRegex(ValueError, "Caption ambiguous between"):
+            native.validate(edited(edit))
+
+    def test_long_route_needs_reverse_caption(self):
+        def edit(root):
+            for group in root.iter():
+                for a in list(group):
+                    label = a.find(S+"text") if a.tag == S+"a" else None
+                    if label is not None and label.get("data-from") == "BG01" and label.get("data-to") == "BG02" and label.get("data-route-end") == "arrival":
+                        group.remove(a)
+                        return
+        with self.assertRaisesRegex(ValueError, "Long route lacks bidirectional"):
+            native.validate(edited(edit))
+
+    def test_pr_tree_sequence_is_compact(self):
+        root = ET.fromstring(SOURCE)
+        nodes = {g.get("data-workflow-node"): g for g in root.iter(S+"g") if g.get("data-workflow-node")}
+        a, b = (native._bounds(nodes[k]) for k in ("TR02", "TR03"))
+        self.assertEqual(a[1], b[1])
+        self.assertLess(a[2], b[0])
+        native.validate(SOURCE)
+
 
 if __name__ == "__main__":
     unittest.main()

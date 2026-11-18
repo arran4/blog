@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 import sys
 import xml.etree.ElementTree as ET
@@ -66,12 +67,73 @@ def _caption_bounds(label: ET.Element) -> tuple[float, float, float, float]:
             x + width / 2, y + size * 0.25 + 5)
 
 
+# Captions are attached to actual polyline geometry, not merely to an empty
+# rectangle somewhere between two nodes. Current SVG uses M/L and zero-length
+# S bends inherited from its original layout.
+LONG_ROUTE_LENGTH = 4000
+MAX_CAPTION_GAP = 23
+MIN_ROUTE_ADVANTAGE = 4
+
+
+def _route_segments(group):
+    path = next(p for p in group.iter(Q("path"))
+                if "connection" in p.get("class", "").split())
+    data = path.get("d", "")
+    tokens = re.findall(r"[MLS]|-?\d+(?:\.\d+)?", data)
+    if re.sub(r"[\s,]+", "", data) != "".join(tokens):
+        raise ValueError("Unsupported route geometry")
+    segments = []
+    point = None
+    i = 0
+    while i < len(tokens):
+        command = tokens[i]
+        n = 4 if command == "S" else 2
+        values = tuple(map(float, tokens[i+1:i+1+n]))
+        i += n + 1
+        end = values[-2:]
+        if command == "S" and (values[:2] != point or end != point):
+            raise ValueError("Non-degenerate curve requires explicit distance support")
+        if point is not None and command != "M" and math.dist(point, end) > .01:
+            segments.append((*point, *end))
+        point = end
+    if not segments:
+        raise ValueError("Empty route")
+    return segments
+
+
+def _segment_gap(box, segment):
+    x, y, X, Y = segment
+    def gap(px, py):
+        return math.hypot(max(0, box[0]-px, px-box[2]),
+                          max(0, box[1]-py, py-box[3]))
+    # Nearly orthogonal strokes are conservatively bounded by their extent.
+    if abs(X-x) < 1 or abs(Y-y) < 1:
+        return math.hypot(max(0, box[0]-max(x,X), min(x,X)-box[2]),
+                          max(0, box[1]-max(y,Y), min(y,Y)-box[3]))
+    # Distance to a rectangle is convex along a straight segment.
+    lo, hi = 0., 1.
+    for _ in range(22):
+        a, b = (2*lo+hi)/3, (lo+2*hi)/3
+        if gap(x+a*(X-x), y+a*(Y-y)) < gap(x+b*(X-x), y+b*(Y-y)):
+            hi = b
+        else:
+            lo = a
+    t = (lo+hi)/2
+    return min(gap(x,y), gap(X,Y), gap(x+t*(X-x),y+t*(Y-y)))
+
+
+def _route_gap(box, segments):
+    return min(_segment_gap(box, segment) for segment in segments)
+
+
 def _check_route_readability(root: ET.Element, drawn: dict,
                              edges: dict, drawn_edges: dict) -> None:
     node_boxes = {id: _bounds(group) for id, group in drawn.items()}
     caption_boxes = []
     captions = {}
     arrivals = 0
+    route_segments = {eid: _route_segments(group) for eid, group in drawn_edges.items()}
+    endpoint_labels = defaultdict(set)
     for anchor in root.iter(Q("a")):
         for label in anchor:
             if label.tag != Q("text"):
@@ -95,11 +157,33 @@ def _check_route_readability(root: ET.Element, drawn: dict,
             for prior_id, prior_box in caption_boxes:
                 if _intersects(bbox, prior_box):
                     raise ValueError(f"Captions overlap: {prior_id}, {eid}")
+            own_gap = _route_gap(bbox, route_segments[eid])
+            if not 3 <= own_gap <= MAX_CAPTION_GAP:
+                raise ValueError(f"Caption is not adjacent to its own route: {eid} ({own_gap:.1f})")
+            for other_id, segments in route_segments.items():
+                if other_id != eid and _route_gap(bbox, segments) < own_gap + MIN_ROUTE_ADVANTAGE:
+                    raise ValueError(f"Caption ambiguous between {eid} and {other_id}")
+            endpoint_labels[eid].add(placement or "primary")
             caption_boxes.append((eid, bbox))
             if not placement:
                 captions[eid] = label
     if len(captions) < 75 or arrivals < 30:
         raise ValueError("Lost primary or bidirectional route annotations")
+
+    # Long routes have a forward caption and reverse arrival, except the
+    # common START intake and the explicitly source-labelled CL05 collector.
+    for eid, segments in route_segments.items():
+        length = sum(math.hypot(X-x, Y-y) for x,y,X,Y in segments)
+        if length >= LONG_ROUTE_LENGTH and not eid.startswith("st") and not eid.endswith("-cl05"):
+            kinds = endpoint_labels[eid]
+            if "arrival" not in kinds or not ({"primary", "departure"} & kinds):
+                raise ValueError(f"Long route lacks bidirectional labels: {eid}")
+    tr02, tr03, rv10 = (node_boxes[n] for n in ("TR02", "TR03", "RV10"))
+    if abs(tr02[1]-tr03[1]) > 1 or tr02[2] >= rv10[0] + (rv10[2]-rv10[0])/2:
+        raise ValueError("TR02 must sit left of RV10, aligned with TR03")
+    for eid, segments in route_segments.items():
+        if "tr02" not in eid and _route_gap(tr02, segments) < 1:
+            raise ValueError(f"Unrelated route crosses TR02: {eid}")
 
     # The short SP02 routes are in the middle of their usable vertical legs,
     # rather than clipped to the issue-record decision diamond.

@@ -2055,7 +2055,7 @@ Move to: TR02 Plan PR dependency tree when complex / dependent; EX01 Who impleme
 
 <!--WORKFLOW: NODE / TR02 — Plan PR dependency tree-->
     <a href="#node-tr02" xlink:href="#node-tr02" data-article-href="./#node-tr02">
-      <g class="VFIwMg== chat" data-workflow-node="TR02" id="node-tr02">
+      <g class="VFIwMg== chat" data-workflow-node="TR02" id="node-tr02" transform="translate(-2042 266)">
         <desc id="agent-node-tr02" xml:lang="en">TR02 — Plan PR dependency tree
 Actor: Chat LLM. State: Map PR dependencies and merge order. Map sibling PRs that can merge independently and dependent children that must wait.
 
@@ -3261,17 +3261,17 @@ Move to: WS01 Open one workstream when enter workstream.</desc>
 
 <!--WORKFLOW: ROUTE / TR01 -> TR02-->
     <g class="KFRSMDEgLSZndDsgVFIwMilbMF0=" data-from="TR01" data-to="TR02" data-transition-id="tr01-tr02" id="transition-tr01-tr02">
-      <a href="#node-tr02"><path d="M 9174.998129 5662.499999 L 9174.875 5827 S 9174.875 5827 9174.875 5827 L 10292.507812 5827 S 10292.507812 5827 10292.507812 5827 L 10292.507812 5893.5" stroke="#436B90" fill="none" class="connection" style="stroke-width:3;" marker-end="url(#mk-d2-3217221700-1839913497)" /></a>
+      <a href="#node-tr02"><path d="M 9174.998129 5662.499999 L 9175 5695 L 8250 5695 L 8250 6159" stroke="#436B90" fill="none" class="connection" style="stroke-width:3;" marker-end="url(#mk-d2-3217221700-1839913497)" /></a>
     </g>
 
 <!--WORKFLOW: ROUTE / TR01 -> EX01-->
     <g class="KFRSMDEgLSZndDsgRVgwMSlbMF0=" data-from="TR01" data-to="EX01" data-transition-id="tr01-ex01" id="transition-tr01-ex01">
-      <a href="#node-ex01"><path d="M 8790.995336 5662.499996 L 8790.875 5727 S 8790.875 5727 8790.875 5727 L 5558.083008 5727 S 5558.083008 5727 5558.083008 5727 L 5558.00044 6759.5" stroke="#436B90" fill="none" class="connection" style="stroke-width:3;" marker-end="url(#mk-d2-3217221700-1839913497)" /></a>
+      <a href="#node-ex01"><path d="M 8790.995336 5662.499996 L 8791 5680 L 5558 5680 L 5558 6759.5" stroke="#436B90" fill="none" class="connection" style="stroke-width:3;" marker-end="url(#mk-d2-3217221700-1839913497)" /></a>
     </g>
 
 <!--WORKFLOW: ROUTE / TR02 -> TR03-->
     <g class="KFRSMDIgLSZndDsgVFIwMylbMF0=" data-from="TR02" data-to="TR03" data-transition-id="tr02-tr03" id="transition-tr02-tr03">
-      <a href="#node-tr03"><path d="M 10054.507812 6005.5 L 10054.507812 6159.5" stroke="#436B90" fill="none" class="connection" style="stroke-width:3;" marker-end="url(#mk-d2-3217221700-1839913497)" /></a>
+      <a href="#node-tr03"><path d="M 8583 6217 L 9700 6217" stroke="#436B90" fill="none" class="connection" style="stroke-width:3;" marker-end="url(#mk-d2-3217221700-1839913497)" /></a>
     </g>
 
 <!--WORKFLOW: ROUTE / TR04 -> RV01-->
@@ -3716,7 +3716,7 @@ Move to: WS01 Open one workstream when enter workstream.</desc>
 
 <!--WORKFLOW: ROUTE / RV14 -> BG01-->
     <g class="KFJWMTQgLSZndDsgQkcwMSlbMF0=" data-from="RV14" data-to="BG01" data-transition-id="rv14-bg01" id="transition-rv14-bg01">
-      <a href="#node-bg01"><path d="M 2135.996889 4818.999998 L 2135.916016 4897 S 2135.916016 4897 2135.916016 4897 L 1571.5 4897 S 1571.5 4897 1571.5 4897 L 1571.5 4980" stroke="#E08C2B" fill="none" class="connection" style="stroke-width:4;stroke-dasharray:16.000000,15.310511;" marker-end="url(#mk-d2-3217221700-1022662782)" /></a>
+      <a href="#node-bg01"><path d="M 2135.996889 4818.999998 L 2135.916016 4870 L 1571.5 4870 L 1571.5 4980" stroke="#E08C2B" fill="none" class="connection" style="stroke-width:4;stroke-dasharray:16.000000,15.310511;" marker-end="url(#mk-d2-3217221700-1022662782)" /></a>
     </g>
 
 <!--WORKFLOW: ROUTE / RV14 -> RV06-->
@@ -6187,7 +6187,85 @@ Move to: WS01 Open one workstream when enter workstream.</desc>
       <rect x="9772" y="7070" width="155" height="23" fill="black" />
     </mask>
   </svg>
-  <g id="workflow-edge-label-overlay" aria-label="Staggered connector labels">
+  <g id="workflow-edge-label-overlay" aria-label="Route-relative connector labels">
+<!--WORKFLOW: CAPTION / CL06 -> EN03 / arrival-->
+    <a href="#node-cl06"><text x="13269.9" y="9192.0" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="CL06" data-to="EN03" data-route-end="arrival">CL06 → EN03</text></a>
+<!--WORKFLOW: CAPTION / TR07 -> TR03 / arrival-->
+    <a href="#node-tr07"><text x="10707.4" y="6107.5" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR07" data-to="TR03" data-route-end="arrival">TR07 → TR03</text></a>
+<!--WORKFLOW: CAPTION / TR07 -> CL01 / arrival-->
+    <a href="#node-tr07"><text x="15502.6" y="1563.5" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR07" data-to="CL01" data-route-end="arrival">TR07 → CL01</text></a>
+<!--WORKFLOW: CAPTION / TR07 -> TR04 / arrival-->
+    <a href="#node-tr07"><text x="570.0" y="2782.1" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR07" data-to="TR04" data-route-end="arrival">TR07 → TR04</text></a>
+<!--WORKFLOW: CAPTION / RV10 -> TR07 / arrival-->
+    <a href="#node-rv10"><text x="11129.5" y="2110.7" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV10" data-to="TR07" data-route-end="arrival">RV10 → TR07</text></a>
+<!--WORKFLOW: CAPTION / RV14 -> RV08 / arrival-->
+    <a href="#node-rv14"><text x="7465.7" y="4879.5" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV14" data-to="RV08" data-route-end="arrival">RV14 → RV08</text></a>
+<!--WORKFLOW: CAPTION / RV12 -> RV08 / arrival-->
+    <a href="#node-rv12"><text x="7992.2" y="4498.8" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV12" data-to="RV08" data-route-end="arrival">RV12 → RV08</text></a>
+<!--WORKFLOW: CAPTION / TR06 -> EX01 / arrival-->
+    <a href="#node-tr06"><text x="6198.7" y="6529.5" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR06" data-to="EX01" data-route-end="arrival">TR06 → EX01</text></a>
+<!--WORKFLOW: CAPTION / BG02 -> BG07 / arrival-->
+    <a href="#node-bg02"><text x="8773.2" y="1861.5" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG02" data-to="BG07" data-route-end="arrival">BG02 → BG07</text></a>
+<!--WORKFLOW: CAPTION / BG02 -> BG04 / arrival-->
+    <a href="#node-bg02"><text x="8186.9" y="2019.0" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG02" data-to="BG04" data-route-end="arrival">BG02 → BG04</text></a>
+<!--WORKFLOW: CAPTION / BG02 -> BG06 / arrival-->
+    <a href="#node-bg02"><text x="3213.2" y="5950.0" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG02" data-to="BG06" data-route-end="arrival">BG02 → BG06</text></a>
+<!--WORKFLOW: CAPTION / WS04 -> RL01 / arrival-->
+    <a href="#node-ws04"><text x="13191.8" y="2691.5" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS04" data-to="RL01" data-route-end="arrival">WS04 → RL01</text></a>
+<!--WORKFLOW: CAPTION / WS04 -> RV01 / arrival-->
+    <a href="#node-ws04"><text x="188.0" y="7511.9" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS04" data-to="RV01" data-route-end="arrival">WS04 → RV01</text></a>
+<!--WORKFLOW: CAPTION / WS04 -> BG01 / arrival-->
+    <a href="#node-ws04"><text x="1181.0" y="3111.3" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS04" data-to="BG01" data-route-end="arrival">WS04 → BG01</text></a>
+<!--WORKFLOW: CAPTION / RL08 -> EN01 / arrival-->
+    <a href="#node-rl08"><text x="8556.0" y="9062.5" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL08" data-to="EN01" data-route-end="arrival">RL08 → EN01</text></a>
+<!--WORKFLOW: CAPTION / RL02 -> EN01 / arrival-->
+    <a href="#node-rl02"><text x="8469.6" y="9170.0" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL02" data-to="EN01" data-route-end="arrival">RL02 → EN01</text></a>
+<!--WORKFLOW: CAPTION / RV08 -> CL06 / arrival-->
+    <a href="#node-rv08"><text x="9352.8" y="6637.0" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV08" data-to="CL06" data-route-end="arrival">RV08 → CL06</text></a>
+<!--WORKFLOW: CAPTION / RV08 -> RV04 / arrival-->
+    <a href="#node-rv08"><text x="4714.9" y="3597.0" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV08" data-to="RV04" data-route-end="arrival">RV08 → RV04</text></a>
+<!--WORKFLOW: CAPTION / RV04 -> CL06 / arrival-->
+    <a href="#node-rv04"><text x="10872.3" y="6579.5" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV04" data-to="CL06" data-route-end="arrival">RV04 → CL06</text></a>
+<!--WORKFLOW: CAPTION / RV04 -> SP01 / arrival-->
+    <a href="#node-rv04"><text x="9139.8" y="3497.0" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV04" data-to="SP01" data-route-end="arrival">RV04 → SP01</text></a>
+<!--WORKFLOW: CAPTION / RV04 -> PL01 / arrival-->
+    <a href="#node-rv04"><text x="12699.2" y="4306.8" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV04" data-to="PL01" data-route-end="arrival">RV04 → PL01</text></a>
+<!--WORKFLOW: CAPTION / RV04 -> RV06 / arrival-->
+    <a href="#node-rv04"><text x="1775.6" y="4987.0" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV04" data-to="RV06" data-route-end="arrival">RV04 → RV06</text></a>
+<!--WORKFLOW: CAPTION / RV04 -> RV05 / arrival-->
+    <a href="#node-rv04"><text x="975.0" y="4888.9" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV04" data-to="RV05" data-route-end="arrival">RV04 → RV05</text></a>
+<!--WORKFLOW: CAPTION / RV03 -> RV04 / arrival-->
+    <a href="#node-rv03"><text x="2835.8" y="3139.5" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV03" data-to="RV04" data-route-end="arrival">RV03 → RV04</text></a>
+<!--WORKFLOW: CAPTION / EX05 -> RV01 / arrival-->
+    <a href="#node-ex05"><text x="1795.8" y="7875.0" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="EX05" data-to="RV01" data-route-end="arrival">EX05 → RV01</text></a>
+<!--WORKFLOW: CAPTION / EX05 -> RV01 / departure-->
+    <a href="#node-rv01"><text x="5117.6" y="7817.5" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="EX05" data-to="RV01" data-route-end="departure">EX05 → RV01</text></a>
+<!--WORKFLOW: CAPTION / TR04 -> RV01 / arrival-->
+    <a href="#node-tr04"><text x="846.2" y="7817.5" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR04" data-to="RV01" data-route-end="arrival">TR04 → RV01</text></a>
+<!--WORKFLOW: CAPTION / TR01 -> EX01 / arrival-->
+    <a href="#node-tr01"><text x="5442.5" y="6388.0" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR01" data-to="EX01" data-route-end="arrival">TR01 → EX01</text></a>
+<!--WORKFLOW: CAPTION / PL05 -> CL06 / arrival-->
+    <a href="#node-pl05"><text x="10617.6" y="6687.0" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="PL05" data-to="CL06" data-route-end="arrival">PL05 → CL06</text></a>
+<!--WORKFLOW: CAPTION / PL05 -> PL01 / arrival-->
+    <a href="#node-pl05"><text x="13585.7" y="4531.5" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="PL05" data-to="PL01" data-route-end="arrival">PL05 → PL01</text></a>
+<!--WORKFLOW: CAPTION / PL02 -> PL03 / arrival-->
+    <a href="#node-pl02"><text x="15249.7" y="2259.5" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="PL02" data-to="PL03" data-route-end="arrival">PL02 → PL03</text></a>
+<!--WORKFLOW: CAPTION / PL02 -> PL03 / departure-->
+    <a href="#node-pl03"><text x="16650.5" y="4879.5" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="PL02" data-to="PL03" data-route-end="departure">PL02 → PL03</text></a>
+<!--WORKFLOW: CAPTION / BG05 -> PL01 / arrival-->
+    <a href="#node-bg05"><text x="12757.5" y="4491.4" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG05" data-to="PL01" data-route-end="arrival">BG05 → PL01</text></a>
+<!--WORKFLOW: CAPTION / BG05 -> BG01 / arrival-->
+    <a href="#node-bg05"><text x="1560.5" y="3110.4" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG05" data-to="BG01" data-route-end="arrival">BG05 → BG01</text></a>
+<!--WORKFLOW: CAPTION / BG03 -> BG05 / arrival-->
+    <a href="#node-bg03"><text x="8909.9" y="2861.9" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG03" data-to="BG05" data-route-end="arrival">BG03 → BG05</text></a>
+<!--WORKFLOW: CAPTION / BG01 -> BG02 / arrival-->
+    <a href="#node-bg01"><text x="2714.1" y="1861.5" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG01" data-to="BG02" data-route-end="arrival">BG01 → BG02</text></a>
+<!--WORKFLOW: CAPTION / BG01 -> BG02 / departure-->
+    <a href="#node-bg02"><text x="1280.0" y="2643.6" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG01" data-to="BG02" data-route-end="departure">BG01 → BG02</text></a>
+<!--WORKFLOW: CAPTION / WS03 -> BG01 / arrival-->
+    <a href="#node-ws03"><text x="1810.4" y="3489.5" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS03" data-to="BG01" data-route-end="arrival">WS03 → BG01</text></a>
+<!--WORKFLOW: CAPTION / WS03 -> PL01 / arrival-->
+    <a href="#node-ws03"><text x="12559.6" y="4689.0" class="text-mono-italic" fill="#22557c" style="text-anchor:middle;font-size:26px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS03" data-to="PL01" data-route-end="arrival">WS03 → PL01</text></a>
 <!--WORKFLOW: LEGEND CAPTION / PROGRESS-->
     <text x="20429.5" y="3942" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:27px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round">PROGRESS</text>
 <!--WORKFLOW: LEGEND CAPTION / APPROVED-->
@@ -6199,184 +6277,184 @@ Move to: WS01 Open one workstream when enter workstream.</desc>
 <!--WORKFLOW: LEGEND CAPTION / ABANDONED-->
     <text x="20400.5" y="4522" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:27px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round">ABANDONED</text>
 <!--WORKFLOW: CAPTION / WS03 -> PL01 / major → PL01-->
-    <a href="#node-pl01"><text x="9330.6" y="3183.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS03" data-to="PL01">major → PL01</text></a>
-<!--WORKFLOW: CAPTION / WS03 -> SP01 / routine → SP01-->
-    <a href="#node-sp01"><text x="8703.8" y="3238.2" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS03" data-to="SP01">routine → SP01</text></a>
+    <a href="#node-pl01"><text x="9396.7" y="3239.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS03" data-to="PL01">major → PL01</text></a>
+<!--WORKFLOW: CAPTION / WS03 -> SP01 / routine-->
+    <a href="#node-sp01"><text x="8788.3" y="3359.9" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS03" data-to="SP01">routine</text></a>
 <!--WORKFLOW: CAPTION / WS03 -> BG01 / bug-->
-    <a href="#node-bg01"><text x="8500.6" y="3292.7" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS03" data-to="BG01">bug</text></a>
+    <a href="#node-bg01"><text x="8382.7" y="3549.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS03" data-to="BG01">bug</text></a>
 <!--WORKFLOW: CAPTION / BG05 -> BG01 / retry → BG01-->
-    <a href="#node-bg01"><text x="8404.4" y="2735.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG05" data-to="BG01">retry → BG01</text></a>
+    <a href="#node-bg01"><text x="7884.3" y="2791.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG05" data-to="BG01">retry → BG01</text></a>
 <!--WORKFLOW: CAPTION / BG05 -> PL01 / redesign → PL01-->
-    <a href="#node-pl01"><text x="9512.6" y="2839.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG05" data-to="PL01">redesign → PL01</text></a>
+    <a href="#node-pl01"><text x="10220.9" y="2801.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG05" data-to="PL01">redesign → PL01</text></a>
 <!--WORKFLOW: CAPTION / PL05 -> PL01 / not enough-->
-    <a href="#node-pl01"><text x="12457.8" y="3287.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="PL05" data-to="PL01">not enough</text></a>
+    <a href="#node-pl01"><text x="12654.8" y="3249.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="PL05" data-to="PL01">not enough</text></a>
 <!--WORKFLOW: CAPTION / PL05 -> CL05 / defer → CL05-->
-    <a href="#node-cl05"><text x="12756.6" y="3237.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="PL05" data-to="CL05">defer → CL05</text></a>
+    <a href="#node-cl05"><text x="14431.3" y="3139.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="PL05" data-to="CL05">defer → CL05</text></a>
 <!--WORKFLOW: CAPTION / PL05 -> CL06 / abandon → CL06-->
-    <a href="#node-cl06"><text x="11824.8" y="3374.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="PL05" data-to="CL06">abandon → CL06</text></a>
+    <a href="#node-cl06"><text x="11839.8" y="3624.6" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="PL05" data-to="CL06">abandon → CL06</text></a>
 <!--WORKFLOW: CAPTION / PL05 -> SP01 / sufficient-->
-    <a href="#node-sp01"><text x="11584.0" y="3263.7" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="PL05" data-to="SP01">sufficient</text></a>
+    <a href="#node-sp01"><text x="10827.3" y="3499.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="PL05" data-to="SP01">sufficient</text></a>
 <!--WORKFLOW: CAPTION / SP02 -> SP03 / new issue-->
-    <a href="#node-sp03"><text x="8947.6" y="4079.5" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="SP02" data-to="SP03">new issue</text></a>
+    <a href="#node-sp03"><text x="9020.5" y="4058.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="SP02" data-to="SP03">new issue</text></a>
 <!--WORKFLOW: CAPTION / SP02 -> SP04 / yes-->
-    <a href="#node-sp04"><text x="9984.4" y="4333.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="SP02" data-to="SP04">yes</text></a>
+    <a href="#node-sp04"><text x="9967.7" y="4345.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="SP02" data-to="SP04">yes</text></a>
 <!--WORKFLOW: CAPTION / TR01 -> TR02 / complex-->
-    <a href="#node-tr02"><text x="9331.5" y="5822.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR01" data-to="TR02">complex</text></a>
+    <a href="#node-tr02"><text x="8490.9" y="5743.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR01" data-to="TR02">complex</text></a>
 <!--WORKFLOW: CAPTION / TR01 -> EX01 / single PR-->
-    <a href="#node-ex01"><text x="8614.7" y="5807.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR01" data-to="EX01">single PR</text></a>
+    <a href="#node-ex01"><text x="8294.8" y="5656.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR01" data-to="EX01">single PR</text></a>
 <!--WORKFLOW: CAPTION / TR04 -> RV01 / TEST → RV01-->
-    <a href="#node-rv01"><text x="686.0" y="6196.0" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR04" data-to="RV01">TEST → RV01</text></a>
+    <a href="#node-rv01"><text x="562.2" y="4395.9" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR04" data-to="RV01">TEST → RV01</text></a>
 <!--WORKFLOW: CAPTION / EX01 -> EX05 / tiny fix-->
-    <a href="#node-ex05"><text x="6261.4" y="6980.7" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="EX01" data-to="EX05">tiny fix</text></a>
+    <a href="#node-ex05"><text x="5627.0" y="7137.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="EX01" data-to="EX05">tiny fix</text></a>
 <!--WORKFLOW: CAPTION / EX01 -> EX02 / coding model-->
-    <a href="#node-ex02"><text x="5233.6" y="7075.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="EX01" data-to="EX02">coding model</text></a>
+    <a href="#node-ex02"><text x="3904.0" y="6977.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="EX01" data-to="EX02">coding model</text></a>
 <!--WORKFLOW: CAPTION / EX01 -> BG03 / human UI → BG03-->
-    <a href="#node-bg03"><text x="5560.8" y="7125.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="EX01" data-to="BG03">human UI → BG03</text></a>
+    <a href="#node-bg03"><text x="5207.9" y="7087.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="EX01" data-to="BG03">human UI → BG03</text></a>
 <!--WORKFLOW: CAPTION / RV04 -> RV05 / small repair-->
-    <a href="#node-rv05"><text x="3588.4" y="3287.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV04" data-to="RV05">small repair</text></a>
+    <a href="#node-rv05"><text x="957.2" y="3229.5" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV04" data-to="RV05">small repair</text></a>
 <!--WORKFLOW: CAPTION / RV04 -> RV06 / complex repair-->
-    <a href="#node-rv06"><text x="4111.2" y="3183.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV04" data-to="RV06">complex repair</text></a>
+    <a href="#node-rv06"><text x="3706.8" y="3299.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV04" data-to="RV06">complex repair</text></a>
 <!--WORKFLOW: CAPTION / RV04 -> PL01 / requirements → PL01-->
-    <a href="#node-pl01"><text x="5053.2" y="3183.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV04" data-to="PL01">requirements → PL01</text></a>
+    <a href="#node-pl01"><text x="5487.7" y="3289.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV04" data-to="PL01">requirements → PL01</text></a>
 <!--WORKFLOW: CAPTION / RV04 -> SP01 / spec mismatch → SP01-->
-    <a href="#node-sp01"><text x="4765.0" y="3272.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV04" data-to="SP01">spec mismatch → SP01</text></a>
+    <a href="#node-sp01"><text x="8812.7" y="3499.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV04" data-to="SP01">spec mismatch → SP01</text></a>
 <!--WORKFLOW: CAPTION / RV04 -> RV07 / ready-->
-    <a href="#node-rv07"><text x="4012.0" y="3363.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV04" data-to="RV07">ready</text></a>
+    <a href="#node-rv07"><text x="4028.1" y="3375.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV04" data-to="RV07">ready</text></a>
 <!--WORKFLOW: CAPTION / RV04 -> CL06 / abandon → CL06-->
-    <a href="#node-cl06"><text x="4518.8" y="3204.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV04" data-to="CL06">abandon → CL06</text></a>
+    <a href="#node-cl06"><text x="5477.4" y="3389.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV04" data-to="CL06">abandon → CL06</text></a>
 <!--WORKFLOW: CAPTION / RV06 -> EX02 / REPAIR → EX02-->
-    <a href="#node-ex02"><text x="2115.5" y="6130.0" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV06" data-to="EX02">REPAIR → EX02</text></a>
+    <a href="#node-ex02"><text x="1972.2" y="6133.5" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV06" data-to="EX02">REPAIR → EX02</text></a>
 <!--WORKFLOW: CAPTION / RV08 -> RV04 / changes → RV04-->
-    <a href="#node-rv04"><text x="8427.2" y="4733.5" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV08" data-to="RV04">changes → RV04</text></a>
+    <a href="#node-rv04"><text x="8412.2" y="4614.8" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV08" data-to="RV04">changes → RV04</text></a>
 <!--WORKFLOW: CAPTION / RV08 -> CL05 / hold → CL05-->
-    <a href="#node-cl05"><text x="7586.2" y="5275.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV08" data-to="CL05">hold → CL05</text></a>
+    <a href="#node-cl05"><text x="7068.9" y="5177.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV08" data-to="CL05">hold → CL05</text></a>
 <!--WORKFLOW: CAPTION / RV08 -> CL06 / cancel → CL06-->
-    <a href="#node-cl06"><text x="7892.1" y="5325.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV08" data-to="CL06">cancel → CL06</text></a>
+    <a href="#node-cl06"><text x="7771.8" y="5287.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV08" data-to="CL06">cancel → CL06</text></a>
 <!--WORKFLOW: CAPTION / RV08 -> RV09 / approved-->
-    <a href="#node-rv09"><text x="8542.4" y="5221.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV08" data-to="RV09">approved</text></a>
+    <a href="#node-rv09"><text x="9658.6" y="5337.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV08" data-to="RV09">approved</text></a>
 <!--WORKFLOW: CAPTION / RV10 -> TR03 / next PR → TR03-->
-    <a href="#node-tr03"><text x="10048.2" y="6101.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV10" data-to="TR03">next PR → TR03</text></a>
+    <a href="#node-tr03"><text x="9727.0" y="6089.8" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV10" data-to="TR03">next PR → TR03</text></a>
 <!--WORKFLOW: CAPTION / RV10 -> CL05 / blocked → CL05-->
-    <a href="#node-cl05"><text x="8722.3" y="6155.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV10" data-to="CL05">blocked → CL05</text></a>
+    <a href="#node-cl05"><text x="8427.4" y="6117.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV10" data-to="CL05">blocked → CL05</text></a>
 <!--WORKFLOW: CAPTION / RL02 -> EN01 / no release-->
-    <a href="#node-en01"><text x="13971.3" y="3879.1" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL02" data-to="EN01">no release</text></a>
+    <a href="#node-en01"><text x="14543.4" y="4065.4" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL02" data-to="EN01">no release</text></a>
 <!--WORKFLOW: CAPTION / RL02 -> CL05 / defer → CL05-->
-    <a href="#node-cl05"><text x="13142.4" y="3885.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL02" data-to="CL05">defer → CL05</text></a>
+    <a href="#node-cl05"><text x="12289.9" y="3840.4" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL02" data-to="CL05">defer → CL05</text></a>
 <!--WORKFLOW: CAPTION / RL02 -> RL03 / approved release-->
-    <a href="#node-rl03"><text x="14026.8" y="3943.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL02" data-to="RL03">approved release</text></a>
+    <a href="#node-rl03"><text x="15160.6" y="3787.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL02" data-to="RL03">approved release</text></a>
 <!--WORKFLOW: CAPTION / RL03 -> RL07 / already public-->
-    <a href="#node-rl07"><text x="17063.2" y="4133.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL03" data-to="RL07">already public</text></a>
+    <a href="#node-rl07"><text x="18507.9" y="4035.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL03" data-to="RL07">already public</text></a>
 <!--WORKFLOW: CAPTION / RL03 -> RL04 / first public-->
-    <a href="#node-rl04"><text x="16146.4" y="4133.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL03" data-to="RL04">first public</text></a>
+    <a href="#node-rl04"><text x="15657.3" y="4035.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL03" data-to="RL04">first public</text></a>
 <!--WORKFLOW: CAPTION / RL05 -> RL06 / no rewrite-->
-    <a href="#node-rl06"><text x="18643.0" y="4923.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL05" data-to="RL06">no rewrite</text></a>
+    <a href="#node-rl06"><text x="18400.5" y="4931.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL05" data-to="RL06">no rewrite</text></a>
 <!--WORKFLOW: CAPTION / RL05 -> CL05 / consent → CL05-->
-    <a href="#node-cl05"><text x="17790.8" y="5103.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL05" data-to="CL05">consent → CL05</text></a>
+    <a href="#node-cl05"><text x="17805.8" y="5902.6" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL05" data-to="CL05">consent → CL05</text></a>
 <!--WORKFLOW: CAPTION / RL08 -> EN01 / confirmed-->
-    <a href="#node-en01"><text x="18776.1" y="5787.2" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL08" data-to="EN01">confirmed</text></a>
+    <a href="#node-en01"><text x="19023.5" y="6778.6" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL08" data-to="EN01">confirmed</text></a>
 <!--WORKFLOW: CAPTION / RL08 -> CL05 / publish fail → CL05-->
-    <a href="#node-cl05"><text x="18999.2" y="5960.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL08" data-to="CL05">publish fail → CL05</text></a>
+    <a href="#node-cl05"><text x="18579.2" y="6764.8" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL08" data-to="CL05">publish fail → CL05</text></a>
 <!--WORKFLOW: CAPTION / WS04 -> WS03 / planned change-->
-    <a href="#node-ws03"><text x="7900.2" y="2782.3" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS04" data-to="WS03">planned change</text></a>
+    <a href="#node-ws03"><text x="8095.6" y="2951.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS04" data-to="WS03">planned change</text></a>
 <!--WORKFLOW: CAPTION / WS04 -> BG01 / reported bug-->
-    <a href="#node-bg01"><text x="7246.8" y="2839.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS04" data-to="BG01">reported bug</text></a>
+    <a href="#node-bg01"><text x="7585.7" y="2763.6" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS04" data-to="BG01">reported bug</text></a>
 <!--WORKFLOW: CAPTION / WS04 -> RV01 / resume → RV01-->
-    <a href="#node-rv01"><text x="6957.4" y="2789.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS04" data-to="RV01">resume → RV01</text></a>
+    <a href="#node-rv01"><text x="6118.6" y="2691.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS04" data-to="RV01">resume → RV01</text></a>
 <!--WORKFLOW: CAPTION / WS04 -> RL01 / release → RL01-->
-    <a href="#node-rl01"><text x="8236.8" y="2807.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS04" data-to="RL01">release → RL01</text></a>
+    <a href="#node-rl01"><text x="8360.5" y="2751.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS04" data-to="RL01">release → RL01</text></a>
 <!--WORKFLOW: CAPTION / BG02 -> BG06 / human diagnosis-->
-    <a href="#node-bg06"><text x="3151.0" y="2098.5" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG02" data-to="BG06">human diagnosis</text></a>
+    <a href="#node-bg06"><text x="3165.9" y="2267.2" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG02" data-to="BG06">human diagnosis</text></a>
 <!--WORKFLOW: CAPTION / BG02 -> BG04 / Chat diagnosis-->
-    <a href="#node-bg04"><text x="3771.1" y="2059.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG02" data-to="BG04">Chat diagnosis</text></a>
+    <a href="#node-bg04"><text x="3855.3" y="1961.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG02" data-to="BG04">Chat diagnosis</text></a>
 <!--WORKFLOW: CAPTION / BG02 -> BG07 / coding agent-->
-    <a href="#node-bg07"><text x="3986.7" y="1959.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG02" data-to="BG07">coding agent</text></a>
+    <a href="#node-bg07"><text x="4177.3" y="1861.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG02" data-to="BG07">coding agent</text></a>
 <!--WORKFLOW: CAPTION / BG05 -> BG09 / confirmed-->
-    <a href="#node-bg09"><text x="9212.2" y="2889.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG05" data-to="BG09">confirmed</text></a>
+    <a href="#node-bg09"><text x="9535.1" y="2851.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG05" data-to="BG09">confirmed</text></a>
 <!--WORKFLOW: CAPTION / PL03 -> PL04 / conflict-->
-    <a href="#node-pl04"><text x="14417.5" y="2271.5" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="PL03" data-to="PL04">conflict</text></a>
+    <a href="#node-pl04"><text x="14344.6" y="2250.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="PL03" data-to="PL04">conflict</text></a>
 <!--WORKFLOW: CAPTION / PL03 -> PL05 / clear-->
-    <a href="#node-pl05"><text x="13989.8" y="2272.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="PL03" data-to="PL05">clear</text></a>
+    <a href="#node-pl05"><text x="12665.8" y="2209.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="PL03" data-to="PL05">clear</text></a>
 <!--WORKFLOW: CAPTION / PL07 -> PL02 / questions → PL02-->
-    <a href="#node-pl02"><text x="14676.8" y="2777.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="PL07" data-to="PL02">questions → PL02</text></a>
+    <a href="#node-pl02"><text x="15651.9" y="3226.1" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="PL07" data-to="PL02">questions → PL02</text></a>
 <!--WORKFLOW: CAPTION / PL07 -> PL05 / resolved-->
-    <a href="#node-pl05"><text x="13847.0" y="2889.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="PL07" data-to="PL05">resolved</text></a>
+    <a href="#node-pl05"><text x="13198.9" y="2791.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="PL07" data-to="PL05">resolved</text></a>
 <!--WORKFLOW: CAPTION / SP05 -> SP04 / approved-->
-    <a href="#node-sp04"><text x="9614.4" y="4587.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="SP05" data-to="SP04">approved</text></a>
+    <a href="#node-sp04"><text x="9411.7" y="4599.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="SP05" data-to="SP04">approved</text></a>
 <!--WORKFLOW: CAPTION / SP05 -> CL05 / rejected → CL05-->
-    <a href="#node-cl05"><text x="8635.5" y="4629.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="SP05" data-to="CL05">rejected → CL05</text></a>
+    <a href="#node-cl05"><text x="7911.2" y="4591.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="SP05" data-to="CL05">rejected → CL05</text></a>
 <!--WORKFLOW: CAPTION / SP06 -> TR01 / existing repo-->
-    <a href="#node-tr01"><text x="9191.9" y="5275.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="SP06" data-to="TR01">existing repo</text></a>
+    <a href="#node-tr01"><text x="8958.0" y="5237.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="SP06" data-to="TR01">existing repo</text></a>
 <!--WORKFLOW: CAPTION / SP06 -> TR05 / new repo-->
-    <a href="#node-tr05"><text x="9689.2" y="5325.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="SP06" data-to="TR05">new repo</text></a>
+    <a href="#node-tr05"><text x="9531.9" y="5227.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="SP06" data-to="TR05">new repo</text></a>
 <!--WORKFLOW: CAPTION / TR06 -> EX01 / unblocked node-->
-    <a href="#node-ex01"><text x="9518.8" y="6627.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR06" data-to="EX01">unblocked node</text></a>
+    <a href="#node-ex01"><text x="9248.0" y="6529.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR06" data-to="EX01">unblocked node</text></a>
 <!--WORKFLOW: CAPTION / TR06 -> CL05 / blocked → CL05-->
-    <a href="#node-cl05"><text x="10643.2" y="6724.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR06" data-to="CL05">blocked → CL05</text></a>
+    <a href="#node-cl05"><text x="10321.9" y="6716.9" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR06" data-to="CL05">blocked → CL05</text></a>
 <!--WORKFLOW: CAPTION / TR06 -> CL06 / cancel → CL06-->
-    <a href="#node-cl06"><text x="9939.4" y="6608.5" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR06" data-to="CL06">cancel → CL06</text></a>
+    <a href="#node-cl06"><text x="9924.3" y="6548.8" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR06" data-to="CL06">cancel → CL06</text></a>
 <!--WORKFLOW: CAPTION / RV17 -> QA01 / checks pass-->
-    <a href="#node-qa01"><text x="882.2" y="8565.5" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV17" data-to="QA01">checks pass</text></a>
+    <a href="#node-qa01"><text x="897.7" y="8568.2" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV17" data-to="QA01">checks pass</text></a>
 <!--WORKFLOW: CAPTION / RV17 -> CL05 / CI blocked → CL05-->
-    <a href="#node-cl05"><text x="1724.6" y="8524.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV17" data-to="CL05">CI blocked → CL05</text></a>
+    <a href="#node-cl05"><text x="2153.3" y="8613.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV17" data-to="CL05">CI blocked → CL05</text></a>
 <!--WORKFLOW: CAPTION / RV12 -> RV04 / objections → RV04-->
-    <a href="#node-rv04"><text x="4042.4" y="3495.5" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV12" data-to="RV04">objections → RV04</text></a>
+    <a href="#node-rv04"><text x="4423.0" y="3621.8" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV12" data-to="RV04">objections → RV04</text></a>
 <!--WORKFLOW: CAPTION / RV12 -> RV15 / bug or UI proof-->
-    <a href="#node-rv15"><text x="3578.8" y="4133.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV12" data-to="RV15">bug or UI proof</text></a>
+    <a href="#node-rv15"><text x="3137.7" y="4035.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV12" data-to="RV15">bug or UI proof</text></a>
 <!--WORKFLOW: CAPTION / RV12 -> RV08 / other PR-->
-    <a href="#node-rv08"><text x="4424.1" y="4133.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV12" data-to="RV08">other PR</text></a>
+    <a href="#node-rv08"><text x="4619.9" y="4095.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV12" data-to="RV08">other PR</text></a>
 <!--WORKFLOW: CAPTION / RV15 -> RV13 / human UI-->
-    <a href="#node-rv13"><text x="1968.3" y="4327.5" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV15" data-to="RV13">human UI</text></a>
+    <a href="#node-rv13"><text x="2041.3" y="4306.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV15" data-to="RV13">human UI</text></a>
 <!--WORKFLOW: CAPTION / RV15 -> RV16 / automated UI-->
-    <a href="#node-rv16"><text x="3072.8" y="4327.5" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV15" data-to="RV16">automated UI</text></a>
+    <a href="#node-rv16"><text x="2733.8" y="4306.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV15" data-to="RV16">automated UI</text></a>
 <!--WORKFLOW: CAPTION / RV14 -> RV08 / verified-->
-    <a href="#node-rv08"><text x="3032.3" y="4977.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV14" data-to="RV08">verified</text></a>
-<!--WORKFLOW: CAPTION / RV14 -> BG01 / wrong cause → BG01-->
-    <a href="#node-bg01"><text x="1871.5" y="4942.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV14" data-to="BG01">wrong cause → BG01</text></a>
+    <a href="#node-rv08"><text x="3182.3" y="4939.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV14" data-to="RV08">verified</text></a>
+<!--WORKFLOW: CAPTION / RV14 -> BG01 / wrong cause-->
+    <a href="#node-bg01"><text x="1825.5" y="4912.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV14" data-to="BG01">wrong cause</text></a>
 <!--WORKFLOW: CAPTION / RV14 -> RV06 / patch faulty-->
-    <a href="#node-rv06"><text x="2387.6" y="4923.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV14" data-to="RV06">patch faulty</text></a>
+    <a href="#node-rv06"><text x="2372.4" y="4919.9" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV14" data-to="RV06">patch faulty</text></a>
 <!--WORKFLOW: CAPTION / RV10 -> TR07 / milestone → TR07-->
-    <a href="#node-tr07"><text x="9688.3" y="5755.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV10" data-to="TR07">milestone → TR07</text></a>
+    <a href="#node-tr07"><text x="9884.2" y="5819.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV10" data-to="TR07">milestone → TR07</text></a>
 <!--WORKFLOW: CAPTION / TR07 -> TR04 / dogfood required-->
-    <a href="#node-tr04"><text x="10739.9" y="1661.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR07" data-to="TR04">dogfood required</text></a>
+    <a href="#node-tr04"><text x="9914.0" y="1563.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR07" data-to="TR04">dogfood required</text></a>
 <!--WORKFLOW: CAPTION / TR07 -> CL01 / complete → CL01-->
-    <a href="#node-cl01"><text x="12002.1" y="1661.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR07" data-to="CL01">complete → CL01</text></a>
+    <a href="#node-cl01"><text x="12063.5" y="1623.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR07" data-to="CL01">complete → CL01</text></a>
 <!--WORKFLOW: CAPTION / TR07 -> TR03 / more work → TR03-->
-    <a href="#node-tr03"><text x="11193.2" y="1814.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR07" data-to="TR03">more work → TR03</text></a>
+    <a href="#node-tr03"><text x="11554.1" y="2077.6" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="TR07" data-to="TR03">more work → TR03</text></a>
 <!--WORKFLOW: CAPTION / RL09 -> RL05 / safe-->
-    <a href="#node-rl05"><text x="15416.2" y="4629.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL09" data-to="RL05">safe</text></a>
+    <a href="#node-rl05"><text x="16774.1" y="4531.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL09" data-to="RL05">safe</text></a>
 <!--WORKFLOW: CAPTION / RL09 -> PL01 / unsafe → PL01-->
-    <a href="#node-pl01"><text x="14577.6" y="4679.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL09" data-to="PL01">unsafe → PL01</text></a>
+    <a href="#node-pl01"><text x="14142.1" y="4641.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL09" data-to="PL01">unsafe → PL01</text></a>
 <!--WORKFLOW: CAPTION / RL08 -> RL07 / retry → RL07-->
-    <a href="#node-rl07"><text x="19119.3" y="5281.0" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL08" data-to="RL07">retry → RL07</text></a>
+    <a href="#node-rl07"><text x="18780.6" y="5494.2" fill="#000410" class="text-italic fill-N1" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RL08" data-to="RL07">retry → RL07</text></a>
 <!--WORKFLOW: CAPTION / CL05 -> EN02 / PARKED → EN02-->
-    <a href="#node-en02"><text x="9450.0" y="9200.0" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="CL05" data-to="EN02">PARKED → EN02</text></a>
+    <a href="#node-en02"><text x="9486.8" y="9240.5" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="CL05" data-to="EN02">PARKED → EN02</text></a>
 <!--WORKFLOW: CAPTION / CL06 -> EN03 / STOPPED → EN03-->
-    <a href="#node-en03"><text x="9849.5" y="7088.0" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="CL06" data-to="EN03">STOPPED → EN03</text></a>
+    <a href="#node-en03"><text x="10670.1" y="6839.0" fill="#0000B8" class="text-mono-italic fill-N2" style="text-anchor:middle;font-size:28px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="CL06" data-to="EN03">STOPPED → EN03</text></a>
     <!--WORKFLOW: ROUTE END LABELS / long connectors and distinct entry origins -->
 <!--WORKFLOW: START ROUTE / ST01 -> WS01 / INITIAL -->
-    <a href="#node-ws01"><text x="5492.5" y="1195" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:23px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="ST01" data-to="WS01" data-route-end="departure">INITIAL</text></a>
+    <a href="#node-ws01"><text x="5582.2" y="1216.3" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:23px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="ST01" data-to="WS01" data-route-end="departure">INITIAL</text></a>
 <!--WORKFLOW: START ROUTE / ST02 -> WS01 / PLANNED -->
-    <a href="#node-ws01"><text x="3779.5" y="1195" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:23px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="ST02" data-to="WS01" data-route-end="departure">PLANNED</text></a>
+    <a href="#node-ws01"><text x="3881.4" y="1316.3" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:23px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="ST02" data-to="WS01" data-route-end="departure">PLANNED</text></a>
 <!--WORKFLOW: START ROUTE / ST03 -> WS01 / BUG -->
-    <a href="#node-ws01"><text x="4614" y="1195" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:23px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="ST03" data-to="WS01" data-route-end="departure">BUG</text></a>
+    <a href="#node-ws01"><text x="4697.5" y="1266.3" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:23px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="ST03" data-to="WS01" data-route-end="departure">BUG</text></a>
 <!--WORKFLOW: START ROUTE / ST04 -> WS01 / MAINTENANCE -->
-    <a href="#node-ws01"><text x="8358" y="1195" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:23px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="ST04" data-to="WS01" data-route-end="departure">MAINTENANCE</text></a>
+    <a href="#node-ws01"><text x="8254.2" y="1078.6" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:23px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="ST04" data-to="WS01" data-route-end="departure">MAINTENANCE</text></a>
 <!--WORKFLOW: START ROUTE / ST05 -> WS01 / RESUME -->
-    <a href="#node-ws01"><text x="6448" y="1195" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:23px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="ST05" data-to="WS01" data-route-end="departure">RESUME</text></a>
+    <a href="#node-ws01"><text x="6516.6" y="1166.3" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:23px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="ST05" data-to="WS01" data-route-end="departure">RESUME</text></a>
 <!--WORKFLOW: START ROUTE / ST06 -> WS01 / RELEASE -->
-    <a href="#node-ws01"><text x="7392" y="1195" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:23px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="ST06" data-to="WS01" data-route-end="departure">RELEASE</text></a>
+    <a href="#node-ws01"><text x="7320.9" y="1135.4" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:23px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="ST06" data-to="WS01" data-route-end="departure">RELEASE</text></a>
 <!--WORKFLOW: ARRIVAL / WS03 -> BG01 -->
     <a href="#node-ws03" aria-label="Back to source WS03"><text x="1346.0" y="5156.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="WS03" data-to="BG01" data-route-end="arrival">WS03 → BG01</text></a>
 <!--WORKFLOW: ARRIVAL / BG03 -> BG05 -->
     <a href="#node-bg03" aria-label="Back to source BG03"><text x="8794.0" y="2254.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG03" data-to="BG05" data-route-end="arrival">BG03 → BG05</text></a>
 <!--WORKFLOW: DEPARTURE / BG03 -> BG05 -->
-    <a href="#node-bg05"><text x="4646.3" y="7092.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG03" data-to="BG05" data-route-end="departure">BG03 → BG05</text></a>
+    <a href="#node-bg05"><text x="4934.0" y="6773.5" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG03" data-to="BG05" data-route-end="departure">BG03 → BG05</text></a>
 <!--WORKFLOW: ARRIVAL / BG05 -> BG01 -->
     <a href="#node-bg05" aria-label="Back to source BG05"><text x="1570.0" y="5156.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="BG05" data-to="BG01" data-route-end="arrival">BG05 → BG01</text></a>
 <!--WORKFLOW: ARRIVAL / RV03 -> RV04 -->
     <a href="#node-rv03" aria-label="Back to source RV03"><text x="3645.0" y="2894.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV03" data-to="RV04" data-route-end="arrival">RV03 → RV04</text></a>
 <!--WORKFLOW: DEPARTURE / RV03 -> RV04 -->
-    <a href="#node-rv04"><text x="499.0" y="8862.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV03" data-to="RV04" data-route-end="departure">RV03 → RV04</text></a>
+    <a href="#node-rv04"><text x="119.7" y="8508.2" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV03" data-to="RV04" data-route-end="departure">RV03 → RV04</text></a>
 <!--WORKFLOW: ARRIVAL / RV04 -> PL01 -->
     <a href="#node-rv04" aria-label="Back to source RV04"><text x="13065.4" y="4868.0" class="text-mono-italic" fill="#124B82" style="text-anchor:middle;font-size:24px;paint-order:stroke fill;stroke:#ffffff;stroke-width:2px;stroke-linejoin:round" data-from="RV04" data-to="PL01" data-route-end="arrival">RV04 → PL01</text></a>
 <!--WORKFLOW: ARRIVAL / RV04 -> CL06 -->
