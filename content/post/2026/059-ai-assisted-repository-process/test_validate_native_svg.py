@@ -175,10 +175,14 @@ class NativeSvgTests(unittest.TestCase):
         root = ET.fromstring(SOURCE)
         labels = {label.get("data-to"): label for label in root.iter(S+"text")
                   if label.get("data-from") == "SP02"}
-        self.assertIn("text-anchor:end", labels["SP03"].get("style"))
-        self.assertIn("text-anchor:start", labels["SP04"].get("style"))
-        self.assertAlmostEqual(float(labels["SP03"].get("x")), 9124, delta=20)
-        self.assertAlmostEqual(float(labels["SP04"].get("x")), 9924, delta=20)
+        for target, line_x in (("SP03", 9124), ("SP04", 9924)):
+            label = labels[target]
+            x = float(label.get("x"))
+            # Either side is valid: the nearest rendered text edge must
+            # face the connector, without relying on a fixed side preference.
+            self.assertIn("text-anchor:end" if x < line_x else "text-anchor:start",
+                          label.get("style"))
+            self.assertAlmostEqual(x, line_x, delta=20)
         native.validate(SOURCE)
 
     def test_long_route_end_positions_are_distinct(self):
