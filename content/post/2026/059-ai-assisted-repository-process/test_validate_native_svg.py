@@ -159,6 +159,18 @@ class NativeSvgTests(unittest.TestCase):
         self.assertLess(a[2], b[0])
         native.validate(SOURCE)
 
+    def test_duplicate_route_caption_is_rejected(self):
+        def edit(root):
+            import copy
+            for group in root.iter():
+                for a in list(group):
+                    label = a.find(S+"text") if a.tag == S+"a" else None
+                    if label is not None and label.get("data-from") == "BG01" and label.get("data-to") == "BG02" and label.get("data-route-end") == "arrival":
+                        group.append(copy.deepcopy(a))
+                        return
+        with self.assertRaisesRegex(ValueError, "Duplicate route caption|Captions overlap"):
+            native.validate(edited(edit))
+
 
 if __name__ == "__main__":
     unittest.main()

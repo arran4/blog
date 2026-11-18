@@ -157,6 +157,8 @@ def _check_route_readability(root: ET.Element, drawn: dict,
             for prior_id, prior_box in caption_boxes:
                 if _intersects(bbox, prior_box):
                     raise ValueError(f"Captions overlap: {prior_id}, {eid}")
+            if (placement or "primary") in endpoint_labels[eid]:
+                raise ValueError(f"Duplicate route caption: {eid} ({placement or 'primary'})")
             own_gap = _route_gap(bbox, route_segments[eid])
             if not 3 <= own_gap <= MAX_CAPTION_GAP:
                 raise ValueError(f"Caption is not adjacent to its own route: {eid} ({own_gap:.1f})")
