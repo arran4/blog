@@ -181,6 +181,22 @@ class NativeSvgTests(unittest.TestCase):
         self.assertAlmostEqual(float(labels["SP04"].get("x")), 9924, delta=20)
         native.validate(SOURCE)
 
+    def test_long_route_end_positions_are_distinct(self):
+        root = ET.fromstring(SOURCE)
+        routes = {g.get("data-transition-id"): native._route_segments(g) for g in root.iter(S+"g") if g.get("data-transition-id")}
+        for route in ("bg01-bg02", "rv04-rv05", "rv04-sp01", "ws04-bg01"):
+            a, b = route.upper().split("-")
+            labels = [label for label in root.iter(S+"text") if label.get("data-from") == a and label.get("data-to") == b]
+            self.assertEqual(len(labels), 2)
+            for label in labels:
+                p = native._route_progress(native._caption_bounds(label), routes[route])
+                if label.get("data-route-end") == "arrival":
+                    self.assertGreaterEqual(p, .59)
+                else:
+                    self.assertLessEqual(p, .41)
+                    self.assertIn(b, label.text)
+        native.validate(SOURCE)
+
 
 if __name__ == "__main__":
     unittest.main()

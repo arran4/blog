@@ -134,6 +134,22 @@ def _route_gap(box, segments):
     return min(_segment_gap(box, segment) for segment in segments)
 
 
+def _route_progress(box, segments):
+    """Fraction along the route nearest the caption's conservative centre."""
+    x, y = (box[0]+box[2])/2, (box[1]+box[3])/2
+    best = (float("inf"), 0.)
+    at = 0.
+    for px, py, X, Y in segments:
+        dx, dy = X-px, Y-py
+        length = math.hypot(dx, dy)
+        t = max(0., min(1., ((x-px)*dx+(y-py)*dy)/(length*length)))
+        distance = math.hypot(x-px-t*dx, y-py-t*dy)
+        if distance < best[0]:
+            best = (distance, at+t*length)
+        at += length
+    return best[1]/at
+
+
 def _check_route_readability(root: ET.Element, drawn: dict,
                              edges: dict, drawn_edges: dict) -> None:
     node_boxes = {id: _bounds(group) for id, group in drawn.items()}
@@ -173,6 +189,13 @@ def _check_route_readability(root: ET.Element, drawn: dict,
             for other_id, segments in route_segments.items():
                 if other_id != eid and _route_gap(bbox, segments) < own_gap + MIN_ROUTE_ADVANTAGE:
                     raise ValueError(f"Caption ambiguous between {eid} and {other_id}")
+            length = sum(math.hypot(X-x, Y-y) for x,y,X,Y in route_segments[eid])
+            if length >= LONG_ROUTE_LENGTH and not eid.startswith("st") and not eid.endswith("-cl05"):
+                progress = _route_progress(bbox, route_segments[eid])
+                if (placement == "arrival" and progress < .59) or (placement != "arrival" and progress > .41):
+                    raise ValueError(f"Long route caption is at the wrong end: {eid}")
+                if placement != "arrival" and to_id not in "".join(label.itertext()):
+                    raise ValueError(f"Long departure caption lacks destination ID: {eid}")
             endpoint_labels[eid].add(placement or "primary")
             caption_boxes.append((eid, bbox))
             if not placement:
