@@ -215,7 +215,7 @@ class NativeSvgTests(unittest.TestCase):
         def edit(root):
             overlay = next(g for g in root.iter(S+"g")
                            if g.get("id") == "workflow-crossing-bridges")
-            next(overlay.iter(S+"g")).set("data-over-route", "unknown-route")
+            next(iter(overlay.findall(S+"g"))).set("data-over-route", "unknown-route")
         with self.assertRaisesRegex(ValueError, "invalid route ownership"):
             native.validate(edited(edit))
 
@@ -223,7 +223,7 @@ class NativeSvgTests(unittest.TestCase):
         def edit(root):
             overlay = next(g for g in root.iter(S+"g")
                            if g.get("id") == "workflow-crossing-bridges")
-            bridge = next(overlay.iter(S+"g"))
+            bridge = next(iter(overlay.findall(S+"g")))
             circle = bridge.find(S+"circle")
             circle.set("cx", "9479")
             circle.set("cy", "3929")
