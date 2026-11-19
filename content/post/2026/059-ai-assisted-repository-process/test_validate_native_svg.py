@@ -202,5 +202,34 @@ class NativeSvgTests(unittest.TestCase):
         native.validate(SOURCE)
 
 
+    def test_crossing_bridges_are_real_and_noninteractive(self):
+        root = ET.fromstring(SOURCE)
+        overlay = next(g for g in root.iter(S+"g")
+                       if g.get("id") == "workflow-crossing-bridges")
+        self.assertEqual(overlay.get("pointer-events"), "none")
+        self.assertGreaterEqual(len(overlay.findall(S+"g")), 40)
+        self.assertFalse(list(overlay.iter(S+"a")))
+        native.validate(SOURCE)
+
+    def test_crossing_bridge_ownership_is_checked(self):
+        def edit(root):
+            overlay = next(g for g in root.iter(S+"g")
+                           if g.get("id") == "workflow-crossing-bridges")
+            next(overlay.iter(S+"g")).set("data-over-route", "unknown-route")
+        with self.assertRaisesRegex(ValueError, "invalid route ownership"):
+            native.validate(edited(edit))
+
+    def test_crossing_bridge_must_not_hide_node_or_label(self):
+        def edit(root):
+            overlay = next(g for g in root.iter(S+"g")
+                           if g.get("id") == "workflow-crossing-bridges")
+            bridge = next(overlay.iter(S+"g"))
+            circle = bridge.find(S+"circle")
+            circle.set("cx", "9479")
+            circle.set("cy", "3929")
+        with self.assertRaisesRegex(ValueError, "not on both assigned routes|encroaches"):
+            native.validate(edited(edit))
+
+
 if __name__ == "__main__":
     unittest.main()

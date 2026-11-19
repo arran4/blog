@@ -271,6 +271,49 @@ def _check_route_readability(root: ET.Element, drawn: dict,
         if not re.search(r"\s8790$", path.get("d", "")):
             raise ValueError(f"CL05 feeder misses common collector: {source}")
 
+def _check_crossing_bridges(root: ET.Element, drawn: dict, drawn_edges: dict) -> None:
+    """Ensure decorative line jumps describe real crossings, not semantic junctions."""
+    overlay = next((g for g in root.iter(Q("g"))
+                    if g.get("id") == "workflow-crossing-bridges"), None)
+    if overlay is None or overlay.get("pointer-events") != "none":
+        raise ValueError("Missing non-interactive crossing bridge overlay")
+    bridges = list(overlay.findall(Q("g")))
+    if not 40 <= len(bridges) <= 124:
+        raise ValueError("Unexpected crossing bridge inventory")
+    node_boxes = [_bounds(node) for node in drawn.values()]
+    label_boxes = [_caption_bounds(el) for el in root.iter(Q("text"))
+                   if el.get("data-from") and el.get("data-to")]
+    seen = []
+    route_segments = {key: _route_segments(group) for key, group in drawn_edges.items()}
+
+    for bridge in bridges:
+        ids = bridge.get("data-crossing-between", "").split()
+        over = bridge.get("data-over-route")
+        if len(ids) != 2 or ids[0] == ids[1] or any(x not in drawn_edges for x in ids) or over not in ids:
+            raise ValueError("Crossing bridge has invalid route ownership")
+        circle, stroke = bridge.find(Q("circle")), bridge.find(Q("path"))
+        if circle is None or stroke is None or bridge.find(Q("a")) is not None:
+            raise ValueError("Crossing bridge lacks decorative geometry")
+        x, y = float(circle.get("cx")), float(circle.get("cy"))
+        if not (8 <= float(circle.get("r", "0")) <= 12):
+            raise ValueError("Crossing bridge gap is oversized")
+        if any(math.dist((x, y), pt) < 20 for pt in seen):
+            raise ValueError("Crossing bridges overlap")
+        seen.append((x, y))
+        point_box = (x, y, x + .01, y + .01)
+        for eid in ids:
+            if _route_gap(point_box, route_segments[eid]) > 2:
+                raise ValueError("Crossing bridge is not on both assigned routes")
+        over_path = next(p for p in drawn_edges[over].iter(Q("path"))
+                         if "connection" in p.get("class", "").split())
+        if stroke.get("stroke") != over_path.get("stroke"):
+            raise ValueError("Crossing bridge is not colored like its foreground route")
+        if not stroke.get("d", "").startswith("M ") or stroke.get("class") == "connection":
+            raise ValueError("Crossing bridge must not replace a process connector")
+        if any(_segment_gap(box, (x, y, x, y)) < 22 for box in node_boxes + label_boxes):
+            raise ValueError("Crossing bridge encroaches on a node or label")
+
+
 def validate(source: str) -> dict:
     root = ET.fromstring(source)
     if root.tag != Q("svg") or not root.get("viewBox"):
@@ -393,6 +436,7 @@ def validate(source: str) -> dict:
         raise ValueError("Terminals must share a horizontal row")
 
     _check_route_readability(root, drawn, edges, drawn_edges)
+    _check_crossing_bridges(root, drawn, drawn_edges)
 
     return model
 
