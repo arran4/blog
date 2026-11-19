@@ -1,0 +1,50 @@
+name: Validate native SVG workflow and export PNG
+
+on:
+  pull_request:
+    paths:
+      - 'content/post/2026/059-ai-assisted-repository-process/workflow.svg'
+      - 'content/post/2026/059-ai-assisted-repository-process/validate-native-svg.py'
+      - 'content/post/2026/059-ai-assisted-repository-process/test_validate_native_svg.py'
+      - 'content/post/2026/059-ai-assisted-repository-process/render-diagrams.sh'
+      - 'content/post/2026/059-ai-assisted-repository-process/index.md'
+      - '.github/workflows/validate-native-svg.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  validate-and-export:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          persist-credentials: true
+      - name: Test native SVG semantic model
+        run: |
+          python3 -m unittest discover -v \
+            -s content/post/2026/059-ai-assisted-repository-process \
+            -p 'test_validate_native_svg.py'
+      - name: Validate native SVG
+        run: python3 content/post/2026/059-ai-assisted-repository-process/validate-native-svg.py
+      - name: Install SVG rasteriser
+        run: |
+          if ! command -v rsvg-convert >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends librsvg2-bin
+          fi
+      - name: Export PNG from SVG
+        run: bash content/post/2026/059-ai-assisted-repository-process/render-diagrams.sh
+      - name: Commit updated PNG only
+        run: |
+          git add -- 'content/post/2026/059-ai-assisted-repository-process/workflow.png'
+          if git diff --cached --quiet; then
+            echo 'PNG already matches SVG'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -c commit.gpgsign=false commit -m 'docs: export workflow SVG to PNG'
+          git push origin HEAD:"$GITHUB_HEAD_REF"
