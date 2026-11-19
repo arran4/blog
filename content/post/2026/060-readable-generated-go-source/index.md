@@ -1,7 +1,7 @@
 ---
 title: "Generated Go Is Source Code: Naming, Control Flow, and Reviewable Output"
 date: 2026-11-19T14:00:00+11:00
-draft: true
+draft: false
 guidance: ["generated-go-review"]
 tags: ["go", "code-generation", "testing", "readability", "ai-agents"]
 categories: ["Software Development", "LLM Instructions"]
@@ -85,7 +85,7 @@ A sensible allocation sequence is:
 4. Disambiguate with a meaningful qualifier when possible.
 5. If ambiguity remains, add a deterministic, stable suffix tied to semantic
    identity. A hash can be a last resort, not the primary identifier.
-6. Check both uniqueness and compilability. An attractive name is useless if
+6. Check both uniqueness and whether the generated code compiles. An attractive name is useless if
    it shadows an import or conflicts with another declaration.
 
 Inserting a new sibling route should not rename half the generated file merely
@@ -111,7 +111,7 @@ covers related structural concerns.
 ## Prefer clear exits to incidental nesting
 
 In generation, nested source often comes from the structure of an intermediate
-representation or template, rather than the problem being modeled. Before
+representation or template, rather than the problem being modelled. Before
 emitting another `if` block, ask whether a guard clause or direct expression
 would preserve the contract more clearly.
 
@@ -183,7 +183,7 @@ I want three complementary kinds of evidence:
   with readable formatting and useful comments. Exact golden output is
   appropriate where the emitted bytes are themselves an accepted contract;
   otherwise test meaningful AST or semantic properties.
-- **Compiled and behavioral tests** prove real output compiles and operates
+- **Compiled and behavioural tests** prove real output compiles and operates
   correctly: short-circuiting, terminal `(bool,error)` handling, dependency
   evaluation, resource cleanup, HTTP outcomes and command behavior where
   relevant.
@@ -192,7 +192,7 @@ Perturb inputs deliberately: reorder declarations, change map insertion order,
 add an unrelated sibling node, introduce conflicting import aliases, exercise
 Unicode and punctuation in path components, and generate twice. Run the
 compiled output rather than relying only on string searches for a particular
-helper name. A variable rename should not break a behavioral test; changing
+helper name. A variable rename should not break a behavioural test; changing
 which provider runs should.
 
 Use readable `txtar` scenarios where several source and expected files belong
@@ -222,7 +222,7 @@ When a generated Go change is ready for review, answer:
 - Do errors, provider scopes and short-circuit behavior remain intact?
 - Do generated comments locate paths and meaningful constraints without
   duplicating the implementation?
-- Are golden examples, compiled output and behavioral tests all covered where
+- Are golden examples, compiled output and behavioural tests all covered where
   they add distinct evidence?
 - Has the generator, rather than only its checked-in example, been fixed?
 
