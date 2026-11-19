@@ -231,5 +231,24 @@ class NativeSvgTests(unittest.TestCase):
             native.validate(edited(edit))
 
 
+    def test_overlay_visual_coordinate_frame_matches_nested_drawing(self):
+        root = ET.fromstring(SOURCE)
+        nested = next(e for e in root.iter(S+"svg")
+                      if "d2-svg" in e.get("class", "").split())
+        x, y, _, _ = map(float, nested.get("viewBox").split())
+        self.assertEqual((x, y), (-90, -91))
+        for group_id in ("workflow-edge-label-overlay", "workflow-crossing-bridges"):
+            overlay = next(g for g in root.iter(S+"g") if g.get("id") == group_id)
+            self.assertEqual(overlay.get("transform"), "translate(90 91)")
+        native.validate(SOURCE)
+
+    def test_untranslated_labels_fail_visual_alignment(self):
+        def edit(root):
+            overlay = next(g for g in root.iter(S+"g")
+                           if g.get("id") == "workflow-edge-label-overlay")
+            overlay.attrib.pop("transform")
+        with self.assertRaisesRegex(ValueError, "Visual coordinate frame mismatch"):
+            native.validate(edited(edit))
+
 if __name__ == "__main__":
     unittest.main()

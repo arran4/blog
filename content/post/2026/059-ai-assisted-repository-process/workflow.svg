@@ -6188,7 +6188,7 @@ Move to: WS01 Open one workstream when enter workstream.</desc>
     </mask>
   </svg>
   <!--WORKFLOW: DECORATIVE CROSSING BRIDGES / 85 safe orthogonal crossings; route paths remain authoritative -->
-  <g id="workflow-crossing-bridges" aria-label="Line breaks distinguish crossing routes from shared destinations" pointer-events="none">
+  <g id="workflow-crossing-bridges" aria-label="Line breaks distinguish crossing routes from shared destinations" pointer-events="none" transform="translate(90 91)">
     <g data-crossing-between="ws01-ws06 tr07-tr04" data-over-route="ws01-ws06" aria-hidden="true">
       <circle cx="8125.54" cy="1581.00" r="9" fill="#ffffff" />
       <path d="M 8125.54 1568.00 V 1594.00" stroke="#436B90" stroke-width="3" stroke-linecap="butt" fill="none" />
@@ -6530,7 +6530,7 @@ Move to: WS01 Open one workstream when enter workstream.</desc>
       <path d="M 9617.00 9130.00 H 9643.00" stroke="#436B90" stroke-width="3" stroke-linecap="butt" fill="none" />
     </g>
   </g>
-  <g id="workflow-edge-label-overlay" aria-label="Route-relative connector labels">
+  <g id="workflow-edge-label-overlay" aria-label="Route-relative connector labels" transform="translate(90 91)">
 
 
 

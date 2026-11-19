@@ -314,6 +314,34 @@ def _check_crossing_bridges(root: ET.Element, drawn: dict, drawn_edges: dict) ->
             raise ValueError("Crossing bridge encroaches on a node or label")
 
 
+def _check_overlay_coordinate_frames(root: ET.Element) -> None:
+    """Compare rendered coordinates, not just raw SVG coordinates.
+
+    The nested drawing has a negative viewBox origin. Route and node geometry
+    are inside it; the caption and crossing overlays are siblings outside it.
+    Without a compensating transform, every caption can pass geometric tests
+    while rendering displaced from its actual connector.
+    """
+    drawing = next((e for e in root.iter(Q("svg"))
+                    if "d2-svg" in e.get("class", "").split()), None)
+    if drawing is None:
+        raise ValueError("Missing embedded native workflow drawing")
+    x, y, width, height = map(float, drawing.get("viewBox", "").split())
+    if (float(drawing.get("width")), float(drawing.get("height"))) != (width, height):
+        raise ValueError("Nested workflow viewBox scale changed")
+    expected = (-x, -y)
+    for group_id in ("workflow-edge-label-overlay", "workflow-crossing-bridges"):
+        overlay = next((g for g in root.iter(Q("g"))
+                        if g.get("id") == group_id), None)
+        if overlay is None:
+            raise ValueError(f"Missing {group_id}")
+        transform = re.fullmatch(r"translate\(([-\d.]+)\s+([-\d.]+)\)",
+                                 overlay.get("transform", ""))
+        if transform is None or any(abs(float(value)-target) > .01 for value, target
+                                    in zip(transform.groups(), expected)):
+            raise ValueError(f"Visual coordinate frame mismatch: {group_id}")
+
+
 def validate(source: str) -> dict:
     root = ET.fromstring(source)
     if root.tag != Q("svg") or not root.get("viewBox"):
@@ -435,6 +463,7 @@ def validate(source: str) -> dict:
     if max(y)-min(y) > 5:
         raise ValueError("Terminals must share a horizontal row")
 
+    _check_overlay_coordinate_frames(root)
     _check_route_readability(root, drawn, edges, drawn_edges)
     _check_crossing_bridges(root, drawn, drawn_edges)
 
