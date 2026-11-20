@@ -5,6 +5,7 @@ draft: false
 guidance: ["generated-go-review"]
 tags: ["go", "code-generation", "testing", "readability", "ai-agents"]
 categories: ["Software Development", "LLM Instructions"]
+discussion: "https://github.com/arran4/blog/discussions/289"
 ---
 
 A Go generator is not finished when its output compiles. Its output is source code
