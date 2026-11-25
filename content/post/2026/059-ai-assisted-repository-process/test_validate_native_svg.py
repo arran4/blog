@@ -151,6 +151,24 @@ class NativeSvgTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Long route lacks bidirectional"):
             native.validate(edited(edit))
 
+    def test_dogfood_and_completion_arrivals_repeat_decision(self):
+        root = ET.fromstring(SOURCE)
+        for target, outcome in (("TR04", "dogfood required"), ("CL01", "complete")):
+            labels = [el for el in root.iter(S+"text")
+                      if el.get("data-from") == "TR07" and el.get("data-to") == target]
+            self.assertEqual(len(labels), 2)
+            arrival = next(el for el in labels if el.get("data-route-end") == "arrival")
+            self.assertEqual(arrival.text, "TR07 · " + outcome)
+
+    def test_long_route_arrival_cannot_lose_outcome(self):
+        def edit(root):
+            label = next(el for el in root.iter(S+"text")
+                         if el.get("data-from") == "TR07" and el.get("data-to") == "TR04"
+                         and el.get("data-route-end") == "arrival")
+            label.text = "TR07"
+        with self.assertRaisesRegex(ValueError, "Arrival caption lacks source and outcome|Caption"):
+            native.validate(edited(edit))
+
     def test_pr_tree_sequence_is_compact(self):
         root = ET.fromstring(SOURCE)
         nodes = {g.get("data-workflow-node"): g for g in root.iter(S+"g") if g.get("data-workflow-node")}
@@ -195,9 +213,9 @@ class NativeSvgTests(unittest.TestCase):
             for label in labels:
                 p = native._route_progress(native._caption_bounds(label), routes[route])
                 if label.get("data-route-end") == "arrival":
-                    self.assertGreaterEqual(p, .59)
+                    self.assertGreaterEqual(p, .58)
                 else:
-                    self.assertLessEqual(p, .41)
+                    self.assertLessEqual(p, .42)
                     self.assertIn(b, label.text)
         native.validate(SOURCE)
 

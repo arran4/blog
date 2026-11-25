@@ -72,13 +72,23 @@ def _caption_bounds(label: ET.Element) -> tuple[float, float, float, float]:
         left, right = x - width + 8, x + 8
     else:
         left, right = x - width / 2, x + width / 2
-    return (left, y - size - 8, right, y + size * 0.25 + 5)
+    box = (left, y - size - 8, right, y + size * 0.25 + 5)
+    transform = label.get("transform")
+    if transform:
+        match = re.fullmatch(r"rotate\(-90 ([-\d.]+) ([-\d.]+)\)", transform)
+        if (match is None or label.get("data-caption-alignment") != "inline"
+                or tuple(map(float, match.groups())) != (x, y)):
+            raise ValueError("Unsupported caption rotation")
+        box = (x + box[1] - y, y - (box[2] - x),
+               x + box[3] - y, y - (box[0] - x))
+    return box
 
 
 # Captions are attached to actual polyline geometry, not merely to an empty
 # rectangle somewhere between two nodes. Current SVG uses M/L and zero-length
 # S bends inherited from its original layout.
-LONG_ROUTE_LENGTH = 4000
+LONG_ROUTE_LENGTH = 1800
+MAX_ENDPOINT_DISTANCE = 1300
 MAX_CAPTION_GAP = 23
 MIN_ROUTE_ADVANTAGE = 4
 
@@ -158,6 +168,7 @@ def _check_route_readability(root: ET.Element, drawn: dict,
     arrivals = 0
     route_segments = {eid: _route_segments(group) for eid, group in drawn_edges.items()}
     endpoint_labels = defaultdict(set)
+    endpoint_text = defaultdict(dict)
     for anchor in root.iter(Q("a")):
         for label in anchor:
             if label.tag != Q("text"):
@@ -184,19 +195,25 @@ def _check_route_readability(root: ET.Element, drawn: dict,
             if (placement or "primary") in endpoint_labels[eid]:
                 raise ValueError(f"Duplicate route caption: {eid} ({placement or 'primary'})")
             own_gap = _route_gap(bbox, route_segments[eid])
-            if not 3 <= own_gap <= MAX_CAPTION_GAP:
+            inline = label.get("data-caption-alignment") == "inline"
+            if (inline and own_gap > 1) or (not inline and not 3 <= own_gap <= MAX_CAPTION_GAP):
                 raise ValueError(f"Caption is not adjacent to its own route: {eid} ({own_gap:.1f})")
             for other_id, segments in route_segments.items():
-                if other_id != eid and _route_gap(bbox, segments) < own_gap + MIN_ROUTE_ADVANTAGE:
+                if other_id != eid and _route_gap(bbox, segments) < (8 if inline else own_gap + MIN_ROUTE_ADVANTAGE):
                     raise ValueError(f"Caption ambiguous between {eid} and {other_id}")
             length = sum(math.hypot(X-x, Y-y) for x,y,X,Y in route_segments[eid])
-            if length >= LONG_ROUTE_LENGTH and not eid.startswith("st") and not eid.endswith("-cl05"):
+            if length >= LONG_ROUTE_LENGTH:
                 progress = _route_progress(bbox, route_segments[eid])
-                if (placement == "arrival" and progress < .59) or (placement != "arrival" and progress > .41):
-                    raise ValueError(f"Long route caption is at the wrong end: {eid}")
-                if placement != "arrival" and to_id not in "".join(label.itertext()):
+                distance = (1 - progress if placement == "arrival" else progress) * length
+                if distance > min(MAX_ENDPOINT_DISTANCE, .42 * length):
+                    raise ValueError(f"Long route caption is too far from its endpoint: {eid} ({distance:.1f})")
+                caption = "".join(label.itertext())
+                if placement == "arrival" and not caption.startswith(from_id + " · "):
+                    raise ValueError(f"Arrival caption lacks source and outcome: {eid}")
+                if placement != "arrival" and not caption.endswith(" → " + to_id):
                     raise ValueError(f"Long departure caption lacks destination ID: {eid}")
             endpoint_labels[eid].add(placement or "primary")
+            endpoint_text[eid][placement or "primary"] = "".join(label.itertext())
             caption_boxes.append((eid, bbox))
             if not placement:
                 captions[eid] = label
@@ -204,13 +221,17 @@ def _check_route_readability(root: ET.Element, drawn: dict,
         raise ValueError("Lost primary or bidirectional route annotations")
 
     # Long routes have a forward caption and reverse arrival, except the
-    # common START intake and the explicitly source-labelled CL05 collector.
+    # explicitly source- and outcome-labelled CL05 collector.
     for eid, segments in route_segments.items():
         length = sum(math.hypot(X-x, Y-y) for x,y,X,Y in segments)
-        if length >= LONG_ROUTE_LENGTH and not eid.startswith("st") and not eid.endswith("-cl05"):
+        if length >= LONG_ROUTE_LENGTH and not eid.endswith("-cl05"):
             kinds = endpoint_labels[eid]
             if "arrival" not in kinds or not ({"primary", "departure"} & kinds):
                 raise ValueError(f"Long route lacks bidirectional labels: {eid}")
+            departure = endpoint_text[eid].get("departure") or endpoint_text[eid].get("primary")
+            expected = edges[eid]["from"] + " · " + departure.rsplit(" → ", 1)[0]
+            if endpoint_text[eid]["arrival"] != expected:
+                raise ValueError(f"Arrival outcome differs from departure: {eid}")
     tr02, tr03, rv10 = (node_boxes[n] for n in ("TR02", "TR03", "RV10"))
     if abs(tr02[1]-tr03[1]) > 1 or tr02[2] >= rv10[0] + (rv10[2]-rv10[0])/2:
         raise ValueError("TR02 must sit left of RV10, aligned with TR03")
@@ -262,6 +283,11 @@ def _check_route_readability(root: ET.Element, drawn: dict,
             raise ValueError("Duplicated or invalid CL05 source badge")
         if (anchor.find(Q("text")).text or "").strip() != badge:
             raise ValueError("CL05 badge label not aligned with its source")
+        outcome = next(e["label"].split(" → ")[0] for e in edges.values()
+                       if e["from"] == badge and e["to"] == "CL05")
+        texts = anchor.findall(Q("text"))
+        if len(texts) != 2 or texts[1].text != outcome:
+            raise ValueError(f"CL05 collector badge lacks outcome: {badge}")
         badge_sources.add(badge)
     if badge_sources != incoming:
         raise ValueError("CL05 collector labels do not cover incoming routes")
