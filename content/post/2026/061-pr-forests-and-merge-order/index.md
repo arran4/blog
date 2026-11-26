@@ -1,6 +1,6 @@
 ---
 title: "PR Forests: Issue Ownership, Dependency Branches and Merge Order"
-date: 2026-11-26T12:34:00+11:00
+date: 2026-11-26T12:44:00+11:00
 draft: false
 guidance: ["agent-management"]
 tags: ["agents", "git", "github", "pull-requests", "workflow", "architecture", "testing"]
@@ -59,7 +59,7 @@ Where appropriate, use component-specific build registration files to reduce con
 
 The graph describes dependencies; a merge table makes them actionable. I ask the management LLM to inspect the actual open PRs, their current base branches, commit IDs and mergeability, rather than relying on an old plan or a coding agent's completion report.
 
-My preferred table has the PR link, its **current base**, purpose, and where to go if merging fails or conflicts. The current base is the actual base at the time of inspection, not the eventual target. Where a base is another PR's head branch, identify that PR. In this example the final target is always `main`.
+My preferred table has the PR link, its **current base**, purpose, and where to go if merging fails or conflicts. The current base is the actual base at the time of inspection, not the eventual target. Where a base is another PR's head branch, identify that PR. Unless an alternative integration target has been expressly agreed, every PR in the merge plan must ultimately merge directly into `main`. The current base column describes a dependency, not the destination to select when merging.
 
 | Step | PR | Current base | Purpose | If failure or conflict, go to |
 | ---: | --- | --- | --- | --- |
@@ -83,7 +83,28 @@ Regenerate the table if the live state changes significantly. During merging I f
 
 When a forest has already been verified through ordinary merges of the exact provider commits, I prefer ordinary merge commits throughout that forest. Squashing or rebasing upstream changes can change their identities and make a downstream PR appear to contain work that has already landed.
 
-After each merge, verify the dependency is present in the default branch and that GitHub has retargeted dependent PRs correctly. If automatic retargeting requires deleting a merged source branch, preserve its commits and confirm the dependent base changes. Otherwise retarget explicitly before merging. Do not accidentally merge a consumer into an unmerged provider instead of the intended default branch.
+### Merge into main by default, not into the provider
+
+The order matters because review is work. If I review a platform PR and merge it into another feature branch rather than into `main`, the later PR that brings that feature branch into `main` can include the already-reviewed platform changes again. Repeated branch-to-branch merges can accumulate overlapping diffs, making me review the same implementation several times. A chain of dependencies can make that cost grow substantially.
+
+The normal merge order is therefore a **to-main order**, not a list of instructions to merge each PR into its current base. A stacked base is useful during development and review, but is not permission to merge into that branch. The prerequisite must reach `main` first. The next PR must then target `main` and show its own remaining contribution.
+
+For example, in the table above, merge #101 into `main`, then #102 into `main`, then #103 into `main`. Do not merge #102 into #101 or #103 into #102. This is what allows each review to remain focused on the change it owns.
+
+GitHub automatically retargets open PRs in the same repository that depend on a merged PR's head branch when that head branch is deleted: their new base is the base of the merged PR. See [GitHub's documented merge and branch deletion behaviour](https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/merging-a-pull-request). The normal sequence is:
+
+1. Review and merge the prerequisite into `main` using the agreed merge method.
+2. Confirm its commits are present in `main`, then delete the merged source branch when it is safe to do so. GitHub may already have done this if automatic branch deletion is enabled.
+3. Refresh the dependent PR and confirm GitHub has changed its base to `main`. If the branch must be retained or retargeting did not occur, change the base explicitly.
+4. Review the remaining diff and merge the dependent PR into `main` only after its prerequisites are satisfied.
+
+Closing a PR without merging it is not a substitute for this sequence. Nor is a green merge button proof of the correct target. If a PR still targets another feature branch, stop and reassess rather than clicking merge.
+
+### Explicit exception: a deliberate integration or release branch
+
+There are legitimate cases where I intend several changes to reach `main` as one unit: a major feature branch, a coordinated release or an incompatible transition that must not land incrementally. In that case, reviewing individual contributions against the integration branch and then reviewing the combined result can be worthwhile. Some repeated review is the price of checking the complete change at its actual publication boundary.
+
+That is a different merge strategy and must be stated explicitly in the goal prompt, relevant issues, PR descriptions and merge-order table. Name the integration target, explain why incremental merges to `main` are inappropriate, and identify the final PR that brings the complete change into `main`. Do not infer this exception merely because PRs are stacked. In the absence of an expressly agreed exception, the merge plan must be a to-main order.
 
 An integration branch may already contain normal merges of sibling PRs. Once those siblings are merged into the default branch, their exact heads should be ancestors of that branch. Retarget the integration PR and inspect its remaining diff. It should contain integration work, not a second copy of every module. If it does not, stop and investigate.
 
@@ -113,7 +134,7 @@ When asked to plan or review a PR forest:
 3. Propose cohesive branches with disjoint ownership where practical. Record provider branches and additional dependencies.
 4. Reuse existing work rather than creating competing PRs. Confirm exact head commits and distinguish agent-reported tests from independently observed evidence.
 5. Present a dependency-aware merge-order table with actual PR links, current bases, purpose and failure/conflict routing to another independent PR or a stop-and-reassess decision.
-6. Identify the intended final merge target and merge method separately from the current base. Check that the next PR can actually merge there.
+6. Default to a to-main merge order that avoids reviewing the same changes repeatedly. Identify current bases separately from final merge targets. After merging a provider into main, delete its merged branch when safe and verify dependent PRs were retargeted. Explicitly identify and justify any deliberate feature or release integration branch exception. Stop if the actual destination is wrong.
 7. Keep skipped or blocked requirements visible. Include a final integrated verification gate and explicit retirement milestones where applicable.
 8. Do not interpret a merge recommendation or successful test report as permission to merge, publish, archive or delete.
 
