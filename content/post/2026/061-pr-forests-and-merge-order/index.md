@@ -1,6 +1,6 @@
 ---
 title: "PR Forests: Issue Ownership, Dependency Branches and Merge Order"
-date: 2026-11-26T12:44:00+11:00
+date: 2026-11-26T12:45:00+11:00
 draft: false
 guidance: ["agent-management"]
 tags: ["agents", "git", "github", "pull-requests", "workflow", "architecture", "testing"]
@@ -99,6 +99,23 @@ GitHub automatically retargets open PRs in the same repository that depend on a 
 4. Review the remaining diff and merge the dependent PR into `main` only after its prerequisites are satisfied.
 
 Closing a PR without merging it is not a substitute for this sequence. Nor is a green merge button proof of the correct target. If a PR still targets another feature branch, stop and reassess rather than clicking merge.
+
+### Repository settings that make the forest work
+
+Check **Settings → General → Pull Requests** before starting a forest. The settings are operational prerequisites, not cosmetic preferences.
+
+| GitHub setting | Recommended state for a to-main forest | Reason |
+| --- | --- | --- |
+| Allow merge commits | Enabled | Retains the exact reviewed provider commits in the default branch. |
+| Allow squash merging | Optional; do not use for an ancestry-dependent forest | Replaces the original commits with a new commit, which can enlarge downstream diffs. Disable if an exclusive merge-commit policy is wanted. |
+| Allow rebase merging | Optional; do not use for an ancestry-dependent forest | Rewrites commit identities. Disable if an exclusive merge-commit policy is wanted. |
+| Automatically delete head branches | Enabled for ordinary merged provider branches | Deleting a merged provider branch triggers GitHub's automatic retargeting of same-repository dependent PRs. |
+| Always suggest updating pull request branches | Optional | Makes updating a stale branch available; does not itself retarget the PR. |
+| Allow auto-merge | Optional, normally disabled in a human-controlled forest | Does not enforce the dependency order or correct base. Do not use it as a substitute for merge approval. |
+
+If the repository requires linear history or otherwise prohibits merge commits, this particular ancestry-preserving merge strategy cannot be applied unchanged. Resolve that policy conflict before proceeding.
+
+Inspect these settings rather than assuming all repositories have the same configuration. With automatic branch deletion disabled, manually delete the merged provider branch when safe or explicitly retarget its consumers. Always confirm the displayed base immediately before merging. A deliberately retained release or integration branch is a separate case, and its lifetime must be part of the plan.
 
 ### Explicit exception: a deliberate integration or release branch
 
